@@ -13,6 +13,7 @@ const MainLayout: React.FC = () => {
     viewMode,
     activeModal,
     executeAttack,
+    selectSkillOrExecute,
     setSelectedSkill,
     setPlayerLane,
     playerLane,
@@ -60,19 +61,19 @@ const MainLayout: React.FC = () => {
         return;
       }
 
-      // Q, W, E, R: Skill Selection in battle
+      // Q, W, E, R: Skill Selection & Double-tap Instant Cast
       if (viewMode === 'battle' && !activeModal) {
         const key = e.key.toLowerCase();
-        if (key === 'q') setSelectedSkill(WARRIOR_SKILLS[0]);
-        if (key === 'w') setSelectedSkill(WARRIOR_SKILLS[1]);
-        if (key === 'e') setSelectedSkill(WARRIOR_SKILLS[2]);
-        if (key === 'r') setSelectedSkill(WARRIOR_SKILLS[3]);
+        if (key === 'q') selectSkillOrExecute(WARRIOR_SKILLS[0]);
+        if (key === 'w') selectSkillOrExecute(WARRIOR_SKILLS[1]);
+        if (key === 'e') selectSkillOrExecute(WARRIOR_SKILLS[2]);
+        if (key === 'r') selectSkillOrExecute(WARRIOR_SKILLS[3]);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [viewMode, activeModal, executeAttack, setSelectedSkill, setPlayerLane, playerLane, enterDungeon, currentDungeon, useConsumable]);
+  }, [viewMode, activeModal, executeAttack, selectSkillOrExecute, setPlayerLane, playerLane, enterDungeon, currentDungeon, useConsumable]);
 
   return (
     <div className="min-h-screen bg-void flex flex-col justify-between relative overflow-x-hidden text-gray-200">

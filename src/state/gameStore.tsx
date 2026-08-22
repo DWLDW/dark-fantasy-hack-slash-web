@@ -20,7 +20,7 @@ import {
   D2_RUNES,
   RUNEWORD_RECIPES
 } from '../data/gameData';
-import { resolveAttack, createGoblin30Formation, AttackResolution, CombatHitResult } from '../combat/combatEngine';
+import { resolveAttack, createGoblin30Formation, findBestLaneForSkill, AttackResolution, CombatHitResult } from '../combat/combatEngine';
 import {
   playSlashSound,
   playHitSound,
@@ -89,6 +89,7 @@ interface GameContextType {
   upgradeStat: (stat: 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha') => void;
   setPlayerLane: (lane: number) => void;
   setSelectedSkill: (skill: Skill) => void;
+  selectSkillOrExecute: (skill: Skill) => void;
   executeAttack: () => void;
   useConsumable: (hotkeyOrId: string) => void;
   enterDungeon: (dungeonId: string) => void;
@@ -387,9 +388,22 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setMonsters(survivors);
       setIsAttacking(false);
 
-      // Check Victory
+      // Check Victory & Auto Transition to Next Room
       if (survivors.length === 0) {
-        addLog('🏆 전장의 모든 적을 격파했습니다! 다음 룸으로 이동하세요.', 'loot');
+        addLog('🏆 전장의 모든 적을 소탕했습니다! 1초 후 다음 룸으로 자동 이동합니다...', 'loot');
+        playRuneWordSound();
+
+        setTimeout(() => {
+          const currentRoom = currentDungeon.rooms.find(r => r.id === currentRoomId);
+          if (currentRoom && currentRoom.connections && currentRoom.connections.length > 0) {
+            const nextRoomId = currentRoom.connections[0];
+            selectNextRoom(nextRoomId);
+          } else {
+            addLog('👑 축하합니다! 던전의 모든 룸을 정복하고 보상을 획득하여 마을로 귀환합니다.', 'loot');
+            setPlayerStats(p => ({ ...p, shards: p.shards + 15, gold: p.gold + 5000 }));
+            returnToTown();
+          }
+        }, 1200);
         return;
       }
 
@@ -426,11 +440,28 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         setIsEnemyTurn(false);
         setHordeTimelinePercent(30);
+
+        // Smart Auto-Targeting: Set player lane to the best lane with maximum targets/damage
+        const bestLane = findBestLaneForSkill(playerStats.level, totalStats, selectedSkill, survivors);
+        setPlayerLane(bestLane);
       }, 700);
 
     }, totalHitTime);
 
-  }, [viewMode, isAttacking, isEnemyTurn, playerStats, selectedSkill, totalStats, playerLane, monsters, maxChainThisRoom, addLog]);
+  }, [viewMode, isAttacking, isEnemyTurn, playerStats, selectedSkill, totalStats, playerLane, monsters, maxChainThisRoom, currentDungeon, currentRoomId, addLog]);
+
+  // Skill Selector with Auto-Targeting and Double-Tap Instant Cast
+  const selectSkillOrExecute = useCallback((skill: Skill) => {
+    if (selectedSkill.id === skill.id) {
+      // Double tap same skill -> execute attack immediately!
+      executeAttack();
+    } else {
+      setSelectedSkill(skill);
+      // Auto-target the best lane for this new skill
+      const bestLane = findBestLaneForSkill(playerStats.level, totalStats, skill, monsters);
+      setPlayerLane(bestLane);
+    }
+  }, [selectedSkill, executeAttack, playerStats.level, totalStats, monsters]);
 
   // Consumables Quick Slot
   const useConsumable = useCallback((hotkeyOrId: string) => {
@@ -766,6 +797,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         upgradeStat,
         setPlayerLane,
         setSelectedSkill,
+        selectSkillOrExecute,
         executeAttack,
         useConsumable,
         enterDungeon,

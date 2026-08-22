@@ -231,6 +231,52 @@ export function resolveAttack(
 }
 
 /**
+ * Smart Auto-Targeting Algorithm:
+ * Evaluates all 5 lanes for the given skill and finds the lane that produces the maximum kills/damage.
+ * Prevents wasting attacks on empty or suboptimal lanes.
+ */
+export function findBestLaneForSkill(
+  attackerLevel: number,
+  totalStats: {
+    minDmg: number;
+    maxDmg: number;
+    critChance: number;
+    critDamage: number;
+    overkillEfficiency: number;
+  },
+  skill: Skill,
+  monsters: Monster[]
+): number {
+  const activeMonsters = monsters.filter(m => m.hp > 0);
+  if (activeMonsters.length === 0) return 2; // Default center
+
+  let bestLane = 2;
+  let bestScore = -1;
+
+  for (let lane = 0; lane < 5; lane++) {
+    // Check if this lane or affected area has any monsters
+    const hasMonsters = skill.route === 'branch'
+      ? activeMonsters.some(m => Math.abs(m.lane - lane) <= 1 && m.depth === 0)
+      : skill.route === 'radius'
+      ? activeMonsters.some(m => m.depth <= 1)
+      : activeMonsters.some(m => m.lane === lane);
+
+    if (!hasMonsters) continue;
+
+    const res = resolveAttack(attackerLevel, totalStats, skill, lane, monsters, true);
+    // Score heavily weights kills, then raw damage
+    const score = res.chainCount * 10000 + res.totalDamage;
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestLane = lane;
+    }
+  }
+
+  return bestLane;
+}
+
+/**
  * GDD Section 26 Benchmark: Fixed 30 Goblin Formation
  * 5 Lanes x 6 Depths = Exactly 30 Monsters
  * Designed specifically to test:
