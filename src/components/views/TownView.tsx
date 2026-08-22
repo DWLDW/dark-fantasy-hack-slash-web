@@ -12,6 +12,7 @@ export const TownView: React.FC = () => {
     equipment,
     inventory,
     runesVault,
+    currentDungeon,
     craftRuneWord,
     craftRuneWordWithTransmute,
     transmuteRunesInVault,
@@ -32,7 +33,10 @@ export const TownView: React.FC = () => {
   const [selectedBaseItem, setSelectedBaseItem] = useState<GameItem | null>(null);
   const [selectedRuneToSocket, setSelectedRuneToSocket] = useState<GameItem | null>(null);
 
-  const recommendedDungeon = DUNGEONS_DATA[0];
+  // Level-based Recommended Dungeon
+  const recommendedDungeon = DUNGEONS_DATA.find(d => playerStats.level <= d.recommendedLevel + 4) || DUNGEONS_DATA[DUNGEONS_DATA.length - 1];
+  // Last visited dungeon for instant quick return
+  const lastDungeon = currentDungeon || recommendedDungeon;
 
   const handleToggleCubeItem = (id: string) => {
     if (selectedCubeItems.includes(id)) {
@@ -56,49 +60,35 @@ export const TownView: React.FC = () => {
   const unidentifiedCount = inventory.filter(i => i.isIdentified === false).length;
 
   return (
-    <div className="max-w-7xl mx-auto p-3 md:p-6 space-y-4 pb-20 select-none">
+    <div className="max-w-7xl mx-auto p-2 sm:p-4 md:p-6 space-y-3 pb-20 select-none overflow-x-hidden">
       {/* Top Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-iron-750 pb-3">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-iron-750 pb-2.5">
         <div>
-          <h1 className="text-xl md:text-2xl font-cinzel font-black text-brass-200 flex items-center gap-2">
+          <h1 className="text-lg md:text-2xl font-cinzel font-black text-brass-200 flex items-center gap-2">
             <span>로그 캠프 (Rogue Encampment)</span>
           </h1>
-          <p className="text-xs md:text-sm text-gray-300 mt-0.5">
-            호라드릭 큐브와 룬워드를 통해 장비를 조합하고, 기드의 상점에서 도박을 즐기며 파밍을 준비하십시오.
+          <p className="text-[11px] md:text-xs text-gray-300 mt-0.5">
+            호라드릭 큐브와 룬워드로 장비를 맞추고, 기드의 상점에서 도박을 즐기며 파밍을 준비하세요.
           </p>
         </div>
         
-        {/* Quick Actions */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="text-[11px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-600/70 px-2.5 py-1.5 rounded flex items-center gap-1 shadow">
-            <span>💾 브라우저 자동저장 활성</span>
-          </div>
-
-          <button
-            onClick={() => {
-              if (window.confirm('정말로 세이브 데이터를 초기화하고 처음부터 다시 시작하시겠습니까?')) {
-                resetGameSave();
-              }
-            }}
-            className="px-2.5 py-1.5 bg-iron-950 hover:bg-blood-950 border border-iron-700 hover:border-blood-600 text-gray-400 hover:text-blood-200 rounded text-[11px] font-mono transition"
-            title="브라우저 세이브 초기화"
-          >
-            데이터 초기화
-          </button>
-
+        {/* Quick Actions (Compact for Mobile) */}
+        <div className="flex items-center gap-1.5 flex-wrap">
           <button
             onClick={() => setViewMode('dungeon_select')}
-            className="px-3.5 py-2 bg-iron-850 hover:bg-iron-750 border border-iron-600 text-gray-200 hover:text-white rounded text-xs font-bold flex items-center gap-1.5 transition shadow"
+            className="px-3 py-1.5 bg-iron-850 hover:bg-iron-750 border border-iron-600 text-gray-200 hover:text-white rounded text-xs font-bold flex items-center gap-1.5 transition shadow"
           >
-            <Compass className="w-4 h-4 text-amber-400" />
-            던전 관문
+            <Compass className="w-3.5 h-3.5 text-amber-400" />
+            <span>던전 선택</span>
           </button>
+          
           <button
-            onClick={() => enterDungeon(recommendedDungeon.id)}
-            className="px-5 py-2.5 bg-gradient-to-r from-blood-700 via-blood-600 to-blood-500 hover:from-blood-600 hover:to-blood-400 text-white font-black rounded text-xs md:text-sm flex items-center gap-2 shadow-lg transition transform active:scale-95 animate-pulse"
+            onClick={() => enterDungeon(lastDungeon.id)}
+            className="px-3.5 py-1.5 bg-gradient-to-r from-blood-700 via-blood-600 to-blood-500 hover:from-blood-600 hover:to-blood-400 text-white font-black rounded text-xs flex items-center gap-1.5 shadow-lg transition transform active:scale-95 animate-pulse"
+            title={`이전 레벨 던전 [${lastDungeon.name}]으로 즉시 출격`}
           >
             <span>[Space] 즉시 파밍 출격</span>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
@@ -535,45 +525,45 @@ export const TownView: React.FC = () => {
         </div>
 
         {/* Col 3 (4 Cols): Recommended Dungeon Briefing */}
-        <div className="lg:col-span-4 bg-iron-900/90 p-4 rounded-lg border-2 border-brass-600/70 flex flex-col justify-between space-y-3 shadow-md">
+        <div className="lg:col-span-4 bg-iron-900/90 p-3 sm:p-4 rounded-lg border-2 border-brass-600/70 flex flex-col justify-between space-y-2.5 shadow-md">
           <div>
             <div className="flex justify-between items-start border-b border-iron-750 pb-2 mb-2">
               <div>
-                <span className="text-[11px] bg-blood-950 text-blood-300 border border-blood-600 px-2 py-0.5 rounded font-mono font-bold">
-                  파밍 추천
+                <span className="text-[10px] bg-blood-950 text-blood-300 border border-blood-600 px-1.5 py-0.5 rounded font-mono font-bold">
+                  맞는 레벨 추천
                 </span>
-                <h3 className="font-cinzel font-black text-base md:text-lg text-brass-200 mt-1">
+                <h3 className="font-cinzel font-black text-sm sm:text-base text-brass-200 mt-1">
                   {recommendedDungeon.name}
                 </h3>
               </div>
-              <span className="text-xs font-mono text-gray-300 font-bold bg-iron-950 px-2 py-0.5 rounded border border-iron-700">
-                권장: Lv.{recommendedDungeon.recommendedLevel}
+              <span className="text-[11px] font-mono text-gray-300 font-bold bg-iron-950 px-2 py-0.5 rounded border border-iron-700">
+                권장 Lv.{recommendedDungeon.recommendedLevel}
               </span>
             </div>
 
-            <p className="text-xs text-gray-300 leading-relaxed mb-3">
+            <p className="text-[11px] sm:text-xs text-gray-300 leading-snug mb-2.5">
               "{recommendedDungeon.theme}"
             </p>
 
-            <div className="space-y-2 text-xs bg-iron-950 p-3 rounded-lg border border-iron-750 font-mono">
+            <div className="space-y-1.5 text-[11px] sm:text-xs bg-iron-950 p-2.5 rounded-lg border border-iron-750 font-mono">
               <div className="text-gray-300">
-                <strong className="text-white font-bold">주요 몬스터:</strong> {recommendedDungeon.monsterSummary}
+                <strong className="text-white font-bold">출현:</strong> {recommendedDungeon.monsterSummary}
               </div>
               <div className="text-gray-300">
-                <strong className="text-white font-bold">핵심 드랍:</strong> {recommendedDungeon.dropItems.map(i => i.name).join(', ')}
+                <strong className="text-white font-bold">주요 드랍:</strong> {recommendedDungeon.dropItems.map(i => i.name).slice(0, 3).join(', ')}...
               </div>
               <div className="text-gray-300">
-                <strong className="text-white font-bold">최고 기록:</strong> <span className="text-yellow-300 font-bold">{recommendedDungeon.bestClearTime}</span> (Chain x{recommendedDungeon.maxChainRecord})
+                <strong className="text-white font-bold">최고 기록:</strong> <span className="text-yellow-300 font-bold">{recommendedDungeon.bestClearTime}</span>
               </div>
             </div>
           </div>
 
           <button
             onClick={() => enterDungeon(recommendedDungeon.id)}
-            className="w-full py-3.5 bg-gradient-to-r from-blood-700 via-blood-600 to-blood-500 hover:from-blood-600 hover:to-blood-400 text-white font-black rounded-lg text-sm flex items-center justify-center gap-2 shadow-xl transition transform active:scale-98"
+            className="w-full py-2.5 sm:py-3 bg-gradient-to-r from-blood-700 via-blood-600 to-blood-500 hover:from-blood-600 hover:to-blood-400 text-white font-black rounded-lg text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-xl transition transform active:scale-98"
           >
             <Flame className="w-4 h-4 text-amber-300 animate-bounce" />
-            <span>10초 파밍 시작 (Enter Dungeon)</span>
+            <span>10초 파밍 시작 (Lv.{recommendedDungeon.recommendedLevel} 던전)</span>
           </button>
         </div>
       </div>

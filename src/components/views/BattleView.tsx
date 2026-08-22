@@ -149,7 +149,7 @@ export const BattleView: React.FC = () => {
         </div>
 
         {/* 5-Lane Queue Battlefield (Fixed Height & Slim Cards to NEVER overlap skills) */}
-        <div className="grid grid-cols-5 gap-1.5 md:gap-2.5 min-h-[290px]">
+        <div className="grid grid-cols-5 gap-1 sm:gap-2 min-h-[280px]">
           {[0, 1, 2, 3, 4].map(laneIndex => {
             const isCurrentPlayerLane = playerLane === laneIndex;
             const monstersInLane = laneMonsters[laneIndex] || [];
@@ -158,21 +158,21 @@ export const BattleView: React.FC = () => {
               <div
                 key={laneIndex}
                 onClick={() => setPlayerLane(laneIndex)}
-                className={`flex flex-col justify-between items-center p-1.5 rounded-lg border-2 transition cursor-pointer relative ${
+                className={`flex flex-col justify-between items-center p-1 sm:p-1.5 rounded-lg border transition cursor-pointer relative overflow-hidden ${
                   isCurrentPlayerLane
-                    ? 'bg-blood-950/35 border-brass-400 ring-2 ring-brass-400/60 shadow-[0_0_12px_rgba(222,178,67,0.3)]'
+                    ? 'bg-blood-950/35 border-brass-400 ring-1 sm:ring-2 ring-brass-400/60 shadow-[0_0_8px_rgba(222,178,67,0.3)]'
                     : 'bg-iron-900/60 border-iron-750 hover:border-iron-600 hover:bg-iron-900/90'
                 }`}
               >
                 {/* Lane Header Tag */}
-                <div className={`w-full py-0.5 text-center rounded text-[10px] font-mono font-black mb-1 ${
+                <div className={`w-full py-0.5 text-center rounded text-[9px] sm:text-[10px] font-mono font-black mb-0.5 sm:mb-1 ${
                   isCurrentPlayerLane ? 'bg-brass-500 text-iron-950 shadow' : 'bg-iron-800 text-gray-300'
                 }`}>
-                  LANE {laneIndex + 1}
+                  L{laneIndex + 1}
                 </div>
 
                 {/* Monster Queue (Deep to Front, Slim Padding to Fit 6 Depths) */}
-                <div className="w-full flex-1 flex flex-col-reverse justify-start gap-1 py-1">
+                <div className="w-full flex-1 flex flex-col-reverse justify-start gap-1 py-0.5">
                   {monstersInLane.map(monster => {
                     const isPredictedDead = preview.kills.includes(monster.id);
                     const isStopper = preview.stopperId === monster.id;
@@ -198,7 +198,7 @@ export const BattleView: React.FC = () => {
                     return (
                       <div
                         key={monster.id}
-                        className={`w-full py-1 px-1.5 rounded border transition-all duration-150 relative shadow ${
+                        className={`w-full py-0.5 px-1 sm:py-1 sm:px-1.5 rounded border transition-all duration-150 relative shadow ${
                           isPredictedDead
                             ? 'bg-blood-900/95 border-blood-400 text-white ring-1 ring-blood-400 scale-[0.98] shadow-[0_0_8px_rgba(239,68,68,0.7)]'
                             : monster.isFrozen
@@ -216,10 +216,10 @@ export const BattleView: React.FC = () => {
                         {floating && (
                           <div className={`absolute -top-4 left-1/2 -translate-x-1/2 z-30 font-mono font-black px-1.5 py-0.5 rounded border shadow-2xl flex items-center gap-1 whitespace-nowrap animate-bounce ${
                             floating.isOverkill
-                              ? 'bg-gradient-to-r from-orange-600 via-rose-600 to-amber-500 border-amber-300 text-white text-[12px] ring-2 ring-amber-400 shadow-[0_0_12px_rgba(249,115,22,0.8)]'
+                              ? 'bg-gradient-to-r from-orange-600 via-rose-600 to-amber-500 border-amber-300 text-white text-[10px] sm:text-[12px] ring-1 sm:ring-2 ring-amber-400 shadow-[0_0_12px_rgba(249,115,22,0.8)]'
                               : floating.isCrit
-                              ? 'bg-yellow-950 border-yellow-400 text-yellow-300 text-[11px] ring-1 ring-yellow-300'
-                              : 'bg-blood-950 border-blood-500 text-yellow-200 text-[10px]'
+                              ? 'bg-yellow-950 border-yellow-400 text-yellow-300 text-[9px] sm:text-[11px] ring-1 ring-yellow-300'
+                              : 'bg-blood-950 border-blood-500 text-yellow-200 text-[9px] sm:text-[10px]'
                           }`}>
                             <span>-{floating.damage}</span>
                             {floating.isCrit && !floating.isOverkill && <span className="text-yellow-300 font-black">CRIT!</span>}
@@ -228,23 +228,23 @@ export const BattleView: React.FC = () => {
                         )}
 
                         {/* Monster Header with Portrait */}
-                        <div className="flex items-center justify-between text-[10px] font-black truncate leading-tight">
-                          <div className="flex items-center gap-1.5 truncate">
-                            <span className="text-[12px] filter drop-shadow-sm flex-shrink-0">
+                        <div className="flex items-center justify-between text-[9px] sm:text-[10px] font-black truncate leading-tight">
+                          <div className="flex items-center gap-1 truncate">
+                            <span className="text-[10px] sm:text-[12px] filter drop-shadow-sm flex-shrink-0">
                               {monster.isFrozen ? '❄️' : portraitEmoji}
                             </span>
-                            <span className="truncate">{monster.name}</span>
+                            <span className="truncate">{monster.name.split(' ')[0]}</span>
                           </div>
-                          {monster.rank === 'elite' && <Crown className="w-3 h-3 text-purple-400 flex-shrink-0" />}
-                          {monster.rank === 'champion' && <Shield className="w-3 h-3 text-amber-400 flex-shrink-0" />}
+                          {monster.rank === 'elite' && <Crown className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-purple-400 flex-shrink-0" />}
+                          {monster.rank === 'champion' && <Shield className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-400 flex-shrink-0" />}
                         </div>
 
                         {/* HP Bar & Text */}
-                        <div className="flex justify-between items-center text-[8px] font-mono text-gray-300 mt-0.5 leading-none">
+                        <div className="flex justify-between items-center text-[7px] sm:text-[8px] font-mono text-gray-300 mt-0.5 leading-none">
                           <span>HP</span>
                           <span className="font-bold text-white">{monster.hp}/{monster.maxHp}</span>
                         </div>
-                        <div className="w-full bg-iron-950 h-1.5 rounded-full overflow-hidden border border-iron-750 mt-0.5">
+                        <div className="w-full bg-iron-950 h-1 sm:h-1.5 rounded-full overflow-hidden border border-iron-750 mt-0.5">
                           <div
                             className={`h-full transition-all duration-200 ${
                               isPredictedDead
@@ -259,23 +259,23 @@ export const BattleView: React.FC = () => {
 
                         {/* Status Tag: Predicted Dead / Frozen / Stopper */}
                         {isPredictedDead ? (
-                          <div className="text-[8px] font-black text-blood-200 uppercase mt-0.5 bg-blood-950 px-1 rounded text-center border border-blood-700">
+                          <div className="text-[7px] sm:text-[8px] font-black text-blood-200 uppercase mt-0.5 bg-blood-950 px-0.5 rounded text-center border border-blood-700">
                             처치 예상
                           </div>
                         ) : monster.isFrozen ? (
-                          <div className="text-[8px] font-black text-sky-200 uppercase mt-0.5 bg-sky-950 px-1 rounded text-center border border-sky-600 animate-pulse">
-                            ❄️ 빙결 (행동불가)
+                          <div className="text-[7px] sm:text-[8px] font-black text-sky-200 uppercase mt-0.5 bg-sky-950 px-0.5 rounded text-center border border-sky-600 animate-pulse">
+                            ❄️ 빙결
                           </div>
                         ) : isStopper ? (
-                          <div className="text-[8px] font-black text-amber-200 uppercase mt-0.5 bg-amber-950 px-1 rounded text-center border border-amber-700">
-                            체인 저지점
+                          <div className="text-[7px] sm:text-[8px] font-black text-amber-200 uppercase mt-0.5 bg-amber-950 px-0.5 rounded text-center border border-amber-700">
+                            저지점
                           </div>
                         ) : null}
 
                         {/* Defense Tag */}
                         {monster.defense > 0 && !isPredictedDead && (
-                          <div className="absolute -top-1 -right-1 text-[7px] font-bold bg-blue-950 text-blue-200 border border-blue-400 px-1 rounded-full shadow">
-                            방어 {monster.defense}
+                          <div className="absolute -top-1 -right-1 text-[6px] sm:text-[7px] font-bold bg-blue-950 text-blue-200 border border-blue-400 px-0.5 rounded-full shadow">
+                            {monster.defense}
                           </div>
                         )}
                       </div>
@@ -283,25 +283,25 @@ export const BattleView: React.FC = () => {
                   })}
 
                   {monstersInLane.length === 0 && (
-                    <div className="text-[11px] text-gray-400 font-bold italic py-10 text-center">
-                      소탕 완료
+                    <div className="text-[9px] sm:text-[11px] text-gray-400 font-bold italic py-8 text-center">
+                      소탕
                     </div>
                   )}
                 </div>
 
                 {/* Player Indicator (Dedicated bottom slot, never overlapped) */}
-                <div className={`w-full py-1 rounded text-center font-black text-[11px] transition shadow mt-1 ${
+                <div className={`w-full py-0.5 sm:py-1 rounded text-center font-black text-[9px] sm:text-[11px] transition shadow mt-0.5 sm:mt-1 ${
                   isCurrentPlayerLane
                     ? 'bg-gradient-to-r from-blood-700 to-blood-600 text-white border border-brass-300 shadow-[0_0_8px_rgba(220,38,38,0.6)]'
                     : 'bg-iron-800 text-gray-400 border border-iron-700'
                 }`}>
                   {isCurrentPlayerLane ? (
-                    <div className="flex items-center justify-center gap-1">
-                      <Swords className="w-3 h-3 text-brass-300" />
-                      <span>플레이어 (▼)</span>
+                    <div className="flex items-center justify-center gap-0.5">
+                      <Swords className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-brass-300" />
+                      <span>플레이어(▼)</span>
                     </div>
                   ) : (
-                    <span>레인 선택</span>
+                    <span>선택</span>
                   )}
                 </div>
               </div>
