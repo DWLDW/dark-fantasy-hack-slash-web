@@ -707,8 +707,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Rage Generation from Hits + Kills + Void Rune
       const hitRage = targets.length * (effectiveSkill.rageGainPerHit || 0);
       const killRage = result.chainCount * 4;
-      const voidRage = effectiveSkill.activeRuneId === 'rune_void' ? result.chainCount * 10 : 0;
-      const totalRageGained = hitRage + killRage + voidRage;
+      const voidKillRage = effectiveSkill.activeRuneId === 'rune_void' ? result.chainCount * 10 : 0;
+      let rawRageGained = hitRage + killRage + voidKillRage;
+
+      // 공허 영혼흡수(Void Devour): 분노 생성량 20% 올림 증폭 (Math.ceil)
+      const totalRageGained = effectiveSkill.activeRuneId === 'rune_void'
+        ? Math.ceil(rawRageGained * 1.20)
+        : rawRageGained;
 
       // Life Steal Calculation (from Skill e.g. Execute + Void Rune)
       const skillHeal = effectiveSkill.lifeStealPercent
@@ -731,7 +736,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Combat Logs for Gains
       if (totalRageGained > 0) {
         addLog(
-          `⚡ 분노 +${totalRageGained} 충전! (명중 ${targets.length}타격 x${effectiveSkill.rageGainPerHit || 0} + 처치 ${killRage}${voidRage > 0 ? ` + 공허 룬 ${voidRage}` : ''})`,
+          `⚡ 분노 +${totalRageGained} 충전! (명중 ${targets.length}타격 x${effectiveSkill.rageGainPerHit || 0} + 처치 ${killRage}${effectiveSkill.activeRuneId === 'rune_void' ? ` + 공허 20% 증폭(${totalRageGained - rawRageGained})` : ''})`,
           'system'
         );
       }
@@ -844,16 +849,23 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setHordeTimelinePercent(100);
 
       setTimeout(() => {
-        // Front-row monsters (Depth 0) attack player
+        // Front-row monsters (Depth 0) that are NOT frozen attack player
         const frontRowAttackers = survivors.filter(m => m.depth === 0);
+        const activeAttackers = frontRowAttackers.filter(m => !m.isFrozen);
+        const frozenCount = frontRowAttackers.filter(m => m.isFrozen).length;
+
         let totalEnemyDamage = 0;
 
-        frontRowAttackers.forEach(m => {
+        activeAttackers.forEach(m => {
           const rawDmg = m.intent.damage || 15;
           const k = 100 + m.depth * 10;
           const defMult = k / (k + totalStats.defense);
           totalEnemyDamage += Math.max(3, Math.floor(rawDmg * defMult));
         });
+
+        if (frozenCount > 0) {
+          addLog(`❄️ 서리 분쇄에 얼어붙은 몬스터 ${frozenCount}마리가 행동불가(Freeze) 상태로 공격을 건너뜁니다!`, 'system');
+        }
 
         if (totalEnemyDamage > 0) {
           playHordeAttackSound();
@@ -863,10 +875,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           });
 
           addLog(
-            `⚔️ 몬스터 군단(Horde)의 반격! 전열 ${frontRowAttackers.length}마리가 플레이어를 공격하여 ${totalEnemyDamage} 피해를 입혔습니다!`,
+            `⚔️ 몬스터 군단(Horde)의 반격! 전열 ${activeAttackers.length}마리가 플레이어를 공격하여 ${totalEnemyDamage} 피해를 입혔습니다!`,
             'damage'
           );
         }
+
+        // Thaw all frozen monsters after skipping their turn
+        setMonsters(prev => prev.map(m => ({ ...m, isFrozen: false })));
 
         setIsEnemyTurn(false);
         setHordeTimelinePercent(30);

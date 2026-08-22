@@ -185,6 +185,8 @@ export const BattleView: React.FC = () => {
                         className={`w-full py-1 px-1.5 rounded border transition-all duration-150 relative shadow ${
                           isPredictedDead
                             ? 'bg-blood-900/95 border-blood-400 text-white ring-1 ring-blood-400 scale-[0.98] shadow-[0_0_8px_rgba(239,68,68,0.7)]'
+                            : monster.isFrozen
+                            ? 'bg-sky-950/90 border-sky-400 text-sky-100 ring-1 ring-sky-300 shadow-[0_0_8px_rgba(56,189,248,0.5)]'
                             : isStopper
                             ? 'bg-amber-950 border-amber-400 text-amber-100 ring-1 ring-amber-400'
                             : monster.rank === 'elite'
@@ -203,7 +205,10 @@ export const BattleView: React.FC = () => {
 
                         {/* Monster Header */}
                         <div className="flex items-center justify-between text-[10px] font-black truncate leading-tight">
-                          <span className="truncate">{monster.name}</span>
+                          <div className="flex items-center gap-1 truncate">
+                            {monster.isFrozen && <span className="text-sky-300 animate-pulse">❄️</span>}
+                            <span className="truncate">{monster.name}</span>
+                          </div>
                           {monster.rank === 'elite' && <Crown className="w-3 h-3 text-purple-400 flex-shrink-0" />}
                           {monster.rank === 'champion' && <Shield className="w-3 h-3 text-amber-400 flex-shrink-0" />}
                         </div>
@@ -216,23 +221,30 @@ export const BattleView: React.FC = () => {
                         <div className="w-full bg-iron-950 h-1.5 rounded-full overflow-hidden border border-iron-750 mt-0.5">
                           <div
                             className={`h-full transition-all duration-200 ${
-                              isPredictedDead ? 'bg-blood-500' : 'bg-emerald-400'
+                              isPredictedDead
+                                ? 'bg-blood-500'
+                                : monster.isFrozen
+                                ? 'bg-sky-400'
+                                : 'bg-emerald-400'
                             }`}
                             style={{ width: `${hpPercent}%` }}
                           />
                         </div>
 
-                        {/* Predicted Kill / Stopper Tag */}
-                        {isPredictedDead && (
+                        {/* Status Tag: Predicted Dead / Frozen / Stopper */}
+                        {isPredictedDead ? (
                           <div className="text-[8px] font-black text-blood-200 uppercase mt-0.5 bg-blood-950 px-1 rounded text-center border border-blood-700">
                             처치 예상
                           </div>
-                        )}
-                        {isStopper && (
+                        ) : monster.isFrozen ? (
+                          <div className="text-[8px] font-black text-sky-200 uppercase mt-0.5 bg-sky-950 px-1 rounded text-center border border-sky-600 animate-pulse">
+                            ❄️ 빙결 (행동불가)
+                          </div>
+                        ) : isStopper ? (
                           <div className="text-[8px] font-black text-amber-200 uppercase mt-0.5 bg-amber-950 px-1 rounded text-center border border-amber-700">
                             체인 저지점
                           </div>
-                        )}
+                        ) : null}
 
                         {/* Defense Tag */}
                         {monster.defense > 0 && !isPredictedDead && (

@@ -62,32 +62,38 @@ export function resolveAttack(
   let isCritical = false;
   let baseDamage = Math.floor((totalStats.minDmg + totalStats.maxDmg) / 2);
 
+  // Chain Lightning Rune: Crit Rate +25%
+  const effectiveCritRate = skill.activeRuneId === 'rune_lightning'
+    ? totalStats.critChance + 25
+    : totalStats.critChance;
+
   if (!forceDeterministic) {
-    isCritical = Math.random() * 100 < totalStats.critChance;
+    isCritical = Math.random() * 100 < effectiveCritRate;
     baseDamage = Math.floor(Math.random() * (totalStats.maxDmg - totalStats.minDmg + 1)) + totalStats.minDmg;
+  } else {
+    // Deterministic preview considers lightning rune crit bonus
+    isCritical = effectiveCritRate >= 50;
   }
 
   // Skill Rune Modifiers
   let runeDmgBonus = 1.0;
   let runeOverkillBonus = 1.0;
-  let armorPenetration = 0;
 
   if (skill.activeRuneId === 'rune_fire') {
     runeDmgBonus = 1.25;
     runeOverkillBonus = 1.30;
   } else if (skill.activeRuneId === 'rune_frost') {
-    runeDmgBonus = 1.20;
-    runeOverkillBonus = 1.45;
+    runeDmgBonus = 1.15;
+    runeOverkillBonus = 1.20;
   } else if (skill.activeRuneId === 'rune_lightning') {
-    runeDmgBonus = 1.35;
+    runeDmgBonus = 1.20;
     runeOverkillBonus = 1.20;
   } else if (skill.activeRuneId === 'rune_poison') {
-    runeDmgBonus = 1.20;
+    runeDmgBonus = 1.15;
     runeOverkillBonus = 1.25;
-    armorPenetration = 0.35; // Ignores 35% defense
   } else if (skill.activeRuneId === 'rune_void') {
-    runeDmgBonus = 1.30;
-    runeOverkillBonus = 1.25;
+    runeDmgBonus = 1.20;
+    runeOverkillBonus = 1.20;
   }
 
   const skillLevelMult = 1 + ((skill.level || 1) - 1) * 0.15;
@@ -98,6 +104,22 @@ export function resolveAttack(
   const kills: string[] = [];
   let stopperId: string | null = null;
   let accumulatedDamage = 0;
+
+  // Helper for Venom Slaughter 50% defense shred
+  const getEffectiveDefense = (def: number) => {
+    return skill.activeRuneId === 'rune_poison' ? Math.floor(def * 0.5) : def;
+  };
+
+  // Helper for Frost Shatter 40% Freeze/Stun application
+  const applyFrostFreeze = (m: Monster) => {
+    if (skill.activeRuneId === 'rune_frost') {
+      if (!forceDeterministic) {
+        if (Math.random() < 0.40) m.isFrozen = true;
+      } else {
+        m.isFrozen = true; // Preview indicator
+      }
+    }
+  };
 
   // Clone monsters for damage processing
   const monsterMap = new Map<string, Monster>(monsters.map(m => [m.id, { ...m }]));
@@ -115,7 +137,7 @@ export function resolveAttack(
     let currentPayload = initialRawPayload;
 
     for (const m of laneMonsters) {
-      const defMultiplier = calculateDamageMultiplier(attackerLevel, m.defense);
+      const defMultiplier = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(m.defense));
       const actualDmgToTarget = Math.floor(currentPayload * defMultiplier);
       const isFatal = actualDmgToTarget >= m.hp;
 
@@ -129,9 +151,9 @@ export function resolveAttack(
 
       accumulatedDamage += actualDmgToTarget;
 
+      const updatedM = monsterMap.get(m.id)!;
       if (isFatal) {
         kills.push(m.id);
-        const updatedM = monsterMap.get(m.id)!;
         updatedM.hp = 0;
 
         // Raw overkill budget remaining
@@ -140,8 +162,8 @@ export function resolveAttack(
 
         if (currentPayload <= 5) break; // Payload extinguished
       } else {
-        const updatedM = monsterMap.get(m.id)!;
         updatedM.hp = Math.max(1, updatedM.hp - actualDmgToTarget);
+        applyFrostFreeze(updatedM);
         stopperId = m.id;
         break; // Chain stopped by survivor (e.g. Elite Anchor)
       }
@@ -156,7 +178,7 @@ export function resolveAttack(
     for (const m of frontMonsters) {
       const isMainLane = m.lane === playerLane;
       const targetPayload = isMainLane ? initialRawPayload : Math.floor(initialRawPayload * 0.65);
-      const defMultiplier = calculateDamageMultiplier(attackerLevel, m.defense);
+      const defMultiplier = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(m.defense));
       const actualDmg = Math.floor(targetPayload * defMultiplier);
       const isFatal = actualDmg >= m.hp;
 
@@ -176,6 +198,7 @@ export function resolveAttack(
         updatedM.hp = 0;
       } else {
         updatedM.hp = Math.max(1, updatedM.hp - actualDmg);
+        applyFrostFreeze(updatedM);
         if (m.rank === 'elite' && !stopperId) stopperId = m.id;
       }
     }
@@ -187,7 +210,7 @@ export function resolveAttack(
 
     for (const m of nearby) {
       const targetPayload = Math.floor(initialRawPayload * (m.depth === 0 ? 0.75 : 0.5));
-      const defMultiplier = calculateDamageMultiplier(attackerLevel, m.defense);
+      const defMultiplier = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(m.defense));
       const actualDmg = Math.floor(targetPayload * defMultiplier);
       const isFatal = actualDmg >= m.hp;
 
@@ -207,18 +230,19 @@ export function resolveAttack(
         updatedM.hp = 0;
       } else {
         updatedM.hp = Math.max(1, updatedM.hp - actualDmg);
+        applyFrostFreeze(updatedM);
         if (m.rank === 'elite' && !stopperId) stopperId = m.id;
       }
     }
   } else if (skill.route === 'single') {
-    // Execute: Massive single target damage with execute execute threshold
+    // Execute: Massive single target damage with execute threshold
     const frontTarget = monsters
       .filter(m => m.lane === playerLane && m.hp > 0)
       .sort((a, b) => a.depth - b.depth)[0];
 
     if (frontTarget) {
       const executeBonus = frontTarget.hp < frontTarget.maxHp * 0.5 ? 1.6 : 1.0;
-      const defMultiplier = calculateDamageMultiplier(attackerLevel, frontTarget.defense);
+      const defMultiplier = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(frontTarget.defense));
       const actualDmg = Math.floor(initialRawPayload * executeBonus * defMultiplier);
       const isFatal = actualDmg >= frontTarget.hp;
 
@@ -238,6 +262,7 @@ export function resolveAttack(
         updatedM.hp = 0;
       } else {
         updatedM.hp = Math.max(1, updatedM.hp - actualDmg);
+        applyFrostFreeze(updatedM);
         stopperId = frontTarget.id;
       }
     }

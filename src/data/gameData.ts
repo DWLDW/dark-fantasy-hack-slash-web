@@ -379,56 +379,56 @@ export const RUNEWORD_RECIPES: RuneWordRecipe[] = [
   }
 ];
 
-// 3. Diverse Skill Runes Catalog (Elements & Special Modifiers)
+// 3. Diverse Skill Runes Catalog (Elements & Distinct Playstyle Modifiers)
 export const SKILL_RUNES_DATA: SkillRune[] = [
   {
     id: 'rune_fire',
     name: '지옥불 폭발 (Hellfire)',
     element: 'fire',
-    description: '오버킬 발생 시 대상 주변 1칸에 화염 폭발을 일으킵니다.',
+    description: '오버킬 발생 시 주변에 화염 연쇄 폭발을 일으켜 파괴력을 극대화합니다.',
     damageBonusPercent: 25,
     overkillBonusPercent: 30,
-    specialEffectName: '화염 연쇄 폭발',
+    specialEffectName: '화염 연쇄 폭발 (+25% 피해 / +30% 오버킬)',
     color: '#ef4444'
   },
   {
     id: 'rune_frost',
     name: '서리 분쇄 (Frost Shatter)',
     element: 'cold',
-    description: '적들을 빙결시키고, 오버킬 잔여 피해 전이 효율을 극대화합니다.',
-    damageBonusPercent: 20,
-    overkillBonusPercent: 45,
-    specialEffectName: '빙결 & 얼음 파편',
+    description: '명중한 적을 40% 확률로 빙결시켜 다음 턴 행동을 완전히 무력화합니다.',
+    damageBonusPercent: 15,
+    overkillBonusPercent: 20,
+    specialEffectName: '명중 시 40% 확률 적 행동불가(빙결)',
     color: '#38bdf8'
   },
   {
     id: 'rune_lightning',
     name: '연쇄 번개 (Chain Lightning)',
     element: 'lightning',
-    description: '타격 시 인접한 모든 레인의 적들에게 번개 감전 피해를 흩뿌립니다.',
-    damageBonusPercent: 35,
+    description: '치명타 확률이 +25% 대폭 증가하고, 치명타 폭발 시 강력한 번개가 방전됩니다.',
+    damageBonusPercent: 20,
     overkillBonusPercent: 20,
-    specialEffectName: '연쇄 감전 방전',
+    specialEffectName: '치명타 확률 +25% 대폭 증가',
     color: '#fbbf24'
   },
   {
     id: 'rune_poison',
     name: '맹독 학살 (Venom Slaughter)',
     element: 'poison',
-    description: '적의 방어력을 35% 관통하고 치명적인 지속 맹독을 주입합니다.',
-    damageBonusPercent: 20,
+    description: '적의 방어력을 50% 깎아내려(Armor Shred) 단단한 엘리트 저지선을 무력화합니다.',
+    damageBonusPercent: 15,
     overkillBonusPercent: 25,
-    specialEffectName: '방어력 35% 관통',
+    specialEffectName: '적 방어력 50% 관통 및 감소',
     color: '#4ade80'
   },
   {
     id: 'rune_void',
     name: '공허 영혼흡수 (Void Devour)',
     element: 'void',
-    description: '처치한 적 1마리당 생명력 20을 즉시 흡수하고 분노를 대량 충전합니다.',
-    damageBonusPercent: 30,
-    overkillBonusPercent: 25,
-    specialEffectName: '처치 시 생명/분노 흡수',
+    description: '모든 분노 생성량이 20% 증가(올림 처리)하며, 처치 시 생명력을 추가 흡수합니다.',
+    damageBonusPercent: 20,
+    overkillBonusPercent: 20,
+    specialEffectName: '분노 생성량 +20% 올림 증폭 & 영혼 흡혈',
     color: '#c084fc'
   }
 ];

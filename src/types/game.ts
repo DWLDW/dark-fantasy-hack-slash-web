@@ -142,6 +142,7 @@ export interface Monster {
   icon: string;
   isTargeted?: boolean;
   isPredictedDead?: boolean;
+  isFrozen?: boolean;
   incomingDamage?: number;
 }
 
