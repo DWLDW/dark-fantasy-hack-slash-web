@@ -517,14 +517,17 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let wis = playerStats.wis;
     let cha = playerStats.cha;
 
-    let minDmg = 25;
-    let maxDmg = 45;
+    let minDmg = 5;
+    let maxDmg = 10;
     let defense = con * 1.5 + tempBuffs.defenseBonus;
+    let evasion = Math.min(75, Math.floor(dex * 0.25)); // 민첩 4당 회피 1% (최대 75% 캡)
+    let damageReduction = 0; // 물리 피해 감소 % (최대 50% 캡)
     let critChance = 10 + dex * 0.25;
     let critDamage = 150;
     let overkillEfficiency = 100 + tempBuffs.overkillBonus;
     let fortune = cha * 1.2;
     let lifeSteal = 0;
+    let baseAtbPercent = 50; // 기본 액션 게이지 50%
 
     Object.values(equipment).forEach(item => {
       if (!item) return;
@@ -538,11 +541,17 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (item.stats.minDmg) minDmg += item.stats.minDmg;
       if (item.stats.maxDmg) maxDmg += item.stats.maxDmg;
       if (item.stats.defense) defense += item.stats.defense;
+      if (item.stats.evasion) evasion = Math.min(75, evasion + item.stats.evasion);
+      if (item.stats.damageReduction) damageReduction = Math.min(50, damageReduction + item.stats.damageReduction);
       if (item.stats.critChance) critChance += item.stats.critChance;
       if (item.stats.critDamage) critDamage += item.stats.critDamage;
       if (item.stats.overkillEfficiency) overkillEfficiency += item.stats.overkillEfficiency;
       if (item.stats.fortune) fortune += item.stats.fortune;
       if (item.stats.lifeSteal) lifeSteal += item.stats.lifeSteal;
+
+      if (item.slot === 'weapon' && item.baseAtbPercent) {
+        baseAtbPercent = item.baseAtbPercent;
+      }
 
       // Socketed Runes bonus
       if (item.socketedRunes && !item.isRuneWord) {
@@ -585,11 +594,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       minDmg,
       maxDmg,
       defense: Math.floor(defense),
+      evasion,
+      damageReduction,
       critChance: Math.min(100, Math.floor(critChance)),
       critDamage: Math.floor(critDamage),
       overkillEfficiency: Math.floor(overkillEfficiency),
       fortune: Math.floor(fortune),
-      lifeSteal: Math.floor(lifeSteal)
+      lifeSteal: Math.floor(lifeSteal),
+      baseAtbPercent
     };
   }, [playerStats, equipment, tempBuffs]);
 
@@ -880,16 +892,29 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const frozenCount = frontRowAttackers.filter(m => m.isFrozen).length;
 
         let totalEnemyDamage = 0;
+        let dodgedCount = 0;
 
         activeAttackers.forEach(m => {
+          // Check Evasion (Dodge Chance)
+          const isDodged = Math.random() * 100 < (totalStats.evasion || 0);
+          if (isDodged) {
+            dodgedCount++;
+            return;
+          }
+
           const rawDmg = m.intent.damage || 15;
           const k = 100 + m.depth * 10;
           const defMult = k / (k + totalStats.defense);
-          totalEnemyDamage += Math.max(3, Math.floor(rawDmg * defMult));
+          const drMult = (100 - (totalStats.damageReduction || 0)) / 100;
+          totalEnemyDamage += Math.max(2, Math.floor(rawDmg * defMult * drMult));
         });
 
         if (frozenCount > 0) {
           addLog(`❄️ 서리 분쇄에 얼어붙은 몬스터 ${frozenCount}마리가 행동불가(Freeze) 상태로 공격을 건너뜁니다!`, 'system');
+        }
+
+        if (dodgedCount > 0) {
+          addLog(`💨 민첩한 움직임으로 적 ${dodgedCount}마리의 공격을 완벽히 회피(DODGE!)했습니다! (피해 0)`, 'system');
         }
 
         if (totalEnemyDamage > 0) {
@@ -900,7 +925,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           });
 
           addLog(
-            `⚔️ 몬스터 군단(Horde)의 반격! 전열 ${activeAttackers.length}마리가 플레이어를 공격하여 ${totalEnemyDamage} 피해를 입혔습니다!`,
+            `⚔️ 몬스터 군단(Horde)의 반격! ${activeAttackers.length - dodgedCount}마리 공격 적중 ➔ ${totalEnemyDamage} 피해 (방어력 ${totalStats.defense} / 피해감소 ${totalStats.damageReduction || 0}%)`,
             'damage'
           );
         }
@@ -909,7 +934,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setMonsters(prev => prev.map(m => ({ ...m, isFrozen: false })));
 
         setIsEnemyTurn(false);
-        setHordeTimelinePercent(30);
+        // Reset player ATB according to equipped Weapon Speed (Fast: 65~80%, Slow: 35%)
+        setHordeTimelinePercent(totalStats.baseAtbPercent || 50);
 
         // Smart Auto-Targeting: Set player lane to the best lane with maximum targets/damage
         const bestLane = findBestLaneForSkill(playerStats.level, totalStats, selectedSkill, survivors);

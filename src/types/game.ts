@@ -18,12 +18,15 @@ export interface ItemStats {
   minDmg?: number;
   maxDmg?: number;
   defense?: number;
+  evasion?: number; // 회피율 % (Dodge Chance)
+  damageReduction?: number; // 물리 피해 감소 % (Damage Reduced By %)
   critChance?: number;
   critDamage?: number;
   overkillEfficiency?: number; // e.g. +15%
   lifeSteal?: number;
   manaSteal?: number;
   attackSpeed?: number;
+  weaponSpeed?: number;
   moveSpeed?: number;
   allResist?: number;
   fortune?: number; // Magic Find %
@@ -34,6 +37,7 @@ export interface GameItem {
   name: string;
   baseItemName?: string;
   rarity: ItemRarity;
+  tier?: 'normal' | 'exceptional' | 'elite';
   slot: EquipSlot | 'rune' | 'gem' | 'material' | 'consumable';
   stats: ItemStats;
   sockets?: number; // 0 to 4
@@ -43,6 +47,9 @@ export interface GameItem {
   isIdentified?: boolean;
   subAffixes?: { id: string; name: string; value: number; label: string }[];
   specialEffect?: string;
+  speedCategory?: 'very_fast' | 'fast' | 'normal' | 'slow' | 'very_slow';
+  baseAtbPercent?: number; // 기본 시작 ATB 게이지 %
+  stackCount?: number; // 동일 베이스/아이템 중첩 수치
   value: number;
   icon: string;
   description: string;
@@ -93,6 +100,9 @@ export interface PlayerStats {
   int: number;
   wis: number;
   cha: number;
+
+  evasion?: number;
+  damageReduction?: number;
 }
 
 export type RoomType = 'start' | 'normal' | 'elite' | 'treasure' | 'rune' | 'shrine' | 'boss';
