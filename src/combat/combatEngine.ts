@@ -221,7 +221,7 @@ export function resolveAttack(
       });
     });
   } else if (skill.route === 'radius') {
-    // Whirlwind (휠윈드): Primary hits on the FIRST TWO alive monsters across all 5 lanes (Depth index 0 and 1)
+    // Whirlwind (휠윈드): GUARANTEED independent strike on BOTH Front 2 rows (idx 0 and 1) across all 5 lanes, then overkill cascades to idx >= 2!
     for (let l = 0; l < 5; l++) {
       const laneMonsters = monsters
         .filter(m => m.lane === l && m.hp > 0)
@@ -230,43 +230,106 @@ export function resolveAttack(
       if (laneMonsters.length === 0) continue;
 
       const isMainLane = l === playerLane || Math.abs(l - playerLane) === 1;
-      let currentPayload = Math.floor(initialRawPayload * (isMainLane ? 0.90 : 0.70));
+      const baseLanePayload = Math.floor(initialRawPayload * (isMainLane ? 0.90 : 0.75));
+      let overkillBudget = 0;
 
-      laneMonsters.forEach((m, idx) => {
-        if (currentPayload <= 0) return;
-
-        // First 2 monsters in the lane are Primary hits (idx 0, 1); 3rd+ are Overkill hits (idx >= 2)
-        const isOverkillHit = idx >= 2;
-        const defMultiplier = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(m.defense));
-        const actualDmg = Math.floor(currentPayload * defMultiplier);
-        const isFatal = actualDmg >= m.hp;
+      // 1. Strike Front Row 1 (idx 0)
+      if (laneMonsters.length > 0) {
+        const m0 = laneMonsters[0];
+        const defMultiplier = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(m0.defense));
+        const actualDmg = Math.floor(baseLanePayload * defMultiplier);
+        const isFatal = actualDmg >= m0.hp;
 
         targetsHit.push({
-          monsterId: m.id,
+          monsterId: m0.id,
           damage: actualDmg,
           isFatal,
-          depth: m.depth,
-          lane: m.lane,
-          isOverkillHit
+          depth: m0.depth,
+          lane: m0.lane,
+          isOverkillHit: false // Primary hit!
         });
 
         accumulatedDamage += actualDmg;
-
-        const updatedM = monsterMap.get(m.id)!;
+        const updatedM0 = monsterMap.get(m0.id)!;
         if (isFatal) {
-          kills.push(m.id);
-          updatedM.hp = 0;
-          const rawOverkill = Math.max(0, actualDmg - m.hp);
-          currentPayload = Math.floor(rawOverkill * effectiveOverkillEff);
+          kills.push(m0.id);
+          updatedM0.hp = 0;
+          const rawOverkill = Math.max(0, actualDmg - m0.hp);
+          overkillBudget += Math.floor(rawOverkill * effectiveOverkillEff);
         } else {
-          updatedM.hp = Math.max(1, updatedM.hp - actualDmg);
-          applyFrostFreeze(updatedM);
-          if (m.rank === 'elite' && !stopperId) stopperId = m.id;
-          currentPayload = 0;
+          updatedM0.hp = Math.max(1, updatedM0.hp - actualDmg);
+          applyFrostFreeze(updatedM0);
+          if (m0.rank === 'elite' && !stopperId) stopperId = m0.id;
         }
-      });
+      }
+
+      // 2. Strike Front Row 2 (idx 1) - INDEPENDENT of Row 1!
+      if (laneMonsters.length > 1) {
+        const m1 = laneMonsters[1];
+        const defMultiplier = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(m1.defense));
+        const actualDmg = Math.floor(baseLanePayload * defMultiplier);
+        const isFatal = actualDmg >= m1.hp;
+
+        targetsHit.push({
+          monsterId: m1.id,
+          damage: actualDmg,
+          isFatal,
+          depth: m1.depth,
+          lane: m1.lane,
+          isOverkillHit: false // Primary hit!
+        });
+
+        accumulatedDamage += actualDmg;
+        const updatedM1 = monsterMap.get(m1.id)!;
+        if (isFatal) {
+          kills.push(m1.id);
+          updatedM1.hp = 0;
+          const rawOverkill = Math.max(0, actualDmg - m1.hp);
+          overkillBudget += Math.floor(rawOverkill * effectiveOverkillEff);
+        } else {
+          updatedM1.hp = Math.max(1, updatedM1.hp - actualDmg);
+          applyFrostFreeze(updatedM1);
+          if (m1.rank === 'elite' && !stopperId) stopperId = m1.id;
+        }
+      }
+
+      // 3. Overkill Cascades into Back Rows (idx 2, 3, 4, 5)
+      if (overkillBudget > 0 && laneMonsters.length > 2) {
+        for (let idx = 2; idx < laneMonsters.length; idx++) {
+          if (overkillBudget <= 0) break;
+
+          const mb = laneMonsters[idx];
+          const defMultiplier = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(mb.defense));
+          const actualDmg = Math.floor(overkillBudget * defMultiplier);
+          if (actualDmg <= 0) break;
+
+          const isFatal = actualDmg >= mb.hp;
+          targetsHit.push({
+            monsterId: mb.id,
+            damage: actualDmg,
+            isFatal,
+            depth: mb.depth,
+            lane: mb.lane,
+            isOverkillHit: true // Overkill hit!
+          });
+
+          accumulatedDamage += actualDmg;
+          const updatedMb = monsterMap.get(mb.id)!;
+          if (isFatal) {
+            kills.push(mb.id);
+            updatedMb.hp = 0;
+            const rawOverkill = Math.max(0, actualDmg - mb.hp);
+            overkillBudget = Math.floor(rawOverkill * effectiveOverkillEff);
+          } else {
+            updatedMb.hp = Math.max(1, updatedMb.hp - actualDmg);
+            applyFrostFreeze(updatedMb);
+            if (mb.rank === 'elite' && !stopperId) stopperId = mb.id;
+            overkillBudget = 0;
+            break;
+          }
+        }
+      }
     }
-  } else if (skill.route === 'single') {
   } else if (skill.route === 'single') {
     // Execute (처형): Massive primary strike on the FIRST alive monster in playerLane -> Overkill penetrates in a straight LINE through that lane's back rows!
     const laneMonsters = monsters

@@ -529,6 +529,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     overkillBonus: 0
   });
 
+  const [dungeonSnapshot, setDungeonSnapshot] = useState<{
+    inventory: GameItem[];
+    runesVault: Record<string, number>;
+    gold: number;
+    exp: number;
+    level: number;
+  } | null>(null);
+
   const [combatLogs, setCombatLogs] = useState<CombatLogEntry[]>([
     { id: '1', timestamp: '12:00', text: '브라우저 로컬 자동 저장(Auto-Save) 활성화됨. [Space] 공격 / 빠른 파밍', type: 'system' }
   ]);
@@ -1004,8 +1012,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setHordeTimelinePercent(100);
 
       setTimeout(() => {
-        // Front-row monsters (Depth 0) that are NOT frozen attack player
-        const frontRowAttackers = survivors.filter(m => m.depth === 0);
+        // Front-row monsters: EXACTLY the foremost alive monster in each of the 5 lanes (max 5 monsters)
+        const frontRowAttackers: Monster[] = [];
+        for (let l = 0; l < 5; l++) {
+          const laneAlive = survivors.filter(m => m.lane === l && m.hp > 0).sort((a, b) => a.depth - b.depth);
+          if (laneAlive.length > 0) {
+            frontRowAttackers.push(laneAlive[0]);
+          }
+        }
+
         const activeAttackers = frontRowAttackers.filter(m => !m.isFrozen);
         const frozenCount = frontRowAttackers.filter(m => m.isFrozen).length;
 
@@ -1020,11 +1035,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             return;
           }
 
-          const rawDmg = m.intent.damage || 15;
-          const k = 100 + m.depth * 10;
-          const defMult = k / (k + totalStats.defense);
+          const isElite = m.rank === 'elite' || m.rank === 'boss';
+          const rawDmg = m.intent.damage || (isElite ? 20 : 6);
+          const k = 100 + playerStats.level * 10;
+          const defMult = k / (k + Math.max(0, totalStats.defense));
           const drMult = (100 - (totalStats.damageReduction || 0)) / 100;
-          totalEnemyDamage += Math.max(2, Math.floor(rawDmg * defMult * drMult));
+          totalEnemyDamage += Math.max(1, Math.floor(rawDmg * defMult * drMult));
         });
 
         if (frozenCount > 0) {
@@ -1037,13 +1053,45 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (totalEnemyDamage > 0) {
           playHordeAttackSound();
+          
           setPlayerStats(prev => {
-            const nextHp = Math.max(0, prev.hp - totalEnemyDamage);
+            const nextHp = prev.hp - totalEnemyDamage;
+            if (nextHp <= 0) {
+              // PLAYER DEATH & DUNGEON DEFEAT PENALTY
+              setTimeout(() => {
+                if (dungeonSnapshot) {
+                  setInventory(dungeonSnapshot.inventory);
+                  setRunesVault(dungeonSnapshot.runesVault);
+                  setPlayerStats(p => ({
+                    ...p,
+                    hp: Math.floor(p.maxHp * 0.5),
+                    gold: dungeonSnapshot.gold,
+                    exp: dungeonSnapshot.exp,
+                    level: dungeonSnapshot.level,
+                    rage: 0
+                  }));
+                } else {
+                  setPlayerStats(p => ({
+                    ...p,
+                    hp: Math.floor(p.maxHp * 0.5),
+                    rage: 0
+                  }));
+                }
+                setViewMode('town');
+                setIsEnemyTurn(false);
+                setIsAttacking(false);
+                setTempBuffs({ defenseBonus: 0, overkillBonus: 0 });
+                setDungeonSnapshot(null);
+                addLog('💀 [던전 실패] 플레이어가 사망했습니다! 이번 던전에서 획득한 모든 전리품을 잃고 마을로 강제 후송되었습니다.', 'system');
+              }, 600);
+
+              return { ...prev, hp: 0 };
+            }
             return { ...prev, hp: nextHp };
           });
 
           addLog(
-            `⚔️ 몬스터 군단(Horde)의 반격! ${activeAttackers.length - dodgedCount}마리 공격 적중 ➔ ${totalEnemyDamage} 피해 (방어력 ${totalStats.defense} / 피해감소 ${totalStats.damageReduction || 0}%)`,
+            `⚔️ 몬스터 전열의 반격! ${activeAttackers.length - dodgedCount}마리 공격 적중 ➔ ${totalEnemyDamage} 피해 (방어력 ${totalStats.defense} / 피해감소 ${totalStats.damageReduction || 0}%)`,
             'damage'
           );
         }
@@ -1165,13 +1213,23 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const enterDungeon = (dungeonId: string) => {
     const dungeon = DUNGEONS_DATA.find(d => d.id === dungeonId) || DUNGEONS_DATA[0];
     const firstRoomId = dungeon.rooms[1]?.id || 2;
+
+    // Take snapshot before dungeon entry for death penalty
+    setDungeonSnapshot({
+      inventory: [...inventory],
+      runesVault: { ...runesVault },
+      gold: playerStats.gold,
+      exp: playerStats.exp,
+      level: playerStats.level
+    });
+
     setCurrentDungeon(dungeon);
     setCurrentRoomId(firstRoomId);
     setMonsters(createDungeonFormation(dungeon.id, firstRoomId));
     setChainCount(0);
     setMaxChainThisRoom(0);
     setViewMode('battle');
-    addLog(`[${dungeon.name}]에 진입했습니다! (${dungeon.monsterSummary})`, 'system');
+    addLog(`⚔️ [${dungeon.name}]에 진입했습니다! (${dungeon.monsterSummary})`, 'system');
   };
 
   const selectNextRoom = (roomId: number) => {
@@ -1185,6 +1243,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setViewMode('town');
     setMonsters(createDungeonFormation('act1_crypt', 4));
     setTempBuffs({ defenseBonus: 0, overkillBonus: 0 });
+    setDungeonSnapshot(null);
     addLog('마을로 귀환했습니다.', 'system');
   };
 
