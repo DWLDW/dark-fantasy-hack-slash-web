@@ -267,12 +267,14 @@ export function resolveAttack(
       });
     }
   } else if (skill.route === 'single') {
-    // Execute (처형): Massive primary strike on the FIRST alive monster in playerLane -> Overkill explodes into back & neighbors!
-    const frontTarget = monsters
+  } else if (skill.route === 'single') {
+    // Execute (처형): Massive primary strike on the FIRST alive monster in playerLane -> Overkill penetrates in a straight LINE through that lane's back rows!
+    const laneMonsters = monsters
       .filter(m => m.lane === playerLane && m.hp > 0)
-      .sort((a, b) => a.depth - b.depth)[0];
+      .sort((a, b) => a.depth - b.depth);
 
-    if (frontTarget) {
+    if (laneMonsters.length > 0) {
+      const frontTarget = laneMonsters[0];
       const executeBonus = frontTarget.hp < frontTarget.maxHp * 0.5 ? 1.6 : 1.0;
       const defMultiplier = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(frontTarget.defense));
       const actualDmg = Math.floor(initialRawPayload * executeBonus * defMultiplier);
@@ -284,7 +286,7 @@ export function resolveAttack(
         isFatal,
         depth: frontTarget.depth,
         lane: frontTarget.lane,
-        isOverkillHit: false // Primary target!
+        isOverkillHit: false // Primary single target!
       });
 
       accumulatedDamage += actualDmg;
@@ -294,39 +296,42 @@ export function resolveAttack(
         kills.push(frontTarget.id);
         updatedM.hp = 0;
 
-        // Overkill Shockwave Explosion to back rows in playerLane and adjacent lanes
+        // Line Penetration Overkill: Residual energy pierces straight through subsequent monsters in the SAME lane!
         const rawOverkill = Math.max(0, actualDmg - frontTarget.hp);
-        let overkillBudget = Math.floor(rawOverkill * effectiveOverkillEff);
+        let currentPayload = Math.floor(rawOverkill * effectiveOverkillEff);
 
-        if (overkillBudget > 0) {
-          const secondaryTargets = monsters
-            .filter(m => m.id !== frontTarget.id && m.hp > 0 && Math.abs(m.lane - playerLane) <= 1 && m.depth <= 2)
-            .sort((a, b) => a.depth - b.depth || Math.abs(a.lane - playerLane) - Math.abs(b.lane - playerLane));
+        // Pierce through behind monsters (idx 1, 2, 3, 4, 5)
+        for (let idx = 1; idx < laneMonsters.length; idx++) {
+          if (currentPayload <= 0) break;
 
-          for (const sm of secondaryTargets) {
-            if (overkillBudget <= 0) break;
-            const smDefMult = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(sm.defense));
-            const smDmg = Math.floor(overkillBudget * 0.5 * smDefMult);
-            if (smDmg <= 0) continue;
+          const sm = laneMonsters[idx];
+          const smDefMult = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(sm.defense));
+          const smDmg = Math.floor(currentPayload * smDefMult);
+          if (smDmg <= 0) break;
 
-            const isSmFatal = smDmg >= sm.hp;
-            targetsHit.push({
-              monsterId: sm.id,
-              damage: smDmg,
-              isFatal: isSmFatal,
-              depth: sm.depth,
-              lane: sm.lane,
-              isOverkillHit: true // Overkill cascade!
-            });
+          const isSmFatal = smDmg >= sm.hp;
+          targetsHit.push({
+            monsterId: sm.id,
+            damage: smDmg,
+            isFatal: isSmFatal,
+            depth: sm.depth,
+            lane: sm.lane,
+            isOverkillHit: true // Line penetration overkill hit!
+          });
 
-            accumulatedDamage += smDmg;
-            const smUpdated = monsterMap.get(sm.id)!;
-            if (isSmFatal) {
-              kills.push(sm.id);
-              smUpdated.hp = 0;
-            } else {
-              smUpdated.hp = Math.max(1, smUpdated.hp - smDmg);
-            }
+          accumulatedDamage += smDmg;
+          const smUpdated = monsterMap.get(sm.id)!;
+          if (isSmFatal) {
+            kills.push(sm.id);
+            smUpdated.hp = 0;
+            const smRawOverkill = Math.max(0, smDmg - sm.hp);
+            currentPayload = Math.floor(smRawOverkill * effectiveOverkillEff);
+          } else {
+            smUpdated.hp = Math.max(1, smUpdated.hp - smDmg);
+            applyFrostFreeze(smUpdated);
+            if (sm.rank === 'elite' && !stopperId) stopperId = sm.id;
+            currentPayload = 0;
+            break;
           }
         }
       } else {

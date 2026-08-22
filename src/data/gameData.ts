@@ -864,13 +864,13 @@ export const WARRIOR_SKILLS: Skill[] = [
     name: '처형 (Execute)',
     level: 1,
     maxLevel: 10,
-    rageCost: 30, // 분노 30 유지
+    rageCost: 30, // 분노 30 소모
     manaCost: 0,
-    damageMultiplier: 8.5, // 2배 이상 상향! (단일 극딜 파쇄기)
+    damageMultiplier: 8.5, // 압도적 단일 극딜 파쇄기
     overkillEfficiency: 0.85,
     lifeStealPercent: 50, // 가한 피해의 50% HP 즉시 흡수!
     route: 'single',
-    description: '단일 대상에게 괴멸적인 타격(x8.5)! 가한 피해의 50%를 생명력으로 즉시 흡수하여 위기를 탈출합니다.',
+    description: '전방 단일 적에게 8.5배수의 괴멸타를 가하며 체력 50%를 흡혈합니다. 전열 몬스터를 격살 시 남은 막대한 오버킬 잔여 에너지가 해당 레인의 후열 전체를 일직선으로 관통 소탕합니다!',
     icon: 'Skull',
     hotkey: 'W',
     activeRuneId: 'rune_poison'
