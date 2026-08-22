@@ -850,11 +850,11 @@ export const WARRIOR_SKILLS: Skill[] = [
     maxLevel: 10,
     rageCost: 0,
     manaCost: 0,
-    damageMultiplier: 1.0,
-    overkillEfficiency: 0.45,
-    rageGainPerHit: 0,
+    damageMultiplier: 1.2,
+    overkillEfficiency: 0.50,
+    rageGainPerHit: 15, // 평타 1대당 분노 +15 대폭 충전!
     route: 'line',
-    description: '기본 직선 베기. 자원을 소모하지 않으며, 전열의 약한 적 1~2마리를 정리하는 데 적합합니다.',
+    description: '기본 베기 공격. 자원 소모가 없으며 타격당 분노 +15를 생성하여 휩쓸기/처형/휠윈드로 신속히 연계합니다.',
     icon: 'Sword',
     hotkey: 'Q',
     activeRuneId: 'rune_fire'
@@ -1122,47 +1122,57 @@ export function createDungeonFormation(dungeonId = 'act1_crypt', roomId = 4): Mo
   let idCounter = 1;
 
   // Dungeon Difficulty Scaling
-  let baseHp = 28;
-  let baseDef = 4;
-  let eliteHp = 200;
-  let eliteDef = 25;
+  let baseHp = 22;
+  let baseDef = 2;
+  let baseDmg = 3; // 1막 일반 몬스터 공격력 3 (플레이어 방어구 착용 시 1~2 피해)
+  let eliteHp = 140;
+  let eliteDef = 15;
+  let eliteDmg = 9; // 1막 엘리트 공격력 9
   let eliteTitle = '오크 집행관 [ELITE]';
   let normalName1 = '고블린 전사';
   let normalName2 = '해골 궁수';
   let shieldName = '오크 방패병';
 
   if (dungeonId === 'act2_tomb') {
-    baseHp = 60;
-    baseDef = 12;
-    eliteHp = 420;
-    eliteDef = 35;
+    baseHp = 50;
+    baseDef = 8;
+    baseDmg = 7;
+    eliteHp = 320;
+    eliteDef = 25;
+    eliteDmg = 20;
     eliteTitle = '고대 무덤 수호자 [ELITE]';
     normalName1 = '사막 전갈';
     normalName2 = '미이라 사제';
     shieldName = '석관 방패병';
   } else if (dungeonId === 'act3_jungle') {
-    baseHp = 130;
-    baseDef = 22;
-    eliteHp = 800;
-    eliteDef = 50;
+    baseHp = 110;
+    baseDef = 18;
+    baseDmg = 15;
+    eliteHp = 650;
+    eliteDef = 40;
+    eliteDmg = 45;
     eliteTitle = '자카룸 하이 프리스트 [ELITE]';
     normalName1 = '광신도 척살병';
     normalName2 = '정글 주술사';
     shieldName = '성전사 방패병';
   } else if (dungeonId === 'act4_chaos') {
-    baseHp = 260;
-    baseDef = 38;
-    eliteHp = 1600;
-    eliteDef = 70;
+    baseHp = 220;
+    baseDef = 30;
+    baseDmg = 30;
+    eliteHp = 1300;
+    eliteDef = 55;
+    eliteDmg = 90;
     eliteTitle = '카오스 집행관 [ELITE]';
     normalName1 = '망각의 기사';
     normalName2 = '베놈 로드';
     shieldName = '지옥불 방패병';
   } else if (dungeonId === 'act5_worldstone') {
-    baseHp = 520;
-    baseDef = 55;
-    eliteHp = 3000;
-    eliteDef = 95;
+    baseHp = 450;
+    baseDef = 45;
+    baseDmg = 60;
+    eliteHp = 2500;
+    eliteDef = 80;
+    eliteDmg = 180;
     eliteTitle = '죽음의 군주 (Death Lord) [ELITE]';
     normalName1 = '피의 유혹자';
     normalName2 = '바알의 파괴자';
@@ -1175,8 +1185,9 @@ export function createDungeonFormation(dungeonId = 'act1_crypt', roomId = 4): Mo
       const isEliteStopper = l === 2 && d === 1; // Lane 2 Depth 1 is Elite Anchor
       const isFrontShield = d === 0 && (l === 1 || l === 2 || l === 3);
 
-      let hp = Math.floor(baseHp + Math.random() * (baseHp * 0.4));
+      let hp = Math.floor(baseHp + Math.random() * (baseHp * 0.3));
       let def = baseDef;
+      let dmg = baseDmg;
       let rank: 'normal' | 'elite' = 'normal';
       let name = d % 2 === 0 ? normalName1 : normalName2;
       let icon = 'Sword';
@@ -1184,18 +1195,20 @@ export function createDungeonFormation(dungeonId = 'act1_crypt', roomId = 4): Mo
       if (isEliteStopper) {
         hp = eliteHp;
         def = eliteDef;
+        dmg = eliteDmg;
         rank = 'elite';
         name = eliteTitle;
         icon = 'Crown';
       } else if (isFrontShield) {
-        hp = Math.floor(baseHp * 1.8);
-        def = Math.floor(baseDef * 2.2);
+        hp = Math.floor(baseHp * 1.5);
+        def = Math.floor(baseDef * 1.8);
+        dmg = Math.floor(baseDmg * 1.2);
         name = shieldName;
         icon = 'Shield';
       } else if (d >= 2) {
         // Back rows are squishier for chain overkill thrills
-        hp = Math.max(15, Math.floor(baseHp * 0.75));
-        def = Math.max(2, Math.floor(baseDef * 0.5));
+        hp = Math.max(12, Math.floor(baseHp * 0.7));
+        def = Math.max(1, Math.floor(baseDef * 0.5));
       }
 
       monsters.push({
@@ -1209,7 +1222,7 @@ export function createDungeonFormation(dungeonId = 'act1_crypt', roomId = 4): Mo
         depth: d,
         intent: {
           type: 'attack',
-          damage: isEliteStopper ? Math.floor(baseHp * 0.6) : Math.floor(baseHp * 0.25) + 8,
+          damage: dmg,
           targetLane: l
         },
         icon

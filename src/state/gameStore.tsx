@@ -1036,7 +1036,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
 
           const isElite = m.rank === 'elite' || m.rank === 'boss';
-          const rawDmg = m.intent.damage || (isElite ? 20 : 6);
+          const rawDmg = m.intent.damage || (isElite ? 8 : 3);
           const k = 100 + playerStats.level * 10;
           const defMult = k / (k + Math.max(0, totalStats.defense));
           const drMult = (100 - (totalStats.damageReduction || 0)) / 100;
@@ -1055,7 +1055,37 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           playHordeAttackSound();
           
           setPlayerStats(prev => {
-            const nextHp = prev.hp - totalEnemyDamage;
+            let nextHp = prev.hp - totalEnemyDamage;
+            
+            // AUTO-POTION SYSTEM: Check for potion in inventory
+            const hpPotion = consumables.find(c => c.id === 'c_hp');
+            let potionUsed = false;
+            let autoResurrected = false;
+
+            if (nextHp <= 0) {
+              // 1. Miracle Auto-Potion Death Prevention
+              if (hpPotion && hpPotion.count > 0) {
+                potionUsed = true;
+                autoResurrected = true;
+                nextHp = Math.min(prev.maxHp, 80 + Math.floor(prev.maxHp * 0.3));
+              }
+            } else if (nextHp <= prev.maxHp * 0.5) {
+              // 2. Low HP Auto-Potion Trigger
+              if (hpPotion && hpPotion.count > 0) {
+                potionUsed = true;
+                nextHp = Math.min(prev.maxHp, nextHp + 100);
+              }
+            }
+
+            if (potionUsed) {
+              setConsumables(curr => curr.map(c => c.id === 'c_hp' ? { ...c, count: Math.max(0, c.count - 1) } : c));
+              if (autoResurrected) {
+                addLog(`✨ [자동 물약 기사회생] 치명타로 쓰러질 뻔했으나 생명력 물약을 자동으로 즉시 마셔 생존했습니다! (+${nextHp} HP)`, 'system');
+              } else {
+                addLog(`🧪 [자동 물약] 체력이 50% 이하로 떨어져 생명력 물약을 자동으로 섭취했습니다! (+100 HP)`, 'system');
+              }
+            }
+
             if (nextHp <= 0) {
               // PLAYER DEATH & DUNGEON DEFEAT PENALTY
               setTimeout(() => {
@@ -1223,13 +1253,16 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       level: playerStats.level
     });
 
+    // Auto Refill Health Potions to at least 5 on entering dungeon
+    setConsumables(curr => curr.map(c => c.id === 'c_hp' ? { ...c, count: Math.max(5, c.count) } : c));
+
     setCurrentDungeon(dungeon);
     setCurrentRoomId(firstRoomId);
     setMonsters(createDungeonFormation(dungeon.id, firstRoomId));
     setChainCount(0);
     setMaxChainThisRoom(0);
     setViewMode('battle');
-    addLog(`⚔️ [${dungeon.name}]에 진입했습니다! (${dungeon.monsterSummary})`, 'system');
+    addLog(`⚔️ [${dungeon.name}]에 진입했습니다! (생명력 물약 5개 자동 충전 완료)`, 'system');
   };
 
   const selectNextRoom = (roomId: number) => {
@@ -1244,7 +1277,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setMonsters(createDungeonFormation('act1_crypt', 4));
     setTempBuffs({ defenseBonus: 0, overkillBonus: 0 });
     setDungeonSnapshot(null);
-    addLog('마을로 귀환했습니다.', 'system');
+    // Auto Refill Potions in Town
+    setConsumables(curr => curr.map(c => c.id === 'c_hp' ? { ...c, count: Math.max(5, c.count) } : c));
+    addLog('마을로 귀환했습니다. (생명력 물약 5개 무료 자동 충전 완료)', 'system');
   };
 
   // Diablo II System Actions
