@@ -852,9 +852,9 @@ export const WARRIOR_SKILLS: Skill[] = [
     manaCost: 0,
     damageMultiplier: 1.2,
     overkillEfficiency: 0.50,
-    rageGainPerHit: 15, // 평타 1대당 분노 +15 대폭 충전!
+    rageGainPerHit: 30, // 평타 1대당 분노 +30 대폭 충전!
     route: 'line',
-    description: '기본 베기 공격. 자원 소모가 없으며 타격당 분노 +15를 생성하여 휩쓸기/처형/휠윈드로 신속히 연계합니다.',
+    description: '기본 베기 공격. 자원 소모가 없으며 타격당 분노 +30을 생성하여 휩쓸기/처형/휠윈드로 신속히 연계합니다.',
     icon: 'Sword',
     hotkey: 'Q',
     activeRuneId: 'rune_fire'

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useGame } from '../../state/gameStore';
-import { Shield, Flame, Coins, Sparkles, MapPin, Home, RotateCcw, AlertTriangle } from 'lucide-react';
+import { Shield, Flame, Coins, Sparkles, MapPin, Home, RotateCcw, AlertTriangle, Sparkle } from 'lucide-react';
 
 export const TopHUD: React.FC = () => {
-  const { playerStats, viewMode, currentDungeon, setViewMode, resetGameSave } = useGame();
+  const { playerStats, viewMode, currentDungeon, setViewMode, resetGameSave, isLevelUpAnimated } = useGame();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   const hpPercent = Math.max(0, Math.min(100, (playerStats.hp / playerStats.maxHp) * 100));
@@ -16,9 +16,29 @@ export const TopHUD: React.FC = () => {
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-1.5 sm:gap-2 flex-wrap">
           {/* Left: Player Level & Class & Exp & Quick Reset */}
           <div className="flex items-center space-x-1.5 sm:space-x-2.5">
-            <div className="flex flex-col items-center justify-center min-w-[34px] sm:min-w-[40px] h-8 sm:h-9 px-1 bg-iron-900 border-2 border-brass-400 rounded shadow">
-              <span className="text-[8px] font-mono text-blood-400 font-black leading-none uppercase">LV</span>
-              <span className="font-cinzel font-black text-brass-200 text-xs sm:text-base leading-none mt-0.5">{playerStats.level}</span>
+            {/* Level Badge with Glowing Flash Animation upon Level Up */}
+            <div className={`flex flex-col items-center justify-center min-w-[34px] sm:min-w-[40px] h-8 sm:h-9 px-1 rounded shadow transition-all duration-300 relative ${
+              isLevelUpAnimated
+                ? 'bg-gradient-to-r from-amber-600 via-yellow-400 to-amber-500 border-2 border-white ring-4 ring-amber-400 shadow-[0_0_25px_rgba(251,191,36,1)] scale-110 animate-bounce text-iron-950'
+                : 'bg-iron-900 border-2 border-brass-400'
+            }`}>
+              <span className={`text-[8px] font-mono font-black leading-none uppercase ${
+                isLevelUpAnimated ? 'text-iron-950' : 'text-blood-400'
+              }`}>
+                LV
+              </span>
+              <span className={`font-cinzel font-black text-xs sm:text-base leading-none mt-0.5 ${
+                isLevelUpAnimated ? 'text-iron-950 font-black' : 'text-brass-200'
+              }`}>
+                {playerStats.level}
+              </span>
+
+              {/* Floating Level Up Tag */}
+              {isLevelUpAnimated && (
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-amber-400 text-iron-950 text-[8px] font-black px-1.5 py-0.2 rounded-full whitespace-nowrap shadow-lg border border-white animate-pulse">
+                  LEVEL UP!
+                </div>
+              )}
             </div>
 
             {/* Reset Button next to Level Badge */}

@@ -4,14 +4,18 @@ import { InventoryModal } from './InventoryModal';
 import { CharacterModal } from './CharacterModal';
 import { SkillRuneModal } from './SkillRuneModal';
 import { DungeonVictoryModal } from './DungeonVictoryModal';
+import { DeathModal } from './DeathModal';
 
 export const GlobalModalHost: React.FC = () => {
-  const { activeModal, closeModal } = useGame();
+  const { activeModal, closeModal, isDeathModalOpen, confirmDeathAndReturnToTown } = useGame();
 
   return (
     <>
       {/* Victory Loot Modal (Triggered on Dungeon Completion) */}
       <DungeonVictoryModal />
+
+      {/* Death & Defeat Modal (Triggered on HP 0) */}
+      <DeathModal isOpen={isDeathModalOpen} onConfirm={confirmDeathAndReturnToTown} />
 
       {/* Standard Active Modals */}
       {activeModal && (

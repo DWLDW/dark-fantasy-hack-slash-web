@@ -131,6 +131,11 @@ interface GameContextType {
   closeVictoryModal: () => void;
   identifyAllVictoryLoot: () => void;
 
+  // Death & Resurrection Modal
+  isDeathModalOpen: boolean;
+  confirmDeathAndReturnToTown: () => void;
+  isLevelUpAnimated: boolean;
+
   // Diablo 2 Crafting & Features
   socketRuneIntoItem: (targetItemId: string, runeId: string) => void;
   transmuteInCube: (itemIds: string[]) => void;
@@ -529,6 +534,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     overkillBonus: 0
   });
 
+  const [isDeathModalOpen, setIsDeathModalOpen] = useState(false);
+  const [isLevelUpAnimated, setIsLevelUpAnimated] = useState(false);
+
   const [dungeonSnapshot, setDungeonSnapshot] = useState<{
     inventory: GameItem[];
     runesVault: Record<string, number>;
@@ -570,6 +578,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (didLevelUp) {
         playRuneWordSound();
+        setIsLevelUpAnimated(true);
+        setTimeout(() => setIsLevelUpAnimated(false), 4500);
+
         addLog(`🌟 LEVEL UP! 레벨 ${currentLevel} 달성! (스탯 포인트 +${statPointsGained}P, 스킬 포인트 +${skillPointsGained}P 획득 & HP/마나 완전 회복!)`, 'loot');
         const newMaxHp = 120 + (currentLevel - 1) * 25 + prev.con * 5;
         const newMaxMana = 40 + (currentLevel - 1) * 8 + prev.int * 3;
@@ -1087,41 +1098,24 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
 
             if (nextHp <= 0) {
-              // PLAYER DEATH & DUNGEON DEFEAT PENALTY
-              setTimeout(() => {
-                if (dungeonSnapshot) {
-                  setInventory(dungeonSnapshot.inventory);
-                  setRunesVault(dungeonSnapshot.runesVault);
-                  setPlayerStats(p => ({
-                    ...p,
-                    hp: Math.floor(p.maxHp * 0.5),
-                    gold: dungeonSnapshot.gold,
-                    exp: dungeonSnapshot.exp,
-                    level: dungeonSnapshot.level,
-                    rage: 0
-                  }));
-                } else {
-                  setPlayerStats(p => ({
-                    ...p,
-                    hp: Math.floor(p.maxHp * 0.5),
-                    rage: 0
-                  }));
-                }
-                setViewMode('town');
-                setIsEnemyTurn(false);
-                setIsAttacking(false);
-                setTempBuffs({ defenseBonus: 0, overkillBonus: 0 });
-                setDungeonSnapshot(null);
-                addLog('💀 [던전 실패] 플레이어가 사망했습니다! 이번 던전에서 획득한 모든 전리품을 잃고 마을로 강제 후송되었습니다.', 'system');
-              }, 600);
-
-              return { ...prev, hp: 0 };
+              // PLAYER DEATH -> Open Death Confirmation Modal
+              setIsEnemyTurn(false);
+              setIsAttacking(false);
+              setIsDeathModalOpen(true);
+              return { ...prev, hp: 0, rage: 0 };
             }
-            return { ...prev, hp: nextHp };
+
+            // GDD Rule: Taking damage generates Rage (+5~10)
+            const rageGainOnHit = Math.min(25, Math.max(6, Math.floor(totalEnemyDamage * 1.5)));
+            return {
+              ...prev,
+              hp: nextHp,
+              rage: Math.min(prev.maxRage, prev.rage + rageGainOnHit)
+            };
           });
 
           addLog(
-            `⚔️ 몬스터 전열의 반격! ${activeAttackers.length - dodgedCount}마리 공격 적중 ➔ ${totalEnemyDamage} 피해 (방어력 ${totalStats.defense} / 피해감소 ${totalStats.damageReduction || 0}%)`,
+            `⚔️ 몬스터 전열의 반격! ${activeAttackers.length - dodgedCount}마리 공격 적중 ➔ ${totalEnemyDamage} 피해 (분노 충전 +${Math.min(25, Math.max(6, Math.floor(totalEnemyDamage * 1.5)))})`,
             'damage'
           );
         }
@@ -1280,6 +1274,33 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Auto Refill Potions in Town
     setConsumables(curr => curr.map(c => c.id === 'c_hp' ? { ...c, count: Math.max(5, c.count) } : c));
     addLog('마을로 귀환했습니다. (생명력 물약 5개 무료 자동 충전 완료)', 'system');
+  };
+
+  const confirmDeathAndReturnToTown = () => {
+    setIsDeathModalOpen(false);
+    if (dungeonSnapshot) {
+      setInventory(dungeonSnapshot.inventory);
+      setRunesVault(dungeonSnapshot.runesVault);
+      setPlayerStats(p => ({
+        ...p,
+        hp: p.maxHp, // 체력 100% 만땅 완충!
+        gold: dungeonSnapshot.gold,
+        exp: dungeonSnapshot.exp,
+        level: dungeonSnapshot.level,
+        rage: 0
+      }));
+    } else {
+      setPlayerStats(p => ({
+        ...p,
+        hp: p.maxHp, // 체력 100% 만땅 완충!
+        rage: 0
+      }));
+    }
+    setConsumables(curr => curr.map(c => c.id === 'c_hp' ? { ...c, count: Math.max(5, c.count) } : c));
+    setViewMode('town');
+    setTempBuffs({ defenseBonus: 0, overkillBonus: 0 });
+    setDungeonSnapshot(null);
+    addLog('🏥 [소생] 데커드 케인의 치료로 생명력 100%를 회복하고 마을에서 부활했습니다!', 'system');
   };
 
   // Diablo II System Actions
@@ -1553,6 +1574,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         dungeonVictoryLoot,
         closeVictoryModal,
         identifyAllVictoryLoot,
+        isDeathModalOpen,
+        confirmDeathAndReturnToTown,
+        isLevelUpAnimated,
         socketRuneIntoItem,
         transmuteInCube,
         gambleItem,
