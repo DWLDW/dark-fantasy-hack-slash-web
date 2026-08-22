@@ -1388,13 +1388,21 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setPlayerStats(DEFAULT_PLAYER_STATS);
     setEquipment(INITIAL_EQUIPMENT);
     setInventory(SAMPLE_INVENTORY);
+    setRunesVault(DEFAULT_RUNES_VAULT);
+    setSkillLevels({ slash: 1, execute: 1, cleave: 1, whirlwind: 1 });
+    setSkillRunes({
+      slash: 'rune_fire',
+      execute: 'rune_poison',
+      cleave: 'rune_lightning',
+      whirlwind: 'rune_frost'
+    });
     setConsumables(INITIAL_CONSUMABLES);
     setCurrentDungeon(DUNGEONS_DATA[0]);
-    setCurrentRoomId(4);
-    setMonsters(createGoblin30Formation());
+    setCurrentRoomId(2);
+    setMonsters(createDungeonFormation('act1_crypt', 2));
     setChainCount(0);
     setViewMode('town');
-    addLog('💾 브라우저 세이브 데이터를 초기화하고 새 게임을 시작했습니다.', 'system');
+    addLog('💾 캐릭터를 레벨 1 및 단촐한 기본 장비로 초기화하고 새 모험을 시작했습니다.', 'system');
   };
 
   return (

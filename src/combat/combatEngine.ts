@@ -134,18 +134,17 @@ export function resolveAttack(
 
   // 2. Process Routes
   if (skill.route === 'line') {
-    // Slash (가르기): Primary hit on Depth 0 -> Overkill cascades forward to back (Depth 1~5)
+    // Slash (가르기): Primary hit on the FIRST alive monster in playerLane -> Overkill cascades forward to back
     const laneMonsters = monsters
       .filter(m => m.lane === playerLane && m.hp > 0)
       .sort((a, b) => a.depth - b.depth);
 
     let currentPayload = initialRawPayload;
-    let isFirst = true;
 
-    for (const m of laneMonsters) {
-      if (currentPayload <= 0) break;
+    laneMonsters.forEach((m, idx) => {
+      if (currentPayload <= 0) return;
 
-      const isOverkillHit = !isFirst;
+      const isOverkillHit = idx > 0;
       const defMultiplier = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(m.defense));
       const actualDmg = Math.floor(currentPayload * defMultiplier);
       const isFatal = actualDmg >= m.hp;
@@ -172,31 +171,26 @@ export function resolveAttack(
         applyFrostFreeze(updatedM);
         if (m.rank === 'elite' && !stopperId) stopperId = m.id;
         currentPayload = 0;
-        break;
       }
-      isFirst = false;
-    }
+    });
   } else if (skill.route === 'branch') {
-    // Cleave (휩쓸기): Primary hits on Front Row (Depth 0) of [playerLane - 1, playerLane, playerLane + 1]
-    const targetLanes = [playerLane - 1, playerLane, playerLane + 1];
+    // Cleave (휩쓸기): Primary hits on the FIRST alive monster of [playerLane - 1, playerLane, playerLane + 1]
+    const targetLanes = [playerLane - 1, playerLane, playerLane + 1].filter(l => l >= 0 && l <= 4);
 
-    for (const l of targetLanes) {
-      if (l < 0 || l > 4) continue;
-
+    targetLanes.forEach(l => {
       const laneMonsters = monsters
         .filter(m => m.lane === l && m.hp > 0)
         .sort((a, b) => a.depth - b.depth);
 
-      if (laneMonsters.length === 0) continue;
+      if (laneMonsters.length === 0) return;
 
       const isMainLane = l === playerLane;
       let currentPayload = isMainLane ? initialRawPayload : Math.floor(initialRawPayload * 0.75);
-      let isFirst = true;
 
-      for (const m of laneMonsters) {
-        if (currentPayload <= 0) break;
+      laneMonsters.forEach((m, idx) => {
+        if (currentPayload <= 0) return;
 
-        const isOverkillHit = !isFirst;
+        const isOverkillHit = idx > 0;
         const defMultiplier = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(m.defense));
         const actualDmg = Math.floor(currentPayload * defMultiplier);
         const isFatal = actualDmg >= m.hp;
@@ -223,13 +217,11 @@ export function resolveAttack(
           applyFrostFreeze(updatedM);
           if (m.rank === 'elite' && !stopperId) stopperId = m.id;
           currentPayload = 0;
-          break;
         }
-        isFirst = false;
-      }
-    }
+      });
+    });
   } else if (skill.route === 'radius') {
-    // Whirlwind (휠윈드): Primary hits on Depth 0 and Depth 1 across all 5 lanes (Broad but lighter damage)
+    // Whirlwind (휠윈드): Primary hits on the FIRST TWO alive monsters across all 5 lanes (Depth index 0 and 1)
     for (let l = 0; l < 5; l++) {
       const laneMonsters = monsters
         .filter(m => m.lane === l && m.hp > 0)
@@ -240,11 +232,11 @@ export function resolveAttack(
       const isMainLane = l === playerLane || Math.abs(l - playerLane) === 1;
       let currentPayload = Math.floor(initialRawPayload * (isMainLane ? 0.90 : 0.70));
 
-      for (const m of laneMonsters) {
-        if (currentPayload <= 0) break;
+      laneMonsters.forEach((m, idx) => {
+        if (currentPayload <= 0) return;
 
-        // Primary hits for Depth 0 and 1; Overkill hits for Depth 2+
-        const isOverkillHit = m.depth >= 2;
+        // First 2 monsters in the lane are Primary hits (idx 0, 1); 3rd+ are Overkill hits (idx >= 2)
+        const isOverkillHit = idx >= 2;
         const defMultiplier = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(m.defense));
         const actualDmg = Math.floor(currentPayload * defMultiplier);
         const isFatal = actualDmg >= m.hp;
@@ -271,12 +263,11 @@ export function resolveAttack(
           applyFrostFreeze(updatedM);
           if (m.rank === 'elite' && !stopperId) stopperId = m.id;
           currentPayload = 0;
-          break;
         }
-      }
+      });
     }
   } else if (skill.route === 'single') {
-    // Execute (처형): Massive primary single-target strike -> Overkill shockwave explodes into back row & adjacent lanes!
+    // Execute (처형): Massive primary strike on the FIRST alive monster in playerLane -> Overkill explodes into back & neighbors!
     const frontTarget = monsters
       .filter(m => m.lane === playerLane && m.hp > 0)
       .sort((a, b) => a.depth - b.depth)[0];

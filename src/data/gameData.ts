@@ -805,8 +805,41 @@ export const GAME_ITEMS_POOL: GameItem[] = [
   }
 ];
 
-// Initial Starting Inventory
-export const SAMPLE_INVENTORY: GameItem[] = GAME_ITEMS_POOL.slice(0, 10);
+// Initial Starting Inventory (Very minimal starter items)
+export const SAMPLE_INVENTORY: GameItem[] = [
+  {
+    id: 'inv_starter_sword_2s',
+    name: '숏소드 (2 소켓)',
+    baseItemName: '숏소드 (Short Sword)',
+    rarity: 'normal',
+    tier: 'normal',
+    slot: 'weapon',
+    sockets: 2,
+    socketedRunes: [],
+    isIdentified: true,
+    speedCategory: 'fast',
+    baseAtbPercent: 65,
+    stats: { minDmg: 3, maxDmg: 7 },
+    value: 120,
+    icon: 'Sword',
+    description: '[노말 도검] 2개의 빈 소켓. [Tir + El]로 초반 국민 룬워드 강철(Steel) 제작 가능!'
+  },
+  {
+    id: 'inv_starter_cap_2s',
+    name: '가죽 모자 (2 소켓)',
+    baseItemName: '캡 (Cap)',
+    rarity: 'normal',
+    tier: 'normal',
+    slot: 'helm',
+    sockets: 2,
+    socketedRunes: [],
+    isIdentified: true,
+    stats: { defense: 8 },
+    value: 80,
+    icon: 'HardHat',
+    description: '2개의 빈 소켓이 뚫린 가죽 모자.'
+  }
+];
 
 // 4. Balanced Warrior Skills (Nerfed Q, Heavily Buffed Rage Skills W, E, R)
 export const WARRIOR_SKILLS: Skill[] = [
@@ -922,78 +955,30 @@ export const INITIAL_CONSUMABLES: ConsumableItem[] = [
 
 export const INITIAL_EQUIPMENT: Record<string, GameItem> = {
   weapon: {
-    id: 'rw_steel_equipped',
-    name: '강철 (Steel)',
+    id: 'start_short_sword',
+    name: '녹슨 숏소드',
     baseItemName: '숏소드 (Short Sword)',
-    rarity: 'runeword',
+    rarity: 'normal',
+    tier: 'normal',
     slot: 'weapon',
-    sockets: 2,
-    socketedRunes: ['Tir', 'El'],
-    isRuneWord: true,
-    runeWordName: '강철 (Steel)',
-    isIdentified: true,
-    stats: { minDmg: 35, maxDmg: 58, str: 6, critChance: 10 },
-    specialEffect: '공격 속도 +25%, 상처 악화 50%, 처치 시 분노 +2',
-    value: 1500,
+    speedCategory: 'normal',
+    baseAtbPercent: 50,
+    stats: { minDmg: 2, maxDmg: 5 },
+    value: 25,
     icon: 'Sword',
-    description: '[룬워드: Tir + El] 베어낼수록 예리함이 살아나는 초반 명검.'
+    description: '모험을 갓 시작한 초심자의 녹슨 검.'
   },
   armor: {
-    id: 'rw_stealth_equipped',
-    name: '스텔스 (Stealth)',
-    baseItemName: '체인 메일 (Chain Mail)',
-    rarity: 'runeword',
+    id: 'start_leather_cloth',
+    name: '낡은 누더기 옷',
+    baseItemName: '누더기 옷 (Ragged Clothes)',
+    rarity: 'normal',
+    tier: 'normal',
     slot: 'armor',
-    sockets: 2,
-    socketedRunes: ['Tal', 'Eth'],
-    isRuneWord: true,
-    runeWordName: '스텔스 (Stealth)',
-    isIdentified: true,
-    stats: { defense: 58, dex: 6, hp: 40 },
-    specialEffect: '이동 속도 +25%, 분노 재생 +15%, 독 저항 +30%',
-    value: 1200,
+    stats: { defense: 6, evasion: 2 },
+    value: 15,
     icon: 'Shield',
-    description: '[룬워드: Tal + Eth] 빠른 기동성과 저항을 제공하는 경량 갑주.'
-  },
-  helm: {
-    id: 'base_helm',
-    name: '소켓 캡 투구',
-    baseItemName: '캡 (Cap)',
-    rarity: 'normal',
-    slot: 'helm',
-    sockets: 2,
-    socketedRunes: ['Ort'],
-    isIdentified: true,
-    stats: { defense: 18 },
-    value: 250,
-    icon: 'HardHat',
-    description: '[소켓 1/2 장착됨: Ort] 번개 저항이 깃든 가죽 투구.'
-  },
-  shield: {
-    id: 'base_shield',
-    name: '타워 실드 (3 소켓)',
-    baseItemName: '타워 실드 (Tower Shield)',
-    rarity: 'normal',
-    slot: 'shield',
-    sockets: 3,
-    socketedRunes: ['Ral', 'Ort'],
-    isIdentified: true,
-    stats: { defense: 42 },
-    value: 400,
-    icon: 'Shield',
-    description: '[소켓 2/3 장착됨: Ral, Ort] 룬 1개를 추가로 박으면 룬워드 완성 가능!'
-  },
-  ring1: {
-    id: 'r_nagel',
-    name: '나겔링 (Nagelring)',
-    rarity: 'unique',
-    slot: 'ring1',
-    isIdentified: true,
-    stats: { fortune: 30, str: 2 },
-    specialEffect: '매직 아이템 발견율(Fortune) +30%, 피격 피해 -3',
-    value: 800,
-    icon: 'CircleDot',
-    description: '황금빛으로 반짝이는 고대 행운의 반지.'
+    description: '거칠게 기워 입은 기본 옷.'
   }
 };
 
