@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useGame } from '../../state/gameStore';
 import { DUNGEONS_DATA, RUNEWORD_RECIPES, D2_RUNES } from '../../data/gameData';
+import { simulateRuneWordCrafting } from '../../utils/runeCrafting';
 import { GameItem, EquipSlot } from '../../types/game';
 import { Box, Sparkles, Dices, BookOpen, ArrowRight, Shield, Flame, Compass, Hammer, CheckSquare, PlusCircle } from 'lucide-react';
 
@@ -12,6 +13,7 @@ export const TownView: React.FC = () => {
     inventory,
     runesVault,
     craftRuneWord,
+    craftRuneWordWithTransmute,
     transmuteRunesInVault,
     enterDungeon,
     setViewMode,
@@ -378,59 +380,75 @@ export const TownView: React.FC = () => {
                       {RUNEWORD_RECIPES.filter(
                         rw => rw.allowedSlot === selectedBaseItem.slot && rw.requiredSockets === selectedBaseItem.sockets
                       ).map(recipe => {
-                        const reqCounts: Record<string, number> = {};
-                        recipe.requiredRunes.forEach(r => { reqCounts[r] = (reqCounts[r] || 0) + 1; });
-
-                        let canCraft = true;
-                        const missing: string[] = [];
-                        Object.entries(reqCounts).forEach(([rKey, count]) => {
-                          const owned = runesVault[rKey] || 0;
-                          if (owned < count) {
-                            canCraft = false;
-                            missing.push(`${rKey}(${owned}/${count})`);
-                          }
-                        });
+                        const sim = simulateRuneWordCrafting(recipe, runesVault);
 
                         return (
                           <div
                             key={recipe.id}
-                            className={`p-2.5 rounded-lg border flex items-center justify-between gap-2 transition ${
-                              canCraft
+                            className={`p-2.5 rounded-lg border flex flex-col sm:flex-row sm:items-center justify-between gap-2 transition ${
+                              sim.canDirectCraft
                                 ? 'bg-amber-950/40 border-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.3)]'
+                                : sim.canTransmuteCraft
+                                ? 'bg-purple-950/40 border-purple-400 shadow-[0_0_8px_rgba(192,132,252,0.3)]'
                                 : 'bg-iron-900 border-iron-750 opacity-70'
                             }`}
                           >
                             <div>
                               <div className="font-black text-xs text-gray-100 flex items-center gap-1.5">
-                                <span className={canCraft ? 'text-amber-300' : 'text-gray-300'}>{recipe.name}</span>
+                                <span className={sim.canDirectCraft ? 'text-amber-300' : sim.canTransmuteCraft ? 'text-purple-300' : 'text-gray-300'}>
+                                  {recipe.name}
+                                </span>
                                 <span className="text-[10px] font-mono text-purple-300 font-bold bg-iron-950 px-1 rounded border border-iron-700">
                                   [{recipe.requiredRunes.join(' + ')}]
                                 </span>
                               </div>
                               <div className="text-[10px] text-gray-400 mt-0.5">
-                                {canCraft ? (
-                                  <span className="text-emerald-400 font-bold">✓ 보유 룬 충족! 즉시 제작 가능</span>
+                                {sim.canDirectCraft ? (
+                                  <span className="text-emerald-400 font-bold">✓ 직접 보유 룬 충족! 즉시 제작 가능</span>
+                                ) : sim.canTransmuteCraft ? (
+                                  <span className="text-purple-300 font-bold">🔮 하위 룬 합성으로 충당 가능!</span>
                                 ) : (
-                                  <span className="text-red-400 font-bold">부족: {missing.join(', ')}</span>
+                                  <span className="text-red-400 font-bold">부족: {sim.directMissingRunes.join(', ')}</span>
                                 )}
                               </div>
                             </div>
 
-                            <button
-                              onClick={() => {
-                                craftRuneWord(selectedBaseItem.id, recipe.id);
-                                setSelectedBaseItem(null);
-                              }}
-                              disabled={!canCraft}
-                              className={`px-3 py-1.5 rounded-lg text-xs font-black transition shadow flex items-center gap-1 flex-shrink-0 ${
-                                canCraft
-                                  ? 'bg-gradient-to-r from-brass-500 to-amber-500 hover:from-brass-400 hover:to-amber-400 text-iron-950 ring-1 ring-brass-300 animate-pulse'
-                                  : 'bg-iron-800 text-gray-500 border border-iron-700 cursor-not-allowed'
-                              }`}
-                            >
-                              <Hammer className="w-3.5 h-3.5" />
-                              <span>원클릭 제작</span>
-                            </button>
+                            {/* Dual Buttons */}
+                            <div className="flex items-center gap-1.5 flex-shrink-0">
+                              <button
+                                onClick={() => {
+                                  craftRuneWord(selectedBaseItem.id, recipe.id);
+                                  setSelectedBaseItem(null);
+                                }}
+                                disabled={!sim.canDirectCraft}
+                                className={`px-2.5 py-1.5 rounded-lg text-xs font-black transition shadow flex items-center gap-1 ${
+                                  sim.canDirectCraft
+                                    ? 'bg-gradient-to-r from-brass-500 to-amber-500 hover:from-brass-400 hover:to-amber-400 text-iron-950 ring-1 ring-brass-300 animate-pulse'
+                                    : 'bg-iron-800 text-gray-500 border border-iron-700 cursor-not-allowed opacity-50'
+                                }`}
+                                title={sim.canDirectCraft ? '보유한 상위 룬으로 즉시 제작' : '해당 상위 룬 직접 부족'}
+                              >
+                                <Sparkles className="w-3.5 h-3.5" />
+                                <span>✨ 즉시 제작</span>
+                              </button>
+
+                              <button
+                                onClick={() => {
+                                  craftRuneWordWithTransmute(selectedBaseItem.id, recipe.id);
+                                  setSelectedBaseItem(null);
+                                }}
+                                disabled={!sim.canTransmuteCraft}
+                                className={`px-2.5 py-1.5 rounded-lg text-xs font-black transition shadow flex items-center gap-1 ${
+                                  sim.canTransmuteCraft
+                                    ? 'bg-gradient-to-r from-purple-700 to-purple-500 hover:from-purple-600 hover:to-purple-400 text-white ring-1 ring-purple-300'
+                                    : 'bg-iron-800 text-gray-500 border border-iron-700 cursor-not-allowed opacity-50'
+                                }`}
+                                title={sim.canTransmuteCraft ? '하위 룬들을 자동으로 합성하여 상위 룬을 충당한 뒤 제작' : '하위 룬 총량 부족'}
+                              >
+                                <Hammer className="w-3.5 h-3.5" />
+                                <span>🔮 합성 후 제작</span>
+                              </button>
+                            </div>
                           </div>
                         );
                       })}

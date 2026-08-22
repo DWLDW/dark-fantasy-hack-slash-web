@@ -202,3 +202,74 @@ export function playRuneWordSound(): void {
     osc.stop(now + idx * 0.08 + 0.65);
   });
 }
+
+/**
+ * 7. Deckard Cain Magic Identification Sound
+ */
+export function playIdentifySound(): void {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  const now = ctx.currentTime;
+  const notes = [523.25, 659.25, 783.99, 1046.50]; // C Major arpeggio
+
+  notes.forEach((freq, idx) => {
+    const osc = ctx.createOscillator();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(freq, now + idx * 0.06);
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.3, now + idx * 0.06);
+    gain.gain.exponentialRampToValueAtTime(0.005, now + idx * 0.06 + 0.5);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now + idx * 0.06);
+    osc.stop(now + idx * 0.06 + 0.55);
+  });
+}
+
+/**
+ * 8. Legendary / Unique Loot Drop Sound (Golden Pillar & Beam of Light Fanfare)
+ */
+export function playLegendaryDropSound(): void {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  const now = ctx.currentTime;
+
+  // Sub bass boom
+  const subOsc = ctx.createOscillator();
+  subOsc.type = 'sine';
+  subOsc.frequency.setValueAtTime(90, now);
+  subOsc.frequency.exponentialRampToValueAtTime(35, now + 0.4);
+
+  const subGain = ctx.createGain();
+  subGain.gain.setValueAtTime(0.5, now);
+  subGain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+
+  subOsc.connect(subGain);
+  subGain.connect(ctx.destination);
+  subOsc.start(now);
+  subOsc.stop(now + 0.45);
+
+  // Glorious celestial chime arpeggio
+  const celestialNotes = [587.33, 739.99, 880, 1174.66, 1479.98, 1760]; // D Major sparkling fanfare
+  celestialNotes.forEach((freq, idx) => {
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, now + idx * 0.07);
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.35, now + idx * 0.07);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.07 + 0.8);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now + idx * 0.07);
+    osc.stop(now + idx * 0.07 + 0.85);
+  });
+}
+

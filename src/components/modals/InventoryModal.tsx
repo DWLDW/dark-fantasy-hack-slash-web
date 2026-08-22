@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useGame } from '../../state/gameStore';
 import { EquipSlot, GameItem, RuneWordRecipe } from '../../types/game';
 import { D2_RUNES, RUNEWORD_RECIPES } from '../../data/gameData';
+import { simulateRuneWordCrafting } from '../../utils/runeCrafting';
 import {
   X,
   ShieldAlert,
@@ -24,6 +25,7 @@ export const InventoryModal: React.FC = () => {
     inventory,
     runesVault,
     craftRuneWord,
+    craftRuneWordWithTransmute,
     transmuteRunesInVault,
     equipItem,
     unequipItem,
@@ -42,28 +44,24 @@ export const InventoryModal: React.FC = () => {
   const cleanEquipmentInventory = inventory.filter(item => item.slot !== 'rune');
 
   // Filter craftable / relevant RuneWords if selected item is a normal socket base
-  const eligibleRuneWords: { recipe: RuneWordRecipe; canCraft: boolean; missingRunes: string[] }[] = [];
+  const eligibleRuneWords: {
+    recipe: RuneWordRecipe;
+    canDirectCraft: boolean;
+    canTransmuteCraft: boolean;
+    directMissingRunes: string[];
+    transmutedRunesCost: Record<string, number>;
+  }[] = [];
+
   if (selectedItem && selectedItem.rarity === 'normal' && selectedItem.sockets && selectedItem.sockets > 0) {
     RUNEWORD_RECIPES.forEach(recipe => {
       if (recipe.allowedSlot === selectedItem.slot && recipe.requiredSockets === selectedItem.sockets) {
-        const reqCounts: Record<string, number> = {};
-        recipe.requiredRunes.forEach(r => { reqCounts[r] = (reqCounts[r] || 0) + 1; });
-
-        let canCraft = true;
-        const missing: string[] = [];
-
-        Object.entries(reqCounts).forEach(([rKey, reqCount]) => {
-          const owned = runesVault[rKey] || 0;
-          if (owned < reqCount) {
-            canCraft = false;
-            missing.push(`${rKey}(${owned}/${reqCount})`);
-          }
-        });
-
+        const sim = simulateRuneWordCrafting(recipe, runesVault);
         eligibleRuneWords.push({
           recipe,
-          canCraft,
-          missingRunes: missing
+          canDirectCraft: sim.canDirectCraft,
+          canTransmuteCraft: sim.canTransmuteCraft,
+          directMissingRunes: sim.directMissingRunes,
+          transmutedRunesCost: sim.transmutedRunesCost
         });
       }
     });
@@ -315,43 +313,67 @@ export const InventoryModal: React.FC = () => {
                 </div>
 
                 <div className="space-y-1.5 max-h-[140px] overflow-y-auto pr-1">
-                  {eligibleRuneWords.map(({ recipe, canCraft, missingRunes }) => (
+                  {eligibleRuneWords.map(({ recipe, canDirectCraft, canTransmuteCraft, directMissingRunes }) => (
                     <div
                       key={recipe.id}
-                      className={`p-2 rounded-lg border-2 flex items-center justify-between gap-2 transition ${
-                        canCraft
+                      className={`p-2.5 rounded-lg border-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 transition ${
+                        canDirectCraft
                           ? 'bg-amber-950/40 border-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.3)]'
+                          : canTransmuteCraft
+                          ? 'bg-purple-950/40 border-purple-400 shadow-[0_0_8px_rgba(192,132,252,0.3)]'
                           : 'bg-iron-900 border-iron-750 opacity-75'
                       }`}
                     >
                       <div>
                         <div className="font-black text-xs md:text-sm text-gray-100 flex items-center gap-2">
-                          <span className={canCraft ? 'text-amber-300' : 'text-gray-300'}>{recipe.name}</span>
+                          <span className={canDirectCraft ? 'text-amber-300' : canTransmuteCraft ? 'text-purple-300' : 'text-gray-300'}>
+                            {recipe.name}
+                          </span>
                           <span className="text-[10px] font-mono text-purple-300 font-bold bg-iron-950 px-1.5 py-0.5 rounded border border-iron-700">
                             [{recipe.requiredRunes.join(' + ')}]
                           </span>
                         </div>
                         <div className="text-[10px] text-gray-300 mt-0.5">
-                          {canCraft ? (
-                            <span className="text-emerald-400 font-bold">✓ 보유 룬 충족! 즉시 제작 가능</span>
+                          {canDirectCraft ? (
+                            <span className="text-emerald-400 font-bold">✓ 직접 보유 룬 충족! 즉시 제작 가능</span>
+                          ) : canTransmuteCraft ? (
+                            <span className="text-purple-300 font-bold">🔮 하위 룬 합성으로 충당 가능!</span>
                           ) : (
-                            <span className="text-red-400 font-bold">부족: {missingRunes.join(', ')}</span>
+                            <span className="text-red-400 font-bold">부족: {directMissingRunes.join(', ')}</span>
                           )}
                         </div>
                       </div>
 
-                      <button
-                        onClick={() => selectedItem && craftRuneWord(selectedItem.id, recipe.id)}
-                        disabled={!canCraft}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-black transition shadow flex items-center gap-1 flex-shrink-0 ${
-                          canCraft
-                            ? 'bg-gradient-to-r from-brass-500 to-amber-500 hover:from-brass-400 hover:to-amber-400 text-iron-950 ring-1 ring-brass-300 animate-pulse'
-                            : 'bg-iron-800 text-gray-500 border border-iron-700 cursor-not-allowed'
-                        }`}
-                      >
-                        <Sparkles className="w-3.5 h-3.5" />
-                        <span>원클릭 제작</span>
-                      </button>
+                      {/* Dual Craft Buttons: Direct Craft (Left) vs Auto-Transmute Craft (Right) */}
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        <button
+                          onClick={() => selectedItem && craftRuneWord(selectedItem.id, recipe.id)}
+                          disabled={!canDirectCraft}
+                          className={`px-2.5 py-1.5 rounded-lg text-xs font-black transition shadow flex items-center gap-1 ${
+                            canDirectCraft
+                              ? 'bg-gradient-to-r from-brass-500 to-amber-500 hover:from-brass-400 hover:to-amber-400 text-iron-950 ring-1 ring-brass-300 animate-pulse'
+                              : 'bg-iron-800 text-gray-500 border border-iron-700 cursor-not-allowed opacity-50'
+                          }`}
+                          title={canDirectCraft ? '보유한 상위 룬으로 즉시 제작' : '해당 상위 룬 직접 부족'}
+                        >
+                          <Sparkles className="w-3.5 h-3.5" />
+                          <span>✨ 즉시 제작</span>
+                        </button>
+
+                        <button
+                          onClick={() => selectedItem && craftRuneWordWithTransmute(selectedItem.id, recipe.id)}
+                          disabled={!canTransmuteCraft}
+                          className={`px-2.5 py-1.5 rounded-lg text-xs font-black transition shadow flex items-center gap-1 ${
+                            canTransmuteCraft
+                              ? 'bg-gradient-to-r from-purple-700 to-purple-500 hover:from-purple-600 hover:to-purple-400 text-white ring-1 ring-purple-300'
+                              : 'bg-iron-800 text-gray-500 border border-iron-700 cursor-not-allowed opacity-50'
+                          }`}
+                          title={canTransmuteCraft ? '하위 룬들을 자동으로 합성하여 상위 룬을 충당한 뒤 제작' : '하위 룬 총량 부족'}
+                        >
+                          <Hammer className="w-3.5 h-3.5" />
+                          <span>🔮 합성 후 제작</span>
+                        </button>
+                      </div>
                     </div>
                   ))}
 

@@ -21,13 +21,16 @@ import {
   RUNEWORD_RECIPES
 } from '../data/gameData';
 import { resolveAttack, createGoblin30Formation, findBestLaneForSkill, AttackResolution, CombatHitResult } from '../combat/combatEngine';
+import { simulateRuneWordCrafting } from '../utils/runeCrafting';
 import {
   playSlashSound,
   playHitSound,
   playKillSound,
   playExplosionSound,
   playHordeAttackSound,
-  playRuneWordSound
+  playRuneWordSound,
+  playIdentifySound,
+  playLegendaryDropSound
 } from '../utils/audio';
 
 interface FloatingDamageText {
@@ -106,7 +109,20 @@ interface GameContextType {
   runesVault: Record<string, number>;
   addRuneToVault: (runeKey: string, count?: number) => void;
   craftRuneWord: (targetItemId: string, recipeId: string) => boolean;
+  craftRuneWordWithTransmute: (targetItemId: string, recipeId: string) => boolean;
   transmuteRunesInVault: (runeKey: string) => boolean;
+
+  // Dungeon Victory Loot & Deckard Cain Instant Identify Modal
+  isVictoryModalOpen: boolean;
+  dungeonVictoryLoot: {
+    gold: number;
+    shards: number;
+    exp: number;
+    items: GameItem[];
+    runes: Record<string, number>;
+  } | null;
+  closeVictoryModal: () => void;
+  identifyAllVictoryLoot: () => void;
 
   // Diablo 2 Crafting & Features
   socketRuneIntoItem: (targetItemId: string, runeId: string) => void;
@@ -284,6 +300,91 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     playRuneWordSound();
     addLog(`✨ 스마트 룬워드 제작 성공! [${recipe.name}]이(가) 완성되었습니다!`, 'loot');
     return true;
+  };
+
+  const craftRuneWordWithTransmute = (targetItemId: string, recipeId: string): boolean => {
+    const targetItem = inventory.find(i => i.id === targetItemId);
+    const recipe = RUNEWORD_RECIPES.find(r => r.id === recipeId);
+    if (!targetItem || !recipe) return false;
+
+    if (targetItem.rarity !== 'normal' || targetItem.slot !== recipe.allowedSlot || (targetItem.sockets || 0) < recipe.requiredSockets) {
+      addLog(`[${targetItem.name}]은(는) [${recipe.name}]의 제작 조건에 맞지 않습니다.`, 'system');
+      return false;
+    }
+
+    const sim = simulateRuneWordCrafting(recipe, runesVault);
+    if (!sim.canTransmuteCraft) {
+      addLog(`하위 룬을 모두 합성해도 필요한 룬이 부족합니다!`, 'system');
+      return false;
+    }
+
+    // Deduct calculated transmuted runes cost
+    setRunesVault(prev => {
+      const copy = { ...prev };
+      Object.entries(sim.transmutedRunesCost).forEach(([rKey, count]) => {
+        copy[rKey] = Math.max(0, (copy[rKey] || 0) - count);
+      });
+      return copy;
+    });
+
+    const updatedItem: GameItem = {
+      ...targetItem,
+      name: recipe.name,
+      rarity: 'runeword',
+      isRuneWord: true,
+      runeWordName: recipe.name,
+      socketedRunes: recipe.requiredRunes,
+      stats: {
+        ...targetItem.stats,
+        ...recipe.bonusStats
+      },
+      specialEffect: recipe.specialEffect,
+      description: `[룬워드: ${recipe.requiredRunes.join(' + ')}] ${recipe.description}`
+    };
+
+    setInventory(prev => prev.map(i => i.id === targetItemId ? updatedItem : i));
+    playRuneWordSound();
+    addLog(`🔮 하위 룬 연쇄 합성 및 [${recipe.name}] 룬워드 완성!`, 'loot');
+    return true;
+  };
+
+  // Dungeon Victory Loot Modal State
+  const [isVictoryModalOpen, setIsVictoryModalOpen] = useState(false);
+  const [dungeonVictoryLoot, setDungeonVictoryLoot] = useState<{
+    gold: number;
+    shards: number;
+    exp: number;
+    items: GameItem[];
+    runes: Record<string, number>;
+  } | null>(null);
+
+  const closeVictoryModal = () => {
+    setIsVictoryModalOpen(false);
+    setDungeonVictoryLoot(null);
+    setViewMode('town');
+  };
+
+  const identifyAllVictoryLoot = () => {
+    if (!dungeonVictoryLoot) return;
+
+    let hasLegendary = false;
+    const identifiedItems = dungeonVictoryLoot.items.map(item => {
+      if (item.rarity === 'unique' || item.rarity === 'legendary' || item.rarity === 'set') {
+        hasLegendary = true;
+      }
+      return { ...item, isIdentified: true };
+    });
+
+    setDungeonVictoryLoot(prev => prev ? { ...prev, items: identifiedItems } : null);
+    setInventory(prev => prev.map(i => ({ ...i, isIdentified: true })));
+
+    playIdentifySound();
+    if (hasLegendary) {
+      setTimeout(() => playLegendaryDropSound(), 300);
+      addLog(`✨ 데커드 케인의 감정으로 전설/유니크 아이템의 숨겨진 힘이 깨어났습니다!`, 'loot');
+    } else {
+      addLog(`📜 데커드 케인이 모든 전리품을 감정했습니다.`, 'system');
+    }
   };
 
   const transmuteRunesInVault = (runeKey: string): boolean => {
@@ -596,9 +697,57 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const nextRoomId = currentRoom.connections[0];
             selectNextRoom(nextRoomId);
           } else {
-            addLog('👑 축하합니다! 던전의 모든 룸을 정복하고 보상을 획득하여 마을로 귀환합니다.', 'loot');
-            setPlayerStats(p => ({ ...p, shards: p.shards + 15, gold: p.gold + 5000 }));
-            returnToTown();
+            // DUNGEON CLEARED! Generate rich victory loot and trigger Deckard Cain Modal
+            const victoryGold = 6500;
+            const victoryShards = 18;
+            const victoryExp = 1500;
+
+            // Generate dropped items (unidentified)
+            const droppedItems: GameItem[] = (currentDungeon.dropItems || SAMPLE_INVENTORY.slice(0, 3)).map((item, idx) => ({
+              ...item,
+              id: `loot_${Date.now()}_${idx}`,
+              isIdentified: false // Unidentified for Deckard Cain to identify!
+            }));
+
+            // Generate dropped runes
+            const droppedRunes: Record<string, number> = {
+              Tal: 2,
+              Ral: 1,
+              Ort: 1,
+              Thul: 1
+            };
+
+            // Update state
+            setPlayerStats(p => ({
+              ...p,
+              gold: p.gold + victoryGold,
+              shards: p.shards + victoryShards,
+              exp: p.exp + victoryExp
+            }));
+
+            // Add dropped items to inventory
+            setInventory(prev => [...prev, ...droppedItems]);
+
+            // Add dropped runes to vault
+            setRunesVault(prev => {
+              const copy = { ...prev };
+              Object.entries(droppedRunes).forEach(([rKey, count]) => {
+                copy[rKey] = (copy[rKey] || 0) + count;
+              });
+              return copy;
+            });
+
+            setDungeonVictoryLoot({
+              gold: victoryGold,
+              shards: victoryShards,
+              exp: victoryExp,
+              items: droppedItems,
+              runes: droppedRunes
+            });
+
+            setIsVictoryModalOpen(true);
+            playLegendaryDropSound();
+            addLog(`👑 축하합니다! [${currentDungeon.name}]을(를) 정복하여 전설의 보상을 획득했습니다!`, 'loot');
           }
         }, 1200);
         return;
@@ -1023,7 +1172,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         runesVault,
         addRuneToVault,
         craftRuneWord,
+        craftRuneWordWithTransmute,
         transmuteRunesInVault,
+        isVictoryModalOpen,
+        dungeonVictoryLoot,
+        closeVictoryModal,
+        identifyAllVictoryLoot,
         socketRuneIntoItem,
         transmuteInCube,
         gambleItem,
