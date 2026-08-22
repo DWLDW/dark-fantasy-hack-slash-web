@@ -17,6 +17,7 @@ export const TownView: React.FC = () => {
     transmuteInCube,
     gambleItem,
     identifyAllItems,
+    resetGameSave,
     addLog
   } = useGame();
 
@@ -63,13 +64,29 @@ export const TownView: React.FC = () => {
         </div>
         
         {/* Quick Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="text-[11px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-600/70 px-2.5 py-1.5 rounded flex items-center gap-1 shadow">
+            <span>💾 브라우저 자동저장 활성</span>
+          </div>
+
+          <button
+            onClick={() => {
+              if (window.confirm('정말로 세이브 데이터를 초기화하고 처음부터 다시 시작하시겠습니까?')) {
+                resetGameSave();
+              }
+            }}
+            className="px-2.5 py-1.5 bg-iron-950 hover:bg-blood-950 border border-iron-700 hover:border-blood-600 text-gray-400 hover:text-blood-200 rounded text-[11px] font-mono transition"
+            title="브라우저 세이브 초기화"
+          >
+            데이터 초기화
+          </button>
+
           <button
             onClick={() => setViewMode('dungeon_select')}
             className="px-3.5 py-2 bg-iron-850 hover:bg-iron-750 border border-iron-600 text-gray-200 hover:text-white rounded text-xs font-bold flex items-center gap-1.5 transition shadow"
           >
             <Compass className="w-4 h-4 text-amber-400" />
-            던전 관문 열기
+            던전 관문
           </button>
           <button
             onClick={() => enterDungeon(recommendedDungeon.id)}

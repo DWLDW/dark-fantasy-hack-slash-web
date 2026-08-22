@@ -104,7 +104,44 @@ interface GameContextType {
   gambleItem: (gambleType: 'weapon' | 'armor' | 'ring' | 'amulet') => void;
   identifyItem: (itemId: string) => void;
   identifyAllItems: () => void;
+  resetGameSave: () => void;
 }
+
+const SAVE_KEY = 'DARK_FANTASY_SAVE_V1';
+
+const getInitialSave = () => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {
+    console.error('Failed to load save from localStorage', e);
+  }
+  return null;
+};
+
+const savedData = getInitialSave();
+
+const DEFAULT_PLAYER_STATS: PlayerStats = {
+  level: 18,
+  exp: 3420,
+  maxExp: 5000,
+  hp: 480,
+  maxHp: 480,
+  rage: 75,
+  maxRage: 100,
+  mana: 120,
+  maxMana: 120,
+  gold: 14500,
+  shards: 38,
+  statPoints: 3,
+  str: 45,
+  dex: 30,
+  con: 38,
+  int: 15,
+  wis: 16,
+  cha: 18
+};
 
 const GameContext = createContext<GameContextType | null>(null);
 
@@ -112,32 +149,35 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [viewMode, setViewMode] = useState<ViewMode>('town');
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   
-  const [playerStats, setPlayerStats] = useState<PlayerStats>({
-    level: 18,
-    exp: 3420,
-    maxExp: 5000,
-    hp: 480,
-    maxHp: 480,
-    rage: 75,
-    maxRage: 100,
-    mana: 120,
-    maxMana: 120,
-    gold: 14500,
-    shards: 38,
-    statPoints: 3,
-    str: 45,
-    dex: 30,
-    con: 38,
-    int: 15,
-    wis: 16,
-    cha: 18
+  const [playerStats, setPlayerStats] = useState<PlayerStats>(() => savedData?.playerStats || DEFAULT_PLAYER_STATS);
+  const [equipment, setEquipment] = useState<Record<string, GameItem>>(() => savedData?.equipment || INITIAL_EQUIPMENT);
+  const [inventory, setInventory] = useState<GameItem[]>(() => savedData?.inventory || SAMPLE_INVENTORY);
+  const [consumables, setConsumables] = useState<ConsumableItem[]>(() => savedData?.consumables || INITIAL_CONSUMABLES);
+  const [currentDungeon, setCurrentDungeon] = useState<DungeonInfo>(() => {
+    if (savedData?.currentDungeonId) {
+      return DUNGEONS_DATA.find(d => d.id === savedData.currentDungeonId) || DUNGEONS_DATA[0];
+    }
+    return DUNGEONS_DATA[0];
   });
-
-  const [equipment, setEquipment] = useState<Record<string, GameItem>>(INITIAL_EQUIPMENT);
-  const [inventory, setInventory] = useState<GameItem[]>(SAMPLE_INVENTORY);
-  const [consumables, setConsumables] = useState<ConsumableItem[]>(INITIAL_CONSUMABLES);
-  const [currentDungeon, setCurrentDungeon] = useState<DungeonInfo>(DUNGEONS_DATA[0]);
-  const [currentRoomId, setCurrentRoomId] = useState<number>(4);
+  const [currentRoomId, setCurrentRoomId] = useState<number>(() => savedData?.currentRoomId || 4);
+  
+  // Auto-save to localStorage whenever persistent states change
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const dataToSave = {
+        playerStats,
+        equipment,
+        inventory,
+        consumables,
+        currentDungeonId: currentDungeon.id,
+        currentRoomId
+      };
+      localStorage.setItem(SAVE_KEY, JSON.stringify(dataToSave));
+    } catch (e) {
+      console.error('Failed to auto-save to localStorage', e);
+    }
+  }, [playerStats, equipment, inventory, consumables, currentDungeon.id, currentRoomId]);
   
   // Benchmark 30-Goblin formation from GDD Section 26
   const [monsters, setMonsters] = useState<Monster[]>(createGoblin30Formation());
@@ -156,7 +196,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
 
   const [combatLogs, setCombatLogs] = useState<CombatLogEntry[]>([
-    { id: '1', timestamp: '12:00', text: 'GDD 30마리 검증 전장 준비 완료. [방향키] 레인이동, [Q/W/E/R] 스킬, [Space] 공격', type: 'system' }
+    { id: '1', timestamp: '12:00', text: '브라우저 로컬 자동 저장(Auto-Save) 활성화됨. [Space] 공격 / 빠른 파밍', type: 'system' }
   ]);
 
   const addLog = useCallback((text: string, type: CombatLogEntry['type'] = 'system') => {
@@ -766,6 +806,22 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     addLog(`📜 데커드 케인이 소지한 모든 미확인 아이템(${unidentified.length}개)을 식별했습니다!`, 'loot');
   };
 
+  const resetGameSave = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(SAVE_KEY);
+    }
+    setPlayerStats(DEFAULT_PLAYER_STATS);
+    setEquipment(INITIAL_EQUIPMENT);
+    setInventory(SAMPLE_INVENTORY);
+    setConsumables(INITIAL_CONSUMABLES);
+    setCurrentDungeon(DUNGEONS_DATA[0]);
+    setCurrentRoomId(4);
+    setMonsters(createGoblin30Formation());
+    setChainCount(0);
+    setViewMode('town');
+    addLog('💾 브라우저 세이브 데이터를 초기화하고 새 게임을 시작했습니다.', 'system');
+  };
+
   return (
     <GameContext.Provider
       value={{
@@ -809,7 +865,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         transmuteInCube,
         gambleItem,
         identifyItem,
-        identifyAllItems
+        identifyAllItems,
+        resetGameSave
       }}
     >
       {children}
