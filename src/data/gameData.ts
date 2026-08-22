@@ -433,6 +433,272 @@ export const SKILL_RUNES_DATA: SkillRune[] = [
   }
 ];
 
+// 5. Comprehensive Item Pool Categorized by Progression (Early, Mid, Late Game)
+export const GAME_ITEMS_POOL: GameItem[] = [
+  // --- ACT 1: Early Game Items (Normal, Magic, Early Unique) ---
+  {
+    id: 'e_short_sword_2s',
+    name: '강철 숏소드 (2 소켓)',
+    baseItemName: '숏소드 (Short Sword)',
+    rarity: 'normal',
+    slot: 'weapon',
+    sockets: 2,
+    socketedRunes: [],
+    isIdentified: true,
+    stats: { minDmg: 8, maxDmg: 16 },
+    value: 150,
+    icon: 'Sword',
+    description: '2개의 빈 소켓이 뚫린 초반 기본 도검. [Tir + El]을 박으면 강철(Steel) 완성!'
+  },
+  {
+    id: 'e_studded_leather',
+    name: '징박힌 가죽 갑옷',
+    baseItemName: '가죽 갑옷 (Studded Leather)',
+    rarity: 'magic',
+    slot: 'armor',
+    isIdentified: false,
+    stats: { defense: 35, hp: 20 },
+    value: 200,
+    icon: 'Shield',
+    description: '단단한 쇠못이 박힌 견고한 가죽 갑옷.'
+  },
+  {
+    id: 'e_nagelring',
+    name: '나겔링 (Nagelring)',
+    rarity: 'unique',
+    slot: 'ring1',
+    isIdentified: false,
+    stats: { fortune: 30, str: 2 },
+    specialEffect: '매직 아이템 발견율(Fortune) +30%, 피격 피해 -3',
+    value: 800,
+    icon: 'CircleDot',
+    description: '황금빛으로 반짝이는 고대 행운의 반지. 전리품 파밍을 시작하는 전사의 필수품.'
+  },
+  {
+    id: 'e_gull_dagger',
+    name: '갈매기 단검 (Gull Dagger)',
+    rarity: 'unique',
+    slot: 'weapon',
+    isIdentified: false,
+    stats: { minDmg: 12, maxDmg: 20, fortune: 50 },
+    specialEffect: '매직 아이템 발견율 +50%, 분노 회복 +5',
+    value: 1200,
+    icon: 'Sword',
+    description: '보물 사냥꾼들이 목숨을 걸고 찾아 헤매던 황금 보물 단검.'
+  },
+  {
+    id: 'e_sigon_shield',
+    name: "시곤의 수호방패 (Sigon's Guard)",
+    rarity: 'set',
+    slot: 'shield',
+    isIdentified: false,
+    stats: { defense: 45, allResist: 10 },
+    specialEffect: '모든 스킬 레벨 +1, 블록율 +20%',
+    value: 650,
+    icon: 'Shield',
+    description: '고대 시곤 기사단의 성스러운 철벽 방패.'
+  },
+  {
+    id: 'e_cap_2s',
+    name: '가죽 모자 (2 소켓)',
+    baseItemName: '가죽 모자 (Cap)',
+    rarity: 'normal',
+    slot: 'helm',
+    sockets: 2,
+    socketedRunes: [],
+    isIdentified: true,
+    stats: { defense: 12 },
+    value: 120,
+    icon: 'HardHat',
+    description: '2개의 소켓이 뚫린 가죽 모자. [Nef + Tir]을 박으면 천저(Nadir) 완성!'
+  },
+  {
+    id: 'e_bloodfist',
+    name: '블러드피스트 (Bloodfist)',
+    rarity: 'unique',
+    slot: 'gloves',
+    isIdentified: false,
+    stats: { defense: 18, hp: 40 },
+    specialEffect: '타격 회복 속도 +30%, 최소 대미지 +5, 최대 생명력 +40',
+    value: 500,
+    icon: 'Shield',
+    description: '피로 물든 투사의 가죽 장갑.'
+  },
+
+  // --- ACT 2 & 3: Mid Game Items (Socket Bases & Strong Uniques) ---
+  {
+    id: 'm_cs_4s',
+    name: '크리스탈 소드 (4 소켓)',
+    baseItemName: '크리스탈 소드 (Crystal Sword)',
+    rarity: 'normal',
+    slot: 'weapon',
+    sockets: 4,
+    socketedRunes: [],
+    isIdentified: true,
+    stats: { minDmg: 20, maxDmg: 35 },
+    value: 1200,
+    icon: 'Sword',
+    description: '4개의 빈 소켓이 뚫린 명품 도검. [Tal + Thul + Ort + Amn]을 박으면 영혼(Spirit) 완성!'
+  },
+  {
+    id: 'm_thresher_4s',
+    name: '쓰레셔 폴암 (4 소켓)',
+    baseItemName: '쓰레셔 (Thresher)',
+    rarity: 'normal',
+    slot: 'weapon',
+    sockets: 4,
+    socketedRunes: [],
+    isIdentified: true,
+    stats: { minDmg: 35, maxDmg: 75 },
+    value: 2000,
+    icon: 'Sword',
+    description: '4개의 빈 소켓이 뚫린 거대한 낫. [Ral + Tir + Tal + Sol]을 박으면 통찰(Insight) 완성!'
+  },
+  {
+    id: 'm_vipermagi',
+    name: '독사마술사의 가죽 (Skin of the Vipermagi)',
+    rarity: 'unique',
+    slot: 'armor',
+    isIdentified: false,
+    stats: { defense: 110, allResist: 25 },
+    specialEffect: '모든 스킬 레벨 +1, 시전 속도 +30%, 모든 저항 +25%',
+    value: 2200,
+    icon: 'Shield',
+    description: '푸른 뱀 가죽으로 제작된 마도사의 명품 로브.'
+  },
+  {
+    id: 'm_waterwalk',
+    name: '물나그네 부츠 (Waterwalk)',
+    rarity: 'unique',
+    slot: 'boots',
+    isIdentified: false,
+    stats: { defense: 65, hp: 60, dex: 15 },
+    specialEffect: '달리기/걷기 속도 +20%, 원거리 방어 +100, 최대 생명력 +60',
+    value: 1500,
+    icon: 'Footprints',
+    description: '물 위를 걷는 듯 가벼운 고대 상어 가죽 부츠.'
+  },
+  {
+    id: 'm_bone_helm_2s',
+    name: '본 헬름 (2 소켓)',
+    baseItemName: '본 헬름 (Bone Helm)',
+    rarity: 'normal',
+    slot: 'helm',
+    sockets: 2,
+    socketedRunes: [],
+    isIdentified: true,
+    stats: { defense: 45 },
+    value: 900,
+    icon: 'HardHat',
+    description: '2개의 소켓이 뚫린 해골 투구. [Ort + Sol]을 박으면 전승(Lore) 완성!'
+  },
+
+  // --- ACT 4 & 5: End Game Items (Elite Sockets, Mythic Uniques) ---
+  {
+    id: 'u_shako',
+    name: '할리퀸 관모 (Harlequin Crest Shako)',
+    rarity: 'unique',
+    slot: 'helm',
+    isIdentified: false,
+    stats: { defense: 140, hp: 80, str: 2, dex: 2, con: 2, int: 2, fortune: 50 },
+    specialEffect: '모든 스킬 레벨 +2, 받는 물리 피해 10% 감소, 매직 아이템 발견율 +50%',
+    value: 8500,
+    icon: 'HardHat',
+    description: '녹색으로 빛나는 전설의 가죽 모자. 모든 영웅들이 갈망하는 지고의 투구.'
+  },
+  {
+    id: 'u_maras',
+    name: "마라의 만화경 (Mara's Kaleidoscope)",
+    rarity: 'unique',
+    slot: 'amulet',
+    isIdentified: false,
+    stats: { str: 5, dex: 5, con: 5, int: 5, wis: 5, cha: 5, allResist: 30 },
+    specialEffect: '모든 스킬 레벨 +2, 모든 능력치 +5, 모든 저항 +30%',
+    value: 7800,
+    icon: 'Sparkles',
+    description: '다채로운 무지갯빛 마력이 소용돌이치는 최상급 고대 목걸이.'
+  },
+  {
+    id: 'u_soj',
+    name: '요르단의 반지 (Stone of Jordan)',
+    rarity: 'unique',
+    slot: 'ring1',
+    isIdentified: false,
+    stats: { minDmg: 5, maxDmg: 15, int: 10 },
+    specialEffect: '모든 스킬 레벨 +1, 최대 분노/마나 +25%, 번개 피해 1~12 추가',
+    value: 9900,
+    icon: 'CircleDot',
+    description: '성역의 역사에서 가장 귀중하고 유명한 전설의 반지.'
+  },
+  {
+    id: 'u_bulkathos',
+    name: '불카토스의 결혼반지 (Bul-Kathos)',
+    rarity: 'unique',
+    slot: 'ring2',
+    isIdentified: false,
+    stats: { hp: 50, str: 5 },
+    specialEffect: '모든 스킬 레벨 +1, 생명력 흡수 +5%, 레벨당 생명력 증가',
+    value: 8200,
+    icon: 'CircleDot',
+    description: '야만용사의 시조 불카토스가 착용했던 피의 힘이 깃든 반지.'
+  },
+  {
+    id: 'u_monarch_4s',
+    name: '엘리트 모나크 (4 소켓)',
+    baseItemName: '모나크 (Monarch)',
+    rarity: 'normal',
+    slot: 'shield',
+    sockets: 4,
+    socketedRunes: [],
+    isIdentified: true,
+    stats: { defense: 148 },
+    value: 3500,
+    icon: 'Shield',
+    description: '4개의 빈 소켓이 뚫린 최고급 방패. [Tal + Thul + Ort + Amn]으로 영혼 방패 제작 가능!'
+  },
+  {
+    id: 'u_archon_3s',
+    name: '아칸 플레이트 (3 소켓)',
+    baseItemName: '아칸 플레이트 (Archon Plate)',
+    rarity: 'normal',
+    slot: 'armor',
+    sockets: 3,
+    socketedRunes: [],
+    isIdentified: true,
+    stats: { defense: 185 },
+    value: 4500,
+    icon: 'Shield',
+    description: '3개의 소켓이 뚫린 최고급 경량 갑주. [Jah + Ith + Ber]를 박으면 수수께끼(Enigma) 완성!'
+  },
+  {
+    id: 'u_draculs',
+    name: "드라큘의 손아귀 (Dracul's Grasp)",
+    rarity: 'unique',
+    slot: 'gloves',
+    isIdentified: false,
+    stats: { defense: 125, str: 15 },
+    specialEffect: '타격 시 5% 확률로 생명력 추출(Life Tap) 발동, 공격 명중 시 생명력 10% 흡수',
+    value: 6500,
+    icon: 'Shield',
+    description: '흡혈귀의 저주가 깃들어 적의 피를 빨아들이는 뱀파이어 건틀릿.'
+  },
+  {
+    id: 'u_gorerider',
+    name: '고어 라이더 (Gore Rider)',
+    rarity: 'unique',
+    slot: 'boots',
+    isIdentified: false,
+    stats: { defense: 140 },
+    specialEffect: '치명타 확률 +15%, 강타 확률 +15%, 상처 악화 +10%',
+    value: 6200,
+    icon: 'Footprints',
+    description: '적의 뼈와 살을 짓이기며 전장을 질주하는 광전사의 군화.'
+  }
+];
+
+// Initial Starting Inventory
+export const SAMPLE_INVENTORY: GameItem[] = GAME_ITEMS_POOL.slice(0, 10);
+
 // 4. Balanced Warrior Skills (Nerfed Q, Heavily Buffed Rage Skills W, E, R)
 export const WARRIOR_SKILLS: Skill[] = [
   {
@@ -501,252 +767,7 @@ export const WARRIOR_SKILLS: Skill[] = [
   }
 ];
 
-// 5. Rich Sample Inventory (Clean Equipment, Socket Bases, Uniques, and Accessories - NO RUNES)
-export const SAMPLE_INVENTORY: GameItem[] = [
-  // Socket Bases for RuneWords
-  {
-    id: 'base_cs_4s',
-    name: '크리스탈 소드 (4 소켓)',
-    baseItemName: '크리스탈 소드 (Crystal Sword)',
-    rarity: 'normal',
-    slot: 'weapon',
-    sockets: 4,
-    socketedRunes: [],
-    isIdentified: true,
-    stats: { minDmg: 20, maxDmg: 35 },
-    value: 1200,
-    icon: 'Sword',
-    description: '4개의 빈 소켓이 뚫린 명품 도검. [Tal + Thul + Ort + Amn]을 박으면 스피리트(Spirit) 완성!'
-  },
-  {
-    id: 'base_monarch_4s',
-    name: '모나크 실드 (4 소켓)',
-    baseItemName: '모나크 (Monarch)',
-    rarity: 'normal',
-    slot: 'shield',
-    sockets: 4,
-    socketedRunes: [],
-    isIdentified: true,
-    stats: { defense: 145 },
-    value: 2500,
-    icon: 'Shield',
-    description: '4개의 빈 소켓이 뚫린 전설의 엘리트 방패. [Tal + Thul + Ort + Amn]을 박으면 스피리트 방패 완성!'
-  },
-  {
-    id: 'base_archon_3s',
-    name: '아칸 플레이트 (3 소켓)',
-    baseItemName: '아칸 플레이트 (Archon Plate)',
-    rarity: 'normal',
-    slot: 'armor',
-    sockets: 3,
-    socketedRunes: [],
-    isIdentified: true,
-    stats: { defense: 180 },
-    value: 3000,
-    icon: 'Shield',
-    description: '3개의 소켓이 뚫린 최고급 경량 갑주. [Jah + Ith + Ber]를 박으면 수수께끼(Enigma) 완성!'
-  },
-  {
-    id: 'base_dusk_4s',
-    name: '더스크 슈라우드 (4 소켓)',
-    baseItemName: '더스크 슈라우드 (Dusk Shroud)',
-    rarity: 'normal',
-    slot: 'armor',
-    sockets: 4,
-    socketedRunes: [],
-    isIdentified: true,
-    stats: { defense: 165 },
-    value: 2800,
-    icon: 'Shield',
-    description: '4개의 소켓이 뚫린 엘리트 갑옷. [El + Sol + Dol + Lo]를 박으면 인내(Fortitude) 완성!'
-  },
-  {
-    id: 'base_bone_helm_2s',
-    name: '본 헬름 (2 소켓)',
-    baseItemName: '본 헬름 (Bone Helm)',
-    rarity: 'normal',
-    slot: 'helm',
-    sockets: 2,
-    socketedRunes: [],
-    isIdentified: true,
-    stats: { defense: 45 },
-    value: 900,
-    icon: 'HardHat',
-    description: '2개의 소켓이 뚫린 해골 투구. [Ort + Sol]을 박으면 전승(Lore) 완성!'
-  },
-  {
-    id: 'base_polearm_4s',
-    name: '쓰레셔 (4 소켓)',
-    baseItemName: '쓰레셔 (Thresher)',
-    rarity: 'normal',
-    slot: 'weapon',
-    sockets: 4,
-    socketedRunes: [],
-    isIdentified: true,
-    stats: { minDmg: 40, maxDmg: 85 },
-    value: 2000,
-    icon: 'Sword',
-    description: '4개의 소켓이 뚫린 장병기. [Ral + Tir + Tal + Sol]을 박으면 통찰(Insight) 완성!'
-  },
-
-  // Accessories (Amulet, Rings)
-  {
-    id: 'u_maras',
-    name: "마라의 만화경 (Mara's Kaleidoscope)",
-    rarity: 'unique',
-    slot: 'amulet',
-    isIdentified: true,
-    stats: { str: 5, dex: 5, con: 5, int: 5, wis: 5, cha: 5, allResist: 30 },
-    specialEffect: '모든 스킬 레벨 +2, 모든 능력치 +5, 모든 저항 +30%',
-    value: 25000,
-    icon: 'CircleDot',
-    description: '화려한 빛을 발산하는 디아블로 2 최고의 졸업 목걸이.'
-  },
-  {
-    id: 'u_soj',
-    name: '요르단의 반지 (Stone of Jordan - 조던링)',
-    rarity: 'unique',
-    slot: 'ring1',
-    isIdentified: true,
-    stats: { int: 10, mana: 80 },
-    specialEffect: '모든 스킬 레벨 +1, 최대 마나 +25%, 번개 피해 추가',
-    value: 20000,
-    icon: 'CircleDot',
-    description: '전설적인 화폐이자 스킬 레벨을 올려주는 절대 반지.'
-  },
-  {
-    id: 'u_bk_ring',
-    name: "불카토스의 결혼반지 (Bul-Kathos' Wedding Band)",
-    rarity: 'unique',
-    slot: 'ring2',
-    isIdentified: true,
-    stats: { hp: 120, lifeSteal: 5 },
-    specialEffect: '모든 스킬 레벨 +1, 타격 시 생명력 5% 흡수, 레벨 비례 생명력 증가',
-    value: 18000,
-    icon: 'CircleDot',
-    description: '바바리안의 위대한 시조 불카토스의 결혼반지.'
-  },
-
-  // Unique Helms, Armors, Gloves, Boots
-  {
-    id: 'u_shako',
-    name: '할리퀸 관모 (Harlequin Crest - 샤코)',
-    rarity: 'unique',
-    slot: 'helm',
-    isIdentified: true,
-    stats: { defense: 120, hp: 100, mana: 100, fortune: 50 },
-    specialEffect: '모든 스킬 +2, 물리 피해 감소 10%, 매직 아이템 발견 확률(MF) +50%',
-    value: 22000,
-    icon: 'HardHat',
-    description: '디아블로 2 최고의 만능 국민 투구, 일명 샤코.'
-  },
-  {
-    id: 'u_draculs',
-    name: "드라큘의 손아귀 (Dracul's Grasp)",
-    rarity: 'unique',
-    slot: 'gloves',
-    isIdentified: true,
-    stats: { defense: 75, str: 15, lifeSteal: 10 },
-    specialEffect: '타격 시 5% 확률로 라이프 탭 저주 시전, 상처 악화 25%',
-    value: 16000,
-    icon: 'Shield',
-    description: '피를 갈구하는 뱀파이어의 건틀릿.'
-  },
-  {
-    id: 'u_gore_rider',
-    name: '선혈 기수 (Gore Rider - 고어 부츠)',
-    rarity: 'unique',
-    slot: 'boots',
-    isIdentified: true,
-    stats: { defense: 85, moveSpeed: 30, critChance: 15 },
-    specialEffect: '강타 15%, 치명적 공격 15%, 상처 악화 10%, 이동 속도 +30%',
-    value: 15000,
-    icon: 'Footprints',
-    description: '근접 밀리 캐릭터들의 영원한 최종 부츠.'
-  }
-];
-
-export const INITIAL_EQUIPMENT: Record<string, GameItem> = {
-  weapon: {
-    id: 'rw_steel_equipped',
-    name: '강철 (Steel)',
-    baseItemName: '브로드소드 (Broad Sword)',
-    rarity: 'runeword',
-    slot: 'weapon',
-    sockets: 2,
-    socketedRunes: ['Tir', 'El'],
-    isRuneWord: true,
-    runeWordName: '강철 (Steel)',
-    isIdentified: true,
-    stats: { minDmg: 55, maxDmg: 82, str: 10, critChance: 10, overkillEfficiency: 20 },
-    specialEffect: '공격 속도 +25%, 상처 악화 50%, 처치 시 분노 +2',
-    value: 2500,
-    icon: 'Sword',
-    description: '[룬워드: Tir + El] 베어낼수록 예리함이 살아나는 명검.'
-  },
-  armor: {
-    id: 'rw_stealth_equipped',
-    name: '스텔스 (Stealth)',
-    baseItemName: '체인 메일 (Chain Mail)',
-    rarity: 'runeword',
-    slot: 'armor',
-    sockets: 2,
-    socketedRunes: ['Tal', 'Eth'],
-    isRuneWord: true,
-    runeWordName: '스텔스 (Stealth)',
-    isIdentified: true,
-    stats: { defense: 58, dex: 6, hp: 60 },
-    specialEffect: '이동 속도 +25%, 분노 재생 +15%, 독 저항 +30%',
-    value: 2200,
-    icon: 'Shield',
-    description: '[룬워드: Tal + Eth] 빠른 기동성과 저항을 제공하는 경량 갑주.'
-  },
-  helm: {
-    id: 'base_helm',
-    name: '소켓 캡 투구',
-    baseItemName: '캡 (Cap)',
-    rarity: 'normal',
-    slot: 'helm',
-    sockets: 2,
-    socketedRunes: ['Ort'],
-    isIdentified: true,
-    stats: { defense: 22 },
-    value: 350,
-    icon: 'HardHat',
-    description: '[소켓 1/2 장착됨: Ort] 번개 저항이 깃든 가죽 투구.'
-  },
-  shield: {
-    id: 'base_shield',
-    name: '타워 실드 (3 소켓)',
-    baseItemName: '타워 실드 (Tower Shield)',
-    rarity: 'normal',
-    slot: 'shield',
-    sockets: 3,
-    socketedRunes: ['Ral', 'Ort'],
-    isIdentified: true,
-    stats: { defense: 45 },
-    value: 500,
-    icon: 'Shield',
-    description: '[소켓 2/3 장착됨: Ral, Ort] 룬 1개를 추가로 박으면 룬워드 완성 가능!'
-  },
-  ring1: {
-    id: 'r_rare',
-    name: '시체의 손가락 (Corpse Grasp)',
-    rarity: 'rare',
-    slot: 'ring1',
-    isIdentified: true,
-    stats: { str: 8, lifeSteal: 6, fortune: 15 },
-    subAffixes: [
-      { id: 'a1', name: '흡혈의', value: 6, label: '타격 시 생명력 흡수 +6%' },
-      { id: 'a2', name: '거인의', value: 8, label: '힘(STR) +8' },
-      { id: 'a3', name: '행운의', value: 15, label: '매직 아이템 발견 확률(MF) +15%' }
-    ],
-    value: 3000,
-    icon: 'CircleDot',
-    description: '시체의 손가락에서 떼어낸 저주받은 반지. 파밍 행운과 피를 갈구합니다.'
-  }
-};
-
+// 6. Initial Consumables
 export const INITIAL_CONSUMABLES: ConsumableItem[] = [
   {
     id: 'c_hp',
@@ -790,76 +811,323 @@ export const INITIAL_CONSUMABLES: ConsumableItem[] = [
   }
 ];
 
+export const INITIAL_EQUIPMENT: Record<string, GameItem> = {
+  weapon: {
+    id: 'rw_steel_equipped',
+    name: '강철 (Steel)',
+    baseItemName: '숏소드 (Short Sword)',
+    rarity: 'runeword',
+    slot: 'weapon',
+    sockets: 2,
+    socketedRunes: ['Tir', 'El'],
+    isRuneWord: true,
+    runeWordName: '강철 (Steel)',
+    isIdentified: true,
+    stats: { minDmg: 35, maxDmg: 58, str: 6, critChance: 10 },
+    specialEffect: '공격 속도 +25%, 상처 악화 50%, 처치 시 분노 +2',
+    value: 1500,
+    icon: 'Sword',
+    description: '[룬워드: Tir + El] 베어낼수록 예리함이 살아나는 초반 명검.'
+  },
+  armor: {
+    id: 'rw_stealth_equipped',
+    name: '스텔스 (Stealth)',
+    baseItemName: '체인 메일 (Chain Mail)',
+    rarity: 'runeword',
+    slot: 'armor',
+    sockets: 2,
+    socketedRunes: ['Tal', 'Eth'],
+    isRuneWord: true,
+    runeWordName: '스텔스 (Stealth)',
+    isIdentified: true,
+    stats: { defense: 58, dex: 6, hp: 40 },
+    specialEffect: '이동 속도 +25%, 분노 재생 +15%, 독 저항 +30%',
+    value: 1200,
+    icon: 'Shield',
+    description: '[룬워드: Tal + Eth] 빠른 기동성과 저항을 제공하는 경량 갑주.'
+  },
+  helm: {
+    id: 'base_helm',
+    name: '소켓 캡 투구',
+    baseItemName: '캡 (Cap)',
+    rarity: 'normal',
+    slot: 'helm',
+    sockets: 2,
+    socketedRunes: ['Ort'],
+    isIdentified: true,
+    stats: { defense: 18 },
+    value: 250,
+    icon: 'HardHat',
+    description: '[소켓 1/2 장착됨: Ort] 번개 저항이 깃든 가죽 투구.'
+  },
+  shield: {
+    id: 'base_shield',
+    name: '타워 실드 (3 소켓)',
+    baseItemName: '타워 실드 (Tower Shield)',
+    rarity: 'normal',
+    slot: 'shield',
+    sockets: 3,
+    socketedRunes: ['Ral', 'Ort'],
+    isIdentified: true,
+    stats: { defense: 42 },
+    value: 400,
+    icon: 'Shield',
+    description: '[소켓 2/3 장착됨: Ral, Ort] 룬 1개를 추가로 박으면 룬워드 완성 가능!'
+  },
+  ring1: {
+    id: 'r_nagel',
+    name: '나겔링 (Nagelring)',
+    rarity: 'unique',
+    slot: 'ring1',
+    isIdentified: true,
+    stats: { fortune: 30, str: 2 },
+    specialEffect: '매직 아이템 발견율(Fortune) +30%, 피격 피해 -3',
+    value: 800,
+    icon: 'CircleDot',
+    description: '황금빛으로 반짝이는 고대 행운의 반지.'
+  }
+};
+
+// 7. 5 Thematic Dungeons (Acts 1 to 5 with Scaled Difficulty & High-Tier Rune/Item Drops)
 export const DUNGEONS_DATA: DungeonInfo[] = [
   {
-    id: 'goblin_cave',
-    name: '고블린 동굴 (Goblin Cave)',
-    theme: '절벽 아래 채굴 동굴과 조잡한 방어 요새',
+    id: 'act1_crypt',
+    name: '1막: 핏빛 황야와 지하묘지 (Crypt & Blood Moor)',
+    theme: '피로 물든 황야와 고대 언데드 납골당',
     recommendedLevel: 5,
     difficulty: '쉬움',
     elementalInfo: '물리 취약, 관통 공격에 극도로 취약',
-    monsterSummary: '고블린 정찰병, 고블린 전사, 고블린 샤먼 (방패 전열과 다수의 저체력 후열)',
-    bestClearTime: '02분 14초',
-    maxChainRecord: 36,
+    monsterSummary: '고블린 척탄병, 해골 궁수, 썩은 좀비 떼, 오크 집행관',
+    bestClearTime: '01분 45초',
+    maxChainRecord: 30,
     dropItems: [
-      SAMPLE_INVENTORY[0], // Tal
-      SAMPLE_INVENTORY[1], // Thul
-      SAMPLE_INVENTORY[8], // 4소켓 크리스탈소드
+      GAME_ITEMS_POOL[0], // 강철 숏소드 2s
+      GAME_ITEMS_POOL[1], // 징박힌 가죽 갑옷
+      GAME_ITEMS_POOL[2], // 나겔링
+      GAME_ITEMS_POOL[3], // 갈매기 단검
+      GAME_ITEMS_POOL[5], // 가죽 모자 2s
+      GAME_ITEMS_POOL[6], // 블러드피스트
     ],
     rooms: [
-      { id: 1, type: 'start', title: '동굴 입구', cleared: true, current: false, connections: [2] },
-      { id: 2, type: 'normal', title: '버려진 채굴장', cleared: true, current: false, connections: [3, 4], monsterCount: 18 },
-      { id: 3, type: 'treasure', title: '비밀 룬 보관소', cleared: false, current: false, connections: [5], rewardDesc: 'Tal / Eth 룬 상자' },
-      { id: 4, type: 'elite', title: '경비 대장의 막사', cleared: false, current: true, connections: [5], monsterCount: 28, rewardDesc: '오크 집행관 (소켓 장비 드랍)' },
-      { id: 5, type: 'rune', title: '샤먼의 제단', cleared: false, current: false, connections: [6], rewardDesc: 'Ral 룬 획득' },
-      { id: 6, type: 'boss', title: '고블린 족장의 옥좌', cleared: false, current: false, connections: [], monsterCount: 45, rewardDesc: '유니크 링 & 하이룬 드랍' }
+      { id: 1, type: 'start', title: '황야의 야영지', cleared: true, current: false, connections: [2] },
+      { id: 2, type: 'normal', title: '핏빛 동굴 통로', cleared: true, current: false, connections: [3, 4], monsterCount: 30 },
+      { id: 3, type: 'treasure', title: '숨겨진 룬 궤짝', cleared: false, current: false, connections: [5], rewardDesc: '기본 룬(El~Ort) 및 골드' },
+      { id: 4, type: 'elite', title: '묘지기 오크의 석실', cleared: false, current: true, connections: [5], monsterCount: 30, rewardDesc: '오크 집행관 (나겔링/소켓 드랍)' },
+      { id: 5, type: 'rune', title: '고대 제단', cleared: false, current: false, connections: [6], rewardDesc: 'Tal / Ral 룬 제단' },
+      { id: 6, type: 'boss', title: '지하묘지 심연', cleared: false, current: false, connections: [], monsterCount: 30, rewardDesc: '보스: 언데드 대장 (유니크 장비 확정)' }
     ]
   },
   {
-    id: 'crypt',
-    name: '잊혀진 납골당 (Forgotten Crypt)',
-    theme: '봉인된 왕실 묘지와 지하 납골당',
+    id: 'act2_tomb',
+    name: '2막: 메마른 사막의 고대 묘실 (Lut Gholein Tomb)',
+    theme: '작열하는 사막 지하의 비밀 왕실 무덤',
     recommendedLevel: 15,
     difficulty: '보통',
-    elementalInfo: '암흑 저항 50%, 신성/화염 취약, 높은 물리 방어',
-    monsterSummary: '스켈레톤 방패병, 좀비 떼, 해골 마법사 (밀집 웨이브와 부활 메커니즘)',
-    bestClearTime: '04분 30초',
-    maxChainRecord: 68,
+    elementalInfo: '독/암흑 저항 30%, 번개 및 빙결 공격에 취약',
+    monsterSummary: '사막 전갈, 미이라 고위 사제, 모래 메뚜기 떼, 고대 무덤 수호자',
+    bestClearTime: '03분 10초',
+    maxChainRecord: 55,
     dropItems: [
-      SAMPLE_INVENTORY[2], // Ort
-      SAMPLE_INVENTORY[3], // Amn
-      SAMPLE_INVENTORY[11], // 샤코
+      GAME_ITEMS_POOL[4], // 시곤 방패
+      GAME_ITEMS_POOL[7], // 크리스탈 소드 4s
+      GAME_ITEMS_POOL[8], // 쓰레셔 4s
+      GAME_ITEMS_POOL[10], // 물나그네 부츠
+      GAME_ITEMS_POOL[11], // 본 헬름 2s
     ],
     rooms: [
-      { id: 1, type: 'start', title: '봉인된 묘지 입구', cleared: true, current: false, connections: [2] },
-      { id: 2, type: 'normal', title: '무명 용사의 회랑', cleared: false, current: false, connections: [3], monsterCount: 32 },
-      { id: 3, type: 'shrine', title: '고대 성소', cleared: false, current: false, connections: [4, 5], rewardDesc: '축복: 매직 아이템 발견율 +50%' },
-      { id: 4, type: 'elite', title: '묘지기 기사의 석실', cleared: false, current: false, connections: [6], monsterCount: 40 },
-      { id: 5, type: 'treasure', title: '왕실 보물고', cleared: false, current: false, connections: [6], rewardDesc: '고급 보석 및 룬' },
-      { id: 6, type: 'boss', title: '해골왕의 안식처', cleared: false, current: false, connections: [], monsterCount: 70 }
+      { id: 1, type: 'start', title: '오아시스 지하 입구', cleared: true, current: false, connections: [2] },
+      { id: 2, type: 'normal', title: '모래 바람의 회랑', cleared: false, current: false, connections: [3, 4], monsterCount: 30 },
+      { id: 3, type: 'shrine', title: '태양의 성소', cleared: false, current: false, connections: [5], rewardDesc: '매직 찬스 +35% 버프' },
+      { id: 4, type: 'elite', title: '미이라 제사장의 방', cleared: false, current: false, connections: [5], monsterCount: 30, rewardDesc: '중급 룬(Thul~Lem) 드랍' },
+      { id: 5, type: 'treasure', title: '파라오의 황금 묘실', cleared: false, current: false, connections: [6], rewardDesc: '크리스탈소드 4s & 탈라샤 룬' },
+      { id: 6, type: 'boss', title: '두리엘의 얼어붙은 방', cleared: false, current: false, connections: [], monsterCount: 30, rewardDesc: '보스 두리엘 (4소켓 장비 & 유니크)' }
     ]
   },
   {
-    id: 'inferno_mine',
-    name: '인페르노 심연 (Inferno Mine)',
-    theme: '용암이 끓어오르는 폐광과 악마 군단',
-    recommendedLevel: 30,
-    difficulty: '지옥',
-    elementalInfo: '화염 면역(100%), 빙결/냉기 피해에 200% 취약',
-    monsterSummary: '용암 골렘, 지옥 사냥개, 데몬 로드 (강력한 체인 스토퍼와 광역 폭발)',
-    bestClearTime: '06분 15초',
-    maxChainRecord: 95,
+    id: 'act3_jungle',
+    name: '3막: 쿠라스트 부패 밀림 (Kurast Jungle)',
+    theme: '독기와 안개가 자욱한 늪지 사원과 증오의 신전',
+    recommendedLevel: 28,
+    difficulty: '어려움',
+    elementalInfo: '독 면역(80%), 화염 및 관통 피해에 150% 취약',
+    monsterSummary: '자카룸 광신도, 부패의 주술사, 늪지대 히드라, 정글 파괴자',
+    bestClearTime: '04분 50초',
+    maxChainRecord: 75,
     dropItems: [
-      SAMPLE_INVENTORY[5], // Lo
-      SAMPLE_INVENTORY[6], // Ber
-      SAMPLE_INVENTORY[7], // Jah
-      SAMPLE_INVENTORY[12], // 조던링
+      GAME_ITEMS_POOL[9], // 구교복
+      GAME_ITEMS_POOL[11], // 본 헬름 2s
+      GAME_ITEMS_POOL[16], // 모나크 4s
+      GAME_ITEMS_POOL[17], // 아칸 플레이트 3s
     ],
     rooms: [
-      { id: 1, type: 'start', title: '용암 갱도 입구', cleared: true, current: false, connections: [2] },
-      { id: 2, type: 'normal', title: '작열하는 제련소', cleared: false, current: false, connections: [3], monsterCount: 50 },
-      { id: 3, type: 'elite', title: '화염 군주의 제단', cleared: false, current: false, connections: [4], monsterCount: 65 },
-      { id: 4, type: 'boss', title: '불지옥의 심장', cleared: false, current: false, connections: [], monsterCount: 100 }
+      { id: 1, type: 'start', title: '부두 거점 입구', cleared: true, current: false, connections: [2] },
+      { id: 2, type: 'normal', title: '거미 숲 통로', cleared: false, current: false, connections: [3], monsterCount: 30 },
+      { id: 3, type: 'elite', title: '자카룸 광신도 소굴', cleared: false, current: false, connections: [4, 5], monsterCount: 30 },
+      { id: 4, type: 'rune', title: '증오의 제단', cleared: false, current: false, connections: [6], rewardDesc: '상급 룬(Hel~Ist) 드랍' },
+      { id: 5, type: 'treasure', title: '쿠라스트 보물 수장고', cleared: false, current: false, connections: [6], rewardDesc: '모나크 4소켓 & 구교복' },
+      { id: 6, type: 'boss', title: '메피스토의 증오의 신전', cleared: false, current: false, connections: [], monsterCount: 30, rewardDesc: '보스 메피스토 (최상급 룬워드 베이스)' }
+    ]
+  },
+  {
+    id: 'act4_chaos',
+    name: '4막: 혼돈의 성역 (Chaos Sanctuary)',
+    theme: '용암과 지옥의 화염이 타오르는 디아블로의 본거지',
+    recommendedLevel: 40,
+    difficulty: '지옥',
+    elementalInfo: '화염 저항 90%, 냉기 및 맹독 방어력 분쇄에 취약',
+    monsterSummary: '망각의 기사단, 화염 군주, 베놈 로드, 카오스 집행관',
+    bestClearTime: '06분 20초',
+    maxChainRecord: 90,
+    dropItems: [
+      GAME_ITEMS_POOL[12], // 할리퀸 샤코
+      GAME_ITEMS_POOL[14], // 조던링
+      GAME_ITEMS_POOL[18], // 드라큘의 손아귀
+      GAME_ITEMS_POOL[19], // 고어 라이더
+    ],
+    rooms: [
+      { id: 1, type: 'start', title: '지옥불 평원 입구', cleared: true, current: false, connections: [2] },
+      { id: 2, type: 'normal', title: '절망의 평원', cleared: false, current: false, connections: [3], monsterCount: 30 },
+      { id: 3, type: 'elite', title: '영혼의 강 봉인석', cleared: false, current: false, connections: [4, 5], monsterCount: 30 },
+      { id: 4, type: 'rune', title: '화염 군주의 제단', cleared: false, current: false, connections: [6], rewardDesc: '고급 룬(Gul~Sur) 드랍' },
+      { id: 5, type: 'treasure', title: '혼돈의 보물고', cleared: false, current: false, connections: [6], rewardDesc: '샤코 & 조던링 드랍' },
+      { id: 6, type: 'boss', title: '디아블로의 옥좌', cleared: false, current: false, connections: [], monsterCount: 30, rewardDesc: '공포의 군주 디아블로 (종결 전설 확정)' }
+    ]
+  },
+  {
+    id: 'act5_worldstone',
+    name: '5막: 세계석 성채 (Worldstone Keep)',
+    theme: '성역의 운명이 걸린 아리앗 산 정상의 신화적 성채',
+    recommendedLevel: 55,
+    difficulty: '지옥',
+    elementalInfo: '전 속성 복합 저항 50%, 강력한 치명타와 흡혈 빌드 필요',
+    monsterSummary: '죽음의 군주(Death Lord), 피의 유혹자, 지옥의 바알 분신, 불멸의 수호신',
+    bestClearTime: '08분 45초',
+    maxChainRecord: 120,
+    dropItems: [
+      GAME_ITEMS_POOL[12], // 샤코
+      GAME_ITEMS_POOL[13], // 마라의 만화경
+      GAME_ITEMS_POOL[14], // 조던링
+      GAME_ITEMS_POOL[15], // 불카토스 링
+      GAME_ITEMS_POOL[17], // 아칸 플레이트 3s
+      GAME_ITEMS_POOL[19], // 고어 라이더
+    ],
+    rooms: [
+      { id: 1, type: 'start', title: '아리앗 산 정상 성채 입구', cleared: true, current: false, connections: [2] },
+      { id: 2, type: 'normal', title: '세계석 성채 1층', cleared: false, current: false, connections: [3], monsterCount: 30 },
+      { id: 3, type: 'elite', title: '고대 야만용사 3인의 시험', cleared: false, current: false, connections: [4, 5], monsterCount: 30 },
+      { id: 4, type: 'rune', title: '파괴의 룬 성소', cleared: false, current: false, connections: [6], rewardDesc: '최상급 룬(Ber / Jah / Zod) 드랍' },
+      { id: 5, type: 'treasure', title: '세계석 심연 보물고', cleared: false, current: false, connections: [6], rewardDesc: '마라의 만화경 & 불카토스 링' },
+      { id: 6, type: 'boss', title: '파괴의 군주 바알의 알현실', cleared: false, current: false, connections: [], monsterCount: 30, rewardDesc: '파괴의 군주 바알 (신화 아이템 확정 드랍)' }
     ]
   }
 ];
+
+// 8. Dynamic Formation Factory per Dungeon and Room with Distinct Monster Visuals
+export function createDungeonFormation(dungeonId = 'act1_crypt', roomId = 4): Monster[] {
+  const monsters: Monster[] = [];
+  let idCounter = 1;
+
+  // Dungeon Difficulty Scaling
+  let baseHp = 35;
+  let baseDef = 5;
+  let eliteHp = 250;
+  let eliteDef = 35;
+  let eliteTitle = '오크 집행관 [ELITE]';
+  let normalName1 = '고블린 전사';
+  let normalName2 = '해골 궁수';
+  let shieldName = '오크 방패병';
+
+  if (dungeonId === 'act2_tomb') {
+    baseHp = 65;
+    baseDef = 12;
+    eliteHp = 450;
+    eliteDef = 45;
+    eliteTitle = '고대 무덤 수호자 [ELITE]';
+    normalName1 = '사막 전갈';
+    normalName2 = '미이라 사제';
+    shieldName = '석관 방패병';
+  } else if (dungeonId === 'act3_jungle') {
+    baseHp = 110;
+    baseDef = 20;
+    eliteHp = 750;
+    eliteDef = 55;
+    eliteTitle = '자카룸 하이 프리스트 [ELITE]';
+    normalName1 = '광신도 척살병';
+    normalName2 = '정글 주술사';
+    shieldName = '성전사 방패병';
+  } else if (dungeonId === 'act4_chaos') {
+    baseHp = 180;
+    baseDef = 32;
+    eliteHp = 1200;
+    eliteDef = 70;
+    eliteTitle = '카오스 집행관 [ELITE]';
+    normalName1 = '망각의 기사';
+    normalName2 = '베놈 로드';
+    shieldName = '지옥불 방패병';
+  } else if (dungeonId === 'act5_worldstone') {
+    baseHp = 260;
+    baseDef = 45;
+    eliteHp = 1900;
+    eliteDef = 90;
+    eliteTitle = '죽음의 군주 (Death Lord) [ELITE]';
+    normalName1 = '피의 유혹자';
+    normalName2 = '바알의 파괴자';
+    shieldName = '성채 철벽 수호병';
+  }
+
+  // 5 Lanes x 6 Depths = Exactly 30 Monsters
+  for (let l = 0; l < 5; l++) {
+    for (let d = 0; d < 6; d++) {
+      const isEliteStopper = l === 2 && d === 1; // Lane 2 Depth 1 is Elite Anchor
+      const isFrontShield = d === 0 && (l === 1 || l === 2 || l === 3);
+
+      let hp = Math.floor(baseHp + Math.random() * (baseHp * 0.4));
+      let def = baseDef;
+      let rank: 'normal' | 'elite' = 'normal';
+      let name = d % 2 === 0 ? normalName1 : normalName2;
+      let icon = 'Sword';
+
+      if (isEliteStopper) {
+        hp = eliteHp;
+        def = eliteDef;
+        rank = 'elite';
+        name = eliteTitle;
+        icon = 'Crown';
+      } else if (isFrontShield) {
+        hp = Math.floor(baseHp * 1.8);
+        def = Math.floor(baseDef * 2.2);
+        name = shieldName;
+        icon = 'Shield';
+      } else if (d >= 2) {
+        // Back rows are squishier for chain overkill thrills
+        hp = Math.max(15, Math.floor(baseHp * 0.75));
+        def = Math.max(2, Math.floor(baseDef * 0.5));
+      }
+
+      monsters.push({
+        id: `m_${dungeonId}_r${roomId}_${l}_${d}_${idCounter++}`,
+        name,
+        hp,
+        maxHp: hp,
+        defense: def,
+        rank,
+        lane: l,
+        depth: d,
+        intent: {
+          type: 'attack',
+          damage: isEliteStopper ? Math.floor(baseHp * 0.6) : Math.floor(baseHp * 0.25) + 8,
+          targetLane: l
+        },
+        icon
+      });
+    }
+  }
+
+  return monsters;
+}
+
+// Fallback compatibility factory for goblin 30 formation
+export function createGoblin30Formation(): Monster[] {
+  return createDungeonFormation('act1_crypt', 4);
+}
+

@@ -179,6 +179,22 @@ export const BattleView: React.FC = () => {
                     const hpPercent = Math.max(0, (monster.hp / monster.maxHp) * 100);
                     const floating = floatingDamages.find(f => f.lane === monster.lane && f.depth === monster.depth);
 
+                    // Dynamic Portrait Icon Helper
+                    const getMonsterPortrait = (mName: string, rank: string) => {
+                      if (rank === 'elite' || mName.includes('집행관') || mName.includes('군주') || mName.includes('대장')) return '👑';
+                      if (mName.includes('방패') || mName.includes('수호')) return '🛡️';
+                      if (mName.includes('사제') || mName.includes('주술') || mName.includes('샤먼')) return '🔮';
+                      if (mName.includes('궁수') || mName.includes('척살')) return '🏹';
+                      if (mName.includes('전갈')) return '🦂';
+                      if (mName.includes('미이라') || mName.includes('좀비')) return '🧟';
+                      if (mName.includes('기사')) return '⚔️';
+                      if (mName.includes('베놈') || mName.includes('독')) return '☠️';
+                      if (mName.includes('화염') || mName.includes('악마')) return '🔥';
+                      return '👹';
+                    };
+
+                    const portraitEmoji = getMonsterPortrait(monster.name, monster.rank);
+
                     return (
                       <div
                         key={monster.id}
@@ -190,7 +206,7 @@ export const BattleView: React.FC = () => {
                             : isStopper
                             ? 'bg-amber-950 border-amber-400 text-amber-100 ring-1 ring-amber-400'
                             : monster.rank === 'elite'
-                            ? 'bg-purple-950/90 border-purple-500 text-purple-100'
+                            ? 'bg-purple-950/90 border-purple-500 text-purple-100 ring-1 ring-purple-400/50'
                             : monster.rank === 'champion'
                             ? 'bg-amber-950/80 border-amber-500 text-amber-100'
                             : 'bg-iron-850 border-iron-700 text-gray-100'
@@ -203,10 +219,12 @@ export const BattleView: React.FC = () => {
                           </div>
                         )}
 
-                        {/* Monster Header */}
+                        {/* Monster Header with Portrait */}
                         <div className="flex items-center justify-between text-[10px] font-black truncate leading-tight">
-                          <div className="flex items-center gap-1 truncate">
-                            {monster.isFrozen && <span className="text-sky-300 animate-pulse">❄️</span>}
+                          <div className="flex items-center gap-1.5 truncate">
+                            <span className="text-[12px] filter drop-shadow-sm flex-shrink-0">
+                              {monster.isFrozen ? '❄️' : portraitEmoji}
+                            </span>
                             <span className="truncate">{monster.name}</span>
                           </div>
                           {monster.rank === 'elite' && <Crown className="w-3 h-3 text-purple-400 flex-shrink-0" />}

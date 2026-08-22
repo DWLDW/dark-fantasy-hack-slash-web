@@ -14,11 +14,13 @@ import {
 import {
   INITIAL_EQUIPMENT,
   SAMPLE_INVENTORY,
+  GAME_ITEMS_POOL,
   WARRIOR_SKILLS,
   DUNGEONS_DATA,
   INITIAL_CONSUMABLES,
   D2_RUNES,
-  RUNEWORD_RECIPES
+  RUNEWORD_RECIPES,
+  createDungeonFormation
 } from '../data/gameData';
 import { resolveAttack, createGoblin30Formation, findBestLaneForSkill, AttackResolution, CombatHitResult } from '../combat/combatEngine';
 import { simulateRuneWordCrafting } from '../utils/runeCrafting';
@@ -786,27 +788,50 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const nextRoomId = currentRoom.connections[0];
             selectNextRoom(nextRoomId);
           } else {
-            // DUNGEON CLEARED! Generate rich victory loot and trigger Deckard Cain Modal
-            const victoryGold = 6500;
-            const victoryShards = 18;
-            const victoryExp = 1500;
+            // DUNGEON CLEARED! Generate rich victory loot scaled by Dungeon Tier
+            const dungeonIndex = Math.max(0, DUNGEONS_DATA.findIndex(d => d.id === currentDungeon.id));
+            const multiplier = dungeonIndex + 1;
 
-            // Generate dropped items (unidentified)
-            const droppedItems: GameItem[] = (currentDungeon.dropItems || SAMPLE_INVENTORY.slice(0, 3)).map((item, idx) => ({
-              ...item,
-              id: `loot_${Date.now()}_${idx}`,
-              isIdentified: false // Unidentified for Deckard Cain to identify!
-            }));
+            const victoryGold = Math.floor(3000 * multiplier + Math.random() * 1000);
+            const victoryShards = 10 * multiplier;
+            const victoryExp = Math.floor(800 * multiplier + Math.random() * 400);
 
-            // Generate dropped runes
-            const droppedRunes: Record<string, number> = {
-              Tal: 2,
-              Ral: 1,
-              Ort: 1,
-              Thul: 1
+            // Dungeon Tier Rune Pools
+            const DUNGEON_RUNE_TIERS: Record<string, string[]> = {
+              act1_crypt: ['El', 'Eld', 'Tir', 'Nef', 'Eth', 'Ith', 'Tal', 'Ral', 'Ort'],
+              act2_tomb: ['Tal', 'Ral', 'Ort', 'Thul', 'Amn', 'Sol', 'Shael', 'Dol', 'Hel', 'Io'],
+              act3_jungle: ['Sol', 'Shael', 'Dol', 'Hel', 'Io', 'Lum', 'Ko', 'Fal', 'Lem', 'Pul', 'Um', 'Mal'],
+              act4_chaos: ['Lem', 'Pul', 'Um', 'Mal', 'Ist', 'Gul', 'Vex', 'Ohm', 'Lo', 'Sur'],
+              act5_worldstone: ['Gul', 'Vex', 'Ohm', 'Lo', 'Sur', 'Ber', 'Jah', 'Cham', 'Zod']
             };
 
-            // Update state
+            const availableRunes = DUNGEON_RUNE_TIERS[currentDungeon.id] || DUNGEON_RUNE_TIERS['act1_crypt'];
+            const droppedRunes: Record<string, number> = {};
+            const runeDropCount = Math.min(4, Math.floor(1 + Math.random() * 2 + (totalStats.fortune > 30 ? 1 : 0)));
+
+            for (let i = 0; i < runeDropCount; i++) {
+              const randomRune = availableRunes[Math.floor(Math.random() * availableRunes.length)];
+              droppedRunes[randomRune] = (droppedRunes[randomRune] || 0) + 1;
+            }
+
+            // Generate dropped items from this dungeon's dedicated drop pool
+            const pool = currentDungeon.dropItems && currentDungeon.dropItems.length > 0
+              ? currentDungeon.dropItems
+              : GAME_ITEMS_POOL.slice(0, 5);
+
+            const itemDropCount = Math.min(3, Math.floor(1 + Math.random() * 2));
+            const droppedItems: GameItem[] = [];
+
+            for (let i = 0; i < itemDropCount; i++) {
+              const base = pool[Math.floor(Math.random() * pool.length)];
+              droppedItems.push({
+                ...base,
+                id: `loot_${currentDungeon.id}_${Date.now()}_${i}`,
+                isIdentified: false // Unidentified for Deckard Cain
+              });
+            }
+
+            // Update player state
             setPlayerStats(p => ({
               ...p,
               gold: p.gold + victoryGold,
@@ -836,7 +861,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             setIsVictoryModalOpen(true);
             playLegendaryDropSound();
-            addLog(`👑 축하합니다! [${currentDungeon.name}]을(를) 정복하여 전설의 보상을 획득했습니다!`, 'loot');
+            addLog(`👑 축하합니다! [${currentDungeon.name}]을(를) 정복하여 전설의 전리품을 획득했습니다!`, 'loot');
           }
         }, 1200);
         return;
@@ -995,25 +1020,26 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const enterDungeon = (dungeonId: string) => {
     const dungeon = DUNGEONS_DATA.find(d => d.id === dungeonId) || DUNGEONS_DATA[0];
+    const firstRoomId = dungeon.rooms[1]?.id || 2;
     setCurrentDungeon(dungeon);
-    setCurrentRoomId(dungeon.rooms[1]?.id || 2);
-    setMonsters(createGoblin30Formation());
+    setCurrentRoomId(firstRoomId);
+    setMonsters(createDungeonFormation(dungeon.id, firstRoomId));
     setChainCount(0);
     setMaxChainThisRoom(0);
     setViewMode('battle');
-    addLog(`[${dungeon.name}]에 진입했습니다. (고블린 30마리 포메이션 출현)`, 'system');
+    addLog(`[${dungeon.name}]에 진입했습니다! (${dungeon.monsterSummary})`, 'system');
   };
 
   const selectNextRoom = (roomId: number) => {
     setCurrentRoomId(roomId);
-    setMonsters(createGoblin30Formation());
+    setMonsters(createDungeonFormation(currentDungeon.id, roomId));
     setChainCount(0);
     addLog(`새로운 룸(Room #${roomId})에 진입했습니다.`, 'system');
   };
 
   const returnToTown = () => {
     setViewMode('town');
-    setMonsters(createGoblin30Formation());
+    setMonsters(createDungeonFormation('act1_crypt', 4));
     setTempBuffs({ defenseBonus: 0, overkillBonus: 0 });
     addLog('마을로 귀환했습니다.', 'system');
   };
