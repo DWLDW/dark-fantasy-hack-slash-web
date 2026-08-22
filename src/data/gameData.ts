@@ -1137,47 +1137,47 @@ export function createDungeonFormation(dungeonId = 'act1_crypt', roomId = 4): Mo
   let idCounter = 1;
 
   // Dungeon Difficulty Scaling
-  let baseHp = 35;
-  let baseDef = 5;
-  let eliteHp = 250;
-  let eliteDef = 35;
+  let baseHp = 28;
+  let baseDef = 4;
+  let eliteHp = 200;
+  let eliteDef = 25;
   let eliteTitle = '오크 집행관 [ELITE]';
   let normalName1 = '고블린 전사';
   let normalName2 = '해골 궁수';
   let shieldName = '오크 방패병';
 
   if (dungeonId === 'act2_tomb') {
-    baseHp = 65;
+    baseHp = 60;
     baseDef = 12;
-    eliteHp = 450;
-    eliteDef = 45;
+    eliteHp = 420;
+    eliteDef = 35;
     eliteTitle = '고대 무덤 수호자 [ELITE]';
     normalName1 = '사막 전갈';
     normalName2 = '미이라 사제';
     shieldName = '석관 방패병';
   } else if (dungeonId === 'act3_jungle') {
-    baseHp = 110;
-    baseDef = 20;
-    eliteHp = 750;
-    eliteDef = 55;
+    baseHp = 130;
+    baseDef = 22;
+    eliteHp = 800;
+    eliteDef = 50;
     eliteTitle = '자카룸 하이 프리스트 [ELITE]';
     normalName1 = '광신도 척살병';
     normalName2 = '정글 주술사';
     shieldName = '성전사 방패병';
   } else if (dungeonId === 'act4_chaos') {
-    baseHp = 180;
-    baseDef = 32;
-    eliteHp = 1200;
+    baseHp = 260;
+    baseDef = 38;
+    eliteHp = 1600;
     eliteDef = 70;
     eliteTitle = '카오스 집행관 [ELITE]';
     normalName1 = '망각의 기사';
     normalName2 = '베놈 로드';
     shieldName = '지옥불 방패병';
   } else if (dungeonId === 'act5_worldstone') {
-    baseHp = 260;
-    baseDef = 45;
-    eliteHp = 1900;
-    eliteDef = 90;
+    baseHp = 520;
+    baseDef = 55;
+    eliteHp = 3000;
+    eliteDef = 95;
     eliteTitle = '죽음의 군주 (Death Lord) [ELITE]';
     normalName1 = '피의 유혹자';
     normalName2 = '바알의 파괴자';

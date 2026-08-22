@@ -92,6 +92,7 @@ interface GameContextType {
   equipItem: (item: GameItem) => void;
   unequipItem: (slot: EquipSlot) => void;
   upgradeStat: (stat: 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha') => void;
+  resetStatPoints: () => void;
   setPlayerLane: (lane: number) => void;
   setSelectedSkill: (skill: Skill) => void;
   selectSkillOrExecute: (skill: Skill) => void;
@@ -153,6 +154,10 @@ const getInitialSave = () => {
 
 const savedData = getInitialSave();
 
+export function calculateMaxExp(level: number): number {
+  return Math.floor(100 * Math.pow(1.20, level - 1) + 25 * level);
+}
+
 const DEFAULT_RUNES_VAULT: Record<string, number> = {
   El: 3, Eld: 2, Tir: 2, Nef: 1, Eth: 2, Ith: 1, Tal: 3, Ral: 2, Ort: 2, Thul: 1
 };
@@ -160,7 +165,7 @@ const DEFAULT_RUNES_VAULT: Record<string, number> = {
 const DEFAULT_PLAYER_STATS: PlayerStats = {
   level: 1,
   exp: 0,
-  maxExp: 100,
+  maxExp: 125,
   hp: 120,
   maxHp: 120,
   rage: 0,
@@ -535,6 +540,68 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     ]);
   }, []);
 
+  const addPlayerExp = useCallback((amount: number) => {
+    if (amount <= 0) return;
+    setPlayerStats(prev => {
+      let currentExp = prev.exp + amount;
+      let currentLevel = prev.level;
+      let currentMaxExp = prev.maxExp || calculateMaxExp(currentLevel);
+      let statPointsGained = 0;
+      let skillPointsGained = 0;
+      let didLevelUp = false;
+
+      while (currentExp >= currentMaxExp) {
+        currentExp -= currentMaxExp;
+        currentLevel += 1;
+        currentMaxExp = calculateMaxExp(currentLevel);
+        statPointsGained += 5;
+        skillPointsGained += 1;
+        didLevelUp = true;
+      }
+
+      if (didLevelUp) {
+        playRuneWordSound();
+        addLog(`🌟 LEVEL UP! 레벨 ${currentLevel} 달성! (스탯 포인트 +${statPointsGained}P, 스킬 포인트 +${skillPointsGained}P 획득 & HP/마나 완전 회복!)`, 'loot');
+        const newMaxHp = 120 + (currentLevel - 1) * 25 + prev.con * 5;
+        const newMaxMana = 40 + (currentLevel - 1) * 8 + prev.int * 3;
+        return {
+          ...prev,
+          level: currentLevel,
+          exp: currentExp,
+          maxExp: currentMaxExp,
+          statPoints: prev.statPoints + statPointsGained,
+          skillPoints: prev.skillPoints + skillPointsGained,
+          maxHp: newMaxHp,
+          hp: newMaxHp,
+          maxMana: newMaxMana,
+          mana: newMaxMana
+        };
+      }
+
+      return {
+        ...prev,
+        exp: currentExp,
+        maxExp: currentMaxExp
+      };
+    });
+  }, [addLog]);
+
+  const resetStatPoints = useCallback(() => {
+    const totalEarnedPoints = (playerStats.level - 1) * 5;
+    setPlayerStats(prev => ({
+      ...prev,
+      str: 15,
+      dex: 10,
+      con: 15,
+      int: 5,
+      wis: 5,
+      cha: 5,
+      statPoints: totalEarnedPoints
+    }));
+    playRuneWordSound();
+    addLog(`🔄 투자한 모든 스탯 포인트를 회수하여 ${totalEarnedPoints}P를 환급받았습니다.`, 'system');
+  }, [playerStats.level, addLog]);
+
   // Compute Total Character Stats
   const totalStats = useMemo(() => {
     let str = playerStats.str;
@@ -763,8 +830,23 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const voidHeal = effectiveSkill.activeRuneId === 'rune_void' ? result.chainCount * 25 : 0;
       const totalHpHealed = skillHeal + voidHeal;
 
-      // Gold & Loot
+      // Gold & Loot & EXP calculation
       const gainedGold = result.chainCount * 25 + (result.stopperId ? 100 : 0);
+
+      // Calculate EXP per kill based on monster rank and dungeon
+      let actionExp = 0;
+      result.kills.forEach(kId => {
+        const m = monsters.find(mon => mon.id === kId);
+        if (m) {
+          const isElite = m.rank === 'elite';
+          const baseMExp = Math.max(1, Math.floor(m.maxHp * 0.08));
+          actionExp += isElite ? baseMExp * 4 : baseMExp;
+        }
+      });
+
+      if (actionExp > 0) {
+        addPlayerExp(actionExp);
+      }
 
       // Apply Player Gains
       setPlayerStats(prev => ({
@@ -833,7 +915,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             const victoryGold = Math.floor(3000 * multiplier + Math.random() * 1000);
             const victoryShards = 10 * multiplier;
-            const victoryExp = Math.floor(800 * multiplier + Math.random() * 400);
+            const victoryExp = currentDungeon.id === 'act1_crypt' ? 100
+              : currentDungeon.id === 'act2_tomb' ? 600
+              : currentDungeon.id === 'act3_jungle' ? 3000
+              : currentDungeon.id === 'act4_chaos' ? 14000
+              : 70000;
 
             // Dungeon Tier Rune Pools
             const DUNGEON_RUNE_TIERS: Record<string, string[]> = {
@@ -874,9 +960,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setPlayerStats(p => ({
               ...p,
               gold: p.gold + victoryGold,
-              shards: p.shards + victoryShards,
-              exp: p.exp + victoryExp
+              shards: p.shards + victoryShards
             }));
+
+            addPlayerExp(victoryExp);
 
             // Add dropped items to inventory
             setInventory(prev => [...prev, ...droppedItems]);
@@ -1335,6 +1422,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         equipItem,
         unequipItem,
         upgradeStat,
+        resetStatPoints,
         setPlayerLane,
         setSelectedSkill,
         selectSkillOrExecute,

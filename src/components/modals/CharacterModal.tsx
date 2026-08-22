@@ -3,7 +3,7 @@ import { useGame } from '../../state/gameStore';
 import { X, Plus, Shield, Swords, Zap, Sparkles, Heart, Activity } from 'lucide-react';
 
 export const CharacterModal: React.FC = () => {
-  const { playerStats, totalStats, upgradeStat, closeModal } = useGame();
+  const { playerStats, totalStats, upgradeStat, resetStatPoints, closeModal } = useGame();
 
   const attributes = [
     { key: 'str', label: '힘 (STR)', desc: '물리 공격력 및 중장비 요구조건', val: totalStats.str, base: playerStats.str },
@@ -17,7 +17,7 @@ export const CharacterModal: React.FC = () => {
   return (
     <div className="bg-iron-950 border-2 border-brass-500 rounded-lg p-4 md:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl text-xs md:text-sm select-none">
       {/* Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-iron-750 mb-4">
+      <div className="flex items-center justify-between pb-3 border-b border-iron-750 mb-4 gap-2">
         <div className="flex items-center gap-2.5">
           <h2 className="text-base md:text-lg font-cinzel font-black text-brass-200 tracking-wider">
             캐릭터 능력치 & 스탯
@@ -28,12 +28,22 @@ export const CharacterModal: React.FC = () => {
             </span>
           )}
         </div>
-        <button
-          onClick={closeModal}
-          className="text-gray-300 hover:text-white p-1 rounded hover:bg-iron-800 transition"
-        >
-          <X className="w-5 h-5" />
-        </button>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={resetStatPoints}
+            className="px-2.5 py-1 rounded bg-iron-900 hover:bg-iron-800 border border-iron-700 hover:border-iron-500 text-gray-300 hover:text-white text-xs font-mono font-bold flex items-center gap-1 transition shadow"
+            title="투자한 모든 스탯 포인트를 회수하여 다시 분배합니다"
+          >
+            🔄 <span>스탯 초기화</span>
+          </button>
+          <button
+            onClick={closeModal}
+            className="text-gray-300 hover:text-white p-1 rounded hover:bg-iron-800 transition"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
