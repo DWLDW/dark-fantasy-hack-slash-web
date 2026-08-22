@@ -61,24 +61,24 @@ export const BattleView: React.FC = () => {
   const isCleared = totalMonsters === 0;
 
   return (
-    <div className="max-w-7xl mx-auto px-2 md:px-4 py-2 space-y-2.5 select-none pb-24">
+    <div className="max-w-7xl mx-auto px-1 sm:px-3 py-1 space-y-1.5 select-none pb-12 sm:pb-20 overflow-x-hidden">
       {/* 1. Top Header: Mini Room Graph + Wait ATB Timeline + Chain Banner */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 items-center">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-1.5 items-center">
         <div className="lg:col-span-7">
           <MiniRoomGraph />
         </div>
 
-        <div className="lg:col-span-5 bg-iron-900 border-2 border-iron-750 rounded p-2.5 flex items-center justify-between shadow-md">
+        <div className="lg:col-span-5 bg-iron-900 border border-iron-750 rounded p-1.5 sm:p-2 flex items-center justify-between shadow">
           {/* Wait ATB Horde Timeline */}
-          <div className="flex-1 pr-3 border-r border-iron-750">
-            <div className="flex justify-between items-center text-[11px] font-mono text-gray-300 font-bold mb-1">
+          <div className="flex-1 pr-2 sm:pr-3 border-r border-iron-750">
+            <div className="flex justify-between items-center text-[10px] sm:text-[11px] font-mono text-gray-300 font-bold mb-0.5">
               <span className="flex items-center gap-1">
-                <Activity className="w-3.5 h-3.5 text-blood-400" />
-                {isEnemyTurn ? <span className="text-blood-400 animate-pulse font-black">적 반격 턴!</span> : 'Wait ATB 타임라인'}
+                <Activity className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-blood-400" />
+                {isEnemyTurn ? <span className="text-blood-400 animate-pulse font-black">적 반격!</span> : 'Wait ATB'}
               </span>
-              <span className="text-xs text-gray-400">{isEnemyTurn ? 'STRIKE' : '대기 중'}</span>
+              <span className="text-[10px] sm:text-xs text-gray-400">{isEnemyTurn ? 'STRIKE' : '대기'}</span>
             </div>
-            <div className="w-full bg-iron-950 h-2.5 rounded-full overflow-hidden border border-iron-700">
+            <div className="w-full bg-iron-950 h-2 sm:h-2.5 rounded-full overflow-hidden border border-iron-700">
               <div
                 className={`h-full transition-all duration-300 ${
                   isEnemyTurn
@@ -91,65 +91,65 @@ export const BattleView: React.FC = () => {
           </div>
 
           {/* Action Chain Counter & Reset */}
-          <div className="pl-3 flex items-center gap-2.5">
+          <div className="pl-2 sm:pl-3 flex items-center gap-1.5 sm:gap-2.5">
             <div className="text-center">
-              <div className="text-[10px] text-gray-400 font-mono font-bold">1회 공격 처치</div>
-              <div className={`font-cinzel font-black text-lg ${chainCount > 0 ? 'text-amber-300 animate-chain-pop' : 'text-gray-500'}`}>
-                {chainCount > 0 ? `x${chainCount} KILL` : 'x0'}
+              <div className="text-[9px] text-gray-400 font-mono font-bold">1회 처치</div>
+              <div className={`font-cinzel font-black text-sm sm:text-lg ${chainCount > 0 ? 'text-amber-300 animate-chain-pop' : 'text-gray-500'}`}>
+                {chainCount > 0 ? `x${chainCount}` : 'x0'}
               </div>
             </div>
 
             <button
               onClick={resetBattleFormation}
-              className="p-1.5 bg-iron-800 hover:bg-iron-750 text-gray-300 hover:text-white rounded border border-iron-650 transition"
-              title="GDD 26장 30마리 검증 포메이션으로 전장 초기화"
+              className="p-1 sm:p-1.5 bg-iron-800 hover:bg-iron-750 text-gray-300 hover:text-white rounded border border-iron-650 transition"
+              title="30마리 검증 포메이션으로 전장 초기화"
             >
-              <RotateCcw className="w-4 h-4" />
+              <RotateCcw className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
       </div>
 
       {/* 2. Main Battlefield Box (Clean Surface Separation) */}
-      <div className={`bg-iron-950 border-2 border-brass-500/80 rounded-lg p-2.5 md:p-3 shadow-2xl relative overflow-hidden transition-transform duration-100 flex flex-col gap-2.5 ${
+      <div className={`bg-iron-950 border-2 border-brass-500/80 rounded-lg p-1.5 sm:p-2.5 shadow-2xl relative overflow-hidden transition-transform duration-100 flex flex-col gap-1.5 ${
         isAttacking ? 'animate-hit-shake' : ''
       }`}>
         <div className="absolute inset-0 bg-gradient-to-b from-blood-950/20 via-transparent to-iron-950/90 pointer-events-none" />
 
         {/* Real-time Preview Banner */}
-        <div className="flex flex-wrap items-center justify-between gap-2 bg-iron-900 px-3 py-1.5 rounded border border-iron-700 text-xs font-mono shadow">
-          <div className="flex items-center gap-3">
-            <span className="text-brass-300 font-bold flex items-center gap-1.5">
-              <Crosshair className="w-3.5 h-3.5 text-amber-400" />
-              스킬: <span className="text-white font-black">{selectedSkill.name} [{selectedSkill.hotkey}]</span>
+        <div className="flex flex-wrap items-center justify-between gap-1.5 bg-iron-900 px-2 py-1 rounded border border-iron-700 text-[10px] sm:text-xs font-mono shadow">
+          <div className="flex items-center gap-2">
+            <span className="text-brass-300 font-bold flex items-center gap-1">
+              <Crosshair className="w-3 h-3 text-amber-400" />
+              <span>{selectedSkill.name.split(' ')[0]} [{selectedSkill.hotkey}]</span>
             </span>
             <span className="text-gray-500">|</span>
             <span className="text-gray-200">
-              확정 타격: <strong className="text-brass-200 font-black">{preview.totalDamage} 피해</strong>
+              타격: <strong className="text-brass-200 font-black">{preview.totalDamage}</strong>
             </span>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {preview.chainCount > 0 ? (
-              <span className="text-emerald-300 bg-emerald-950/70 border border-emerald-500 px-2.5 py-0.5 rounded font-bold flex items-center gap-1 shadow-[0_0_8px_rgba(52,211,153,0.4)] animate-pulse">
-                <Flame className="w-3.5 h-3.5 text-blood-400" />
-                예상 처치: {preview.chainCount}마리 연쇄 격파!
+              <span className="text-emerald-300 bg-emerald-950/70 border border-emerald-500 px-1.5 py-0.2 rounded font-bold flex items-center gap-1 animate-pulse">
+                <Flame className="w-3 h-3 text-blood-400" />
+                예상 {preview.chainCount}처치
               </span>
             ) : (
-              <span className="text-gray-400 font-medium">단일 타격 또는 처치 불가</span>
+              <span className="text-gray-400 font-medium">단일/미처치</span>
             )}
 
             {preview.stopperId && (
-              <span className="text-amber-200 font-bold flex items-center gap-1 bg-amber-950/80 px-2 py-0.5 rounded border border-amber-600 shadow text-[11px]">
-                <Shield className="w-3 h-3 text-amber-400" />
-                엘리트 체인 저지점
+              <span className="text-amber-200 font-bold flex items-center gap-0.5 bg-amber-950/80 px-1.5 py-0.2 rounded border border-amber-600 shadow text-[10px]">
+                <Shield className="w-2.5 h-2.5 text-amber-400" />
+                저지점
               </span>
             )}
           </div>
         </div>
 
         {/* 5-Lane Queue Battlefield (Fixed Height & Slim Cards to NEVER overlap skills) */}
-        <div className="grid grid-cols-5 gap-1 sm:gap-2 min-h-[280px]">
+        <div className="grid grid-cols-5 gap-1 sm:gap-2 min-h-[185px] sm:min-h-[250px]">
           {[0, 1, 2, 3, 4].map(laneIndex => {
             const isCurrentPlayerLane = playerLane === laneIndex;
             const monstersInLane = laneMonsters[laneIndex] || [];
@@ -283,7 +283,7 @@ export const BattleView: React.FC = () => {
                   })}
 
                   {monstersInLane.length === 0 && (
-                    <div className="text-[9px] sm:text-[11px] text-gray-400 font-bold italic py-8 text-center">
+                    <div className="text-[9px] sm:text-[11px] text-gray-400 font-bold italic py-6 text-center">
                       소탕
                     </div>
                   )}
@@ -310,32 +310,32 @@ export const BattleView: React.FC = () => {
         </div>
 
         {/* 3. Skill & Action Control Bar (Completely separate block below the battlefield) */}
-        <div className="pt-2.5 border-t-2 border-iron-750 flex flex-col md:flex-row items-center justify-between gap-2.5 bg-iron-900/90 p-2.5 rounded-lg">
+        <div className="pt-1.5 border-t border-iron-750 flex flex-col md:flex-row items-center justify-between gap-1.5 bg-iron-900/90 p-1.5 sm:p-2 rounded-lg">
           
           {/* Lane Movement Buttons */}
-          <div className="flex items-center space-x-1.5 w-full md:w-auto justify-center">
+          <div className="flex items-center space-x-1 w-full md:w-auto justify-center">
             <button
               onClick={() => setPlayerLane(Math.max(0, playerLane - 1))}
               disabled={playerLane <= 0 || isAttacking || isEnemyTurn}
-              className="px-3 py-2 bg-iron-950 hover:bg-iron-800 disabled:opacity-30 text-gray-100 hover:text-white rounded border border-iron-600 text-xs flex items-center gap-1 font-mono font-bold shadow"
+              className="px-2.5 py-1.5 bg-iron-950 hover:bg-iron-800 disabled:opacity-30 text-gray-100 hover:text-white rounded border border-iron-600 text-xs flex items-center gap-1 font-mono font-bold shadow"
               title="좌측 레인 이동 (단축키: ←)"
             >
-              <ArrowLeft className="w-3.5 h-3.5 text-brass-400" />
-              <span>좌측 [←]</span>
+              <ArrowLeft className="w-3 h-3 text-brass-400" />
+              <span>[←]</span>
             </button>
             <button
               onClick={() => setPlayerLane(Math.min(4, playerLane + 1))}
               disabled={playerLane >= 4 || isAttacking || isEnemyTurn}
-              className="px-3 py-2 bg-iron-950 hover:bg-iron-800 disabled:opacity-30 text-gray-100 hover:text-white rounded border border-iron-600 text-xs flex items-center gap-1 font-mono font-bold shadow"
+              className="px-2.5 py-1.5 bg-iron-950 hover:bg-iron-800 disabled:opacity-30 text-gray-100 hover:text-white rounded border border-iron-600 text-xs flex items-center gap-1 font-mono font-bold shadow"
               title="우측 레인 이동 (단축키: →)"
             >
-              <span>우측 [→]</span>
-              <ArrowRight className="w-3.5 h-3.5 text-brass-400" />
+              <span>[→]</span>
+              <ArrowRight className="w-3 h-3 text-brass-400" />
             </button>
           </div>
 
-          {/* QWER Skills Selector (Double Tap to Instant Cast) */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 w-full md:w-auto flex-1 max-w-2xl">
+          {/* QWER Skills Selector with Current / Required Rage display (Double Tap to Instant Cast) */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 w-full md:w-auto flex-1 max-w-2xl">
             {WARRIOR_SKILLS.map(skill => {
               const isSelected = selectedSkill.id === skill.id;
               const canAfford = playerStats.rage >= skill.rageCost;
@@ -347,32 +347,37 @@ export const BattleView: React.FC = () => {
                   key={skill.id}
                   onClick={() => selectSkillOrExecute(skill)}
                   disabled={isAttacking || isEnemyTurn}
-                  className={`p-2 rounded-lg border-2 text-left flex flex-col justify-between transition relative shadow ${
+                  className={`p-1.5 rounded-lg border text-left flex flex-col justify-between transition relative shadow ${
                     isSelected
-                      ? 'bg-blood-950 border-brass-400 text-brass-100 ring-2 ring-brass-400/80 shadow-[0_0_10px_rgba(222,178,67,0.4)]'
+                      ? 'bg-blood-950 border-brass-400 text-brass-100 ring-1 sm:ring-2 ring-brass-400/80 shadow-[0_0_8px_rgba(222,178,67,0.4)]'
                       : canAfford
                       ? 'bg-iron-950 border-iron-700 text-gray-100 hover:bg-iron-800'
                       : 'bg-iron-950/60 border-iron-800 text-gray-400 opacity-60'
                   }`}
                   title={`${skill.name} (선택 또는 더블 클릭 시 즉시 시전)`}
                 >
-                  <div className="flex items-center justify-between text-xs font-black font-cinzel">
+                  <div className="flex items-center justify-between text-[11px] sm:text-xs font-black font-cinzel">
                     <span className="truncate">{skill.name.split(' ')[0]}</span>
-                    <div className="flex items-center gap-1">
-                      <span className="text-[9px] text-amber-300 font-mono font-bold bg-iron-900 px-1 rounded border border-iron-700">
+                    <div className="flex items-center gap-0.5">
+                      <span className="text-[8px] text-amber-300 font-mono font-bold bg-iron-900 px-1 rounded border border-iron-700">
                         Lv.{sLevel}
                       </span>
-                      <span className="text-[10px] text-amber-300 font-mono font-black bg-iron-900 px-1 py-0.2 rounded border border-iron-700">
+                      <span className="text-[9px] text-amber-300 font-mono font-black bg-iron-900 px-1 py-0.2 rounded border border-iron-700">
                         [{skill.hotkey}]
                       </span>
                     </div>
                   </div>
 
-                  <div className="text-[10px] text-gray-300 font-mono font-bold mt-1 flex items-center justify-between flex-wrap gap-1">
+                  {/* Rage Display: Current/Cost format (e.g. 80/15) */}
+                  <div className="text-[9px] sm:text-[10px] font-mono font-bold mt-0.5 flex items-center justify-between flex-wrap gap-0.5">
                     {skill.rageCost > 0 ? (
-                      <span className="text-amber-400">분노 {skill.rageCost}</span>
+                      <span className={canAfford ? 'text-amber-300 font-black' : 'text-red-400 font-bold'}>
+                        분노 {playerStats.rage}/{skill.rageCost}
+                      </span>
                     ) : (
-                      <span className="text-emerald-400">자원 0</span>
+                      <span className="text-emerald-400 font-bold">
+                        분노 {playerStats.rage}/0
+                      </span>
                     )}
 
                     {skill.rageGainPerHit && skill.rageGainPerHit > 0 && (
@@ -394,7 +399,7 @@ export const BattleView: React.FC = () => {
           <button
             onClick={executeAttack}
             disabled={isAttacking || isEnemyTurn || isCleared}
-            className={`w-full md:w-auto px-6 py-3 rounded-lg font-black text-xs md:text-sm flex items-center justify-center gap-2 shadow-2xl transition transform active:scale-95 flex-shrink-0 ${
+            className={`w-full md:w-auto px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-black text-xs md:text-sm flex items-center justify-center gap-1.5 shadow-xl transition transform active:scale-95 flex-shrink-0 ${
               isCleared
                 ? 'bg-iron-800 text-gray-400 border border-iron-700 cursor-not-allowed'
                 : isEnemyTurn
@@ -404,40 +409,40 @@ export const BattleView: React.FC = () => {
                 : 'bg-gradient-to-r from-blood-700 via-blood-600 to-blood-500 hover:from-blood-600 hover:to-blood-400 text-white ring-2 ring-blood-400 shadow-[0_0_12px_rgba(239,68,68,0.6)] animate-pulse'
             }`}
           >
-            <Swords className="w-4 h-4 text-amber-300" />
+            <Swords className="w-3.5 h-3.5 text-amber-300" />
             <span>
               {isAttacking
-                ? '연쇄 처치 발동 중...'
+                ? '처치 중...'
                 : isEnemyTurn
-                ? '적 반격 중...'
+                ? '적 반격...'
                 : isCleared
-                ? '룸 소탕 완료'
-                : '[Space] 공격 (Strike)'}
+                ? '소탕 완료'
+                : '[Space] 공격'}
             </span>
           </button>
         </div>
 
         {/* 4. Quick Consumables Bar [1 ~ 4] */}
-        <div className="pt-2 border-t border-iron-800 flex items-center justify-between flex-wrap gap-2 text-xs font-mono">
-          <span className="text-gray-200 font-bold flex items-center gap-1.5">
-            <FlaskConical className="w-3.5 h-3.5 text-purple-400" />
-            <span>소모품 퀵슬롯:</span>
+        <div className="pt-1 border-t border-iron-800 flex items-center justify-between flex-wrap gap-1 text-[10px] sm:text-xs font-mono">
+          <span className="text-gray-200 font-bold flex items-center gap-1">
+            <FlaskConical className="w-3 h-3 text-purple-400" />
+            <span>소모품:</span>
           </span>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             {consumables.map(item => (
               <button
                 key={item.id}
                 onClick={() => useConsumable(item.id)}
                 disabled={item.count <= 0 || isEnemyTurn}
-                className="flex items-center gap-1.5 px-2.5 py-1 bg-iron-900 hover:bg-iron-800 disabled:opacity-40 border border-iron-700 hover:border-iron-500 rounded text-gray-100 hover:text-white transition shadow text-xs"
+                className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 bg-iron-900 hover:bg-iron-800 disabled:opacity-40 border border-iron-700 hover:border-iron-500 rounded text-gray-100 hover:text-white transition shadow text-[10px] sm:text-xs"
                 title={`${item.name} (${item.description})`}
               >
-                <span className="text-[11px] text-amber-300 font-black bg-iron-950 px-1.5 py-0.5 rounded border border-iron-750">
+                <span className="text-[9px] text-amber-300 font-black bg-iron-950 px-1 py-0.2 rounded border border-iron-750">
                   [{item.hotkey}]
                 </span>
                 <span className="font-bold">{item.name}</span>
-                <span className="text-xs font-black text-brass-300 bg-iron-950 px-1 py-0.5 rounded border border-iron-800">
+                <span className="text-[10px] font-black text-brass-300 bg-iron-950 px-1 rounded border border-iron-800">
                   x{item.count}
                 </span>
               </button>
