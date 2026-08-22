@@ -34,15 +34,13 @@ export const InventoryModal: React.FC = () => {
     unequipItem,
     viewMode,
     closeModal,
-    identifyItem,
-    resetGameSave
+    identifyItem
   } = useGame();
 
   const [activeTab, setActiveTab] = useState<'inventory' | 'runes'>('inventory');
   const [selectedSlot, setSelectedSlot] = useState<EquipSlot | 'all'>('weapon');
   const [selectedItem, setSelectedItem] = useState<GameItem | null>(null);
   const [hoveredRuneKey, setHoveredRuneKey] = useState<string | null>(null);
-  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   const isCombatMode = viewMode === 'battle';
 
@@ -170,17 +168,7 @@ export const InventoryModal: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 justify-between sm:justify-end">
-          {/* Reset Save Button */}
-          <button
-            onClick={() => setShowResetConfirm(true)}
-            className="px-2 py-1 bg-blood-950 hover:bg-blood-900 border border-blood-700 text-blood-300 hover:text-white rounded text-[11px] font-bold flex items-center gap-1 transition shadow"
-            title="캐릭터 데이터 및 세이브 초기화"
-          >
-            <RotateCcw className="w-3 h-3" />
-            <span>캐릭터 초기화</span>
-          </button>
-
+        <div className="flex items-center gap-3 justify-between sm:justify-end">
           {isCombatMode ? (
             <span className="flex items-center gap-1 bg-blood-950 text-blood-300 border border-blood-600 px-2 py-0.5 rounded text-xs font-bold animate-pulse">
               <ShieldAlert className="w-3.5 h-3.5" />
@@ -197,30 +185,6 @@ export const InventoryModal: React.FC = () => {
           </button>
         </div>
       </div>
-
-      {/* Reset Confirmation Prompt */}
-      {showResetConfirm && (
-        <div className="mb-3 p-3 bg-blood-950/95 border-2 border-blood-500 rounded-lg text-white flex items-center justify-between gap-3 shadow-xl animate-fade-in">
-          <div className="flex items-center gap-2 text-xs">
-            <AlertTriangle className="w-5 h-5 text-yellow-400 flex-shrink-0" />
-            <span>정말로 캐릭터 세이브 데이터를 초기화하시겠습니까? 모든 장비, 룬, 레벨이 리셋됩니다.</span>
-          </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <button
-              onClick={() => { resetGameSave(); setShowResetConfirm(false); }}
-              className="px-3 py-1 bg-blood-600 hover:bg-blood-500 font-black rounded text-xs text-white shadow"
-            >
-              초기화 실행
-            </button>
-            <button
-              onClick={() => setShowResetConfirm(false)}
-              className="px-2.5 py-1 bg-iron-800 hover:bg-iron-700 font-bold rounded text-xs text-gray-300"
-            >
-              취소
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* ========================================================================= */}
       {/* TAB 1: EQUIPMENT & INVENTORY WITH SLOT-SELECTION FILTERING INTERFACE */}

@@ -203,35 +203,46 @@ export function resolveAttack(
       }
     }
   } else if (skill.route === 'radius') {
-    // Whirlwind: Strikes Depth 0 and Depth 1 across all 5 lanes
-    const nearby = monsters
-      .filter(m => m.depth <= 1 && m.hp > 0)
-      .sort((a, b) => a.depth - b.depth || Math.abs(a.lane - playerLane) - Math.abs(b.lane - playerLane));
+    // Whirlwind: Sweeps all 5 lanes with initial strikes on front rows + Overkill Chains penetrating into back rows (Depth 2~5)
+    for (let l = 0; l < 5; l++) {
+      const laneMonsters = monsters
+        .filter(m => m.lane === l && m.hp > 0)
+        .sort((a, b) => a.depth - b.depth);
 
-    for (const m of nearby) {
-      const targetPayload = Math.floor(initialRawPayload * (m.depth === 0 ? 0.75 : 0.5));
-      const defMultiplier = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(m.defense));
-      const actualDmg = Math.floor(targetPayload * defMultiplier);
-      const isFatal = actualDmg >= m.hp;
+      const isMainLane = l === playerLane || Math.abs(l - playerLane) === 1;
+      let currentPayload = Math.floor(initialRawPayload * (isMainLane ? 0.90 : 0.70));
 
-      targetsHit.push({
-        monsterId: m.id,
-        damage: actualDmg,
-        isFatal,
-        depth: m.depth,
-        lane: m.lane
-      });
+      for (const m of laneMonsters) {
+        if (currentPayload <= 0) break;
 
-      accumulatedDamage += actualDmg;
+        const defMultiplier = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(m.defense));
+        const actualDmg = Math.floor(currentPayload * defMultiplier);
+        const isFatal = actualDmg >= m.hp;
 
-      const updatedM = monsterMap.get(m.id)!;
-      if (isFatal) {
-        kills.push(m.id);
-        updatedM.hp = 0;
-      } else {
-        updatedM.hp = Math.max(1, updatedM.hp - actualDmg);
-        applyFrostFreeze(updatedM);
-        if (m.rank === 'elite' && !stopperId) stopperId = m.id;
+        targetsHit.push({
+          monsterId: m.id,
+          damage: actualDmg,
+          isFatal,
+          depth: m.depth,
+          lane: m.lane
+        });
+
+        accumulatedDamage += actualDmg;
+
+        const updatedM = monsterMap.get(m.id)!;
+        if (isFatal) {
+          kills.push(m.id);
+          updatedM.hp = 0;
+          // Calculate Overkill Residual for the next depth in this lane
+          const rawOverkill = Math.max(0, actualDmg - m.hp);
+          currentPayload = Math.floor(rawOverkill * effectiveOverkillEff);
+        } else {
+          updatedM.hp = Math.max(1, updatedM.hp - actualDmg);
+          applyFrostFreeze(updatedM);
+          if (m.rank === 'elite' && !stopperId) stopperId = m.id;
+          currentPayload = 0; // Stopped by surviving elite/shield
+          break;
+        }
       }
     }
   } else if (skill.route === 'single') {

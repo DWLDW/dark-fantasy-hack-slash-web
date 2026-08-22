@@ -865,11 +865,11 @@ export const WARRIOR_SKILLS: Skill[] = [
     maxLevel: 10,
     rageCost: 50,
     manaCost: 0,
-    damageMultiplier: 2.2, // 데미지 적절히 하향 조정
+    damageMultiplier: 2.2,
     overkillEfficiency: 1.10,
-    rageGainPerHit: 3, // 타격 1마리당 분노 +3 생성 환급
+    rageGainPerHit: 2, // 타격 1마리당 기본 분노 +2 환급
     route: 'radius',
-    description: '전 레인 2열(10칸)을 휩쓰는 광역 폭풍. 타격한 적 1마리당 분노 +3을 환급받아 지속 회전합니다.',
+    description: '전 레인 2열(10칸)을 휩쓰는 광역 폭풍. 타격한 적 1마리당 분노 +2를 환급받으며, 오버킬 파편이 후열 몬스터들을 연쇄 폭사시킵니다.',
     icon: 'RotateCw',
     hotkey: 'R',
     activeRuneId: 'rune_frost'

@@ -154,30 +154,29 @@ const getInitialSave = () => {
 const savedData = getInitialSave();
 
 const DEFAULT_RUNES_VAULT: Record<string, number> = {
-  El: 5, Eld: 3, Tir: 4, Nef: 2, Eth: 4, Ith: 3, Tal: 6, Ral: 4, Ort: 5, Thul: 4, Amn: 4, Sol: 3, Shael: 2, Dol: 2, Hel: 2,
-  Lem: 1, Pul: 1, Um: 1, Mal: 1, Ist: 1, Gul: 1, Vex: 1, Ohm: 1, Lo: 1, Sur: 1, Ber: 2, Jah: 1, Cham: 0, Zod: 1
+  El: 3, Eld: 2, Tir: 2, Nef: 1, Eth: 2, Ith: 1, Tal: 3, Ral: 2, Ort: 2, Thul: 1
 };
 
 const DEFAULT_PLAYER_STATS: PlayerStats = {
-  level: 18,
-  exp: 3420,
-  maxExp: 5000,
-  hp: 480,
-  maxHp: 480,
-  rage: 75,
+  level: 1,
+  exp: 0,
+  maxExp: 100,
+  hp: 120,
+  maxHp: 120,
+  rage: 0,
   maxRage: 100,
-  mana: 120,
-  maxMana: 120,
-  gold: 14500,
-  shards: 38,
-  statPoints: 3,
-  skillPoints: 5, // 5 Skill Points to invest
-  str: 45,
-  dex: 30,
-  con: 38,
-  int: 15,
-  wis: 16,
-  cha: 18
+  mana: 40,
+  maxMana: 40,
+  gold: 300,
+  shards: 5,
+  statPoints: 0,
+  skillPoints: 1,
+  str: 15,
+  dex: 10,
+  con: 15,
+  int: 5,
+  wis: 5,
+  cha: 5
 };
 
 const GameContext = createContext<GameContextType | null>(null);
@@ -299,13 +298,20 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const craftRuneWord = (targetItemId: string, recipeId: string): boolean => {
-    const targetItem = inventory.find(i => i.id === targetItemId);
+    // Find in inventory OR currently equipped slots
+    const targetItem = inventory.find(i => i.id === targetItemId) || Object.values(equipment).find(i => i?.id === targetItemId);
     const recipe = RUNEWORD_RECIPES.find(r => r.id === recipeId);
-    if (!targetItem || !recipe) return false;
+    if (!targetItem || !recipe) {
+      addLog('제작 대상 아이템 또는 룬워드 레시피를 찾을 수 없습니다.', 'system');
+      return false;
+    }
+
+    const isSlotMatch = targetItem.slot === recipe.allowedSlot ||
+      ((targetItem.slot === 'ring1' || targetItem.slot === 'ring2') && (recipe.allowedSlot === 'ring1' || recipe.allowedSlot === 'ring2'));
 
     // Check if target item is eligible
-    if (targetItem.rarity !== 'normal' || targetItem.slot !== recipe.allowedSlot || (targetItem.sockets || 0) < recipe.requiredSockets) {
-      addLog(`[${targetItem.name}]은(는) [${recipe.name}]의 제작 조건에 맞지 않습니다.`, 'system');
+    if (targetItem.rarity !== 'normal' || !isSlotMatch || (targetItem.sockets || 0) < recipe.requiredSockets) {
+      addLog(`[${targetItem.name}]은(는) [${recipe.name}]의 제작 조건(노말 ${recipe.requiredSockets}소켓 ${recipe.allowedSlot})에 맞지 않습니다.`, 'system');
       return false;
     }
 
@@ -347,18 +353,32 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       description: `[룬워드: ${recipe.requiredRunes.join(' + ')}] ${recipe.description}`
     };
 
-    setInventory(prev => prev.map(i => i.id === targetItemId ? updatedItem : i));
+    // Update in Equipment if currently worn, otherwise in Inventory
+    const equippedSlotKey = Object.keys(equipment).find(k => equipment[k as EquipSlot]?.id === targetItemId) as EquipSlot | undefined;
+    if (equippedSlotKey) {
+      setEquipment(prev => ({ ...prev, [equippedSlotKey]: updatedItem }));
+    } else {
+      setInventory(prev => prev.map(i => i.id === targetItemId ? updatedItem : i));
+    }
+
     playRuneWordSound();
     addLog(`✨ 스마트 룬워드 제작 성공! [${recipe.name}]이(가) 완성되었습니다!`, 'loot');
     return true;
   };
 
   const craftRuneWordWithTransmute = (targetItemId: string, recipeId: string): boolean => {
-    const targetItem = inventory.find(i => i.id === targetItemId);
+    // Find in inventory OR currently equipped slots
+    const targetItem = inventory.find(i => i.id === targetItemId) || Object.values(equipment).find(i => i?.id === targetItemId);
     const recipe = RUNEWORD_RECIPES.find(r => r.id === recipeId);
-    if (!targetItem || !recipe) return false;
+    if (!targetItem || !recipe) {
+      addLog('제작 대상 아이템 또는 룬워드 레시피를 찾을 수 없습니다.', 'system');
+      return false;
+    }
 
-    if (targetItem.rarity !== 'normal' || targetItem.slot !== recipe.allowedSlot || (targetItem.sockets || 0) < recipe.requiredSockets) {
+    const isSlotMatch = targetItem.slot === recipe.allowedSlot ||
+      ((targetItem.slot === 'ring1' || targetItem.slot === 'ring2') && (recipe.allowedSlot === 'ring1' || recipe.allowedSlot === 'ring2'));
+
+    if (targetItem.rarity !== 'normal' || !isSlotMatch || (targetItem.sockets || 0) < recipe.requiredSockets) {
       addLog(`[${targetItem.name}]은(는) [${recipe.name}]의 제작 조건에 맞지 않습니다.`, 'system');
       return false;
     }
@@ -393,7 +413,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       description: `[룬워드: ${recipe.requiredRunes.join(' + ')}] ${recipe.description}`
     };
 
-    setInventory(prev => prev.map(i => i.id === targetItemId ? updatedItem : i));
+    // Update in Equipment if currently worn, otherwise in Inventory
+    const equippedSlotKey = Object.keys(equipment).find(k => equipment[k as EquipSlot]?.id === targetItemId) as EquipSlot | undefined;
+    if (equippedSlotKey) {
+      setEquipment(prev => ({ ...prev, [equippedSlotKey]: updatedItem }));
+    } else {
+      setInventory(prev => prev.map(i => i.id === targetItemId ? updatedItem : i));
+    }
+
     playRuneWordSound();
     addLog(`🔮 하위 룬 연쇄 합성 및 [${recipe.name}] 룬워드 완성!`, 'loot');
     return true;
