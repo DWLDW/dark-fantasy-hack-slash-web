@@ -98,7 +98,7 @@ export const BottomDock: React.FC = () => {
           {/* Skill & Rune [K] */}
           <button
             onClick={() => activeModal === 'skills' ? closeModal() : openModal('skills')}
-            className={`flex flex-col md:flex-row items-center gap-2 px-3.5 py-1.5 rounded transition text-xs font-bold ${
+            className={`relative flex flex-col md:flex-row items-center gap-2 px-3.5 py-1.5 rounded transition text-xs font-bold ${
               activeModal === 'skills'
                 ? 'bg-brass-500/30 text-brass-100 border-2 border-brass-400 shadow-lg'
                 : 'bg-iron-900 text-gray-100 hover:bg-iron-800 hover:text-white border border-iron-700'
@@ -110,6 +110,11 @@ export const BottomDock: React.FC = () => {
             <kbd className="hidden md:inline-block text-xs bg-iron-950 px-2 py-0.5 rounded border border-iron-600 text-purple-300 font-mono font-bold">
               K
             </kbd>
+            {playerStats.skillPoints > 0 && (
+              <span className="absolute -top-1 -right-1 px-1.5 py-0.2 bg-gradient-to-r from-amber-500 to-yellow-400 text-iron-950 font-mono font-black text-[10px] rounded-full shadow border border-amber-200 animate-pulse">
+                +{playerStats.skillPoints}SP
+              </span>
+            )}
           </button>
         </div>
 

@@ -101,9 +101,12 @@ interface GameContextType {
   addLog: (text: string, type?: CombatLogEntry['type']) => void;
   resetBattleFormation: () => void;
   
-  // Skill Runes Mapping (skillId -> runeId)
+  // Skill Runes & Point Upgrades
   skillRunes: Record<string, string>;
   setSkillRune: (skillId: string, runeId: string | null) => void;
+  skillLevels: Record<string, number>;
+  upgradeSkill: (skillId: string) => void;
+  resetSkillPoints: () => void;
 
   // Dedicated Rune Vault (El to Zod counts) & Smart Crafting
   runesVault: Record<string, number>;
@@ -166,6 +169,7 @@ const DEFAULT_PLAYER_STATS: PlayerStats = {
   gold: 14500,
   shards: 38,
   statPoints: 3,
+  skillPoints: 5, // 5 Skill Points to invest
   str: 45,
   dex: 30,
   con: 38,
@@ -218,6 +222,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     cleave: 'rune_lightning',
     whirlwind: 'rune_frost'
   });
+  const [skillLevels, setSkillLevels] = useState<Record<string, number>>(() => savedData?.skillLevels || {
+    slash: 1,
+    execute: 1,
+    cleave: 1,
+    whirlwind: 1
+  });
   
   // Auto-save to localStorage whenever persistent states change
   useEffect(() => {
@@ -231,13 +241,52 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         consumables,
         currentDungeonId: currentDungeon.id,
         currentRoomId,
-        skillRunes
+        skillRunes,
+        skillLevels
       };
       localStorage.setItem(SAVE_KEY, JSON.stringify(dataToSave));
     } catch (e) {
       console.error('Failed to auto-save to localStorage', e);
     }
-  }, [playerStats, equipment, inventory, runesVault, consumables, currentDungeon.id, currentRoomId, skillRunes]);
+  }, [playerStats, equipment, inventory, runesVault, consumables, currentDungeon.id, currentRoomId, skillRunes, skillLevels]);
+
+  const upgradeSkill = (skillId: string) => {
+    if (playerStats.skillPoints <= 0) {
+      addLog('사용 가능한 스킬 포인트가 부족합니다!', 'system');
+      return;
+    }
+    const currentLv = skillLevels[skillId] || 1;
+    if (currentLv >= 10) {
+      addLog('스킬이 이미 최대 레벨(Lv 10)에 도달했습니다!', 'system');
+      return;
+    }
+
+    setSkillLevels(prev => ({
+      ...prev,
+      [skillId]: currentLv + 1
+    }));
+    setPlayerStats(prev => ({
+      ...prev,
+      skillPoints: prev.skillPoints - 1
+    }));
+    playRuneWordSound();
+    addLog(`✨ [${skillId.toUpperCase()}] 스킬이 Lv.${currentLv + 1}로 강화되었습니다! (+15% 피해 증가)`, 'system');
+  };
+
+  const resetSkillPoints = () => {
+    const totalSpent = Object.values(skillLevels).reduce((acc, lv) => acc + (lv - 1), 0);
+    setSkillLevels({
+      slash: 1,
+      execute: 1,
+      cleave: 1,
+      whirlwind: 1
+    });
+    setPlayerStats(prev => ({
+      ...prev,
+      skillPoints: prev.skillPoints + totalSpent
+    }));
+    addLog(`🔄 모든 스킬 포인트(${totalSpent}P)를 초기화하여 반환했습니다.`, 'system');
+  };
 
   const addRuneToVault = (runeKey: string, count = 1) => {
     setRunesVault(prev => ({
@@ -542,13 +591,16 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [playerStats, equipment, tempBuffs]);
 
-  // Active Skill with equipped Skill Rune
-  const effectiveSkill = useMemo(() => {
+  // Active Skill with equipped Skill Rune and invested Skill Level
+  const effectiveSkill: Skill = useMemo(() => {
+    const baseSkill = WARRIOR_SKILLS.find(s => s.id === selectedSkill.id) || selectedSkill;
+    const currentLv = skillLevels[selectedSkill.id] || 1;
     return {
-      ...selectedSkill,
+      ...baseSkill,
+      level: currentLv,
       activeRuneId: skillRunes[selectedSkill.id] || selectedSkill.activeRuneId || null
     };
-  }, [selectedSkill, skillRunes]);
+  }, [selectedSkill, skillRunes, skillLevels]);
 
   // Real-time Preview 100% matched with resolveAttack
   const preview = useMemo(() => {
@@ -597,7 +649,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     playSlashSound();
 
     addLog(
-      `[${selectedSkill.name}] 발동! ${result.isCritical ? '★ 치명타 폭발!' : ''} (총 위력: ${result.totalDamage})`,
+      `[${effectiveSkill.name} Lv.${effectiveSkill.level || 1}] 발동! ${result.isCritical ? '★ 치명타 폭발!' : ''} (총 위력: ${result.totalDamage})`,
       'damage'
     );
 
@@ -652,18 +704,50 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setMaxChainThisRoom(result.chainCount);
       }
 
-      if (result.chainCount > 0) {
-        const gainedGold = result.chainCount * 25 + (result.stopperId ? 100 : 0);
-        const gainedRage = result.chainCount * 4;
+      // Rage Generation from Hits + Kills + Void Rune
+      const hitRage = targets.length * (effectiveSkill.rageGainPerHit || 0);
+      const killRage = result.chainCount * 4;
+      const voidRage = effectiveSkill.activeRuneId === 'rune_void' ? result.chainCount * 10 : 0;
+      const totalRageGained = hitRage + killRage + voidRage;
+
+      // Life Steal Calculation (from Skill e.g. Execute + Void Rune)
+      const skillHeal = effectiveSkill.lifeStealPercent
+        ? Math.floor(result.totalDamage * (effectiveSkill.lifeStealPercent / 100))
+        : 0;
+      const voidHeal = effectiveSkill.activeRuneId === 'rune_void' ? result.chainCount * 25 : 0;
+      const totalHpHealed = skillHeal + voidHeal;
+
+      // Gold & Loot
+      const gainedGold = result.chainCount * 25 + (result.stopperId ? 100 : 0);
+
+      // Apply Player Gains
+      setPlayerStats(prev => ({
+        ...prev,
+        gold: prev.gold + gainedGold,
+        rage: Math.min(prev.maxRage, prev.rage + totalRageGained),
+        hp: Math.min(prev.maxHp, prev.hp + totalHpHealed)
+      }));
+
+      // Combat Logs for Gains
+      if (totalRageGained > 0) {
         addLog(
-          `💥 [Chain x${result.chainCount}] ${result.chainCount}마리 몬스터 연쇄 처치! (+${gainedGold}G, 분노 +${gainedRage})`,
+          `⚡ 분노 +${totalRageGained} 충전! (명중 ${targets.length}타격 x${effectiveSkill.rageGainPerHit || 0} + 처치 ${killRage}${voidRage > 0 ? ` + 공허 룬 ${voidRage}` : ''})`,
+          'system'
+        );
+      }
+
+      if (totalHpHealed > 0) {
+        addLog(
+          `🩸 생명력 +${totalHpHealed} 흡수 회복! ${skillHeal > 0 ? `(처형 흡혈 ${skillHeal})` : ''} ${voidHeal > 0 ? `(공허 영혼 흡수 ${voidHeal})` : ''}`,
+          'loot'
+        );
+      }
+
+      if (result.chainCount > 0) {
+        addLog(
+          `💥 [Chain x${result.chainCount}] ${result.chainCount}마리 몬스터 연쇄 처치! (+${gainedGold}G)`,
           'chain'
         );
-        setPlayerStats(prev => ({
-          ...prev,
-          gold: prev.gold + gainedGold,
-          rage: Math.min(prev.maxRage, prev.rage + gainedRage)
-        }));
       }
 
       if (result.stopperId) {
@@ -1169,6 +1253,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         resetBattleFormation,
         skillRunes,
         setSkillRune,
+        skillLevels,
+        upgradeSkill,
+        resetSkillPoints,
         runesVault,
         addRuneToVault,
         craftRuneWord,

@@ -438,10 +438,13 @@ export const WARRIOR_SKILLS: Skill[] = [
   {
     id: 'slash',
     name: '가르기 (Slash)',
+    level: 1,
+    maxLevel: 10,
     rageCost: 0,
     manaCost: 0,
-    damageMultiplier: 1.0, // Nerfed from 1.2
-    overkillEfficiency: 0.45, // Heavily nerfed from 1.0 -> basic skill for 1~2 small kills
+    damageMultiplier: 1.0,
+    overkillEfficiency: 0.45,
+    rageGainPerHit: 0,
     route: 'line',
     description: '기본 직선 베기. 자원을 소모하지 않으며, 전열의 약한 적 1~2마리를 정리하는 데 적합합니다.',
     icon: 'Sword',
@@ -451,12 +454,15 @@ export const WARRIOR_SKILLS: Skill[] = [
   {
     id: 'execute',
     name: '처형 (Execute)',
-    rageCost: 30, // Buffed: Reduced cost from 35
+    level: 1,
+    maxLevel: 10,
+    rageCost: 30, // 분노 30 유지
     manaCost: 0,
-    damageMultiplier: 4.2, // Heavily buffed from 2.8 -> High damage boss/elite breaker
+    damageMultiplier: 8.5, // 2배 이상 상향! (단일 극딜 파쇄기)
     overkillEfficiency: 0.85,
+    lifeStealPercent: 50, // 가한 피해의 50% HP 즉시 흡수!
     route: 'single',
-    description: '단일 대상에게 괴멸적인 타격! 높은 방어력의 엘리트나 보스의 체인 저지점을 일격에 파쇄합니다.',
+    description: '단일 대상에게 괴멸적인 타격(x8.5)! 가한 피해의 50%를 생명력으로 즉시 흡수하여 위기를 탈출합니다.',
     icon: 'Skull',
     hotkey: 'W',
     activeRuneId: 'rune_poison'
@@ -464,12 +470,15 @@ export const WARRIOR_SKILLS: Skill[] = [
   {
     id: 'cleave',
     name: '휩쓸기 (Cleave)',
-    rageCost: 20, // Buffed: Reduced cost from 25
+    level: 1,
+    maxLevel: 10,
+    rageCost: 10, // 분노 소모 10으로 대폭 감소
     manaCost: 0,
-    damageMultiplier: 1.8, // Buffed from 1.6
-    overkillEfficiency: 0.90, // Buffed from 0.85
+    damageMultiplier: 1.5,
+    overkillEfficiency: 0.70,
+    rageGainPerHit: 15, // 명중 1마리당 분노 +15 생성 (3마리 적중 시 분노 +45 생성 -> 순수 +35 충전!)
     route: 'branch',
-    description: '전방 및 좌우 3개 Lane의 전열을 동시에 강타. 밀집된 전열을 한 번에 붕괴시킵니다.',
+    description: '전방 및 좌우 3개 Lane의 전열을 강타. 명중한 적 1마리당 분노 +15를 생성하여 자원을 급속 충전합니다!',
     icon: 'Zap',
     hotkey: 'E',
     activeRuneId: 'rune_lightning'
@@ -477,12 +486,15 @@ export const WARRIOR_SKILLS: Skill[] = [
   {
     id: 'whirlwind',
     name: '휠윈드 (Whirlwind)',
-    rageCost: 50, // Buffed: Reduced cost from 60
+    level: 1,
+    maxLevel: 10,
+    rageCost: 50,
     manaCost: 0,
-    damageMultiplier: 3.5, // Massively buffed from 2.2 -> Ultimate mass extinction
-    overkillEfficiency: 1.30, // Heavily buffed from 1.1 -> Kills 10~20 enemies in 1 hit!
+    damageMultiplier: 2.2, // 데미지 적절히 하향 조정
+    overkillEfficiency: 1.10,
+    rageGainPerHit: 3, // 타격 1마리당 분노 +3 생성 환급
     route: 'radius',
-    description: '전 레인 2열(총 10칸)을 휩쓰는 파괴의 폭풍! 10~20마리를 한 방에 연쇄 폭사시키는 광전사의 궁극기.',
+    description: '전 레인 2열(10칸)을 휩쓰는 광역 폭풍. 타격한 적 1마리당 분노 +3을 환급받아 지속 회전합니다.',
     icon: 'RotateCw',
     hotkey: 'R',
     activeRuneId: 'rune_frost'

@@ -84,6 +84,7 @@ export interface PlayerStats {
   gold: number;
   shards: number;
   statPoints: number;
+  skillPoints: number;
   
   // Base 6 Attributes
   str: number;
@@ -163,10 +164,14 @@ export interface Skill {
   id: string;
   name: string;
   element?: ElementType;
+  level?: number;
+  maxLevel?: number;
   rageCost: number;
   manaCost: number;
   damageMultiplier: number;
   overkillEfficiency: number;
+  rageGainPerHit?: number;
+  lifeStealPercent?: number;
   route: SkillRoute;
   description: string;
   icon: string;

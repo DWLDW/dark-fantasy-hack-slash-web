@@ -37,6 +37,7 @@ export const BattleView: React.FC = () => {
     preview,
     combatLogs,
     playerStats,
+    skillLevels,
     consumables,
     useConsumable,
     resetBattleFormation,
@@ -300,13 +301,15 @@ export const BattleView: React.FC = () => {
             {WARRIOR_SKILLS.map(skill => {
               const isSelected = selectedSkill.id === skill.id;
               const canAfford = playerStats.rage >= skill.rageCost;
+              const sLevel = skillLevels[skill.id] || 1;
+              const effectiveMultiplier = (skill.damageMultiplier * (1 + (sLevel - 1) * 0.15)).toFixed(1);
 
               return (
                 <button
                   key={skill.id}
                   onClick={() => selectSkillOrExecute(skill)}
                   disabled={isAttacking || isEnemyTurn}
-                  className={`p-2 rounded-lg border-2 text-left flex flex-col transition relative shadow ${
+                  className={`p-2 rounded-lg border-2 text-left flex flex-col justify-between transition relative shadow ${
                     isSelected
                       ? 'bg-blood-950 border-brass-400 text-brass-100 ring-2 ring-brass-400/80 shadow-[0_0_10px_rgba(222,178,67,0.4)]'
                       : canAfford
@@ -316,18 +319,33 @@ export const BattleView: React.FC = () => {
                   title={`${skill.name} (선택 또는 더블 클릭 시 즉시 시전)`}
                 >
                   <div className="flex items-center justify-between text-xs font-black font-cinzel">
-                    <span>{skill.name}</span>
-                    <span className="text-[10px] text-amber-300 font-mono font-black bg-iron-900 px-1.5 py-0.5 rounded border border-iron-700">
-                      [{skill.hotkey}]
-                    </span>
+                    <span className="truncate">{skill.name.split(' ')[0]}</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[9px] text-amber-300 font-mono font-bold bg-iron-900 px-1 rounded border border-iron-700">
+                        Lv.{sLevel}
+                      </span>
+                      <span className="text-[10px] text-amber-300 font-mono font-black bg-iron-900 px-1 py-0.2 rounded border border-iron-700">
+                        [{skill.hotkey}]
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-[10px] text-gray-300 font-bold mt-0.5 flex justify-between">
+
+                  <div className="text-[10px] text-gray-300 font-mono font-bold mt-1 flex items-center justify-between flex-wrap gap-1">
                     {skill.rageCost > 0 ? (
                       <span className="text-amber-400">분노 {skill.rageCost}</span>
                     ) : (
-                      <span className="text-emerald-400">기본기</span>
+                      <span className="text-emerald-400">자원 0</span>
                     )}
-                    <span className="text-gray-400">x{skill.damageMultiplier}</span>
+
+                    {skill.rageGainPerHit && skill.rageGainPerHit > 0 && (
+                      <span className="text-yellow-300">⚡+{skill.rageGainPerHit}</span>
+                    )}
+
+                    {skill.lifeStealPercent && skill.lifeStealPercent > 0 && (
+                      <span className="text-rose-400">🩸50%</span>
+                    )}
+
+                    <span className="text-gray-400">x{effectiveMultiplier}</span>
                   </div>
                 </button>
               );

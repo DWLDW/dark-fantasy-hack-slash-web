@@ -90,8 +90,9 @@ export function resolveAttack(
     runeOverkillBonus = 1.25;
   }
 
+  const skillLevelMult = 1 + ((skill.level || 1) - 1) * 0.15;
   const critMultiplier = isCritical ? totalStats.critDamage / 100 : 1.0;
-  const initialRawPayload = Math.floor(baseDamage * skill.damageMultiplier * runeDmgBonus * critMultiplier);
+  const initialRawPayload = Math.floor(baseDamage * skill.damageMultiplier * skillLevelMult * runeDmgBonus * critMultiplier);
 
   const targetsHit: CombatHitResult[] = [];
   const kills: string[] = [];
