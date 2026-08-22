@@ -41,7 +41,12 @@ function getLocalIPs() {
       }
     }
   }
-  return ips;
+  // Prioritize typical LAN/Wi-Fi IPs (192.168.x.x, 10.x.x.x, 172.x.x.x) over 198.18.x.x (Clash TUN)
+  return ips.sort((a, b) => {
+    if (a.startsWith('192.168.')) return -1;
+    if (b.startsWith('192.168.')) return 1;
+    return 0;
+  });
 }
 
 // 4. Test SSH Connectivity (Direct vs BindAddress Fallback)
@@ -54,7 +59,7 @@ async function testSSH() {
         ...extraArgs,
         '-i', keyPath,
         '-o', 'StrictHostKeyChecking=no',
-        '-o', 'ConnectTimeout=5',
+        '-o', 'ConnectTimeout=3',
         `${SERVER_USER}@${SERVER_HOST}`,
         'echo SSH_OK'
       ]);

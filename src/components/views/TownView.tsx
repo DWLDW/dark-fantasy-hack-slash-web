@@ -10,6 +10,9 @@ export const TownView: React.FC = () => {
     totalStats,
     equipment,
     inventory,
+    runesVault,
+    craftRuneWord,
+    transmuteRunesInVault,
     enterDungeon,
     setViewMode,
     openModal,
@@ -352,57 +355,79 @@ export const TownView: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Step 2: Rune Selection & Socketing Action */}
+                {/* Step 2: Auto-Matching RuneWords List & One-Click Crafting */}
                 {selectedBaseItem && (
-                  <div className="p-3 bg-iron-950 rounded-lg border-2 border-iron-700 space-y-2.5">
-                    <div className="font-bold text-gray-100 text-xs md:text-sm">
-                      [{selectedBaseItem.name}]에 장착할 룬 선택:
+                  <div className="p-3 bg-iron-950 rounded-lg border-2 border-brass-500 space-y-2">
+                    <div className="flex justify-between items-center border-b border-iron-750 pb-1">
+                      <div className="font-bold text-gray-100 text-xs flex items-center gap-1.5">
+                        <Sparkles className="w-4 h-4 text-amber-400" />
+                        <span>[{selectedBaseItem.name}] 제작 가능 룬워드:</span>
+                      </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-2">
-                      {availableRunes.map(rune => (
-                        <button
-                          key={rune.id}
-                          onClick={() => setSelectedRuneToSocket(rune)}
-                          className={`px-3 py-1.5 rounded border-2 text-xs font-bold transition shadow ${
-                            selectedRuneToSocket?.id === rune.id
-                              ? 'bg-purple-950 border-purple-400 text-purple-100 ring-2 ring-purple-400'
-                              : 'bg-iron-900 border-iron-650 text-gray-200 hover:bg-iron-800'
-                          }`}
-                        >
-                          {rune.name}
-                        </button>
-                      ))}
-                    </div>
+                    <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                      {RUNEWORD_RECIPES.filter(
+                        rw => rw.allowedSlot === selectedBaseItem.slot && rw.requiredSockets === selectedBaseItem.sockets
+                      ).map(recipe => {
+                        const reqCounts: Record<string, number> = {};
+                        recipe.requiredRunes.forEach(r => { reqCounts[r] = (reqCounts[r] || 0) + 1; });
 
-                    <button
-                      onClick={() => {
-                        if (selectedBaseItem && selectedRuneToSocket) {
-                          socketRuneIntoItem(selectedBaseItem.id, selectedRuneToSocket.id);
-                          setSelectedRuneToSocket(null);
-                        }
-                      }}
-                      disabled={!selectedRuneToSocket}
-                      className="w-full py-2.5 bg-gradient-to-r from-brass-600 to-brass-500 hover:from-brass-500 hover:to-brass-400 disabled:opacity-40 text-iron-950 font-black rounded transition shadow text-xs md:text-sm flex items-center justify-center gap-1.5"
-                    >
-                      <Hammer className="w-4 h-4" />
-                      <span>소켓에 룬 장착하기 (Insert Rune)</span>
-                    </button>
+                        let canCraft = true;
+                        const missing: string[] = [];
+                        Object.entries(reqCounts).forEach(([rKey, count]) => {
+                          const owned = runesVault[rKey] || 0;
+                          if (owned < count) {
+                            canCraft = false;
+                            missing.push(`${rKey}(${owned}/${count})`);
+                          }
+                        });
+
+                        return (
+                          <div
+                            key={recipe.id}
+                            className={`p-2.5 rounded-lg border flex items-center justify-between gap-2 transition ${
+                              canCraft
+                                ? 'bg-amber-950/40 border-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.3)]'
+                                : 'bg-iron-900 border-iron-750 opacity-70'
+                            }`}
+                          >
+                            <div>
+                              <div className="font-black text-xs text-gray-100 flex items-center gap-1.5">
+                                <span className={canCraft ? 'text-amber-300' : 'text-gray-300'}>{recipe.name}</span>
+                                <span className="text-[10px] font-mono text-purple-300 font-bold bg-iron-950 px-1 rounded border border-iron-700">
+                                  [{recipe.requiredRunes.join(' + ')}]
+                                </span>
+                              </div>
+                              <div className="text-[10px] text-gray-400 mt-0.5">
+                                {canCraft ? (
+                                  <span className="text-emerald-400 font-bold">✓ 보유 룬 충족! 즉시 제작 가능</span>
+                                ) : (
+                                  <span className="text-red-400 font-bold">부족: {missing.join(', ')}</span>
+                                )}
+                              </div>
+                            </div>
+
+                            <button
+                              onClick={() => {
+                                craftRuneWord(selectedBaseItem.id, recipe.id);
+                                setSelectedBaseItem(null);
+                              }}
+                              disabled={!canCraft}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-black transition shadow flex items-center gap-1 flex-shrink-0 ${
+                                canCraft
+                                  ? 'bg-gradient-to-r from-brass-500 to-amber-500 hover:from-brass-400 hover:to-amber-400 text-iron-950 ring-1 ring-brass-300 animate-pulse'
+                                  : 'bg-iron-800 text-gray-500 border border-iron-700 cursor-not-allowed'
+                              }`}
+                            >
+                              <Hammer className="w-3.5 h-3.5" />
+                              <span>원클릭 제작</span>
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
-
-                {/* RuneWord Recipe Catalog */}
-                <div className="space-y-1.5">
-                  <div className="font-bold text-brass-300 text-xs">📖 대표 룬워드 족보 (Recipes):</div>
-                  <div className="max-h-32 overflow-y-auto space-y-1.5 font-mono text-xs">
-                    {RUNEWORD_RECIPES.map(rw => (
-                      <div key={rw.id} className="p-2 bg-iron-950 rounded border border-iron-750 flex justify-between items-center">
-                        <span className="text-amber-300 font-bold">{rw.name} ({rw.requiredSockets}소켓 {rw.allowedSlot})</span>
-                        <span className="text-purple-300 font-black">{rw.requiredRunes.join(' + ')}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </div>
             )}
 

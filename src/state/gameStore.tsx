@@ -102,6 +102,12 @@ interface GameContextType {
   skillRunes: Record<string, string>;
   setSkillRune: (skillId: string, runeId: string | null) => void;
 
+  // Dedicated Rune Vault (El to Zod counts) & Smart Crafting
+  runesVault: Record<string, number>;
+  addRuneToVault: (runeKey: string, count?: number) => void;
+  craftRuneWord: (targetItemId: string, recipeId: string) => boolean;
+  transmuteRunesInVault: (runeKey: string) => boolean;
+
   // Diablo 2 Crafting & Features
   socketRuneIntoItem: (targetItemId: string, runeId: string) => void;
   transmuteInCube: (itemIds: string[]) => void;
@@ -125,6 +131,11 @@ const getInitialSave = () => {
 };
 
 const savedData = getInitialSave();
+
+const DEFAULT_RUNES_VAULT: Record<string, number> = {
+  El: 5, Eld: 3, Tir: 4, Nef: 2, Eth: 4, Ith: 3, Tal: 6, Ral: 4, Ort: 5, Thul: 4, Amn: 4, Sol: 3, Shael: 2, Dol: 2, Hel: 2,
+  Lem: 1, Pul: 1, Um: 1, Mal: 1, Ist: 1, Gul: 1, Vex: 1, Ohm: 1, Lo: 1, Sur: 1, Ber: 2, Jah: 1, Cham: 0, Zod: 1
+};
 
 const DEFAULT_PLAYER_STATS: PlayerStats = {
   level: 18,
@@ -156,6 +167,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [playerStats, setPlayerStats] = useState<PlayerStats>(() => savedData?.playerStats || DEFAULT_PLAYER_STATS);
   const [equipment, setEquipment] = useState<Record<string, GameItem>>(() => savedData?.equipment || INITIAL_EQUIPMENT);
   const [inventory, setInventory] = useState<GameItem[]>(() => savedData?.inventory || SAMPLE_INVENTORY);
+  const [runesVault, setRunesVault] = useState<Record<string, number>>(() => savedData?.runesVault || DEFAULT_RUNES_VAULT);
   const [consumables, setConsumables] = useState<ConsumableItem[]>(() => savedData?.consumables || INITIAL_CONSUMABLES);
   const [currentDungeon, setCurrentDungeon] = useState<DungeonInfo>(() => {
     if (savedData?.currentDungeonId) {
@@ -179,6 +191,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         playerStats,
         equipment,
         inventory,
+        runesVault,
         consumables,
         currentDungeonId: currentDungeon.id,
         currentRoomId,
@@ -188,7 +201,99 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (e) {
       console.error('Failed to auto-save to localStorage', e);
     }
-  }, [playerStats, equipment, inventory, consumables, currentDungeon.id, currentRoomId, skillRunes]);
+  }, [playerStats, equipment, inventory, runesVault, consumables, currentDungeon.id, currentRoomId, skillRunes]);
+
+  const addRuneToVault = (runeKey: string, count = 1) => {
+    setRunesVault(prev => ({
+      ...prev,
+      [runeKey]: (prev[runeKey] || 0) + count
+    }));
+    addLog(`💎 [${runeKey} 룬] x${count}개를 룬 보관함에 획득했습니다!`, 'loot');
+  };
+
+  const craftRuneWord = (targetItemId: string, recipeId: string): boolean => {
+    const targetItem = inventory.find(i => i.id === targetItemId);
+    const recipe = RUNEWORD_RECIPES.find(r => r.id === recipeId);
+    if (!targetItem || !recipe) return false;
+
+    // Check if target item is eligible
+    if (targetItem.rarity !== 'normal' || targetItem.slot !== recipe.allowedSlot || (targetItem.sockets || 0) < recipe.requiredSockets) {
+      addLog(`[${targetItem.name}]은(는) [${recipe.name}]의 제작 조건에 맞지 않습니다.`, 'system');
+      return false;
+    }
+
+    // Check required runes count in runesVault
+    const requiredCounts: Record<string, number> = {};
+    recipe.requiredRunes.forEach(r => {
+      requiredCounts[r] = (requiredCounts[r] || 0) + 1;
+    });
+
+    for (const [rKey, reqCount] of Object.entries(requiredCounts)) {
+      if ((runesVault[rKey] || 0) < reqCount) {
+        addLog(`필요한 [${rKey} 룬]이 부족합니다! (보유: ${runesVault[rKey] || 0} / 필요: ${reqCount})`, 'system');
+        return false;
+      }
+    }
+
+    // Deduct runes from runesVault
+    setRunesVault(prev => {
+      const copy = { ...prev };
+      Object.entries(requiredCounts).forEach(([rKey, reqCount]) => {
+        copy[rKey] = Math.max(0, (copy[rKey] || 0) - reqCount);
+      });
+      return copy;
+    });
+
+    // Upgrade target item to RuneWord
+    const updatedItem: GameItem = {
+      ...targetItem,
+      name: recipe.name,
+      rarity: 'runeword',
+      isRuneWord: true,
+      runeWordName: recipe.name,
+      socketedRunes: recipe.requiredRunes,
+      stats: {
+        ...targetItem.stats,
+        ...recipe.bonusStats
+      },
+      specialEffect: recipe.specialEffect,
+      description: `[룬워드: ${recipe.requiredRunes.join(' + ')}] ${recipe.description}`
+    };
+
+    setInventory(prev => prev.map(i => i.id === targetItemId ? updatedItem : i));
+    playRuneWordSound();
+    addLog(`✨ 스마트 룬워드 제작 성공! [${recipe.name}]이(가) 완성되었습니다!`, 'loot');
+    return true;
+  };
+
+  const transmuteRunesInVault = (runeKey: string): boolean => {
+    const runeOrder = [
+      'El', 'Eld', 'Tir', 'Nef', 'Eth', 'Ith', 'Tal', 'Ral', 'Ort', 'Thul',
+      'Amn', 'Sol', 'Shael', 'Dol', 'Hel', 'Lem', 'Pul', 'Um', 'Mal', 'Ist',
+      'Gul', 'Vex', 'Ohm', 'Lo', 'Sur', 'Ber', 'Jah', 'Cham', 'Zod'
+    ];
+    const idx = runeOrder.indexOf(runeKey);
+    if (idx < 0 || idx >= runeOrder.length - 1) {
+      addLog('더 이상 상위 룬으로 합성할 수 없습니다.', 'system');
+      return false;
+    }
+
+    if ((runesVault[runeKey] || 0) < 3) {
+      addLog(`합성에는 동일한 [${runeKey} 룬] 3개가 필요합니다. (현재 보유: ${runesVault[runeKey] || 0}개)`, 'system');
+      return false;
+    }
+
+    const nextKey = runeOrder[idx + 1];
+    setRunesVault(prev => ({
+      ...prev,
+      [runeKey]: prev[runeKey] - 3,
+      [nextKey]: (prev[nextKey] || 0) + 1
+    }));
+
+    playRuneWordSound();
+    addLog(`🔮 큐브 합성 성공! [${runeKey} 룬] 3개 ➔ [${nextKey} 룬] 1개 연성!`, 'loot');
+    return true;
+  };
 
   const setSkillRune = (skillId: string, runeId: string | null) => {
     setSkillRunes(prev => {
@@ -895,6 +1000,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         resetBattleFormation,
         skillRunes,
         setSkillRune,
+        runesVault,
+        addRuneToVault,
+        craftRuneWord,
+        transmuteRunesInVault,
         socketRuneIntoItem,
         transmuteInCube,
         gambleItem,
