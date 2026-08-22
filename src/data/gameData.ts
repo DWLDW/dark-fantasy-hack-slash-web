@@ -865,11 +865,11 @@ export const WARRIOR_SKILLS: Skill[] = [
     maxLevel: 10,
     rageCost: 50,
     manaCost: 0,
-    damageMultiplier: 2.2,
-    overkillEfficiency: 1.10,
-    rageGainPerHit: 2, // 타격 1마리당 기본 분노 +2 환급
+    damageMultiplier: 0.85, // 넓은 범위에 약한 다단히트 광역기
+    overkillEfficiency: 0.50,
+    rageGainPerHit: 2, // 기본 타격 명중당 분노 +2 환급 (오버킬 대상은 분노 제외)
     route: 'radius',
-    description: '전 레인 2열(10칸)을 휩쓰는 광역 폭풍. 타격한 적 1마리당 분노 +2를 환급받으며, 오버킬 파편이 후열 몬스터들을 연쇄 폭사시킵니다.',
+    description: '전 레인 2열(10칸)을 휩쓰는 광역 다단 폭풍. 1회 타격 위력은 낮으나 넓은 범위를 긁어냅니다.',
     icon: 'RotateCw',
     hotkey: 'R',
     activeRuneId: 'rune_frost'

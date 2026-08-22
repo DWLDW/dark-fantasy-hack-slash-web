@@ -42,6 +42,7 @@ interface FloatingDamageText {
   damage: number;
   isFatal: boolean;
   isCrit: boolean;
+  isOverkill?: boolean;
 }
 
 interface GameContextType {
@@ -777,16 +778,17 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           playKillSound(killIndex);
         }
 
-        // Add floating damage popup
+        // Add floating damage popup with Overkill indicator
         setFloatingDamages(prev => [
           ...prev,
           {
-            id: `dmg_${hit.monsterId}_${Date.now()}`,
+            id: `dmg_${hit.monsterId}_${Date.now()}_${index}`,
             lane: hit.lane,
             depth: hit.depth,
             damage: hit.damage,
             isFatal: hit.isFatal,
-            isCrit: result.isCritical
+            isCrit: result.isCritical,
+            isOverkill: hit.isOverkillHit || false
           }
         ]);
 
@@ -812,8 +814,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setMaxChainThisRoom(result.chainCount);
       }
 
-      // Rage Generation from Hits + Kills + Void Rune
-      const hitRage = targets.length * (effectiveSkill.rageGainPerHit || 0);
+      // CRITICAL RULE: ONLY primary targets generate hit rage! Overkill spillover targets do NOT generate rage.
+      const primaryTargets = targets.filter(t => !t.isOverkillHit);
+      const overkillTargets = targets.filter(t => t.isOverkillHit);
+      const hitRage = primaryTargets.length * (effectiveSkill.rageGainPerHit || 0);
       const killRage = result.chainCount * 4;
       const voidKillRage = effectiveSkill.activeRuneId === 'rune_void' ? result.chainCount * 10 : 0;
       let rawRageGained = hitRage + killRage + voidKillRage;
@@ -859,7 +863,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Combat Logs for Gains
       if (totalRageGained > 0) {
         addLog(
-          `⚡ 분노 +${totalRageGained} 충전! (명중 ${targets.length}타격 x${effectiveSkill.rageGainPerHit || 0} + 처치 ${killRage}${effectiveSkill.activeRuneId === 'rune_void' ? ` + 공허 20% 증폭(${totalRageGained - rawRageGained})` : ''})`,
+          `⚡ 분노 +${totalRageGained} 충전! (기본 ${primaryTargets.length}타격 x${effectiveSkill.rageGainPerHit || 0} + 처치 ${killRage}${effectiveSkill.activeRuneId === 'rune_void' ? ` + 공허 20% 증폭(${totalRageGained - rawRageGained})` : ''}) ${overkillTargets.length > 0 ? `[오버킬 전이 ${overkillTargets.length}마리 폭발]` : ''}`,
           'system'
         );
       }

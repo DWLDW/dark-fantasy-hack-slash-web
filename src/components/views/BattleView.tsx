@@ -212,10 +212,18 @@ export const BattleView: React.FC = () => {
                             : 'bg-iron-850 border-iron-700 text-gray-100'
                         }`}
                       >
-                        {/* Floating Damage Text Popup */}
+                        {/* Floating Damage Text Popup with Overkill Explosive Styling */}
                         {floating && (
-                          <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-30 font-mono font-black text-[11px] text-yellow-300 bg-blood-950 px-1 rounded border border-yellow-400 animate-bounce shadow">
-                            -{floating.damage} {floating.isCrit ? 'CRIT!' : ''}
+                          <div className={`absolute -top-4 left-1/2 -translate-x-1/2 z-30 font-mono font-black px-1.5 py-0.5 rounded border shadow-2xl flex items-center gap-1 whitespace-nowrap animate-bounce ${
+                            floating.isOverkill
+                              ? 'bg-gradient-to-r from-orange-600 via-rose-600 to-amber-500 border-amber-300 text-white text-[12px] ring-2 ring-amber-400 shadow-[0_0_12px_rgba(249,115,22,0.8)]'
+                              : floating.isCrit
+                              ? 'bg-yellow-950 border-yellow-400 text-yellow-300 text-[11px] ring-1 ring-yellow-300'
+                              : 'bg-blood-950 border-blood-500 text-yellow-200 text-[10px]'
+                          }`}>
+                            <span>-{floating.damage}</span>
+                            {floating.isCrit && !floating.isOverkill && <span className="text-yellow-300 font-black">CRIT!</span>}
+                            {floating.isOverkill && <span className="text-yellow-200 font-black tracking-tighter">💥OVERKILL!</span>}
                           </div>
                         )}
 
