@@ -146,9 +146,23 @@ export interface Monster {
 
 export type SkillRoute = 'line' | 'branch' | 'radius' | 'single';
 
+export type ElementType = 'physical' | 'fire' | 'cold' | 'lightning' | 'poison' | 'void';
+
+export interface SkillRune {
+  id: string;
+  name: string;
+  element: ElementType;
+  description: string;
+  damageBonusPercent: number;
+  overkillBonusPercent: number;
+  specialEffectName: string;
+  color: string;
+}
+
 export interface Skill {
   id: string;
   name: string;
+  element?: ElementType;
   rageCost: number;
   manaCost: number;
   damageMultiplier: number;
@@ -158,6 +172,7 @@ export interface Skill {
   icon: string;
   hotkey: 'Q' | 'W' | 'E' | 'R' | string;
   soundType?: string;
+  activeRuneId?: string | null;
 }
 
 export interface CombatLogEntry {

@@ -1,6 +1,6 @@
-import { GameItem, DungeonInfo, Skill, Monster, ConsumableItem, RuneWordRecipe } from '../types/game';
+import { GameItem, DungeonInfo, Skill, Monster, ConsumableItem, RuneWordRecipe, SkillRune } from '../types/game';
 
-// Diablo II Runes Definition
+// 1. Diablo II Runes Definition (El to Zod - 28 Comprehensive Runes)
 export interface D2RuneDef {
   id: string;
   name: string;
@@ -54,7 +54,7 @@ export const D2_RUNES: Record<string, D2RuneDef> = {
     number: 5,
     weaponBonus: '목표물의 방어력 -25%',
     armorBonus: '분노/마나 회복 속도 +15%',
-    statsWeapon: { overkillEfficiency: 10 },
+    statsWeapon: { overkillEfficiency: 15 },
     statsArmor: { defense: 15 }
   },
   Ith: {
@@ -70,7 +70,7 @@ export const D2_RUNES: Record<string, D2RuneDef> = {
     id: 'Tal',
     name: '탈 (Tal) 룬',
     number: 7,
-    weaponBonus: '독 피해 +75 (5초간)',
+    weaponBonus: '독 피해 +75',
     armorBonus: '독 저항 +35%',
     statsWeapon: { minDmg: 8, maxDmg: 15 },
     statsArmor: { defense: 20, allResist: 10 }
@@ -93,13 +93,31 @@ export const D2_RUNES: Record<string, D2RuneDef> = {
     statsWeapon: { minDmg: 1, maxDmg: 50 },
     statsArmor: { defense: 20, allResist: 10 }
   },
+  Thul: {
+    id: 'Thul',
+    name: '주울 (Thul) 룬',
+    number: 10,
+    weaponBonus: '냉기 피해 3~14, 빙결',
+    armorBonus: '냉기 저항 +35%',
+    statsWeapon: { minDmg: 3, maxDmg: 14, overkillEfficiency: 10 },
+    statsArmor: { defense: 20, allResist: 10 }
+  },
+  Amn: {
+    id: 'Amn',
+    name: '앰 (Amn) 룬',
+    number: 11,
+    weaponBonus: '타격 시 생명력 7% 흡수',
+    armorBonus: '공격자에게 피해 14 반사',
+    statsWeapon: { lifeSteal: 7 },
+    statsArmor: { defense: 25 }
+  },
   Sol: {
     id: 'Sol',
     name: '솔 (Sol) 룬',
     number: 12,
     weaponBonus: '최소 대미지 +9',
-    armorBonus: '받는 물리 피해 7 감소',
-    statsWeapon: { minDmg: 9, maxDmg: 9 },
+    armorBonus: '받는 피해 7 감소',
+    statsWeapon: { minDmg: 9 },
     statsArmor: { defense: 35 }
   },
   Shael: {
@@ -108,95 +126,527 @@ export const D2_RUNES: Record<string, D2RuneDef> = {
     number: 13,
     weaponBonus: '공격 속도 +20%',
     armorBonus: '타격 회복 속도 +20%',
-    statsWeapon: { attackSpeed: 20 },
-    statsArmor: { defense: 25 }
-  },
-  Amn: {
-    id: 'Amn',
-    name: '앰 (Amn) 룬',
-    number: 11,
-    weaponBonus: '타격 시 7% 생명력 흡수',
-    armorBonus: '공격자에게 14 피해 반사',
-    statsWeapon: { lifeSteal: 7 },
+    statsWeapon: { critChance: 8, overkillEfficiency: 15 },
     statsArmor: { defense: 30 }
+  },
+  Dol: {
+    id: 'Dol',
+    name: '돌 (Dol) 룬',
+    number: 14,
+    weaponBonus: '적중 시 몬스터 도주 25%',
+    armorBonus: '생명력 회복 +7',
+    statsWeapon: { minDmg: 10, maxDmg: 15 },
+    statsArmor: { hp: 50 }
+  },
+  Hel: {
+    id: 'Hel',
+    name: '헬 (Hel) 룬',
+    number: 15,
+    weaponBonus: '착용 요구치 -20%',
+    armorBonus: '착용 요구치 -15%',
+    statsWeapon: { critChance: 5 },
+    statsArmor: { defense: 40 }
+  },
+  Lem: {
+    id: 'Lem',
+    name: '렘 (Lem) 룬',
+    number: 20,
+    weaponBonus: '괴물로부터 얻는 골드 +75%',
+    armorBonus: '괴물로부터 얻는 골드 +50%',
+    statsWeapon: { fortune: 20 },
+    statsArmor: { fortune: 15 }
+  },
+  Pul: {
+    id: 'Pul',
+    name: '풀 (Pul) 룬',
+    number: 21,
+    weaponBonus: '악마에 대한 피해 +75%',
+    armorBonus: '방어력 +30%',
+    statsWeapon: { minDmg: 15, maxDmg: 25 },
+    statsArmor: { defense: 50 }
+  },
+  Um: {
+    id: 'Um',
+    name: '움 (Um) 룬',
+    number: 22,
+    weaponBonus: '상처 악화 25% (출혈)',
+    armorBonus: '모든 저항 +15%',
+    statsWeapon: { minDmg: 20, maxDmg: 30, overkillEfficiency: 20 },
+    statsArmor: { defense: 60, allResist: 15 }
+  },
+  Mal: {
+    id: 'Mal',
+    name: '말 (Mal) 룬',
+    number: 23,
+    weaponBonus: '괴물 회복 저지',
+    armorBonus: '마법 피해 7 감소',
+    statsWeapon: { minDmg: 25, maxDmg: 35 },
+    statsArmor: { defense: 70 }
+  },
+  Ist: {
+    id: 'Ist',
+    name: '이스트 (Ist) 룬',
+    number: 24,
+    weaponBonus: '매직 아이템 발견 확률 +30%',
+    armorBonus: '매직 아이템 발견 확률 +25%',
+    statsWeapon: { fortune: 30 },
+    statsArmor: { fortune: 25 }
+  },
+  Gul: {
+    id: 'Gul',
+    name: '굴 (Gul) 룬',
+    number: 25,
+    weaponBonus: '공격 등급 +20%',
+    armorBonus: '최대 독 저항 +5%',
+    statsWeapon: { critChance: 12 },
+    statsArmor: { defense: 80 }
+  },
+  Vex: {
+    id: 'Vex',
+    name: '벡스 (Vex) 룬',
+    number: 26,
+    weaponBonus: '타격 시 마나/분노 7% 흡수',
+    armorBonus: '최대 화염 저항 +5%',
+    statsWeapon: { minDmg: 30, maxDmg: 50, lifeSteal: 7 },
+    statsArmor: { defense: 90, allResist: 15 }
+  },
+  Ohm: {
+    id: 'Ohm',
+    name: '옴 (Ohm) 룬',
+    number: 27,
+    weaponBonus: '피해량 +50% 증가',
+    armorBonus: '최대 냉기 저항 +5%',
+    statsWeapon: { minDmg: 40, maxDmg: 70 },
+    statsArmor: { defense: 100 }
+  },
+  Lo: {
+    id: 'Lo',
+    name: '로 (Lo) 룬',
+    number: 28,
+    weaponBonus: '치명적 공격 20% (Deadly Strike)',
+    armorBonus: '최대 번개 저항 +5%',
+    statsWeapon: { critChance: 20, critDamage: 50 },
+    statsArmor: { defense: 120 }
+  },
+  Sur: {
+    id: 'Sur',
+    name: '수르 (Sur) 룬',
+    number: 29,
+    weaponBonus: '목표물 시야 차단 (실명)',
+    armorBonus: '최대 마나/분노 +5%',
+    statsWeapon: { minDmg: 50, maxDmg: 80 },
+    statsArmor: { hp: 100 }
   },
   Ber: {
     id: 'Ber',
     name: '베르 (Ber) 룬',
     number: 30,
-    weaponBonus: '20% 강타 확률 (Crushing Blow)',
-    armorBonus: '받는 피해 8% 감소 (Damage Reduce)',
-    statsWeapon: { critDamage: 50, overkillEfficiency: 25 },
-    statsArmor: { defense: 80, hp: 100 }
+    weaponBonus: '강타 확률 20% (Crushing Blow)',
+    armorBonus: '피해 감소 8%',
+    statsWeapon: { minDmg: 60, maxDmg: 100, critChance: 15 },
+    statsArmor: { defense: 150, hp: 120 }
   },
   Jah: {
     id: 'Jah',
     name: '자 (Jah) 룬',
     number: 31,
     weaponBonus: '목표물의 방어력 완전 무시',
-    armorBonus: '최대 생명력 +5%',
-    statsWeapon: { minDmg: 30, maxDmg: 60 },
-    statsArmor: { hp: 150 }
+    armorBonus: '최대 생명력 5% 증가',
+    statsWeapon: { minDmg: 80, maxDmg: 120, overkillEfficiency: 35 },
+    statsArmor: { hp: 150, defense: 150 }
+  },
+  Cham: {
+    id: 'Cham',
+    name: '참 (Cham) 룬',
+    number: 32,
+    weaponBonus: '빙결되지 않음, 대상 동결',
+    armorBonus: '빙결되지 않음',
+    statsWeapon: { minDmg: 90, maxDmg: 140 },
+    statsArmor: { defense: 180 }
+  },
+  Zod: {
+    id: 'Zod',
+    name: '조드 (Zod) 룬',
+    number: 33,
+    weaponBonus: '파괴 불가 (Indestructible)',
+    armorBonus: '파괴 불가',
+    statsWeapon: { minDmg: 120, maxDmg: 200, critChance: 25, overkillEfficiency: 50 },
+    statsArmor: { defense: 250, hp: 200, allResist: 30 }
   }
 };
 
-// Diablo II RuneWord Recipes
+// 2. Comprehensive RuneWord Recipes Catalog
 export const RUNEWORD_RECIPES: RuneWordRecipe[] = [
   {
-    id: 'steel',
+    id: 'rw_steel',
     name: '강철 (Steel)',
     requiredRunes: ['Tir', 'El'],
     allowedSlot: 'weapon',
     requiredSockets: 2,
-    bonusStats: { minDmg: 20, maxDmg: 35, critChance: 10, overkillEfficiency: 25 },
-    specialEffect: '공격 속도 +25%, 상처 악화 50%, 적 처치 시 분노 +2 획득',
-    description: '초반 전사 파밍의 상징. 빠른 공격속도와 오버킬 전이로 적 무리를 일도양단합니다.'
+    bonusStats: { minDmg: 45, maxDmg: 65, str: 8, critChance: 10, overkillEfficiency: 20 },
+    specialEffect: '공격 속도 +25%, 상처 악화 50%, 처치 시 분노 +2',
+    description: '[Tir + El] 베어낼수록 예리함이 살아나는 초반 명검.'
   },
   {
-    id: 'stealth',
+    id: 'rw_stealth',
     name: '스텔스 (Stealth)',
     requiredRunes: ['Tal', 'Eth'],
     allowedSlot: 'armor',
     requiredSockets: 2,
-    bonusStats: { defense: 35, dex: 6, hp: 40 },
-    specialEffect: '이동 속도 +25%, 분노/마나 재생 +15%, 독 저항 +30%',
-    description: '기동성과 자원 회복을 비약적으로 높여주는 최고의 초반 룬워드 갑주.'
+    bonusStats: { defense: 60, dex: 6, hp: 50 },
+    specialEffect: '이동 속도 +25%, 분노 재생 +15%, 독 저항 +30%',
+    description: '[Tal + Eth] 빠른 기동성과 저항을 제공하는 경량 갑주.'
   },
   {
-    id: 'lore',
+    id: 'rw_lore',
     name: '전승 (Lore)',
     requiredRunes: ['Ort', 'Sol'],
     allowedSlot: 'helm',
     requiredSockets: 2,
-    bonusStats: { defense: 45, str: 8, hp: 60 },
-    specialEffect: '모든 스킬 위력 +15%, 번개 저항 +30%, 물리 피해 감소 7',
-    description: '고대 전사의 지혜가 깃든 투구. 모든 스킬의 기본 위력이 상승합니다.'
+    bonusStats: { defense: 45, int: 5, wis: 5 },
+    specialEffect: '모든 스킬 위력 +15%, 번개 저항 +30%, 피해 감소 7',
+    description: '[Ort + Sol] 지혜와 원소 저항이 깃든 고대의 투구.'
   },
   {
-    id: 'ancient_pledge',
-    name: '고대인의 서약 (Ancient\'s Pledge)',
+    id: 'rw_ancients_pledge',
+    name: "고대인의 서약 (Ancient's Pledge)",
     requiredRunes: ['Ral', 'Ort', 'Tal'],
     allowedSlot: 'shield',
     requiredSockets: 3,
-    bonusStats: { defense: 60, con: 15, hp: 80 },
-    specialEffect: '방어력 +50%, 화염/번개/냉기/독 저항 +45%',
-    description: '3대 원소와 독 저항을 극대화하여 엘리트 및 마법 공격을 완벽히 방어합니다.'
+    bonusStats: { defense: 80 },
+    specialEffect: '모든 원소 저항 +45%, 방어력 +50%',
+    description: '[Ral + Ort + Tal] 아리앗 산의 축복이 깃든 견고한 방패.'
   },
   {
-    id: 'enigma',
+    id: 'rw_spirit',
+    name: '스피리트 (Spirit)',
+    requiredRunes: ['Tal', 'Thul', 'Ort', 'Amn'],
+    allowedSlot: 'weapon',
+    requiredSockets: 4,
+    bonusStats: { minDmg: 60, maxDmg: 90, int: 12, hp: 80 },
+    specialEffect: '모든 스킬 위력 +35%, 분노/마나 재생 +25%, 원소 저항 +35%',
+    description: '[Tal + Thul + Ort + Amn] 사계의 원소 정령이 깃든 만능 명검.'
+  },
+  {
+    id: 'rw_insight',
+    name: '통찰 (Insight)',
+    requiredRunes: ['Ral', 'Tir', 'Tal', 'Sol'],
+    allowedSlot: 'weapon',
+    requiredSockets: 4,
+    bonusStats: { minDmg: 80, maxDmg: 130, critChance: 20 },
+    specialEffect: '명상 오라: 초당 분노 +10 자동 충전, 치명타 피해 +50%',
+    description: '[Ral + Tir + Tal + Sol] 분노가 마르지 않는 무한 연계용 무기.'
+  },
+  {
+    id: 'rw_fortitude',
+    name: '인내 (Fortitude)',
+    requiredRunes: ['El', 'Sol', 'Dol', 'Lo'],
+    allowedSlot: 'armor',
+    requiredSockets: 4,
+    bonusStats: { defense: 220, hp: 150 },
+    specialEffect: '물리 피해량 +200%, 모든 저항 +30%, 생명력 대폭 증가',
+    description: '[El + Sol + Dol + Lo] 난공불락의 방어력과 막대한 피해 증폭 갑주.'
+  },
+  {
+    id: 'rw_grief',
+    name: '슬픔 (Grief)',
+    requiredRunes: ['Eth', 'Tir', 'Lo', 'Mal', 'Ral'],
+    allowedSlot: 'weapon',
+    requiredSockets: 5,
+    bonusStats: { minDmg: 180, maxDmg: 260, critChance: 25, overkillEfficiency: 40 },
+    specialEffect: '적 방어력 완전 무시, 치명적 공격 20%, 처치 시 체력 흡수',
+    description: '[Eth + Tir + Lo + Mal + Ral] 근접전의 정점, 절대 파괴의 검.'
+  },
+  {
+    id: 'rw_enigma',
     name: '수수께끼 (Enigma)',
     requiredRunes: ['Jah', 'Ith', 'Ber'],
     allowedSlot: 'armor',
     requiredSockets: 3,
-    bonusStats: { defense: 120, str: 35, hp: 200, overkillEfficiency: 40 },
-    specialEffect: '모든 스킬 +2, 순간이동(Teleport) 개방, 마법 아이템 발견확률(MF) +80%',
-    description: '디아블로2 종결 룬워드. 차원을 넘나드는 기동성과 압도적인 파밍 효율을 제공합니다.'
+    bonusStats: { defense: 180, str: 25, hp: 120, fortune: 80 },
+    specialEffect: '모든 스킬 +2, 텔레포트 이동, 대량 STR, MF +80%',
+    description: '[Jah + Ith + Ber] 시공간을 초월하는 전설의 마법 갑주.'
+  },
+  {
+    id: 'rw_botd',
+    name: '죽음의 숨결 (Breath of the Dying)',
+    requiredRunes: ['Vex', 'Hel', 'El', 'Eld', 'Zod', 'Eth'],
+    allowedSlot: 'weapon',
+    requiredSockets: 6,
+    bonusStats: { minDmg: 280, maxDmg: 420, str: 30, dex: 30, con: 30, overkillEfficiency: 60 },
+    specialEffect: '파괴 불가, 생명력 흡수 15%, 모든 스탯 +30, 독 폭발',
+    description: '[Vex + Hel + El + Eld + Zod + Eth] 6개 룬의 궁극 합일, 불멸의 파괴신.'
+  }
+];
+
+// 3. Diverse Skill Runes Catalog (Elements & Special Modifiers)
+export const SKILL_RUNES_DATA: SkillRune[] = [
+  {
+    id: 'rune_fire',
+    name: '지옥불 폭발 (Hellfire)',
+    element: 'fire',
+    description: '오버킬 발생 시 대상 주변 1칸에 화염 폭발을 일으킵니다.',
+    damageBonusPercent: 25,
+    overkillBonusPercent: 30,
+    specialEffectName: '화염 연쇄 폭발',
+    color: '#ef4444'
+  },
+  {
+    id: 'rune_frost',
+    name: '서리 분쇄 (Frost Shatter)',
+    element: 'cold',
+    description: '적들을 빙결시키고, 오버킬 잔여 피해 전이 효율을 극대화합니다.',
+    damageBonusPercent: 20,
+    overkillBonusPercent: 45,
+    specialEffectName: '빙결 & 얼음 파편',
+    color: '#38bdf8'
+  },
+  {
+    id: 'rune_lightning',
+    name: '연쇄 번개 (Chain Lightning)',
+    element: 'lightning',
+    description: '타격 시 인접한 모든 레인의 적들에게 번개 감전 피해를 흩뿌립니다.',
+    damageBonusPercent: 35,
+    overkillBonusPercent: 20,
+    specialEffectName: '연쇄 감전 방전',
+    color: '#fbbf24'
+  },
+  {
+    id: 'rune_poison',
+    name: '맹독 학살 (Venom Slaughter)',
+    element: 'poison',
+    description: '적의 방어력을 35% 관통하고 치명적인 지속 맹독을 주입합니다.',
+    damageBonusPercent: 20,
+    overkillBonusPercent: 25,
+    specialEffectName: '방어력 35% 관통',
+    color: '#4ade80'
+  },
+  {
+    id: 'rune_void',
+    name: '공허 영혼흡수 (Void Devour)',
+    element: 'void',
+    description: '처치한 적 1마리당 생명력 20을 즉시 흡수하고 분노를 대량 충전합니다.',
+    damageBonusPercent: 30,
+    overkillBonusPercent: 25,
+    specialEffectName: '처치 시 생명/분노 흡수',
+    color: '#c084fc'
+  }
+];
+
+// 4. Balanced Warrior Skills (Nerfed Q, Heavily Buffed Rage Skills W, E, R)
+export const WARRIOR_SKILLS: Skill[] = [
+  {
+    id: 'slash',
+    name: '가르기 (Slash)',
+    rageCost: 0,
+    manaCost: 0,
+    damageMultiplier: 1.0, // Nerfed from 1.2
+    overkillEfficiency: 0.45, // Heavily nerfed from 1.0 -> basic skill for 1~2 small kills
+    route: 'line',
+    description: '기본 직선 베기. 자원을 소모하지 않으며, 전열의 약한 적 1~2마리를 정리하는 데 적합합니다.',
+    icon: 'Sword',
+    hotkey: 'Q',
+    activeRuneId: 'rune_fire'
+  },
+  {
+    id: 'execute',
+    name: '처형 (Execute)',
+    rageCost: 30, // Buffed: Reduced cost from 35
+    manaCost: 0,
+    damageMultiplier: 4.2, // Heavily buffed from 2.8 -> High damage boss/elite breaker
+    overkillEfficiency: 0.85,
+    route: 'single',
+    description: '단일 대상에게 괴멸적인 타격! 높은 방어력의 엘리트나 보스의 체인 저지점을 일격에 파쇄합니다.',
+    icon: 'Skull',
+    hotkey: 'W',
+    activeRuneId: 'rune_poison'
+  },
+  {
+    id: 'cleave',
+    name: '휩쓸기 (Cleave)',
+    rageCost: 20, // Buffed: Reduced cost from 25
+    manaCost: 0,
+    damageMultiplier: 1.8, // Buffed from 1.6
+    overkillEfficiency: 0.90, // Buffed from 0.85
+    route: 'branch',
+    description: '전방 및 좌우 3개 Lane의 전열을 동시에 강타. 밀집된 전열을 한 번에 붕괴시킵니다.',
+    icon: 'Zap',
+    hotkey: 'E',
+    activeRuneId: 'rune_lightning'
+  },
+  {
+    id: 'whirlwind',
+    name: '휠윈드 (Whirlwind)',
+    rageCost: 50, // Buffed: Reduced cost from 60
+    manaCost: 0,
+    damageMultiplier: 3.5, // Massively buffed from 2.2 -> Ultimate mass extinction
+    overkillEfficiency: 1.30, // Heavily buffed from 1.1 -> Kills 10~20 enemies in 1 hit!
+    route: 'radius',
+    description: '전 레인 2열(총 10칸)을 휩쓰는 파괴의 폭풍! 10~20마리를 한 방에 연쇄 폭사시키는 광전사의 궁극기.',
+    icon: 'RotateCw',
+    hotkey: 'R',
+    activeRuneId: 'rune_frost'
+  }
+];
+
+// 5. Rich Sample Inventory (Weapons, Armors, Sockets, High Runes, Uniques)
+export const SAMPLE_INVENTORY: GameItem[] = [
+  // Runes
+  {
+    id: 'r_tal',
+    name: '탈 (Tal) 룬',
+    rarity: 'magic',
+    slot: 'rune',
+    stats: {},
+    value: 500,
+    icon: 'Sparkles',
+    description: '룬 넘버 #7. 무기: 독 대미지 / 방어구: 독 저항 +35% (스텔스, 스피리트 재료)'
+  },
+  {
+    id: 'r_thul',
+    name: '주울 (Thul) 룬',
+    rarity: 'magic',
+    slot: 'rune',
+    stats: {},
+    value: 700,
+    icon: 'Sparkles',
+    description: '룬 넘버 #10. 무기: 냉기 대미지 / 방어구: 냉기 저항 +35% (스피리트 재료)'
+  },
+  {
+    id: 'r_ort',
+    name: '오르트 (Ort) 룬',
+    rarity: 'magic',
+    slot: 'rune',
+    stats: {},
+    value: 650,
+    icon: 'Sparkles',
+    description: '룬 넘버 #9. 무기: 번개 대미지 / 방어구: 번개 저항 +35% (전승, 스피리트 재료)'
+  },
+  {
+    id: 'r_amn',
+    name: '앰 (Amn) 룬',
+    rarity: 'magic',
+    slot: 'rune',
+    stats: {},
+    value: 800,
+    icon: 'Sparkles',
+    description: '룬 넘버 #11. 무기: 흡혈 7% / 방어구: 피해 반사 (스피리트 재료)'
+  },
+  {
+    id: 'r_sol',
+    name: '솔 (Sol) 룬',
+    rarity: 'rare',
+    slot: 'rune',
+    stats: {},
+    value: 900,
+    icon: 'Sparkles',
+    description: '룬 넘버 #12. 무기: 최소대미지 +9 / 방어구: 피해 감소 7 (전승, 통찰 재료)'
+  },
+  {
+    id: 'r_lo',
+    name: '로 (Lo) 룬',
+    rarity: 'legendary',
+    slot: 'rune',
+    stats: {},
+    value: 8500,
+    icon: 'Sparkles',
+    description: '룬 넘버 #28. 하이룬. 무기: 치명적 공격 20% / 방어구: 최대 번개저항 +5% (인내, 슬픔 재료)'
+  },
+  {
+    id: 'r_ber',
+    name: '베르 (Ber) 룬',
+    rarity: 'legendary',
+    slot: 'rune',
+    stats: {},
+    value: 12000,
+    icon: 'Sparkles',
+    description: '룬 넘버 #30. 최고급 하이룬. 무기: 강타 20% / 방어구: 피해 감소 8% (수수께끼, 무한 재료)'
+  },
+  {
+    id: 'r_jah',
+    name: '자 (Jah) 룬',
+    rarity: 'legendary',
+    slot: 'rune',
+    stats: {},
+    value: 14000,
+    icon: 'Sparkles',
+    description: '룬 넘버 #31. 최고급 하이룬. 무기: 방어력 무시 / 방어구: 생명력 5% (수수께끼, 신념 재료)'
+  },
+
+  // Socket Bases
+  {
+    id: 'base_cs_4s',
+    name: '크리스탈 소드 (4 소켓)',
+    baseItemName: '크리스탈 소드 (Crystal Sword)',
+    rarity: 'normal',
+    slot: 'weapon',
+    sockets: 4,
+    socketedRunes: [],
+    isIdentified: true,
+    stats: { minDmg: 20, maxDmg: 35 },
+    value: 1200,
+    icon: 'Sword',
+    description: '4개의 빈 소켓이 뚫린 명품 도검. [Tal + Thul + Ort + Amn]을 박으면 스피리트(Spirit) 완성!'
+  },
+  {
+    id: 'base_monarch_4s',
+    name: '모나크 실드 (4 소켓)',
+    baseItemName: '모나크 (Monarch)',
+    rarity: 'normal',
+    slot: 'shield',
+    sockets: 4,
+    socketedRunes: [],
+    isIdentified: true,
+    stats: { defense: 145 },
+    value: 2500,
+    icon: 'Shield',
+    description: '가장 인기 있는 4소켓 전설의 엘리트 방패.'
+  },
+  {
+    id: 'base_archon_3s',
+    name: '아칸 플레이트 (3 소켓)',
+    baseItemName: '아칸 플레이트 (Archon Plate)',
+    rarity: 'normal',
+    slot: 'armor',
+    sockets: 3,
+    socketedRunes: [],
+    isIdentified: true,
+    stats: { defense: 180 },
+    value: 3000,
+    icon: 'Shield',
+    description: '3개의 소켓이 뚫린 최고급 갑주. [Jah + Ith + Ber]를 박으면 수수께끼(Enigma) 완성!'
+  },
+
+  // Uniques & Rares
+  {
+    id: 'u_shako',
+    name: '할리퀸 관모 (Harlequin Crest - 샤코)',
+    rarity: 'unique',
+    slot: 'helm',
+    isIdentified: true,
+    stats: { defense: 120, hp: 100, mana: 100, fortune: 50 },
+    specialEffect: '모든 스킬 +2, 물리 피해 감소 10%, MF +50%',
+    value: 15000,
+    icon: 'HardHat',
+    description: '디아블로 2 최고의 만능 국민 투구, 일명 샤코.'
+  },
+  {
+    id: 'u_soj',
+    name: '요르단의 반지 (Stone of Jordan - 조던링)',
+    rarity: 'unique',
+    slot: 'ring2',
+    isIdentified: true,
+    stats: { int: 10, mana: 80 },
+    specialEffect: '모든 스킬 +1, 최대 마나 +25%, 번개 피해 추가',
+    value: 20000,
+    icon: 'CircleDot',
+    description: '전설적인 화폐이자 스킬 레벨을 올려주는 절대 반지.'
   }
 ];
 
 export const INITIAL_EQUIPMENT: Record<string, GameItem> = {
   weapon: {
-    id: 'rw_steel',
+    id: 'rw_steel_equipped',
     name: '강철 (Steel)',
     baseItemName: '브로드소드 (Broad Sword)',
     rarity: 'runeword',
@@ -206,14 +656,14 @@ export const INITIAL_EQUIPMENT: Record<string, GameItem> = {
     isRuneWord: true,
     runeWordName: '강철 (Steel)',
     isIdentified: true,
-    stats: { minDmg: 55, maxDmg: 82, str: 10, critChance: 10, overkillEfficiency: 25 },
+    stats: { minDmg: 55, maxDmg: 82, str: 10, critChance: 10, overkillEfficiency: 20 },
     specialEffect: '공격 속도 +25%, 상처 악화 50%, 처치 시 분노 +2',
     value: 2500,
     icon: 'Sword',
     description: '[룬워드: Tir + El] 베어낼수록 예리함이 살아나는 명검.'
   },
   armor: {
-    id: 'rw_stealth',
+    id: 'rw_stealth_equipped',
     name: '스텔스 (Stealth)',
     baseItemName: '체인 메일 (Chain Mail)',
     rarity: 'runeword',
@@ -279,7 +729,7 @@ export const INITIAL_CONSUMABLES: ConsumableItem[] = [
   {
     id: 'c_hp',
     name: '대형 생명력 물약',
-    count: 6,
+    count: 8,
     type: 'hp',
     effectValue: 250,
     description: '생명력을 즉시 250 회복합니다.',
@@ -289,212 +739,32 @@ export const INITIAL_CONSUMABLES: ConsumableItem[] = [
   {
     id: 'c_rage',
     name: '활력의 물약 (Rejuvenation)',
-    count: 3,
+    count: 5,
     type: 'rage',
-    effectValue: 50,
-    description: '분노를 즉시 50 충전합니다.',
+    effectValue: 60,
+    description: '분노를 즉시 60 충전합니다.',
     icon: 'Flame',
     hotkey: '2'
   },
   {
     id: 'c_def',
     name: '철갑 영약',
-    count: 3,
+    count: 4,
     type: 'defense',
-    effectValue: 60,
-    description: '이번 턴 동안 방어력이 +60 증가합니다.',
+    effectValue: 70,
+    description: '이번 턴 동안 방어력이 +70 증가합니다.',
     icon: 'Shield',
     hotkey: '3'
   },
   {
     id: 'c_overkill',
     name: '질풍의 비약',
-    count: 2,
+    count: 3,
     type: 'overkill',
-    effectValue: 30,
-    description: '오버킬 피해 전이 효율이 +30% 일시 증가합니다.',
+    effectValue: 40,
+    description: '오버킬 피해 전이 효율이 +40% 일시 증가합니다.',
     icon: 'Zap',
     hotkey: '4'
-  }
-];
-
-export const SAMPLE_INVENTORY: GameItem[] = [
-  // Runes
-  {
-    id: 'rune_tal',
-    name: '탈 (Tal) 룬',
-    rarity: 'magic',
-    slot: 'rune',
-    stats: {},
-    value: 500,
-    icon: 'Sparkles',
-    description: '룬 넘버 #7. 무기: 독 대미지 / 방어구: 독 저항 +35% (스텔스, 고대인의서약 재료)'
-  },
-  {
-    id: 'rune_eth',
-    name: '에드 (Eth) 룬',
-    rarity: 'magic',
-    slot: 'rune',
-    stats: {},
-    value: 400,
-    icon: 'Sparkles',
-    description: '룬 넘버 #5. 무기: 방어력감소 / 방어구: 마나재생 (스텔스 재료)'
-  },
-  {
-    id: 'rune_ral',
-    name: '랄 (Ral) 룬',
-    rarity: 'magic',
-    slot: 'rune',
-    stats: {},
-    value: 600,
-    icon: 'Sparkles',
-    description: '룬 넘버 #8. 무기: 화염 대미지 / 방어구: 화염 저항 +35% (고대인의서약 재료)'
-  },
-  {
-    id: 'rune_sol',
-    name: '솔 (Sol) 룬',
-    rarity: 'rare',
-    slot: 'rune',
-    stats: {},
-    value: 1500,
-    icon: 'Sparkles',
-    description: '룬 넘버 #12. 무기: 최소대미지 / 방어구: 물리감소 (전승 투구 재료)'
-  },
-  {
-    id: 'rune_ber',
-    name: '베르 (Ber) 룬',
-    rarity: 'legendary',
-    slot: 'rune',
-    stats: {},
-    value: 25000,
-    icon: 'Sparkles',
-    description: '고급 하이룬 #30. 무기: 20% 강타 / 방어구: 피해 8% 감소 (수수께끼, 무한 재료)'
-  },
-  {
-    id: 'rune_jah',
-    name: '자 (Jah) 룬',
-    rarity: 'legendary',
-    slot: 'rune',
-    stats: {},
-    value: 30000,
-    icon: 'Sparkles',
-    description: '최고급 하이룬 #31. 무기: 방어력무시 / 방어구: 최대생명력 +5% (수수께끼 재료)'
-  },
-
-  // Base items for runewords
-  {
-    id: 'base_broadsword',
-    name: '고급 브로드소드 (2 소켓)',
-    baseItemName: '브로드소드 (Broad Sword)',
-    rarity: 'normal',
-    slot: 'weapon',
-    sockets: 2,
-    socketedRunes: [],
-    isIdentified: true,
-    stats: { minDmg: 18, maxDmg: 28 },
-    value: 300,
-    icon: 'Sword',
-    description: '2개의 빈 소켓이 뚫린 노멀 베이스 칼. Tir + El을 박으면 [강철] 룬워드 발동!'
-  },
-  {
-    id: 'base_helm2',
-    name: '본 헬름 (2 소켓)',
-    baseItemName: '본 헬름 (Bone Helm)',
-    rarity: 'normal',
-    slot: 'helm',
-    sockets: 2,
-    socketedRunes: [],
-    isIdentified: true,
-    stats: { defense: 32 },
-    value: 450,
-    icon: 'HardHat',
-    description: '2개의 빈 소켓이 뚫린 해골 투구. Ort + Sol을 박으면 [전승] 룬워드 발동!'
-  },
-
-  // Unidentified Item for Cain identify
-  {
-    id: 'unid_amulet',
-    name: '미확인 아뮬렛 (Unidentified)',
-    rarity: 'rare',
-    slot: 'amulet',
-    isIdentified: false,
-    stats: {},
-    value: 1000,
-    icon: 'Sparkles',
-    description: '신비한 마력이 감도는 미확인 목걸이. 데커드 케인이나 식별 스크롤로 감정해야 합니다.'
-  },
-
-  // Perfect Gems
-  {
-    id: 'gem_ruby',
-    name: '완벽한 루비 (Perfect Ruby)',
-    rarity: 'rare',
-    slot: 'gem',
-    stats: { hp: 38, minDmg: 15 },
-    value: 800,
-    icon: 'CircleDot',
-    description: '무기 장착 시 화염 대미지 +15 / 방어구 장착 시 생명력 +38. 큐브 합성 재료.'
-  },
-  {
-    id: 'gem_skull',
-    name: '완벽한 해골 (Perfect Skull)',
-    rarity: 'rare',
-    slot: 'gem',
-    stats: { lifeSteal: 4, manaSteal: 3 },
-    value: 1200,
-    icon: 'Skull',
-    description: '무기 장착 시 4% 흡혈 / 방어구 장착 시 재생 증가. 매직 아이템 리롤 큐브 재료.'
-  }
-];
-
-export const WARRIOR_SKILLS: Skill[] = [
-  {
-    id: 'slash',
-    name: '가르기 (Slash)',
-    rageCost: 0,
-    manaCost: 0,
-    damageMultiplier: 1.2,
-    overkillEfficiency: 1.0,
-    route: 'line',
-    description: '전방 1개 Lane을 깊숙이 관통 베기. 적을 처치하면 잔여 피해가 뒤쪽 적에게 100% 전달됩니다.',
-    icon: 'Sword',
-    hotkey: 'Q'
-  },
-  {
-    id: 'execute',
-    name: '처형 (Execute)',
-    rageCost: 35,
-    manaCost: 0,
-    damageMultiplier: 2.8,
-    overkillEfficiency: 1.25,
-    route: 'single',
-    description: '단일 대상에게 괴멸적인 타격. HP가 50% 이하인 적에게 50% 추가 피해를 입히며 막대한 오버킬을 유발합니다.',
-    icon: 'Skull',
-    hotkey: 'W'
-  },
-  {
-    id: 'cleave',
-    name: '휩쓸기 (Cleave)',
-    rageCost: 25,
-    manaCost: 0,
-    damageMultiplier: 1.6,
-    overkillEfficiency: 0.85,
-    route: 'branch',
-    description: '전방 및 좌우 인접 Lane 전열을 동시에 휩쓸어 공격. 밀집된 적 무리를 붕괴시킵니다.',
-    icon: 'Zap',
-    hotkey: 'E'
-  },
-  {
-    id: 'whirlwind',
-    name: '휠윈드 (Whirlwind)',
-    rageCost: 60,
-    manaCost: 0,
-    damageMultiplier: 2.2,
-    overkillEfficiency: 1.1,
-    route: 'radius',
-    description: '회전하는 무기의 폭풍으로 전 레인의 적들에게 다단 히트와 연쇄 오버킬을 폭발시킵니다.',
-    icon: 'RotateCw',
-    hotkey: 'R'
   }
 ];
 
@@ -511,8 +781,8 @@ export const DUNGEONS_DATA: DungeonInfo[] = [
     maxChainRecord: 36,
     dropItems: [
       SAMPLE_INVENTORY[0], // Tal
-      SAMPLE_INVENTORY[1], // Eth
-      SAMPLE_INVENTORY[6], // 2소켓 브로드소드
+      SAMPLE_INVENTORY[1], // Thul
+      SAMPLE_INVENTORY[8], // 4소켓 크리스탈소드
     ],
     rooms: [
       { id: 1, type: 'start', title: '동굴 입구', cleared: true, current: false, connections: [2] },
@@ -534,9 +804,9 @@ export const DUNGEONS_DATA: DungeonInfo[] = [
     bestClearTime: '04분 30초',
     maxChainRecord: 68,
     dropItems: [
-      SAMPLE_INVENTORY[2], // Ral
-      SAMPLE_INVENTORY[3], // Sol
-      SAMPLE_INVENTORY[7], // 2소켓 본헬름
+      SAMPLE_INVENTORY[2], // Ort
+      SAMPLE_INVENTORY[3], // Amn
+      SAMPLE_INVENTORY[11], // 샤코
     ],
     rooms: [
       { id: 1, type: 'start', title: '봉인된 묘지 입구', cleared: true, current: false, connections: [2] },
@@ -549,82 +819,25 @@ export const DUNGEONS_DATA: DungeonInfo[] = [
   },
   {
     id: 'inferno_mine',
-    name: '지옥불 광산 (Inferno Mine)',
-    theme: '마력이 폭주한 용암 광산과 붕괴 직전의 제련소',
-    recommendedLevel: 28,
-    difficulty: '어려움',
-    elementalInfo: '화염 저항 80%, 냉기 취약, 주기적 바닥 화염 피해',
-    monsterSummary: '엠버 파인드, 용암 거미, 화염 골렘 (강력한 원거리 캐스팅과 단단한 골렘)',
-    bestClearTime: '--분 --초',
-    maxChainRecord: 0,
-    dropItems: [SAMPLE_INVENTORY[4], SAMPLE_INVENTORY[5]], // Ber, Jah
+    name: '인페르노 심연 (Inferno Mine)',
+    theme: '용암이 끓어오르는 폐광과 악마 군단',
+    recommendedLevel: 30,
+    difficulty: '지옥',
+    elementalInfo: '화염 면역(100%), 빙결/냉기 피해에 200% 취약',
+    monsterSummary: '용암 골렘, 지옥 사냥개, 데몬 로드 (강력한 체인 스토퍼와 광역 폭발)',
+    bestClearTime: '06분 15초',
+    maxChainRecord: 95,
+    dropItems: [
+      SAMPLE_INVENTORY[5], // Lo
+      SAMPLE_INVENTORY[6], // Ber
+      SAMPLE_INVENTORY[7], // Jah
+      SAMPLE_INVENTORY[12], // 조던링
+    ],
     rooms: [
-      { id: 1, type: 'start', title: '용암 지대 진입로', cleared: false, current: false, connections: [2] },
-      { id: 2, type: 'normal', title: '작열하는 갱도', cleared: false, current: false, connections: [3], monsterCount: 45 },
-      { id: 3, type: 'boss', title: '지옥불 용광로 심장부', cleared: false, current: false, connections: [], monsterCount: 90 }
+      { id: 1, type: 'start', title: '용암 갱도 입구', cleared: true, current: false, connections: [2] },
+      { id: 2, type: 'normal', title: '작열하는 제련소', cleared: false, current: false, connections: [3], monsterCount: 50 },
+      { id: 3, type: 'elite', title: '화염 군주의 제단', cleared: false, current: false, connections: [4], monsterCount: 65 },
+      { id: 4, type: 'boss', title: '불지옥의 심장', cleared: false, current: false, connections: [], monsterCount: 100 }
     ]
   }
 ];
-
-export function generateBattleMonsters(): Monster[] {
-  const monsters: Monster[] = [];
-  const names = ['고블린 정찰병', '고블린 전사', '고블린 척탄병', '오크 방패병', '고블린 주술사'];
-  
-  for (let lane = 0; lane < 5; lane++) {
-    const count = 3 + Math.floor(Math.random() * 3);
-    for (let depth = 0; depth < count; depth++) {
-      const isFront = depth === 0;
-      const isElite = lane === 2 && depth === 1;
-      const isTank = isFront && (lane === 1 || lane === 3);
-
-      let name = names[Math.floor(Math.random() * 3)];
-      let hp = 45 + depth * 15;
-      let maxHp = hp;
-      let defense = 5;
-      let rank: Monster['rank'] = 'normal';
-      let icon = '💀';
-
-      if (isElite) {
-        name = '오크 집행관 (ELITE)';
-        hp = 280;
-        maxHp = 280;
-        defense = 25;
-        rank = 'elite';
-        icon = '👹';
-      } else if (isTank) {
-        name = '고블린 방패병';
-        hp = 95;
-        maxHp = 95;
-        defense = 18;
-        rank = 'champion';
-        icon = '🛡️';
-      } else if (depth >= 2 && Math.random() > 0.6) {
-        name = '고블린 주술사';
-        hp = 50;
-        maxHp = 50;
-        defense = 2;
-        icon = '🧙‍♂️';
-      }
-
-      monsters.push({
-        id: `m_${lane}_${depth}_${Math.random().toString(36).substring(2, 6)}`,
-        name,
-        hp,
-        maxHp,
-        defense,
-        rank,
-        lane,
-        depth,
-        intent: {
-          type: isElite ? 'attack' : Math.random() > 0.4 ? 'attack' : 'defend',
-          damage: isElite ? 45 : 12 + depth * 3,
-          targetLane: lane,
-          chargePercent: Math.floor(Math.random() * 60) + 20
-        },
-        icon
-      });
-    }
-  }
-
-  return monsters;
-}

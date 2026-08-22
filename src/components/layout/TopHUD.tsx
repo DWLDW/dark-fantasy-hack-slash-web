@@ -14,11 +14,9 @@ export const TopHUD: React.FC = () => {
       <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
         {/* Left: Player Level & Class & Exp */}
         <div className="flex items-center space-x-3">
-          <div className="relative flex items-center justify-center w-9 h-9 md:w-10 md:h-10 bg-iron-900 border-2 border-brass-400 rounded font-cinzel font-bold text-brass-200 text-sm md:text-base shadow">
-            {playerStats.level}
-            <div className="absolute -bottom-1.5 text-[10px] bg-blood-900 text-blood-200 px-1 rounded border border-blood-600 font-bold">
-              Lv
-            </div>
+          <div className="flex flex-col items-center justify-center min-w-[38px] md:min-w-[42px] h-10 px-1 bg-iron-900 border-2 border-brass-400 rounded shadow">
+            <span className="text-[9px] font-mono text-blood-400 font-black leading-none uppercase tracking-tighter">LV</span>
+            <span className="font-cinzel font-black text-brass-200 text-sm md:text-base leading-none mt-0.5">{playerStats.level}</span>
           </div>
           <div className="flex flex-col">
             <div className="flex items-center space-x-2 font-cinzel font-bold text-gray-100 text-sm tracking-wide">

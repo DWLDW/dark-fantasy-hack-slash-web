@@ -98,6 +98,10 @@ interface GameContextType {
   addLog: (text: string, type?: CombatLogEntry['type']) => void;
   resetBattleFormation: () => void;
   
+  // Skill Runes Mapping (skillId -> runeId)
+  skillRunes: Record<string, string>;
+  setSkillRune: (skillId: string, runeId: string | null) => void;
+
   // Diablo 2 Crafting & Features
   socketRuneIntoItem: (targetItemId: string, runeId: string) => void;
   transmuteInCube: (itemIds: string[]) => void;
@@ -160,6 +164,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return DUNGEONS_DATA[0];
   });
   const [currentRoomId, setCurrentRoomId] = useState<number>(() => savedData?.currentRoomId || 4);
+  const [skillRunes, setSkillRunes] = useState<Record<string, string>>(() => savedData?.skillRunes || {
+    slash: 'rune_fire',
+    execute: 'rune_poison',
+    cleave: 'rune_lightning',
+    whirlwind: 'rune_frost'
+  });
   
   // Auto-save to localStorage whenever persistent states change
   useEffect(() => {
@@ -171,13 +181,27 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         inventory,
         consumables,
         currentDungeonId: currentDungeon.id,
-        currentRoomId
+        currentRoomId,
+        skillRunes
       };
       localStorage.setItem(SAVE_KEY, JSON.stringify(dataToSave));
     } catch (e) {
       console.error('Failed to auto-save to localStorage', e);
     }
-  }, [playerStats, equipment, inventory, consumables, currentDungeon.id, currentRoomId]);
+  }, [playerStats, equipment, inventory, consumables, currentDungeon.id, currentRoomId, skillRunes]);
+
+  const setSkillRune = (skillId: string, runeId: string | null) => {
+    setSkillRunes(prev => {
+      const copy = { ...prev };
+      if (runeId) {
+        copy[skillId] = runeId;
+      } else {
+        delete copy[skillId];
+      }
+      return copy;
+    });
+    addLog(`스킬 룬 세팅이 업데이트되었습니다.`, 'system');
+  };
   
   // Benchmark 30-Goblin formation from GDD Section 26
   const [monsters, setMonsters] = useState<Monster[]>(createGoblin30Formation());
@@ -292,17 +316,25 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [playerStats, equipment, tempBuffs]);
 
+  // Active Skill with equipped Skill Rune
+  const effectiveSkill = useMemo(() => {
+    return {
+      ...selectedSkill,
+      activeRuneId: skillRunes[selectedSkill.id] || selectedSkill.activeRuneId || null
+    };
+  }, [selectedSkill, skillRunes]);
+
   // Real-time Preview 100% matched with resolveAttack
   const preview = useMemo(() => {
     return resolveAttack(
       playerStats.level,
       totalStats,
-      selectedSkill,
+      effectiveSkill,
       playerLane,
       monsters,
       true // Deterministic for preview
     );
-  }, [playerStats.level, totalStats, selectedSkill, playerLane, monsters]);
+  }, [playerStats.level, totalStats, effectiveSkill, playerLane, monsters]);
 
   // ==============================================================
   // REAL HACK & SLASH SEQUENTIAL EXECUTION & HORDE COUNTER-ATTACK
@@ -313,23 +345,23 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       addLog('플레이어가 쓰러졌습니다! 마을로 귀환해야 합니다.', 'system');
       return;
     }
-    if (playerStats.rage < selectedSkill.rageCost) {
-      addLog(`분노가 부족합니다! (필요: ${selectedSkill.rageCost}, 현재: ${playerStats.rage})`, 'system');
+    if (playerStats.rage < effectiveSkill.rageCost) {
+      addLog(`분노가 부족합니다! (필요: ${effectiveSkill.rageCost}, 현재: ${playerStats.rage})`, 'system');
       return;
     }
 
     setIsAttacking(true);
 
     // Consume Rage
-    if (selectedSkill.rageCost > 0) {
-      setPlayerStats(prev => ({ ...prev, rage: Math.max(0, prev.rage - selectedSkill.rageCost) }));
+    if (effectiveSkill.rageCost > 0) {
+      setPlayerStats(prev => ({ ...prev, rage: Math.max(0, prev.rage - effectiveSkill.rageCost) }));
     }
 
     // Execute actual attack resolution
     const result = resolveAttack(
       playerStats.level,
       totalStats,
-      selectedSkill,
+      effectiveSkill,
       playerLane,
       monsters,
       false // Real random dice roll
@@ -861,6 +893,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         returnToTown,
         addLog,
         resetBattleFormation,
+        skillRunes,
+        setSkillRune,
         socketRuneIntoItem,
         transmuteInCube,
         gambleItem,

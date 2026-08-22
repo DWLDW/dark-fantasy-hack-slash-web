@@ -67,8 +67,31 @@ export function resolveAttack(
     baseDamage = Math.floor(Math.random() * (totalStats.maxDmg - totalStats.minDmg + 1)) + totalStats.minDmg;
   }
 
+  // Skill Rune Modifiers
+  let runeDmgBonus = 1.0;
+  let runeOverkillBonus = 1.0;
+  let armorPenetration = 0;
+
+  if (skill.activeRuneId === 'rune_fire') {
+    runeDmgBonus = 1.25;
+    runeOverkillBonus = 1.30;
+  } else if (skill.activeRuneId === 'rune_frost') {
+    runeDmgBonus = 1.20;
+    runeOverkillBonus = 1.45;
+  } else if (skill.activeRuneId === 'rune_lightning') {
+    runeDmgBonus = 1.35;
+    runeOverkillBonus = 1.20;
+  } else if (skill.activeRuneId === 'rune_poison') {
+    runeDmgBonus = 1.20;
+    runeOverkillBonus = 1.25;
+    armorPenetration = 0.35; // Ignores 35% defense
+  } else if (skill.activeRuneId === 'rune_void') {
+    runeDmgBonus = 1.30;
+    runeOverkillBonus = 1.25;
+  }
+
   const critMultiplier = isCritical ? totalStats.critDamage / 100 : 1.0;
-  const initialRawPayload = Math.floor(baseDamage * skill.damageMultiplier * critMultiplier);
+  const initialRawPayload = Math.floor(baseDamage * skill.damageMultiplier * runeDmgBonus * critMultiplier);
 
   const targetsHit: CombatHitResult[] = [];
   const kills: string[] = [];
@@ -78,8 +101,8 @@ export function resolveAttack(
   // Clone monsters for damage processing
   const monsterMap = new Map<string, Monster>(monsters.map(m => [m.id, { ...m }]));
 
-  // Effective overkill efficiency (Base skill * Character bonus)
-  const effectiveOverkillEff = skill.overkillEfficiency * (totalStats.overkillEfficiency / 100);
+  // Effective overkill efficiency (Base skill * Character bonus * Rune bonus)
+  const effectiveOverkillEff = skill.overkillEfficiency * (totalStats.overkillEfficiency / 100) * runeOverkillBonus;
 
   // 2. Process Routes
   if (skill.route === 'line') {
