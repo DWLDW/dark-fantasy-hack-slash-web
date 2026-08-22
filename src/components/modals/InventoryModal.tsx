@@ -15,9 +15,6 @@ import {
   HelpCircle,
   BookOpen,
   Hammer,
-  Box,
-  Check,
-  ArrowUpRight,
   Layers
 } from 'lucide-react';
 
@@ -41,12 +38,14 @@ export const InventoryModal: React.FC = () => {
 
   const isCombatMode = viewMode === 'battle';
 
+  // Pure equipment items (NO runes inside the equipment bag!)
+  const cleanEquipmentInventory = inventory.filter(item => item.slot !== 'rune');
+
   // Filter craftable / relevant RuneWords if selected item is a normal socket base
   const eligibleRuneWords: { recipe: RuneWordRecipe; canCraft: boolean; missingRunes: string[] }[] = [];
   if (selectedItem && selectedItem.rarity === 'normal' && selectedItem.sockets && selectedItem.sockets > 0) {
     RUNEWORD_RECIPES.forEach(recipe => {
       if (recipe.allowedSlot === selectedItem.slot && recipe.requiredSockets === selectedItem.sockets) {
-        // Count required vs owned
         const reqCounts: Record<string, number> = {};
         recipe.requiredRunes.forEach(r => { reqCounts[r] = (reqCounts[r] || 0) + 1; });
 
@@ -82,10 +81,6 @@ export const InventoryModal: React.FC = () => {
     }
   };
 
-  const equippedInSameSlot = selectedItem?.slot && selectedItem.slot !== 'rune' && selectedItem.slot !== 'consumable' && selectedItem.slot !== 'gem' && selectedItem.slot !== 'material'
-    ? equipment[selectedItem.slot as EquipSlot]
-    : null;
-
   const allRuneKeys = Object.keys(D2_RUNES);
 
   return (
@@ -108,7 +103,7 @@ export const InventoryModal: React.FC = () => {
               }`}
             >
               <Layers className="w-3.5 h-3.5" />
-              <span>장비·아이템 ({inventory.length})</span>
+              <span>장비·아이템 ({cleanEquipmentInventory.length})</span>
             </button>
             <button
               onClick={() => setActiveTab('runes')}
@@ -143,90 +138,96 @@ export const InventoryModal: React.FC = () => {
       </div>
 
       {/* ========================================================================= */}
-      {/* TAB 1: EQUIPMENT & INVENTORY WITH AUTO-RUNEWORD SMART CRAFTING */}
+      {/* TAB 1: EQUIPMENT & INVENTORY WITH COMPLETE 9-SLOTS PAPEROLL */}
       {/* ========================================================================= */}
       {activeTab === 'inventory' && (
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-          {/* Left 5 Cols: Equipped Gear Slots */}
+          {/* Left 5 Cols: Full 9 Equipment Slots (Diablo II Paperdoll) */}
           <div className="md:col-span-5 bg-iron-900/90 p-3 rounded-lg border-2 border-iron-750 flex flex-col justify-between shadow">
             <div>
               <h3 className="font-cinzel font-bold text-gray-200 mb-2.5 text-center border-b border-iron-750 pb-1">
-                착용 중인 장비
+                착용 중인 장비 (9대 부위)
               </h3>
 
-              <div className="grid grid-cols-3 gap-2 max-w-[280px] mx-auto py-1">
-                <div className="col-start-2">
-                  <EquipSlotBox
-                    slot="helm"
-                    label="투구"
-                    item={equipment.helm}
-                    onClick={() => setSelectedItem(equipment.helm || null)}
-                    onUnequip={() => unequipItem('helm')}
-                    isCombatMode={isCombatMode}
-                  />
-                </div>
+              {/* 3x3 Paperdoll Grid: All 9 slots (Helm, Amulet, Weapon, Armor, Shield, Gloves, Ring1, Ring2, Boots) */}
+              <div className="grid grid-cols-3 gap-2 max-w-[300px] mx-auto py-1">
+                {/* Row 1 */}
+                <EquipSlotBox
+                  slot="weapon"
+                  label="무기"
+                  item={equipment.weapon}
+                  onClick={() => setSelectedItem(equipment.weapon || null)}
+                  onUnequip={() => unequipItem('weapon')}
+                  isCombatMode={isCombatMode}
+                />
+                <EquipSlotBox
+                  slot="helm"
+                  label="투구"
+                  item={equipment.helm}
+                  onClick={() => setSelectedItem(equipment.helm || null)}
+                  onUnequip={() => unequipItem('helm')}
+                  isCombatMode={isCombatMode}
+                />
+                <EquipSlotBox
+                  slot="amulet"
+                  label="목걸이"
+                  item={equipment.amulet}
+                  onClick={() => setSelectedItem(equipment.amulet || null)}
+                  onUnequip={() => unequipItem('amulet')}
+                  isCombatMode={isCombatMode}
+                />
 
-                <div className="col-start-1">
-                  <EquipSlotBox
-                    slot="weapon"
-                    label="무기"
-                    item={equipment.weapon}
-                    onClick={() => setSelectedItem(equipment.weapon || null)}
-                    onUnequip={() => unequipItem('weapon')}
-                    isCombatMode={isCombatMode}
-                  />
-                </div>
-                <div className="col-start-2">
-                  <EquipSlotBox
-                    slot="armor"
-                    label="갑옷"
-                    item={equipment.armor}
-                    onClick={() => setSelectedItem(equipment.armor || null)}
-                    onUnequip={() => unequipItem('armor')}
-                    isCombatMode={isCombatMode}
-                  />
-                </div>
-                <div className="col-start-3">
-                  <EquipSlotBox
-                    slot="shield"
-                    label="방패"
-                    item={equipment.shield}
-                    onClick={() => setSelectedItem(equipment.shield || null)}
-                    onUnequip={() => unequipItem('shield')}
-                    isCombatMode={isCombatMode}
-                  />
-                </div>
+                {/* Row 2 */}
+                <EquipSlotBox
+                  slot="gloves"
+                  label="장갑"
+                  item={equipment.gloves}
+                  onClick={() => setSelectedItem(equipment.gloves || null)}
+                  onUnequip={() => unequipItem('gloves')}
+                  isCombatMode={isCombatMode}
+                />
+                <EquipSlotBox
+                  slot="armor"
+                  label="갑옷"
+                  item={equipment.armor}
+                  onClick={() => setSelectedItem(equipment.armor || null)}
+                  onUnequip={() => unequipItem('armor')}
+                  isCombatMode={isCombatMode}
+                />
+                <EquipSlotBox
+                  slot="shield"
+                  label="방패"
+                  item={equipment.shield}
+                  onClick={() => setSelectedItem(equipment.shield || null)}
+                  onUnequip={() => unequipItem('shield')}
+                  isCombatMode={isCombatMode}
+                />
 
-                <div className="col-start-1">
-                  <EquipSlotBox
-                    slot="gloves"
-                    label="장갑"
-                    item={equipment.gloves}
-                    onClick={() => setSelectedItem(equipment.gloves || null)}
-                    onUnequip={() => unequipItem('gloves')}
-                    isCombatMode={isCombatMode}
-                  />
-                </div>
-                <div className="col-start-2">
-                  <EquipSlotBox
-                    slot="ring1"
-                    label="반지 1"
-                    item={equipment.ring1}
-                    onClick={() => setSelectedItem(equipment.ring1 || null)}
-                    onUnequip={() => unequipItem('ring1')}
-                    isCombatMode={isCombatMode}
-                  />
-                </div>
-                <div className="col-start-3">
-                  <EquipSlotBox
-                    slot="boots"
-                    label="신발"
-                    item={equipment.boots}
-                    onClick={() => setSelectedItem(equipment.boots || null)}
-                    onUnequip={() => unequipItem('boots')}
-                    isCombatMode={isCombatMode}
-                  />
-                </div>
+                {/* Row 3 */}
+                <EquipSlotBox
+                  slot="ring1"
+                  label="반지 1"
+                  item={equipment.ring1}
+                  onClick={() => setSelectedItem(equipment.ring1 || null)}
+                  onUnequip={() => unequipItem('ring1')}
+                  isCombatMode={isCombatMode}
+                />
+                <EquipSlotBox
+                  slot="boots"
+                  label="신발"
+                  item={equipment.boots}
+                  onClick={() => setSelectedItem(equipment.boots || null)}
+                  onUnequip={() => unequipItem('boots')}
+                  isCombatMode={isCombatMode}
+                />
+                <EquipSlotBox
+                  slot="ring2"
+                  label="반지 2"
+                  item={equipment.ring2}
+                  onClick={() => setSelectedItem(equipment.ring2 || null)}
+                  onUnequip={() => unequipItem('ring2')}
+                  isCombatMode={isCombatMode}
+                />
               </div>
             </div>
 
@@ -241,17 +242,17 @@ export const InventoryModal: React.FC = () => {
             </div>
           </div>
 
-          {/* Right 7 Cols: Inventory Grid + Smart RuneWord Crafting Section */}
+          {/* Right 7 Cols: Clean Inventory Grid + Smart RuneWord Crafting Section */}
           <div className="md:col-span-7 flex flex-col justify-between space-y-3">
             {/* Inventory Grid */}
             <div className="bg-iron-900/90 p-3 rounded-lg border-2 border-iron-750 shadow">
               <div className="flex justify-between items-center mb-2 border-b border-iron-750 pb-1">
-                <span className="font-bold text-gray-200 text-xs">배낭 보관함 ({inventory.length}/30)</span>
+                <span className="font-bold text-gray-200 text-xs">배낭 보관함 ({cleanEquipmentInventory.length}/30)</span>
                 <span className="text-gray-400 text-xs font-mono">아이템 클릭 시 상세 / 룬워드 매칭</span>
               </div>
 
               <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 max-h-[190px] overflow-y-auto p-1">
-                {inventory.map(item => {
+                {cleanEquipmentInventory.map(item => {
                   const isSelected = selectedItem?.id === item.id;
                   const rarityStyle = getRarityColor(item.rarity, item.isIdentified);
 
@@ -292,9 +293,9 @@ export const InventoryModal: React.FC = () => {
                   );
                 })}
 
-                {inventory.length === 0 && (
+                {cleanEquipmentInventory.length === 0 && (
                   <div className="col-span-5 py-10 text-center text-gray-400 font-bold italic">
-                    배낭이 비어 있습니다.
+                    배낭에 장비가 없습니다.
                   </div>
                 )}
               </div>
@@ -506,7 +507,7 @@ const EquipSlotBox: React.FC<{
     <div
       onClick={onClick}
       onDoubleClick={() => !isCombatMode && item && onUnequip()}
-      className={`p-2 rounded-lg border-2 text-center cursor-pointer transition min-h-[64px] flex flex-col justify-between items-center relative shadow ${
+      className={`p-2 rounded-lg border-2 text-center cursor-pointer transition min-h-[68px] flex flex-col justify-between items-center relative shadow ${
         item
           ? item.rarity === 'runeword'
             ? 'bg-amber-950/40 border-amber-400 text-amber-200 font-bold'

@@ -489,91 +489,9 @@ export const WARRIOR_SKILLS: Skill[] = [
   }
 ];
 
-// 5. Rich Sample Inventory (Weapons, Armors, Sockets, High Runes, Uniques)
+// 5. Rich Sample Inventory (Clean Equipment, Socket Bases, Uniques, and Accessories - NO RUNES)
 export const SAMPLE_INVENTORY: GameItem[] = [
-  // Runes
-  {
-    id: 'r_tal',
-    name: '탈 (Tal) 룬',
-    rarity: 'magic',
-    slot: 'rune',
-    stats: {},
-    value: 500,
-    icon: 'Sparkles',
-    description: '룬 넘버 #7. 무기: 독 대미지 / 방어구: 독 저항 +35% (스텔스, 스피리트 재료)'
-  },
-  {
-    id: 'r_thul',
-    name: '주울 (Thul) 룬',
-    rarity: 'magic',
-    slot: 'rune',
-    stats: {},
-    value: 700,
-    icon: 'Sparkles',
-    description: '룬 넘버 #10. 무기: 냉기 대미지 / 방어구: 냉기 저항 +35% (스피리트 재료)'
-  },
-  {
-    id: 'r_ort',
-    name: '오르트 (Ort) 룬',
-    rarity: 'magic',
-    slot: 'rune',
-    stats: {},
-    value: 650,
-    icon: 'Sparkles',
-    description: '룬 넘버 #9. 무기: 번개 대미지 / 방어구: 번개 저항 +35% (전승, 스피리트 재료)'
-  },
-  {
-    id: 'r_amn',
-    name: '앰 (Amn) 룬',
-    rarity: 'magic',
-    slot: 'rune',
-    stats: {},
-    value: 800,
-    icon: 'Sparkles',
-    description: '룬 넘버 #11. 무기: 흡혈 7% / 방어구: 피해 반사 (스피리트 재료)'
-  },
-  {
-    id: 'r_sol',
-    name: '솔 (Sol) 룬',
-    rarity: 'rare',
-    slot: 'rune',
-    stats: {},
-    value: 900,
-    icon: 'Sparkles',
-    description: '룬 넘버 #12. 무기: 최소대미지 +9 / 방어구: 피해 감소 7 (전승, 통찰 재료)'
-  },
-  {
-    id: 'r_lo',
-    name: '로 (Lo) 룬',
-    rarity: 'legendary',
-    slot: 'rune',
-    stats: {},
-    value: 8500,
-    icon: 'Sparkles',
-    description: '룬 넘버 #28. 하이룬. 무기: 치명적 공격 20% / 방어구: 최대 번개저항 +5% (인내, 슬픔 재료)'
-  },
-  {
-    id: 'r_ber',
-    name: '베르 (Ber) 룬',
-    rarity: 'legendary',
-    slot: 'rune',
-    stats: {},
-    value: 12000,
-    icon: 'Sparkles',
-    description: '룬 넘버 #30. 최고급 하이룬. 무기: 강타 20% / 방어구: 피해 감소 8% (수수께끼, 무한 재료)'
-  },
-  {
-    id: 'r_jah',
-    name: '자 (Jah) 룬',
-    rarity: 'legendary',
-    slot: 'rune',
-    stats: {},
-    value: 14000,
-    icon: 'Sparkles',
-    description: '룬 넘버 #31. 최고급 하이룬. 무기: 방어력 무시 / 방어구: 생명력 5% (수수께끼, 신념 재료)'
-  },
-
-  // Socket Bases
+  // Socket Bases for RuneWords
   {
     id: 'base_cs_4s',
     name: '크리스탈 소드 (4 소켓)',
@@ -600,7 +518,7 @@ export const SAMPLE_INVENTORY: GameItem[] = [
     stats: { defense: 145 },
     value: 2500,
     icon: 'Shield',
-    description: '가장 인기 있는 4소켓 전설의 엘리트 방패.'
+    description: '4개의 빈 소켓이 뚫린 전설의 엘리트 방패. [Tal + Thul + Ort + Amn]을 박으면 스피리트 방패 완성!'
   },
   {
     id: 'base_archon_3s',
@@ -614,10 +532,90 @@ export const SAMPLE_INVENTORY: GameItem[] = [
     stats: { defense: 180 },
     value: 3000,
     icon: 'Shield',
-    description: '3개의 소켓이 뚫린 최고급 갑주. [Jah + Ith + Ber]를 박으면 수수께끼(Enigma) 완성!'
+    description: '3개의 소켓이 뚫린 최고급 경량 갑주. [Jah + Ith + Ber]를 박으면 수수께끼(Enigma) 완성!'
+  },
+  {
+    id: 'base_dusk_4s',
+    name: '더스크 슈라우드 (4 소켓)',
+    baseItemName: '더스크 슈라우드 (Dusk Shroud)',
+    rarity: 'normal',
+    slot: 'armor',
+    sockets: 4,
+    socketedRunes: [],
+    isIdentified: true,
+    stats: { defense: 165 },
+    value: 2800,
+    icon: 'Shield',
+    description: '4개의 소켓이 뚫린 엘리트 갑옷. [El + Sol + Dol + Lo]를 박으면 인내(Fortitude) 완성!'
+  },
+  {
+    id: 'base_bone_helm_2s',
+    name: '본 헬름 (2 소켓)',
+    baseItemName: '본 헬름 (Bone Helm)',
+    rarity: 'normal',
+    slot: 'helm',
+    sockets: 2,
+    socketedRunes: [],
+    isIdentified: true,
+    stats: { defense: 45 },
+    value: 900,
+    icon: 'HardHat',
+    description: '2개의 소켓이 뚫린 해골 투구. [Ort + Sol]을 박으면 전승(Lore) 완성!'
+  },
+  {
+    id: 'base_polearm_4s',
+    name: '쓰레셔 (4 소켓)',
+    baseItemName: '쓰레셔 (Thresher)',
+    rarity: 'normal',
+    slot: 'weapon',
+    sockets: 4,
+    socketedRunes: [],
+    isIdentified: true,
+    stats: { minDmg: 40, maxDmg: 85 },
+    value: 2000,
+    icon: 'Sword',
+    description: '4개의 소켓이 뚫린 장병기. [Ral + Tir + Tal + Sol]을 박으면 통찰(Insight) 완성!'
   },
 
-  // Uniques & Rares
+  // Accessories (Amulet, Rings)
+  {
+    id: 'u_maras',
+    name: "마라의 만화경 (Mara's Kaleidoscope)",
+    rarity: 'unique',
+    slot: 'amulet',
+    isIdentified: true,
+    stats: { str: 5, dex: 5, con: 5, int: 5, wis: 5, cha: 5, allResist: 30 },
+    specialEffect: '모든 스킬 레벨 +2, 모든 능력치 +5, 모든 저항 +30%',
+    value: 25000,
+    icon: 'CircleDot',
+    description: '화려한 빛을 발산하는 디아블로 2 최고의 졸업 목걸이.'
+  },
+  {
+    id: 'u_soj',
+    name: '요르단의 반지 (Stone of Jordan - 조던링)',
+    rarity: 'unique',
+    slot: 'ring1',
+    isIdentified: true,
+    stats: { int: 10, mana: 80 },
+    specialEffect: '모든 스킬 레벨 +1, 최대 마나 +25%, 번개 피해 추가',
+    value: 20000,
+    icon: 'CircleDot',
+    description: '전설적인 화폐이자 스킬 레벨을 올려주는 절대 반지.'
+  },
+  {
+    id: 'u_bk_ring',
+    name: "불카토스의 결혼반지 (Bul-Kathos' Wedding Band)",
+    rarity: 'unique',
+    slot: 'ring2',
+    isIdentified: true,
+    stats: { hp: 120, lifeSteal: 5 },
+    specialEffect: '모든 스킬 레벨 +1, 타격 시 생명력 5% 흡수, 레벨 비례 생명력 증가',
+    value: 18000,
+    icon: 'CircleDot',
+    description: '바바리안의 위대한 시조 불카토스의 결혼반지.'
+  },
+
+  // Unique Helms, Armors, Gloves, Boots
   {
     id: 'u_shako',
     name: '할리퀸 관모 (Harlequin Crest - 샤코)',
@@ -625,22 +623,34 @@ export const SAMPLE_INVENTORY: GameItem[] = [
     slot: 'helm',
     isIdentified: true,
     stats: { defense: 120, hp: 100, mana: 100, fortune: 50 },
-    specialEffect: '모든 스킬 +2, 물리 피해 감소 10%, MF +50%',
-    value: 15000,
+    specialEffect: '모든 스킬 +2, 물리 피해 감소 10%, 매직 아이템 발견 확률(MF) +50%',
+    value: 22000,
     icon: 'HardHat',
     description: '디아블로 2 최고의 만능 국민 투구, 일명 샤코.'
   },
   {
-    id: 'u_soj',
-    name: '요르단의 반지 (Stone of Jordan - 조던링)',
+    id: 'u_draculs',
+    name: "드라큘의 손아귀 (Dracul's Grasp)",
     rarity: 'unique',
-    slot: 'ring2',
+    slot: 'gloves',
     isIdentified: true,
-    stats: { int: 10, mana: 80 },
-    specialEffect: '모든 스킬 +1, 최대 마나 +25%, 번개 피해 추가',
-    value: 20000,
-    icon: 'CircleDot',
-    description: '전설적인 화폐이자 스킬 레벨을 올려주는 절대 반지.'
+    stats: { defense: 75, str: 15, lifeSteal: 10 },
+    specialEffect: '타격 시 5% 확률로 라이프 탭 저주 시전, 상처 악화 25%',
+    value: 16000,
+    icon: 'Shield',
+    description: '피를 갈구하는 뱀파이어의 건틀릿.'
+  },
+  {
+    id: 'u_gore_rider',
+    name: '선혈 기수 (Gore Rider - 고어 부츠)',
+    rarity: 'unique',
+    slot: 'boots',
+    isIdentified: true,
+    stats: { defense: 85, moveSpeed: 30, critChance: 15 },
+    specialEffect: '강타 15%, 치명적 공격 15%, 상처 악화 10%, 이동 속도 +30%',
+    value: 15000,
+    icon: 'Footprints',
+    description: '근접 밀리 캐릭터들의 영원한 최종 부츠.'
   }
 ];
 

@@ -151,9 +151,18 @@ export const TownView: React.FC = () => {
 
               <div className="p-2.5 bg-iron-950 rounded border border-iron-700">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-400">장신구:</span>
+                  <span className="text-gray-400">목걸이:</span>
+                  <span className={equipment.amulet?.rarity === 'unique' ? 'text-orange-400 font-bold truncate max-w-[150px]' : 'text-yellow-300 font-bold truncate max-w-[150px]'}>
+                    {equipment.amulet?.name || '없음'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-2.5 bg-iron-950 rounded border border-iron-700">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">반지 (1 / 2):</span>
                   <span className="text-yellow-300 font-bold truncate max-w-[150px]">
-                    {equipment.ring1?.name || '없음'}
+                    {equipment.ring1?.name ? `${equipment.ring1.name.slice(0, 8)}...` : '없음'} / {equipment.ring2?.name ? `${equipment.ring2.name.slice(0, 8)}...` : '없음'}
                   </span>
                 </div>
               </div>

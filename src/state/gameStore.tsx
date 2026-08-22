@@ -166,8 +166,28 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   const [playerStats, setPlayerStats] = useState<PlayerStats>(() => savedData?.playerStats || DEFAULT_PLAYER_STATS);
   const [equipment, setEquipment] = useState<Record<string, GameItem>>(() => savedData?.equipment || INITIAL_EQUIPMENT);
-  const [inventory, setInventory] = useState<GameItem[]>(() => savedData?.inventory || SAMPLE_INVENTORY);
-  const [runesVault, setRunesVault] = useState<Record<string, number>>(() => savedData?.runesVault || DEFAULT_RUNES_VAULT);
+  const [runesVault, setRunesVault] = useState<Record<string, number>>(() => {
+    const baseVault: Record<string, number> = { ...DEFAULT_RUNES_VAULT, ...(savedData?.runesVault || {}) };
+    if (savedData?.inventory) {
+      savedData.inventory.forEach((item: GameItem) => {
+        if (item.slot === 'rune') {
+          const matched = Object.keys(D2_RUNES).find(k => item.name.includes(k) || item.id.toLowerCase().includes(k.toLowerCase()));
+          if (matched) {
+            baseVault[matched] = (baseVault[matched] || 0) + 1;
+          }
+        }
+      });
+    }
+    return baseVault;
+  });
+
+  const [inventory, setInventory] = useState<GameItem[]>(() => {
+    if (savedData?.inventory) {
+      const clean = savedData.inventory.filter((item: GameItem) => item.slot !== 'rune' && item.slot !== 'material');
+      if (clean.length > 0) return clean;
+    }
+    return SAMPLE_INVENTORY;
+  });
   const [consumables, setConsumables] = useState<ConsumableItem[]>(() => savedData?.consumables || INITIAL_CONSUMABLES);
   const [currentDungeon, setCurrentDungeon] = useState<DungeonInfo>(() => {
     if (savedData?.currentDungeonId) {
