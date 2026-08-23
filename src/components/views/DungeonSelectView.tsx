@@ -1,8 +1,24 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useGame } from '../../state/gameStore';
 import { DUNGEONS_DATA, ACT_DUNGEON_GROUPS, isDungeonUnlocked, isActUnlocked } from '../../data/dungeons';
 import { DungeonInfo } from '../../types/game';
-import { Compass, Flame, Shield, Sparkles, Trophy, ArrowRight, Skull, Plus, Minus, Lock, CheckCircle2, AlertTriangle, ArrowLeft } from 'lucide-react';
+import {
+  Compass,
+  Flame,
+  Shield,
+  Sparkles,
+  Trophy,
+  ArrowRight,
+  Skull,
+  Plus,
+  Minus,
+  Lock,
+  CheckCircle2,
+  AlertTriangle,
+  ArrowLeft,
+  X,
+  Swords
+} from 'lucide-react';
 
 const ACT_NAMES: Record<number, { title: string; subtitle: string }> = {
   1: { title: '1막: 칸두라스 황야', subtitle: '보이지 않는 눈의 자매단' },
@@ -13,18 +29,26 @@ const ACT_NAMES: Record<number, { title: string; subtitle: string }> = {
 };
 
 export const DungeonSelectView: React.FC = React.memo(() => {
-  const { enterDungeon, setViewMode, playerStats, currentDifficulty, maxUnlockedDifficulty, setCurrentDifficulty, achievementStats } = useGame();
+  const {
+    enterDungeon,
+    setViewMode,
+    playerStats,
+    currentDifficulty,
+    maxUnlockedDifficulty,
+    setCurrentDifficulty,
+    achievementStats
+  } = useGame();
 
   const [selectedAct, setSelectedAct] = useState<number>(1);
   const dungeonClears = achievementStats.dungeonClears || {};
 
-  // Default selected dungeon: first unlocked dungeon in active act
   const currentActDungeons = useMemo(() => {
     const ids = ACT_DUNGEON_GROUPS[selectedAct] || ACT_DUNGEON_GROUPS[1];
     return ids.map(id => DUNGEONS_DATA.find(d => d.id === id)!).filter(Boolean);
   }, [selectedAct]);
 
   const [selectedDungeonId, setSelectedDungeonId] = useState<string>(currentActDungeons[0]?.id || DUNGEONS_DATA[0].id);
+  const [isDeployModalOpen, setIsDeployModalOpen] = useState<boolean>(false);
 
   const selectedDungeon = DUNGEONS_DATA.find(d => d.id === selectedDungeonId) || currentActDungeons[0] || DUNGEONS_DATA[0];
   const maxDiff = Math.max(1, maxUnlockedDifficulty || 1);
@@ -44,24 +68,48 @@ export const DungeonSelectView: React.FC = React.memo(() => {
     setCurrentDifficulty(next);
   };
 
-  // Difficulty Multipliers preview
+  const openDungeonDeploy = (dungeonId: string) => {
+    if (!isDungeonUnlocked(dungeonId, dungeonClears)) return;
+    setSelectedDungeonId(dungeonId);
+    setIsDeployModalOpen(true);
+  };
+
+  const handleDeploy = () => {
+    if (!isCurrentDungeonUnlocked) return;
+    enterDungeon(selectedDungeon.id, selectedDifficulty);
+  };
+
+  // Keyboard shortcut listener for modal: Space/Enter = Deploy, Esc = Close
+  useEffect(() => {
+    if (!isDeployModalOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsDeployModalOpen(false);
+      } else if (e.code === 'Space' || e.code === 'Enter') {
+        e.preventDefault();
+        handleDeploy();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isDeployModalOpen, selectedDungeon.id, selectedDifficulty, isCurrentDungeonUnlocked]);
+
+  // Multipliers preview
   const hpMult = (1 + (selectedDifficulty - 1) * 0.35).toFixed(2);
-  const defMult = (1 + (selectedDifficulty - 1) * 0.20).toFixed(2);
   const dmgMult = (1 + (selectedDifficulty - 1) * 0.25).toFixed(2);
-  const goldMult = (1 + (selectedDifficulty - 1) * 0.45).toFixed(2);
   const mfBonus = (selectedDifficulty - 1) * 3;
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-2.5 sm:p-5 flex flex-col justify-between min-h-[calc(100dvh-5.5rem)] pb-44 sm:pb-24 text-gray-200 select-none font-sans">
+    <div className="w-full max-w-5xl mx-auto p-2 sm:p-4 pb-20 sm:pb-24 text-gray-200 select-none font-sans space-y-3">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-iron-750 pb-3 mb-3">
+      <div className="flex items-center justify-between border-b border-iron-750 pb-2.5">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-lg bg-blood-950/80 border border-blood-600 flex items-center justify-center text-blood-400 shadow">
-            <Compass className="w-5 h-5 animate-spin-slow" />
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-blood-950/80 border border-blood-600 flex items-center justify-center text-blood-400 shadow flex-shrink-0">
+            <Compass className="w-4 h-4 sm:w-5 sm:h-5 animate-spin-slow" />
           </div>
           <div>
-            <h1 className="text-base sm:text-xl font-cinzel font-black text-white tracking-wider">
-              성역 월드맵 & 원정 게이트
+            <h1 className="text-sm sm:text-lg md:text-xl font-cinzel font-black text-white tracking-wider flex items-center gap-2">
+              <span>성역 월드맵 & 원정 게이트</span>
             </h1>
             <p className="text-[10px] sm:text-xs text-gray-400 font-mono hidden sm:block">
               각 액트의 4개 던전을 순차적으로 공략하여 상위 액트로 진출하세요.
@@ -71,15 +119,15 @@ export const DungeonSelectView: React.FC = React.memo(() => {
 
         <button
           onClick={() => setViewMode('town')}
-          className="px-3.5 py-1.5 rounded-lg bg-iron-900 hover:bg-iron-800 border border-iron-700 hover:border-iron-500 text-gray-300 hover:text-white text-xs font-bold transition flex items-center gap-1.5 shadow cursor-pointer"
+          className="px-3 py-1.5 rounded-lg bg-iron-900 hover:bg-iron-800 border border-iron-700 hover:border-iron-500 text-gray-300 hover:text-white text-xs font-bold transition flex items-center gap-1 shadow cursor-pointer flex-shrink-0"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-3.5 h-3.5" />
           <span>마을 귀환</span>
         </button>
       </div>
 
       {/* 5 Acts Tabs Switcher */}
-      <div className="grid grid-cols-5 gap-1.5 mb-4">
+      <div className="grid grid-cols-5 gap-1 sm:gap-2">
         {([1, 2, 3, 4, 5] as const).map(actNum => {
           const isActOpen = isActUnlocked(actNum, dungeonClears);
           const actDungeons = ACT_DUNGEON_GROUPS[actNum] || [];
@@ -97,7 +145,7 @@ export const DungeonSelectView: React.FC = React.memo(() => {
                 setSelectedDungeonId(firstDId);
               }}
               disabled={!isActOpen}
-              className={`p-2 rounded-lg border-2 text-left transition relative flex flex-col justify-between ${
+              className={`p-1.5 sm:p-2.5 rounded-lg border-2 text-left transition relative flex flex-col justify-between ${
                 isSelected
                   ? 'bg-blood-950/80 border-brass-400 ring-2 ring-brass-400/60 shadow-[0_0_15px_rgba(251,191,36,0.3)]'
                   : isActOpen
@@ -117,7 +165,7 @@ export const DungeonSelectView: React.FC = React.memo(() => {
                   <span className="text-[10px] font-mono font-bold text-amber-300">[{clearedInAct}/4]</span>
                 )}
               </div>
-              <div className="font-bold text-[11px] truncate mt-1 text-gray-100 hidden sm:block">
+              <div className="font-bold text-[10px] sm:text-[11px] truncate mt-0.5 text-gray-200 hidden sm:block">
                 {ACT_NAMES[actNum].title.split(':')[1]}
               </div>
             </button>
@@ -125,140 +173,159 @@ export const DungeonSelectView: React.FC = React.memo(() => {
         })}
       </div>
 
-      {/* Main Content: 4 Dungeons List (Left) + Selected Details & Difficulty (Right) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1">
-        {/* Left Column (7 Cols): 4 Dungeons in Current Act */}
-        <div className="lg:col-span-7 space-y-2.5">
-          <div className="text-xs font-cinzel font-bold text-gray-300 px-1 flex items-center justify-between">
-            <span>{ACT_NAMES[selectedAct].title} — 4대 원정 던전</span>
-            <span className="text-[10px] text-gray-400 font-mono">{ACT_NAMES[selectedAct].subtitle}</span>
-          </div>
+      {/* Act Title Banner */}
+      <div className="text-xs font-cinzel font-bold text-gray-300 px-1 flex items-center justify-between border-b border-iron-800 pb-1">
+        <span>{ACT_NAMES[selectedAct].title} — 4대 원정 던전</span>
+        <span className="text-[10px] text-gray-400 font-mono">{ACT_NAMES[selectedAct].subtitle}</span>
+      </div>
 
-          <div className="space-y-2">
-            {currentActDungeons.map((dungeon, idx) => {
-              const unlocked = isDungeonUnlocked(dungeon.id, dungeonClears);
-              const isSelected = dungeon.id === selectedDungeon.id;
-              const clearCount = dungeonClears[dungeon.id] || 0;
+      {/* 4 Dungeons List (Clean & Compact with Zero Scrolling Needed) */}
+      <div className="space-y-2">
+        {currentActDungeons.map((dungeon, idx) => {
+          const unlocked = isDungeonUnlocked(dungeon.id, dungeonClears);
+          const isSelected = dungeon.id === selectedDungeon.id;
+          const clearCount = dungeonClears[dungeon.id] || 0;
 
-              return (
-                <div
-                  key={dungeon.id}
-                  onClick={() => {
-                    if (unlocked) setSelectedDungeonId(dungeon.id);
-                  }}
-                  className={`p-3 rounded-lg border-2 transition relative flex items-center justify-between gap-3 ${
-                    !unlocked
-                      ? 'bg-iron-950/70 border-iron-850 opacity-60 cursor-not-allowed'
-                      : isSelected
-                      ? 'bg-gradient-to-r from-blood-950/90 via-iron-900 to-iron-900 border-brass-400 ring-2 ring-brass-400/60 shadow-lg cursor-pointer'
-                      : 'bg-iron-900/80 border-iron-750 hover:border-iron-600 hover:bg-iron-850 cursor-pointer'
-                  }`}
-                >
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-mono font-black text-sm flex-shrink-0 ${
-                      isSelected
-                        ? 'bg-brass-500 text-iron-950 shadow'
-                        : unlocked
-                        ? 'bg-iron-950 text-gray-300 border border-iron-700'
-                        : 'bg-iron-950 text-gray-600 border border-iron-850'
-                    }`}>
-                      {unlocked ? idx + 1 : <Lock className="w-4 h-4 text-gray-500" />}
-                    </div>
+          return (
+            <div
+              key={dungeon.id}
+              onClick={() => {
+                if (unlocked) openDungeonDeploy(dungeon.id);
+              }}
+              className={`p-2.5 sm:p-3.5 rounded-lg border-2 transition relative flex items-center justify-between gap-3 ${
+                !unlocked
+                  ? 'bg-iron-950/70 border-iron-850 opacity-60 cursor-not-allowed'
+                  : isSelected
+                  ? 'bg-gradient-to-r from-blood-950/90 via-iron-900 to-iron-900 border-brass-400 ring-2 ring-brass-400/60 shadow-lg cursor-pointer'
+                  : 'bg-iron-900/80 border-iron-750 hover:border-iron-600 hover:bg-iron-850 cursor-pointer'
+              }`}
+            >
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center font-mono font-black text-sm flex-shrink-0 ${
+                  isSelected
+                    ? 'bg-brass-500 text-iron-950 shadow font-black'
+                    : unlocked
+                    ? 'bg-iron-950 text-amber-300 border border-iron-700 font-bold'
+                    : 'bg-iron-950 text-gray-600 border border-iron-850'
+                }`}>
+                  {unlocked ? idx + 1 : <Lock className="w-4 h-4 text-gray-500" />}
+                </div>
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-bold text-sm text-white truncate">
-                          {dungeon.name}
-                        </span>
-                        <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-iron-950 border border-iron-750 text-amber-300 font-bold">
-                          Lv.{dungeon.recommendedLevel} 권장
-                        </span>
-                        {clearCount > 0 && (
-                          <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-950/80 border border-emerald-600 text-emerald-300 font-bold">
-                            클리어: {clearCount}회
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-[11px] text-gray-400 truncate mt-0.5 font-mono">
-                        {dungeon.theme} · 출현: {dungeon.monsterSummary}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center">
-                    {unlocked ? (
-                      <span className={`text-xs font-bold px-2.5 py-1 rounded transition ${
-                        isSelected ? 'bg-brass-500 text-iron-950 font-black' : 'bg-iron-800 text-gray-300'
-                      }`}>
-                        {isSelected ? '선택됨' : '선택'}
-                      </span>
-                    ) : (
-                      <span className="text-[10px] text-gray-500 font-mono font-bold">
-                        이전 장 클리어 필요
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-bold text-xs sm:text-sm text-white truncate">
+                      {dungeon.name}
+                    </span>
+                    <span className="text-[9px] sm:text-[10px] font-mono px-1.5 py-0.2 rounded bg-iron-950 border border-iron-750 text-amber-300 font-bold">
+                      Lv.{dungeon.recommendedLevel} 권장
+                    </span>
+                    {clearCount > 0 && (
+                      <span className="text-[9px] sm:text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-950/80 border border-emerald-600 text-emerald-300 font-bold">
+                        클리어: {clearCount}회
                       </span>
                     )}
                   </div>
+                  <div className="text-[10px] sm:text-[11px] text-gray-400 truncate mt-0.5 font-mono">
+                    {dungeon.theme} · 출현: {dungeon.monsterSummary}
+                  </div>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Right Column (5 Cols): Selected Dungeon Details & Difficulty Tuning */}
-        <div className="lg:col-span-5 bg-iron-900/90 p-4 rounded-lg border-2 border-iron-750 flex flex-col justify-between space-y-3 shadow">
-          <div>
-            <div className="border-b border-iron-750 pb-2 mb-2 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Skull className="w-4 h-4 text-blood-400" />
-                <span className="font-cinzel font-black text-sm text-brass-200">
-                  {selectedDungeon.name}
-                </span>
               </div>
-              <span className="text-[10px] font-mono font-bold text-gray-400 bg-iron-950 px-2 py-0.5 rounded border border-iron-750">
-                권장 Lv.{selectedDungeon.recommendedLevel}
-              </span>
+
+              <div className="flex items-center flex-shrink-0">
+                {unlocked ? (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openDungeonDeploy(dungeon.id);
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-blood-700 via-blood-600 to-amber-600 hover:from-blood-600 hover:to-amber-500 text-white font-black text-xs shadow transition transform active:scale-95 flex items-center gap-1 cursor-pointer"
+                  >
+                    <Swords className="w-3.5 h-3.5" />
+                    <span>출격 설정</span>
+                  </button>
+                ) : (
+                  <span className="text-[10px] text-gray-500 font-mono font-bold">
+                    이전 장 클리어 필요
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* POPUP MODAL: Focused Difficulty Selection & Dungeon Launch (No Scrolling Required!) */}
+      {isDeployModalOpen && (
+        <div
+          onClick={() => setIsDeployModalOpen(false)}
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-fade-in"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-iron-950 border-2 border-brass-500 rounded-xl p-4 sm:p-6 max-w-lg w-full shadow-2xl space-y-3.5 relative animate-scale-in text-gray-200 select-none font-sans"
+          >
+            {/* Modal Header */}
+            <div className="border-b border-iron-750 pb-2.5 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Skull className="w-5 h-5 text-blood-400" />
+                <div>
+                  <h2 className="font-cinzel font-black text-sm sm:text-base text-brass-200">
+                    {selectedDungeon.name}
+                  </h2>
+                  <span className="text-[10px] font-mono text-gray-400">
+                    권장 레벨: Lv.{selectedDungeon.recommendedLevel}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setIsDeployModalOpen(false)}
+                className="p-1 rounded text-gray-400 hover:text-white hover:bg-iron-800 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
             {/* Dungeon Theme & Description */}
-            <div className="space-y-1.5 text-xs text-gray-300 mb-3 font-mono">
-              <div className="p-2 rounded bg-iron-950/80 border border-iron-800 leading-relaxed">
+            <div className="space-y-1.5 text-xs text-gray-300 font-mono">
+              <div className="p-2 rounded bg-iron-900/90 border border-iron-800 leading-relaxed">
                 {selectedDungeon.theme}
               </div>
-              <div className="p-2 rounded bg-iron-950/80 border border-iron-800 text-[11px] leading-relaxed">
+              <div className="p-2 rounded bg-iron-900/90 border border-iron-800 text-[11px] leading-relaxed">
                 <span className="text-amber-300 font-bold">⚡ 전술 특성: </span>{selectedDungeon.elementalInfo}
               </div>
             </div>
 
-            {/* Difficulty Level Controller */}
-            <div className="p-3 bg-iron-950 rounded-lg border border-iron-750 space-y-2">
+            {/* Difficulty Tuner */}
+            <div className="p-3 bg-iron-900/90 rounded-lg border border-iron-750 space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-gray-200 flex items-center gap-1 font-mono">
                   <Flame className="w-4 h-4 text-amber-400" />
                   난이도 선택
                 </span>
-                <span className="text-xs font-mono font-black text-amber-300 bg-iron-900 px-2 py-0.5 rounded border border-iron-700">
+                <span className="text-xs font-mono font-black text-amber-300 bg-iron-950 px-2 py-0.5 rounded border border-iron-800">
                   Lv.{selectedDifficulty} / 최대 Lv.{maxDiff}
                 </span>
               </div>
 
-              {/* Difficulty Step Adjuster Buttons */}
-              <div className="flex items-center justify-between gap-2 pt-1">
+              {/* Minus / Value / Plus Buttons */}
+              <div className="flex items-center justify-between gap-2 pt-0.5">
                 <button
                   onClick={() => changeDifficulty(-1)}
                   disabled={selectedDifficulty <= 1}
-                  className="w-10 h-8 rounded bg-iron-900 hover:bg-iron-850 disabled:opacity-40 border border-iron-700 font-black text-sm flex items-center justify-center text-gray-300 cursor-pointer"
+                  className="w-11 h-9 rounded bg-iron-950 hover:bg-iron-800 disabled:opacity-40 border border-iron-700 font-black text-sm flex items-center justify-center text-gray-300 cursor-pointer"
                 >
                   <Minus className="w-4 h-4" />
                 </button>
 
-                <div className="flex-1 text-center font-mono font-black text-lg text-amber-300 tracking-wider">
+                <div className="flex-1 text-center font-mono font-black text-xl text-amber-300 tracking-wider">
                   Lv.{selectedDifficulty}
                 </div>
 
                 <button
                   onClick={() => changeDifficulty(1)}
                   disabled={selectedDifficulty >= maxDiff}
-                  className="w-10 h-8 rounded bg-iron-900 hover:bg-iron-850 disabled:opacity-40 border border-iron-700 font-black text-sm flex items-center justify-center text-gray-300 cursor-pointer"
+                  className="w-11 h-9 rounded bg-iron-950 hover:bg-iron-800 disabled:opacity-40 border border-iron-700 font-black text-sm flex items-center justify-center text-gray-300 cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
                 </button>
@@ -272,8 +339,8 @@ export const DungeonSelectView: React.FC = React.memo(() => {
                     onClick={() => setDiffDirect(lvl)}
                     className={`flex-1 py-1 rounded border transition ${
                       selectedDifficulty === lvl
-                        ? 'bg-amber-500 text-iron-950 font-black border-amber-400'
-                        : 'bg-iron-900 text-gray-400 border-iron-800 hover:text-white'
+                        ? 'bg-amber-500 text-iron-950 font-black border-amber-400 shadow'
+                        : 'bg-iron-950 text-gray-400 border-iron-800 hover:text-white'
                     }`}
                   >
                     Lv.{lvl}
@@ -281,43 +348,36 @@ export const DungeonSelectView: React.FC = React.memo(() => {
                 ))}
               </div>
 
-              {/* Multiplier Stats Grid */}
-              <div className="grid grid-cols-3 gap-1 pt-2 border-t border-iron-800 text-[10px] font-mono text-center">
-                <div className="bg-iron-900 p-1 rounded border border-iron-800">
+              {/* Multipliers Grid */}
+              <div className="grid grid-cols-3 gap-1.5 pt-2 border-t border-iron-800 text-[10px] font-mono text-center">
+                <div className="bg-iron-950 p-1.5 rounded border border-iron-800">
                   <div className="text-gray-500">몬스터 HP</div>
                   <div className="text-rose-300 font-bold">x{hpMult}</div>
                 </div>
-                <div className="bg-iron-900 p-1 rounded border border-iron-800">
+                <div className="bg-iron-950 p-1.5 rounded border border-iron-800">
                   <div className="text-gray-500">몬스터 공격력</div>
                   <div className="text-amber-300 font-bold">x{dmgMult}</div>
                 </div>
-                <div className="bg-iron-900 p-1 rounded border border-iron-800">
+                <div className="bg-iron-950 p-1.5 rounded border border-iron-800">
                   <div className="text-gray-500">골드/드랍</div>
                   <div className="text-emerald-300 font-bold">+{mfBonus}% MF</div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Action Deploy Button */}
-          <div className="pt-2.5 border-t border-iron-750 mb-6 sm:mb-0">
-            {isCurrentDungeonUnlocked ? (
+            {/* Launch Action Button */}
+            <div className="pt-2 border-t border-iron-750">
               <button
-                onClick={() => enterDungeon(selectedDungeon.id, selectedDifficulty)}
-                className="w-full py-3 bg-gradient-to-r from-blood-700 via-blood-600 to-amber-600 hover:from-blood-600 hover:to-amber-500 text-white font-black text-sm rounded-lg transition shadow-xl ring-2 ring-amber-400/60 flex items-center justify-center gap-2 cursor-pointer transform active:scale-95 animate-pulse"
+                onClick={handleDeploy}
+                className="w-full py-3.5 bg-gradient-to-r from-blood-700 via-blood-600 to-amber-600 hover:from-blood-600 hover:to-amber-500 text-white font-black text-sm rounded-lg transition shadow-xl ring-2 ring-amber-400/60 flex items-center justify-center gap-2 cursor-pointer transform active:scale-95 animate-pulse"
               >
-                <span>⚔️ [{selectedDungeon.name.split(':')[0]}] Lv.{selectedDifficulty} 원정 출격</span>
+                <span>⚔️ [{selectedDungeon.name.split(':')[0]}] Lv.{selectedDifficulty} 원정 출격 [Space]</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
-            ) : (
-              <div className="p-3 bg-iron-950 rounded-lg border border-iron-800 text-center text-xs text-amber-300 font-mono flex items-center justify-center gap-1.5">
-                <Lock className="w-4 h-4 text-gray-500" />
-                <span>이전 던전을 먼저 클리어해야 입장할 수 있습니다.</span>
-              </div>
-            )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 });
