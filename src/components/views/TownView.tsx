@@ -115,7 +115,7 @@ export const TownView: React.FC = React.memo(() => {
             className="px-4 py-1.5 bg-gradient-to-r from-blood-700 via-blood-600 to-amber-600 hover:from-blood-600 hover:to-amber-500 text-white font-black rounded text-xs flex items-center gap-1.5 shadow-xl ring-1 ring-amber-400/60 transition transform active:scale-95 animate-pulse cursor-pointer"
             title={`이전 던전 [${lastDungeon.name.split(":")[0]}] (개방 최고 난이도 Lv.${autoDeployDiff})으로 즉시 출격`}
           >
-            <span>[Space] [${lastDungeon.name.split(":")[0]}] Lv.${autoDeployDiff} 즉시 출격</span>
+            <span>[Space] [{lastDungeon.name.split(":")[0]}] Lv.{autoDeployDiff} 즉시 출격</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
