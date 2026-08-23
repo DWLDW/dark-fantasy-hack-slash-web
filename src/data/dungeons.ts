@@ -522,7 +522,6 @@ export function createDungeonFormation(
 
   const dungeon = DUNGEONS_DATA.find(d => d.id === dungeonId) || DUNGEONS_DATA[0];
   const recLv = Math.max(1, dungeon.recommendedLevel || 1);
-  const isAct1 = recLv <= 10;
 
   const monsterNames = (dungeon.monsterSummary || '').split(',').map(s => s.trim()).filter(Boolean);
   const baseName1 = monsterNames[0] || '어둠의 방랑자';
@@ -531,20 +530,20 @@ export function createDungeonFormation(
   const bossName = monsterNames[monsterNames.length - 1] || '지옥의 군주';
   const eliteName = monsterNames.length > 2 ? monsterNames[monsterNames.length - 2] : '정예 집행관';
 
-  // Smooth, satisfying progression curve (Lv.1 Den of Evil starts at 22-24 HP, easily clearable with Slash)
-  const baseHp = isAct1
-    ? 18 + recLv * 6
-    : 40 + recLv * 12;
+  // Smooth, satisfying Diablo 2 progression curve across all 20 dungeons
+  const baseHp = recLv <= 10
+    ? Math.floor(18 + recLv * 6)
+    : Math.floor(40 + recLv * 7.5 + Math.pow(recLv / 10, 1.5) * 10);
 
-  const baseDef = isAct1
-    ? Math.max(0, Math.floor((recLv - 1) * 1.2))
-    : 4 + Math.floor(recLv * 2.0);
+  const baseDef = recLv <= 10
+    ? Math.max(0, Math.floor((recLv - 1) * 1.1))
+    : Math.floor(4 + recLv * 0.85);
 
-  const baseDmg = isAct1
-    ? 2 + Math.floor(recLv * 0.45)
-    : 5 + Math.floor(recLv * 1.3);
+  const baseDmg = recLv <= 10
+    ? Math.max(2, Math.floor(2 + recLv * 0.45))
+    : Math.floor(5 + recLv * 0.65);
 
-  // 5 Lanes x 3 depths = 15 monsters
+  // 5 Lanes x 3 depths = 15 monsters (compact vertical height)
   const depthsPerLane = 3;
 
   for (let l = 0; l < 5; l++) {
@@ -559,21 +558,21 @@ export function createDungeonFormation(
       let rank: 'normal' | 'elite' | 'boss' = 'normal';
 
       if (isBoss) {
-        mHp = isAct1 ? Math.floor(baseHp * 6.5 * hpMult) : Math.floor(baseHp * 9.0 * hpMult);
-        mDef = Math.floor((baseDef + 4) * defMult);
-        mDmg = isAct1 ? Math.floor(baseDmg * 2.5 * dmgMult) : Math.floor(baseDmg * 3.0 * dmgMult);
+        mHp = recLv <= 10 ? Math.floor(baseHp * 6.5 * hpMult) : Math.floor(baseHp * 8.5 * hpMult);
+        mDef = Math.floor((baseDef + (recLv <= 10 ? 4 : 8)) * defMult);
+        mDmg = recLv <= 10 ? Math.floor(baseDmg * 2.5 * dmgMult) : Math.floor(baseDmg * 2.8 * dmgMult);
         mName = `👑 ${bossName}`;
         rank = 'boss';
       } else if (isElite) {
-        mHp = isAct1 ? Math.floor(baseHp * 3.0 * hpMult) : Math.floor(baseHp * 4.0 * hpMult);
-        mDef = Math.floor((baseDef + 2) * defMult);
-        mDmg = isAct1 ? Math.floor(baseDmg * 1.6 * dmgMult) : Math.floor(baseDmg * 2.0 * dmgMult);
+        mHp = recLv <= 10 ? Math.floor(baseHp * 3.0 * hpMult) : Math.floor(baseHp * 3.8 * hpMult);
+        mDef = Math.floor((baseDef + (recLv <= 10 ? 2 : 4)) * defMult);
+        mDmg = recLv <= 10 ? Math.floor(baseDmg * 1.6 * dmgMult) : Math.floor(baseDmg * 1.8 * dmgMult);
         mName = `⭐ ${eliteName}`;
         rank = 'elite';
       } else if (d === 0) {
         // Frontline Guard: slightly sturdier
         mHp = Math.floor(mHp * 1.25);
-        mDef = mDef + (isAct1 ? 1 : 2);
+        mDef = mDef + (recLv <= 10 ? 1 : 2);
       } else if (d === 2) {
         // Backline ranged: slightly higher attack
         mDmg = Math.floor(mDmg * 1.2);
@@ -582,9 +581,9 @@ export function createDungeonFormation(
       monsters.push({
         id: `${dungeonId}_l${l}_d${d}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
         name: mName,
-        hp: mHp,
-        maxHp: mHp,
-        defense: mDef,
+        hp: Math.max(1, mHp),
+        maxHp: Math.max(1, mHp),
+        defense: Math.max(0, mDef),
         rank,
         lane: l,
         depth: d,

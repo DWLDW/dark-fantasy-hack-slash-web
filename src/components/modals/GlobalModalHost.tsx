@@ -43,10 +43,10 @@ export const GlobalModalHost: React.FC = React.memo(() => {
         {/* Death & Defeat Modal (Triggered on HP 0) */}
         {isDeathModalOpen && <DeathModal isOpen={isDeathModalOpen} onConfirm={confirmDeathAndReturnToTown} />}
 
-        {/* Standard Active Modals with Hardware-Accelerated Backdrop */}
+        {/* Standard Active Modals */}
         {activeModal && (
           <div
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-fade-in"
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
             onClick={(e) => {
               if (e.target === e.currentTarget) closeModal();
             }}
@@ -60,7 +60,7 @@ export const GlobalModalHost: React.FC = React.memo(() => {
         )}
       </Suspense>
 
-      {/* Global In-Game Confirmation Dialog (Top Layer z-[100]) */}
+      {/* Global In-Game Confirmation Dialog (Top-most Layer z-[999999]) */}
       <ConfirmModal />
     </>
   );
