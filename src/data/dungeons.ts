@@ -534,12 +534,12 @@ export function createDungeonFormation(
   const baseDmg = 6 + dungeon.recommendedLevel * 2;
 
   // 5 Lanes x 4 depths = 20 monsters total (fills screen vertically)
-  const depthsPerLane = 4;
+  const depthsPerLane = 3;
 
-  for (let l = 0; l < 4; l++) {
+  for (let l = 0; l < 5; l++) {
     for (let d = 0; d < depthsPerLane; d++) {
-      const isBoss = (roomType === 'boss') && (l === 1 && d === 0);
-      const isElite = !isBoss && (roomType === 'elite' || roomType === 'boss') && (d === 0 && (l === 2 || l === 0));
+      const isBoss = (roomType === 'boss') && (l === 2 && d === 0);
+      const isElite = !isBoss && (roomType === 'elite' || roomType === 'boss') && (d === 0 && (l === 1 || l === 3));
 
       let mHp = Math.floor(baseHp * hpMult);
       let mDef = Math.floor(baseDef * defMult);

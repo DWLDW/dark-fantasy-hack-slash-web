@@ -226,7 +226,7 @@ const MainLayout: React.FC = () => {
           g.cyclePendingExit(e.key === 'ArrowLeft' ? -1 : 1);
           return;
         }
-        g.setPlayerLane(e.key === 'ArrowLeft' ? Math.max(0, g.playerLane - 1) : Math.min(3, g.playerLane + 1));
+        g.setPlayerLane(e.key === 'ArrowLeft' ? Math.max(0, g.playerLane - 1) : Math.min(4, g.playerLane + 1));
         return;
       }
 

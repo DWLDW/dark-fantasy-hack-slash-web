@@ -73,7 +73,7 @@ export function calculateAttackGains(
 
 export function compressLaneSurvivors(newMonsters: Monster[]): Monster[] {
   const survivors: Monster[] = [];
-  for (let l = 0; l < 4; l++) {
+  for (let l = 0; l < 5; l++) {
     const laneSurvivors = newMonsters
       .filter(m => m.lane === l && m.hp > 0)
       .sort((a, b) => a.depth - b.depth);
