@@ -32,7 +32,7 @@ export const BattleSkillsBar: React.FC = React.memo(() => {
   const currentRoom = currentDungeon.rooms.find(r => r.id === currentRoomId);
 
   return (
-    <div className="flex items-stretch gap-1.5 sm:gap-2 select-none font-sans">
+    <div className="flex items-stretch gap-1.5 sm:gap-2 select-none font-sans flex-shrink-0">
       {/* 4 Equipped Skill Cards */}
       <div className="grid grid-cols-4 gap-1 sm:gap-1.5 flex-1 min-w-0">
         {equippedSkills.map(skill => {
@@ -47,7 +47,7 @@ export const BattleSkillsBar: React.FC = React.memo(() => {
               key={skill.id}
               onClick={() => { if (isCleared || totalMonsters === 0 || !unlocked) return; selectSkillOrExecute(skill); }}
               disabled={isAttacking || isEnemyTurn || !unlocked}
-              className={`p-1 sm:p-1.5 rounded-lg border text-left flex flex-col justify-between transition relative shadow cursor-pointer ${
+              className={`p-1.5 sm:p-2 rounded-lg border text-left flex flex-col justify-between transition relative shadow cursor-pointer ${
                 !unlocked
                   ? 'bg-iron-950 border-iron-800 text-gray-600 opacity-50 cursor-not-allowed'
                   : isSelected
@@ -58,9 +58,9 @@ export const BattleSkillsBar: React.FC = React.memo(() => {
               }`}
               title={unlocked ? `${skill.name} (클릭 시 스마트 타겟팅 락온, 재클릭 시 시전)` : `Lv.${skill.unlockLevel} 해금`}
             >
-              <div className="flex items-center justify-between text-[10px] sm:text-xs font-black font-cinzel leading-tight">
+              <div className="flex items-center justify-between text-xs sm:text-sm font-black font-cinzel leading-tight">
                 <span className="truncate">{unlocked ? skill.name.split(' ')[0] : '잠김'}</span>
-                <span className={`text-[8px] sm:text-[9px] font-mono font-black px-1 rounded ${
+                <span className={`text-[9px] sm:text-[10px] font-mono font-black px-1 rounded ${
                   isSelected ? 'bg-brass-400 text-iron-950' : 'bg-iron-950 text-amber-400 border border-iron-750'
                 }`}>
                   {unlocked ? `[${skill.hotkey}]` : `Lv.${skill.unlockLevel}`}
@@ -68,16 +68,16 @@ export const BattleSkillsBar: React.FC = React.memo(() => {
               </div>
 
               {unlocked && (
-                <div className="text-[8px] sm:text-[9px] font-mono text-amber-300 font-black truncate my-0.5">
+                <div className="text-[10px] sm:text-xs font-mono text-amber-300 font-black truncate my-0.5">
                   {dmgText}
                 </div>
               )}
 
-              <div className="flex justify-between items-center text-[8px] sm:text-[9px] font-mono text-gray-300">
+              <div className="flex justify-between items-center text-[9px] sm:text-[10px] font-mono text-gray-300">
                 <span className={`font-bold ${canAfford ? 'text-amber-300' : 'text-blood-400'}`}>
                   분노 {skill.rageCost > 0 ? skill.rageCost : '0'}
                 </span>
-                <span className="text-[8px] text-gray-400 font-bold bg-iron-950 px-1 rounded">
+                <span className="text-[9px] text-gray-400 font-bold bg-iron-950 px-1 rounded">
                   Lv.{sLevel}
                 </span>
               </div>
@@ -107,7 +107,7 @@ export const BattleSkillsBar: React.FC = React.memo(() => {
           }
         }}
         disabled={isAttacking || isEnemyTurn}
-        className={`px-3 sm:px-4 py-2 rounded-lg font-black text-xs md:text-sm flex flex-col items-center justify-center shadow-xl transition transform active:scale-95 flex-shrink-0 cursor-pointer min-w-[85px] sm:min-w-[100px] ${
+        className={`px-3.5 sm:px-5 py-2 rounded-lg font-black text-sm md:text-base flex flex-col items-center justify-center shadow-xl transition transform active:scale-95 flex-shrink-0 cursor-pointer min-w-[90px] sm:min-w-[110px] ${
           isCleared
             ? 'bg-gradient-to-r from-brass-600 to-amber-600 hover:from-brass-500 hover:to-amber-500 text-white ring-2 ring-brass-400 shadow-[0_0_15px_rgba(222,178,67,0.6)] animate-pulse'
             : isEnemyTurn
@@ -118,7 +118,7 @@ export const BattleSkillsBar: React.FC = React.memo(() => {
         }`}
       >
         <div className="flex items-center gap-1">
-          <Swords className="w-3.5 h-3.5 text-amber-300" />
+          <Swords className="w-4 h-4 text-amber-300" />
           <span>
             {isAttacking
               ? '처치 중...'
@@ -129,7 +129,7 @@ export const BattleSkillsBar: React.FC = React.memo(() => {
               : '공격'}
           </span>
         </div>
-        <span className="text-[9px] font-mono text-amber-200/90 font-bold">[Space]</span>
+        <span className="text-[10px] font-mono text-amber-200/90 font-bold">[Space]</span>
       </button>
     </div>
   );
