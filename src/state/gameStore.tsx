@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   ViewMode,
   ModalType,
@@ -27,7 +27,6 @@ import {
 } from '../data/gameData';
 import { ACHIEVEMENTS, INITIAL_ACHIEVEMENT_STATS, AchievementStats } from '../data/achievements';
 import { resolveAttack, createGoblin30Formation, findBestLaneForSkill, AttackResolution, CombatHitResult, createDungeonFormation } from '../combat/combatEngine';
-import { simulateRuneWordCrafting } from '../utils/runeCrafting';
 import { calculateTotalStats, CalculatedTotalStats } from './helpers/statCalculator';
 import { generateGambleItem, identifyItemHelper } from './helpers/itemGenerator';
 import { calculateRuneWordItem, craftRuneWordHelper, craftRuneWordWithTransmuteHelper, transmuteRuneInVaultHelper } from './helpers/runeWordCalculator';
@@ -42,7 +41,8 @@ import {
   DEFAULT_PLAYER_STATS,
   calculateMaxExp,
   encodeSaveData,
-  decodeSaveData
+  decodeSaveData,
+  SaveDataPayload
 } from './helpers/saveManager';
 import {
   claimAchievementHelper,
@@ -279,30 +279,53 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   }, [playerStats.level]);
   
-  // Auto-save to localStorage whenever persistent states change
+  const persistStateRef = useRef<SaveDataPayload | null>(null);
+  persistStateRef.current = {
+    playerStats,
+    equipment,
+    inventory,
+    runesVault,
+    consumables,
+    currentDungeonId: currentDungeon.id,
+    currentRoomId,
+    currentDifficulty,
+    maxUnlockedDifficulty,
+    skillRunes,
+    skillLevels,
+    achievementStats,
+    claimedAchievements
+  };
+
+  // Debounced autosave — HP/rage change every hit; writing JSON every frame stalls 1-core clients.
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    try {
-      const dataToSave = {
-        playerStats,
-        equipment,
-        inventory,
-        runesVault,
-        consumables,
-        currentDungeonId: currentDungeon.id,
-        currentRoomId,
-        currentDifficulty,
-        maxUnlockedDifficulty,
-        skillRunes,
-        skillLevels,
-        achievementStats,
-        claimedAchievements
-      };
-      localStorage.setItem(SAVE_KEY, JSON.stringify(dataToSave));
-    } catch (e) {
-      console.error('Failed to auto-save to localStorage', e);
-    }
-  }, [playerStats, equipment, inventory, runesVault, consumables, currentDungeon.id, currentRoomId, skillRunes, skillLevels, achievementStats, claimedAchievements]);
+    const timer = window.setTimeout(() => {
+      try {
+        const data = persistStateRef.current;
+        if (data) localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+      } catch (e) {
+        console.error('Failed to auto-save to localStorage', e);
+      }
+    }, 450);
+    return () => window.clearTimeout(timer);
+  }, [playerStats, equipment, inventory, runesVault, consumables, currentDungeon.id, currentRoomId, currentDifficulty, maxUnlockedDifficulty, skillRunes, skillLevels, achievementStats, claimedAchievements]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const flush = () => {
+      try {
+        const data = persistStateRef.current;
+        if (data) localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+      } catch { /* ignore */ }
+    };
+    const onVis = () => { if (document.hidden) flush(); };
+    window.addEventListener('beforeunload', flush);
+    document.addEventListener('visibilitychange', onVis);
+    return () => {
+      window.removeEventListener('beforeunload', flush);
+      document.removeEventListener('visibilitychange', onVis);
+    };
+  }, []);
 
   // Claim single achievement reward
   const claimAchievementReward = (achievementId: string) => {

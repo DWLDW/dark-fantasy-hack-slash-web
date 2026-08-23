@@ -4,14 +4,43 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#0a0d14" />
     <title>Dark Fantasy Loot RPG - Turn & Slash</title>
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <!-- Instant first paint: no white flash, no font block. System Korean first; webfonts load async. -->
+    <style>
+      html, body, #root { background: #0a0d14; margin: 0; min-height: 100%; color: #e5e7eb; }
+      #boot {
+        position: fixed; inset: 0; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; gap: 14px;
+        font-family: "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif;
+        pointer-events: none;
+      }
+      #boot b { letter-spacing: 0.18em; font-size: 12px; color: #deb243; font-weight: 700; }
+      #boot i {
+        width: 104px; height: 2px; background: #202637; display: block;
+        position: relative; overflow: hidden; border-radius: 1px;
+      }
+      #boot i::after {
+        content: ""; position: absolute; inset: 0 auto 0 0; width: 40%;
+        background: #deb243; animation: bootbar 1s ease-in-out infinite;
+      }
+      @keyframes bootbar { 0% { transform: translateX(-120%); } 100% { transform: translateX(280%); } }
+    </style>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Noto+Sans+KR:wght@400;700&display=swap"
+      media="print"
+      onload="this.media='all'"
+    >
+    <noscript>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Noto+Sans+KR:wght@400;700&display=swap">
+    </noscript>
   </head>
   <body class="bg-void text-gray-200 antialiased select-none font-sans overflow-x-hidden min-h-screen">
-    <div id="root"></div>
+    <div id="root">
+      <div id="boot"><b>DARK FANTASY</b><i></i></div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

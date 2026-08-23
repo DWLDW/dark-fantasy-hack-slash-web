@@ -1,13 +1,24 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, lazy, Suspense } from 'react';
 import { GameProvider, useGame } from './state/gameStore';
 import { TopHUD } from './components/layout/TopHUD';
 import { BottomDock } from './components/layout/BottomDock';
 import { GlobalModalHost } from './components/modals/GlobalModalHost';
 import { TownView } from './components/views/TownView';
-import { DungeonSelectView } from './components/views/DungeonSelectView';
-import { BattleView } from './components/views/BattleView';
-import { WARRIOR_SKILLS } from './data/gameData';
+import { WARRIOR_SKILLS } from './data/skills';
 import { startBGM, initAudio } from './utils/audio';
+
+const DungeonSelectView = lazy(() =>
+  import('./components/views/DungeonSelectView').then(m => ({ default: m.DungeonSelectView }))
+);
+const BattleView = lazy(() =>
+  import('./components/views/BattleView').then(m => ({ default: m.BattleView }))
+);
+
+const ViewFallback: React.FC = () => (
+  <div className="flex-1 flex items-center justify-center min-h-[40vh]">
+    <div className="w-8 h-8 border-2 border-brass-400 border-t-transparent rounded-full animate-spin" />
+  </div>
+);
 
 const MainLayout: React.FC = () => {
   const {
@@ -30,115 +41,172 @@ const MainLayout: React.FC = () => {
     claimShrine
   } = useGame();
 
-  // BGM Auto-Sync based on ViewMode & Room Type
+  const keysRef = useRef({
+    viewMode,
+    activeModal,
+    executeAttack,
+    selectSkillOrExecute,
+    setPlayerLane,
+    playerLane,
+    enterDungeon,
+    currentDungeon,
+    currentRoomId,
+    currentDifficulty,
+    selectNextRoom,
+    monsters,
+    useConsumable,
+    roomEventClaimed,
+    claimTreasure,
+    claimRuneAltar,
+    claimShrine
+  });
+  keysRef.current = {
+    viewMode,
+    activeModal,
+    executeAttack,
+    selectSkillOrExecute,
+    setPlayerLane,
+    playerLane,
+    enterDungeon,
+    currentDungeon,
+    currentRoomId,
+    currentDifficulty,
+    selectNextRoom,
+    monsters,
+    useConsumable,
+    roomEventClaimed,
+    claimTreasure,
+    claimRuneAltar,
+    claimShrine
+  };
+
   useEffect(() => {
-    const handleFirstInteraction = () => {
+    const onFirst = () => {
       initAudio();
-      window.removeEventListener('click', handleFirstInteraction);
-      window.removeEventListener('keydown', handleFirstInteraction);
+      window.removeEventListener('click', onFirst);
+      window.removeEventListener('keydown', onFirst);
     };
-    window.addEventListener('click', handleFirstInteraction);
-    window.addEventListener('keydown', handleFirstInteraction);
+    window.addEventListener('click', onFirst);
+    window.addEventListener('keydown', onFirst);
+    return () => {
+      window.removeEventListener('click', onFirst);
+      window.removeEventListener('keydown', onFirst);
+    };
+  }, []);
 
-    if (viewMode === 'town' || viewMode === 'dungeon_select') {
-      startBGM('town');
-    } else if (viewMode === 'battle') {
-      const currentRoom = currentDungeon?.rooms?.find(r => r.id === currentRoomId);
-      if (currentRoom?.type === 'boss') {
-        startBGM('boss');
-      } else {
-        startBGM('dungeon');
-      }
+  const bgmMode =
+    viewMode === 'battle'
+      ? currentDungeon?.rooms?.find(r => r.id === currentRoomId)?.type === 'boss'
+        ? 'boss'
+        : 'dungeon'
+      : 'town';
+
+  useEffect(() => {
+    startBGM(bgmMode);
+  }, [bgmMode]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const prefetch = () => {
+      if (cancelled) return;
+      void import('./components/views/BattleView');
+      void import('./components/views/DungeonSelectView');
+    };
+    let idleId: number | null = null;
+    let timeoutId: number | null = null;
+    if (typeof window.requestIdleCallback === 'function') {
+      idleId = window.requestIdleCallback(prefetch);
+    } else {
+      timeoutId = window.setTimeout(prefetch, 500);
     }
-  }, [viewMode, currentDungeon, currentRoomId]);
+    return () => {
+      cancelled = true;
+      if (idleId !== null && typeof window.cancelIdleCallback === 'function') {
+        window.cancelIdleCallback(idleId);
+      }
+      if (timeoutId !== null) window.clearTimeout(timeoutId);
+    };
+  }, []);
 
-  // Global Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if typing in input
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      const g = keysRef.current;
 
-      // Space / Enter: Execute attack, claim event, or advance to next room
       if (e.code === 'Space' || e.code === 'Enter') {
         e.preventDefault();
-        if (viewMode === 'battle') {
-          if (monsters.length === 0) {
-            const currentRoom = currentDungeon.rooms.find(r => r.id === currentRoomId);
+        if (g.viewMode === 'battle') {
+          if (g.monsters.length === 0) {
+            const currentRoom = g.currentDungeon.rooms.find(r => r.id === g.currentRoomId);
             const isEventRoom = currentRoom && (currentRoom.type === 'treasure' || currentRoom.type === 'rune' || currentRoom.type === 'shrine');
 
-            // 1. If in an interactive room and not yet claimed -> claim reward first!
-            if (isEventRoom && !roomEventClaimed) {
-              if (currentRoom.type === 'treasure') claimTreasure();
-              else if (currentRoom.type === 'rune') claimRuneAltar();
-              else if (currentRoom.type === 'shrine') claimShrine('fortune');
+            if (isEventRoom && !g.roomEventClaimed) {
+              if (currentRoom.type === 'treasure') g.claimTreasure();
+              else if (currentRoom.type === 'rune') g.claimRuneAltar();
+              else if (currentRoom.type === 'shrine') g.claimShrine('fortune');
               return;
             }
 
-            // 2. Otherwise advance to connected room
             if (currentRoom && currentRoom.connections && currentRoom.connections.length > 0) {
-              selectNextRoom(currentRoom.connections[0]);
+              g.selectNextRoom(currentRoom.connections[0]);
             }
           } else {
-            executeAttack();
+            g.executeAttack();
           }
-        } else if (viewMode === 'town') {
-          enterDungeon(currentDungeon.id, currentDifficulty);
+        } else if (g.viewMode === 'town') {
+          g.enterDungeon(g.currentDungeon.id, g.currentDifficulty);
         }
         return;
       }
 
-      // Arrow Left / Arrow Right: Lane Shift
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
-        if (viewMode === 'battle') {
-          setPlayerLane(Math.max(0, playerLane - 1));
-        }
+        if (g.viewMode === 'battle') g.setPlayerLane(Math.max(0, g.playerLane - 1));
         return;
       }
       if (e.key === 'ArrowRight') {
         e.preventDefault();
-        if (viewMode === 'battle') {
-          setPlayerLane(Math.min(4, playerLane + 1));
-        }
+        if (g.viewMode === 'battle') g.setPlayerLane(Math.min(4, g.playerLane + 1));
         return;
       }
 
-      // 1, 2, 3, 4: Quick Consumables
       if (['1', '2', '3', '4'].includes(e.key)) {
-        useConsumable(e.key);
+        g.useConsumable(e.key);
         return;
       }
 
-      // Q, W, E, R: Skill Selection & Double-tap Instant Cast
-      if (viewMode === 'battle' && !activeModal) {
+      if (g.viewMode === 'battle' && !g.activeModal) {
         const key = e.key.toLowerCase();
-        if (key === 'q') selectSkillOrExecute(WARRIOR_SKILLS[0]);
-        if (key === 'w') selectSkillOrExecute(WARRIOR_SKILLS[1]);
-        if (key === 'e') selectSkillOrExecute(WARRIOR_SKILLS[2]);
-        if (key === 'r') selectSkillOrExecute(WARRIOR_SKILLS[3]);
+        if (key === 'q') g.selectSkillOrExecute(WARRIOR_SKILLS[0]);
+        if (key === 'w') g.selectSkillOrExecute(WARRIOR_SKILLS[1]);
+        if (key === 'e') g.selectSkillOrExecute(WARRIOR_SKILLS[2]);
+        if (key === 'r') g.selectSkillOrExecute(WARRIOR_SKILLS[3]);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [viewMode, activeModal, executeAttack, selectSkillOrExecute, setPlayerLane, playerLane, enterDungeon, currentDungeon, currentRoomId, currentDifficulty, selectNextRoom, monsters, useConsumable, roomEventClaimed, claimTreasure, claimRuneAltar, claimShrine]);
+  }, []);
 
   return (
     <div className="min-h-screen bg-void flex flex-col justify-between relative overflow-x-hidden text-gray-200">
-      {/* Top Fixed HUD */}
       <TopHUD />
 
-      {/* Main View Area */}
       <main className="flex-1 w-full flex flex-col justify-center">
         {viewMode === 'town' && <TownView />}
-        {viewMode === 'dungeon_select' && <DungeonSelectView />}
-        {viewMode === 'battle' && <BattleView />}
+        {viewMode === 'dungeon_select' && (
+          <Suspense fallback={<ViewFallback />}>
+            <DungeonSelectView />
+          </Suspense>
+        )}
+        {viewMode === 'battle' && (
+          <Suspense fallback={<ViewFallback />}>
+            <BattleView />
+          </Suspense>
+        )}
       </main>
 
-      {/* Bottom Global Dock & Hotkey Bar */}
       <BottomDock />
-
-      {/* Modal / Popup Overlays */}
       <GlobalModalHost />
     </div>
   );

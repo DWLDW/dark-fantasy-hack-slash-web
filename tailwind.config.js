@@ -46,9 +46,9 @@ export default {
         }
       },
       fontFamily: {
-        cinzel: ['Cinzel', 'serif'],
-        sans: ['Noto Sans KR', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-        mono: ['JetBrains Mono', 'ui-monospace', 'Menlo', 'Monaco', 'Consolas', 'monospace']
+        cinzel: ['Cinzel', 'Palatino Linotype', 'Palatino', 'serif'],
+        sans: ['Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        mono: ['ui-monospace', 'JetBrains Mono', 'Menlo', 'Monaco', 'Consolas', 'monospace']
       },
       keyframes: {
         'hit-shake': {

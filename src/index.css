@@ -5,13 +5,13 @@
 @layer base {
   body {
     @apply bg-void text-gray-100 antialiased selection:bg-blood-700 selection:text-white;
-    font-family: 'Noto Sans KR', system-ui, -apple-system, sans-serif;
+    font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', system-ui, sans-serif;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
   }
 
   h1, h2, h3, h4, .font-cinzel {
-    font-family: 'Cinzel', serif;
+    font-family: 'Cinzel', 'Palatino Linotype', Palatino, serif;
     letter-spacing: 0.025em;
   }
 

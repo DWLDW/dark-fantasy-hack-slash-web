@@ -10,7 +10,12 @@ export default defineConfig({
   build: {
     target: 'es2022',
     cssCodeSplit: true,
+    sourcemap: false,
+    minify: 'esbuild',
+    cssMinify: true,
+    assetsInlineLimit: 4096,
     chunkSizeWarningLimit: 600,
+    modulePreload: { polyfill: false },
     rollupOptions: {
       output: {
         manualChunks(id) {
