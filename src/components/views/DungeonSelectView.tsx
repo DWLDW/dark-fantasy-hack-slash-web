@@ -52,7 +52,7 @@ export const DungeonSelectView: React.FC = React.memo(() => {
   const mfBonus = (selectedDifficulty - 1) * 3;
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-3 sm:p-5 flex flex-col justify-between min-h-[calc(100dvh-5.5rem)] pb-28 sm:pb-20 text-gray-200 select-none font-sans">
+    <div className="w-full max-w-6xl mx-auto p-2.5 sm:p-5 flex flex-col justify-between min-h-[calc(100dvh-5.5rem)] pb-44 sm:pb-24 text-gray-200 select-none font-sans">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-iron-750 pb-3 mb-3">
         <div className="flex items-center gap-2.5">
@@ -63,7 +63,7 @@ export const DungeonSelectView: React.FC = React.memo(() => {
             <h1 className="text-base sm:text-xl font-cinzel font-black text-white tracking-wider">
               성역 월드맵 & 원정 게이트
             </h1>
-            <p className="text-xs text-gray-400 font-mono">
+            <p className="text-[10px] sm:text-xs text-gray-400 font-mono hidden sm:block">
               각 액트의 4개 던전을 순차적으로 공략하여 상위 액트로 진출하세요.
             </p>
           </div>
@@ -300,7 +300,7 @@ export const DungeonSelectView: React.FC = React.memo(() => {
           </div>
 
           {/* Action Deploy Button */}
-          <div className="pt-2 border-t border-iron-750">
+          <div className="pt-2.5 border-t border-iron-750 mb-6 sm:mb-0">
             {isCurrentDungeonUnlocked ? (
               <button
                 onClick={() => enterDungeon(selectedDungeon.id, selectedDifficulty)}

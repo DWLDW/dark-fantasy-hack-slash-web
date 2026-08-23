@@ -77,14 +77,14 @@ export const TownView: React.FC = React.memo(() => {
   const unidentifiedCount = inventory.filter(i => i.isIdentified === false).length;
 
   return (
-    <div className="max-w-7xl mx-auto p-2 sm:p-4 md:p-6 space-y-3 pb-20 select-none overflow-x-hidden">
+    <div className="max-w-7xl mx-auto p-2 sm:p-4 md:p-6 space-y-2.5 sm:space-y-3 pb-20 sm:pb-24 select-none overflow-x-hidden">
       {/* Top Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-iron-750 pb-2.5">
         <div>
           <h1 className="text-lg md:text-2xl font-cinzel font-black text-brass-200 flex items-center gap-2">
             <span>로그 캠프 (Rogue Encampment)</span>
           </h1>
-          <p className="text-[11px] md:text-xs text-gray-300 mt-0.5">
+          <p className="hidden sm:block text-[11px] md:text-xs text-gray-300 mt-0.5">
             데커드 케인에게 장비를 감정받고, 기드의 상점에서 도박을 즐기며 룬워드와 큐브로 파밍을 준비하세요.
           </p>
         </div>
@@ -768,103 +768,7 @@ export const TownView: React.FC = React.memo(() => {
                     </div>
                   </div>
                 </div>
-                                {/* 4대 호라드릭 영구 시설 강화 */}
-                <div className="p-3 bg-gradient-to-b from-purple-950/60 via-iron-950 to-iron-950 rounded-lg border-2 border-purple-500/70 space-y-2 shadow-lg mb-3">
-                  <div className="flex items-center justify-between border-b border-purple-800/60 pb-1">
-                    <span className="font-cinzel font-black text-xs text-purple-200 flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-amber-400" />
-                      호라드릭 영구 편의 강화 (골드 연구소)
-                    </span>
-                    <span className="text-[10px] font-mono text-amber-300 font-bold">보유: {playerStats.gold.toLocaleString()} G</span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {/* 1. Potion Max */}
-                    <div className="p-2 bg-iron-900/90 rounded border border-iron-750 flex flex-col justify-between space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-xs text-rose-300">🧪 물약 상한</span>
-                        <span className="text-[10px] font-mono font-black text-amber-300 bg-iron-950 px-1 rounded border border-iron-800">
-                          Lv.{townUpgrades.potionCapacityLevel}/5 ({POTION_CAPACITY_TIERS[townUpgrades.potionCapacityLevel] || 3}개)
-                        </span>
-                      </div>
-                      {getPotionCapacityUpgradeCost(townUpgrades.potionCapacityLevel) !== null ? (
-                        <button
-                          onClick={() => upgradeTownFacility('potionCapacity')}
-                          disabled={playerStats.gold < (getPotionCapacityUpgradeCost(townUpgrades.potionCapacityLevel) || 0)}
-                          className="w-full py-1 rounded bg-amber-600 hover:bg-amber-500 disabled:bg-iron-800 disabled:text-gray-600 text-iron-950 font-black text-[10px] transition shadow cursor-pointer"
-                        >
-                          강화 ({getPotionCapacityUpgradeCost(townUpgrades.potionCapacityLevel)?.toLocaleString()} G)
-                        </button>
-                      ) : (
-                        <div className="text-center text-[10px] font-mono font-bold text-emerald-400 bg-iron-950 py-0.5 rounded border border-iron-800">MAX</div>
-                      )}
-                    </div>
-
-                    {/* 2. Potion Healing */}
-                    <div className="p-2 bg-iron-900/90 rounded border border-iron-750 flex flex-col justify-between space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-xs text-rose-300">💖 물약 회복량</span>
-                        <span className="text-[10px] font-mono font-black text-amber-300 bg-iron-950 px-1 rounded border border-iron-800">
-                          Lv.{townUpgrades.potionHealingLevel}/10 (+{townUpgrades.potionHealingLevel * 15} HP)
-                        </span>
-                      </div>
-                      {getPotionHealingUpgradeCost(townUpgrades.potionHealingLevel) !== null ? (
-                        <button
-                          onClick={() => upgradeTownFacility('potionHealing')}
-                          disabled={playerStats.gold < (getPotionHealingUpgradeCost(townUpgrades.potionHealingLevel) || 0)}
-                          className="w-full py-1 rounded bg-amber-600 hover:bg-amber-500 disabled:bg-iron-800 disabled:text-gray-600 text-iron-950 font-black text-[10px] transition shadow cursor-pointer"
-                        >
-                          강화 ({getPotionHealingUpgradeCost(townUpgrades.potionHealingLevel)?.toLocaleString()} G)
-                        </button>
-                      ) : (
-                        <div className="text-center text-[10px] font-mono font-bold text-emerald-400 bg-iron-950 py-0.5 rounded border border-iron-800">MAX</div>
-                      )}
-                    </div>
-
-                    {/* 3. Consumable Power */}
-                    <div className="p-2 bg-iron-900/90 rounded border border-iron-750 flex flex-col justify-between space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-xs text-blue-300">🛡️ 소모품 연금술</span>
-                        <span className="text-[10px] font-mono font-black text-amber-300 bg-iron-950 px-1 rounded border border-iron-800">
-                          Lv.{townUpgrades.consumablePowerLevel}/10
-                        </span>
-                      </div>
-                      {getConsumablePowerUpgradeCost(townUpgrades.consumablePowerLevel) !== null ? (
-                        <button
-                          onClick={() => upgradeTownFacility('consumablePower')}
-                          disabled={playerStats.gold < (getConsumablePowerUpgradeCost(townUpgrades.consumablePowerLevel) || 0)}
-                          className="w-full py-1 rounded bg-amber-600 hover:bg-amber-500 disabled:bg-iron-800 disabled:text-gray-600 text-iron-950 font-black text-[10px] transition shadow cursor-pointer"
-                        >
-                          강화 ({getConsumablePowerUpgradeCost(townUpgrades.consumablePowerLevel)?.toLocaleString()} G)
-                        </button>
-                      ) : (
-                        <div className="text-center text-[10px] font-mono font-bold text-emerald-400 bg-iron-950 py-0.5 rounded border border-iron-800">MAX</div>
-                      )}
-                    </div>
-
-                    {/* 4. Gamble Level */}
-                    <div className="p-2 bg-iron-900/90 rounded border border-iron-750 flex flex-col justify-between space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-xs text-yellow-300">🎪 도박장 레벨</span>
-                        <span className="text-[10px] font-mono font-black text-amber-300 bg-iron-950 px-1 rounded border border-iron-800">
-                          Lv.{townUpgrades.gambleLevel}/5
-                        </span>
-                      </div>
-                      {getGambleLevelUpgradeCost(townUpgrades.gambleLevel) !== null ? (
-                        <button
-                          onClick={() => upgradeTownFacility('gambleLevel')}
-                          disabled={playerStats.gold < (getGambleLevelUpgradeCost(townUpgrades.gambleLevel) || 0)}
-                          className="w-full py-1 rounded bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 disabled:bg-iron-800 disabled:text-gray-600 text-iron-950 font-black text-[10px] transition shadow cursor-pointer"
-                        >
-                          강화 ({getGambleLevelUpgradeCost(townUpgrades.gambleLevel)?.toLocaleString()} G)
-                        </button>
-                      ) : (
-                        <div className="text-center text-[10px] font-mono font-bold text-emerald-400 bg-iron-950 py-0.5 rounded border border-iron-800">MAX</div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                {/* Selected in Cube */}
+                                {/* Selected in Cube */}
                 <div className="p-3 bg-iron-950 rounded-lg border-2 border-iron-750 space-y-2">
                   <div className="font-bold text-gray-200 flex justify-between">
                     <span>큐브 속 재료 ({selectedCubeItems.length}/3):</span>
