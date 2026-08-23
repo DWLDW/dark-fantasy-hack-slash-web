@@ -31,11 +31,11 @@ export const ConfirmModal: React.FC = React.memo(() => {
   return (
     <div
       onClick={closeConfirmModal}
-      className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in font-sans select-none"
+      className="fixed inset-0 z-[9999] bg-black/85 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in font-sans select-none"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className={`bg-iron-950 border-2 rounded-xl p-5 sm:p-6 max-w-sm sm:max-w-md w-full shadow-[0_0_50px_rgba(0,0,0,0.9)] space-y-4 animate-scale-in text-gray-200 ${
+        className={`bg-iron-950 border-2 rounded-xl p-5 sm:p-6 max-w-sm sm:max-w-md w-full shadow-[0_0_50px_rgba(0,0,0,0.9)] space-y-4 animate-scale-in text-gray-200 relative z-[10000] ${
           isDanger
             ? 'border-blood-500 ring-2 ring-blood-500/50 shadow-[0_0_30px_rgba(239,68,68,0.35)]'
             : 'border-amber-400 ring-2 ring-amber-400/50 shadow-[0_0_30px_rgba(251,191,36,0.35)]'
