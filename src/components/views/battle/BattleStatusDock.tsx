@@ -44,18 +44,19 @@ export const BattleStatusDock: React.FC<BattleStatusDockProps> = React.memo(({
   const expectedNextHp = Math.max(0, playerStats.hp - dmgToHp);
 
   return (
-    <div className="space-y-2 select-none font-sans">
-      {/* ROW 2: Horizontal Dual Gauges (ㅡ 형태 LIFE / RAGE) & Consumables Quick Belt */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-2 pt-1 border-t border-iron-800">
+    <div className="space-y-1.5 select-none font-sans flex-shrink-0">
+      {/* ROW 2: Strictly Fixed Horizontal Dual Gauges (ㅡ LIFE / RAGE) & Consumables Quick Belt */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-2 pt-1 border-t border-iron-800 items-center">
         
-        {/* Gauges Column (ㅡ Horizontal Bars) */}
-        <div className="md:col-span-7 space-y-1.5 relative">
-          {/* LIFE Gauge Bar (ㅡ 형태) */}
+        {/* Gauges Column (Rock-Solid Fixed ㅡ Horizontal Bars) */}
+        <div className="md:col-span-7 space-y-1 relative">
+          
+          {/* LIFE Gauge Bar (Strictly Fixed 30px Height, Zero Jitter) */}
           <div className="relative">
             {lifeFloater && (
               <div
                 key={lifeFloater.id}
-                className={`absolute -top-6 right-2 z-50 font-mono font-black text-xs pointer-events-none animate-bounce drop-shadow px-2 py-0.2 rounded ${
+                className={`absolute -top-5 right-2 z-50 font-mono font-black text-xs pointer-events-none animate-bounce drop-shadow px-2 py-0.2 rounded ${
                   lifeFloater.type === 'damage'
                     ? 'text-red-300 bg-red-950/95 border border-red-500'
                     : 'text-emerald-300 bg-emerald-950/95 border border-emerald-400'
@@ -65,10 +66,10 @@ export const BattleStatusDock: React.FC<BattleStatusDockProps> = React.memo(({
               </div>
             )}
 
-            <div className={`w-full h-7 sm:h-8 rounded-lg bg-iron-950 border-2 relative overflow-hidden flex items-center justify-between px-2.5 shadow-inner ${
+            <div className={`w-full h-7 sm:h-8 rounded-lg bg-iron-950 border-2 relative overflow-hidden flex items-center justify-between px-2.5 shadow-inner transition-colors duration-200 ${
               isLowHp
-                ? 'border-red-500 ring-2 ring-red-500 shadow-[0_0_15px_rgba(239,68,68,0.8)] animate-pulse'
-                : 'border-red-800/80 shadow-[0_0_10px_rgba(220,38,38,0.3)]'
+                ? 'border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.85)]'
+                : 'border-red-800/80 shadow-[0_0_10px_rgba(220,38,38,0.25)]'
             }`}>
               {/* Solid Remaining HP Bar */}
               <div
@@ -95,33 +96,42 @@ export const BattleStatusDock: React.FC<BattleStatusDockProps> = React.memo(({
               {/* Glass Highlight */}
               <div className="absolute inset-0 bg-gradient-to-b from-white/15 via-transparent to-black/40 pointer-events-none" />
 
-              {/* Content Overlay */}
-              <div className="relative z-10 font-mono font-black text-xs text-rose-100 flex items-center gap-1.5 drop-shadow">
+              {/* 1. Left Label Slot (Strictly Fixed 70px) */}
+              <div className="relative z-10 font-mono font-black text-xs text-rose-100 flex items-center gap-1 drop-shadow w-[70px] flex-shrink-0">
                 <span>❤️ LIFE</span>
                 {shieldAmount > 0 && (
-                  <span className="text-[10px] text-cyan-300 font-bold bg-cyan-950/80 px-1 rounded border border-cyan-600">
-                    🛡️+{shieldAmount}
-                  </span>
-                )}
-                {expectedIncomingDmg > 0 && !isCleared && (
-                  <span className="text-[9px] text-red-200 font-bold bg-red-950/90 px-1 py-0.2 rounded border border-red-500 animate-pulse">
-                    피격 -{expectedIncomingDmg}
+                  <span className="text-[9px] text-cyan-300 font-bold bg-cyan-950/90 px-1 rounded border border-cyan-600">
+                    +🛡️
                   </span>
                 )}
               </div>
 
-              <div className="relative z-10 font-mono font-black text-xs sm:text-sm text-white drop-shadow">
+              {/* 2. Center Status Slot (Flexible center notification) */}
+              <div className="relative z-10 font-mono font-bold text-[9px] text-center flex-1 truncate px-1">
+                {expectedIncomingDmg > 0 && !isCleared ? (
+                  <span className="text-red-200 bg-red-950/90 px-1.5 py-0.2 rounded border border-red-500 animate-pulse">
+                    피격 -{expectedIncomingDmg}
+                  </span>
+                ) : shieldAmount > 0 ? (
+                  <span className="text-cyan-300 font-mono">
+                    쉴드 {shieldAmount}
+                  </span>
+                ) : null}
+              </div>
+
+              {/* 3. Right Value Slot (Strictly Fixed 90px, Zero Shift) */}
+              <div className="relative z-10 font-mono font-black text-xs sm:text-sm text-white drop-shadow w-[90px] text-right flex-shrink-0">
                 {playerStats.hp} <span className="text-[10px] text-rose-200/80 font-bold">/ {playerStats.maxHp}</span>
               </div>
             </div>
           </div>
 
-          {/* RAGE Gauge Bar (ㅡ 형태) */}
+          {/* RAGE Gauge Bar (Strictly Fixed 26px Height, Zero Jitter) */}
           <div className="relative">
             {rageFloater && (
               <div
                 key={rageFloater.id}
-                className="absolute -top-6 right-2 z-50 font-mono font-black text-xs pointer-events-none animate-bounce drop-shadow px-2 py-0.2 rounded text-amber-300 bg-amber-950/95 border border-amber-500"
+                className="absolute -top-5 right-2 z-50 font-mono font-black text-xs pointer-events-none animate-bounce drop-shadow px-2 py-0.2 rounded text-amber-300 bg-amber-950/95 border border-amber-500"
               >
                 {rageFloater.text}
               </div>
@@ -137,19 +147,25 @@ export const BattleStatusDock: React.FC<BattleStatusDockProps> = React.memo(({
               {/* Glass Highlight */}
               <div className="absolute inset-0 bg-gradient-to-b from-white/15 via-transparent to-black/40 pointer-events-none" />
 
-              {/* Content Overlay */}
-              <div className="relative z-10 font-mono font-black text-xs text-amber-100 flex items-center gap-1.5 drop-shadow">
+              {/* 1. Left Label Slot (Strictly Fixed 70px) */}
+              <div className="relative z-10 font-mono font-black text-xs text-amber-100 flex items-center gap-1 drop-shadow w-[70px] flex-shrink-0">
                 <span>🔥 RAGE</span>
               </div>
 
-              <div className="relative z-10 font-mono font-black text-xs sm:text-sm text-white drop-shadow">
+              {/* 2. Center Status Slot */}
+              <div className="relative z-10 font-mono text-[9px] text-amber-200/70 text-center flex-1 truncate px-1">
+                {playerStats.rage >= playerStats.maxRage ? '⚡ MAX RAGE' : ''}
+              </div>
+
+              {/* 3. Right Value Slot (Strictly Fixed 90px, Zero Shift) */}
+              <div className="relative z-10 font-mono font-black text-xs sm:text-sm text-white drop-shadow w-[90px] text-right flex-shrink-0">
                 {playerStats.rage} <span className="text-[10px] text-amber-200/80 font-bold">/ {playerStats.maxRage}</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Consumables Quick Belt (소모품 1 2 3 4) Column with Concise Mobile Summaries */}
+        {/* Consumables Quick Belt (소모품 1 2 3 4) Column */}
         <div className="md:col-span-5 flex flex-col justify-between space-y-1 font-mono">
           <div className="grid grid-cols-4 gap-1.5 h-full">
             {consumables.map(item => {
