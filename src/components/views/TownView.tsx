@@ -267,7 +267,7 @@ export const TownView: React.FC = React.memo(() => {
         </div>
 
         {/* Col 2 (5 Cols): D2 Facilities (Cain first, Gamble second, RuneWords third, Horadric Cube fourth) */}
-        <div className="w-full lg:col-span-5 bg-iron-900/90 p-3 sm:p-4 rounded-lg border-2 border-iron-750 flex flex-col shadow-md">
+        <div className="w-full lg:col-span-5 bg-iron-900/90 p-3 sm:p-4 rounded-lg border-2 border-iron-750 flex flex-col shadow-md min-h-[440px]">
           {/* Facility Nav Tabs */}
           <div className="flex border-b border-iron-750 gap-1.5 pb-2.5">
             {/* 1. DECKARD CAIN (맨 앞) */}

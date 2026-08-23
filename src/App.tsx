@@ -252,7 +252,7 @@ const MainLayout: React.FC = () => {
     <div className="min-h-screen bg-void flex flex-col justify-between relative overflow-x-hidden text-gray-200">
       <TopHUD />
 
-      <main className="flex-1 w-full flex flex-col justify-center">
+      <main className="flex-1 w-full flex flex-col justify-start">
         {viewMode === 'town' && <TownView />}
         {viewMode === 'dungeon_select' && (
           <Suspense fallback={<ViewFallback />}>
