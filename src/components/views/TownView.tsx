@@ -99,7 +99,7 @@ export const TownView: React.FC = React.memo(() => {
           </button>
 
           <button
-            onClick={() => setViewMode('dungeon_select')}
+            data-tutorial="dungeon_select" onClick={() => setViewMode('dungeon_select')}
             className="px-3 py-1.5 bg-iron-850 hover:bg-iron-750 border border-iron-600 text-gray-200 hover:text-white rounded text-xs font-bold flex items-center gap-1.5 transition shadow cursor-pointer"
           >
             <Compass className="w-3.5 h-3.5 text-amber-400" />
@@ -107,7 +107,7 @@ export const TownView: React.FC = React.memo(() => {
           </button>
           
           <button
-            onClick={() => enterDungeon(lastDungeon.id, currentDifficulty)}
+            data-tutorial="deploy" onClick={() => enterDungeon(lastDungeon.id, currentDifficulty)}
             className="px-4 py-1.5 bg-gradient-to-r from-blood-700 via-blood-600 to-amber-600 hover:from-blood-600 hover:to-amber-500 text-white font-black rounded text-xs flex items-center gap-1.5 shadow-xl ring-1 ring-amber-400/60 transition transform active:scale-95 animate-pulse cursor-pointer"
             title={`이전 던전 [${lastDungeon.name.split(":")[0]}] (난이도 Lv.${currentDifficulty})으로 즉시 출격`}
           >
@@ -267,7 +267,7 @@ export const TownView: React.FC = React.memo(() => {
           <div className="flex border-b border-iron-750 gap-1.5 pb-2.5">
             {/* 1. DECKARD CAIN (맨 앞) */}
             <button
-              onClick={() => setActiveFacility('cain')}
+              data-tutorial="cain" onClick={() => setActiveFacility('cain')}
               className={`flex-1 py-2 px-1 sm:px-2 rounded text-xs font-black flex items-center justify-center gap-1 sm:gap-1.5 transition relative cursor-pointer ${
                 activeFacility === 'cain'
                   ? 'bg-blood-950 text-brass-200 border-2 border-brass-400 shadow-md ring-1 ring-brass-400/50'
@@ -285,7 +285,7 @@ export const TownView: React.FC = React.memo(() => {
 
             {/* 2. GHEED GAMBLE */}
             <button
-              onClick={() => setActiveFacility('gamble')}
+              data-tutorial="gheed" onClick={() => setActiveFacility('gamble')}
               className={`flex-1 py-2 px-1 sm:px-2 rounded text-xs font-black flex items-center justify-center gap-1 sm:gap-1.5 transition cursor-pointer ${
                 activeFacility === 'gamble'
                   ? 'bg-blood-950 text-brass-200 border-2 border-brass-400 shadow-md ring-1 ring-brass-400/50'
@@ -298,7 +298,7 @@ export const TownView: React.FC = React.memo(() => {
 
             {/* 3. RUNEWORDS */}
             <button
-              onClick={() => setActiveFacility('runewords')}
+              data-tutorial="runewords" onClick={() => setActiveFacility('runewords')}
               className={`flex-1 py-2 px-1 sm:px-2 rounded text-xs font-black flex items-center justify-center gap-1 sm:gap-1.5 transition cursor-pointer ${
                 activeFacility === 'runewords'
                   ? 'bg-blood-950 text-brass-200 border-2 border-brass-400 shadow-md ring-1 ring-brass-400/50'

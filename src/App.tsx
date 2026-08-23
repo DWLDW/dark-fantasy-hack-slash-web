@@ -3,6 +3,7 @@ import { GameProvider, useGame } from './state/gameStore';
 import { TopHUD } from './components/layout/TopHUD';
 import { BottomDock } from './components/layout/BottomDock';
 import { GlobalModalHost } from './components/modals/GlobalModalHost';
+import { InteractiveTutorial } from './components/tutorial/InteractiveTutorial';
 import { TownView } from './components/views/TownView';
 
 import { startBGM, initAudio } from './utils/audio';
@@ -235,6 +236,7 @@ const MainLayout: React.FC = () => {
 
       <BottomDock />
       <GlobalModalHost />
+      <InteractiveTutorial />
     </div>
   );
 };

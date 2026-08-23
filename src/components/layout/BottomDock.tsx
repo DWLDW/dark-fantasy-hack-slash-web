@@ -70,7 +70,7 @@ export const BottomDock: React.FC = React.memo(() => {
         <div className="flex items-center space-x-2 md:space-x-4">
           {/* Character [C] */}
           <button
-            onClick={() => activeModal === 'character' ? closeModal() : openModal('character')}
+            data-tutorial="stats" onClick={() => activeModal === 'character' ? closeModal() : openModal('character')}
             className={`relative flex flex-col md:flex-row items-center gap-2 px-3.5 py-1.5 rounded transition text-xs font-bold ${
               activeModal === 'character'
                 ? 'bg-brass-500/30 text-brass-100 border-2 border-brass-400 shadow-lg'
@@ -90,7 +90,7 @@ export const BottomDock: React.FC = React.memo(() => {
 
           {/* Inventory [I] */}
           <button
-            onClick={() => activeModal === 'inventory' ? closeModal() : openModal('inventory')}
+            data-tutorial="inventory" onClick={() => activeModal === 'inventory' ? closeModal() : openModal('inventory')}
             className={`flex flex-col md:flex-row items-center gap-2 px-3.5 py-1.5 rounded transition text-xs font-bold ${
               activeModal === 'inventory'
                 ? 'bg-brass-500/30 text-brass-100 border-2 border-brass-400 shadow-lg'
@@ -107,7 +107,7 @@ export const BottomDock: React.FC = React.memo(() => {
 
           {/* Skill & Rune [K] */}
           <button
-            onClick={() => activeModal === 'skills' ? closeModal() : openModal('skills')}
+            data-tutorial="skills" onClick={() => activeModal === 'skills' ? closeModal() : openModal('skills')}
             className={`relative flex flex-col md:flex-row items-center gap-2 px-3.5 py-1.5 rounded transition text-xs font-bold ${
               activeModal === 'skills'
                 ? 'bg-brass-500/30 text-brass-100 border-2 border-brass-400 shadow-lg'

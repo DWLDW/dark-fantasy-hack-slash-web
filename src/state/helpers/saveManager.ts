@@ -47,6 +47,7 @@ export interface SaveDataPayload {
   maxUnlockedDifficulty?: number;
   achievementStats?: AchievementStats;
   claimedAchievements?: string[];
+  hasSeenTutorial?: boolean;
   timestamp?: number;
 }
 

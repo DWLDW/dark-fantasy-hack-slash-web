@@ -201,6 +201,14 @@ interface GameContextType {
   claimRuneAltar: () => { runeName: string; count: number } | null;
   claimShrine: (buffType: 'fortune' | 'crit' | 'defense') => void;
 
+  // Interactive Onboarding Tutorial
+  hasSeenTutorial: boolean;
+  isTutorialOpen: boolean;
+  tutorialStep: number;
+  startTutorial: () => void;
+  completeTutorial: () => void;
+  setTutorialStep: (step: number) => void;
+
   // Achievement System
   achievementStats: AchievementStats;
   claimedAchievements: string[];
@@ -253,6 +261,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [maxUnlockedDifficulty, setMaxUnlockedDifficulty] = useState<number>(() => savedData?.maxUnlockedDifficulty || 1);
   const [latestRoomLootEvent, setLatestRoomLootEvent] = useState<RoomLootEvent | null>(null);
   const clearLatestRoomLootEvent = () => setLatestRoomLootEvent(null);
+  const [hasSeenTutorial, setHasSeenTutorial] = useState<boolean>(() => savedData?.hasSeenTutorial ?? false);
+  const [isTutorialOpen, setIsTutorialOpen] = useState<boolean>(() => !(savedData?.hasSeenTutorial ?? false));
+  const [tutorialStep, setTutorialStep] = useState<number>(0);
   const [equippedSkillSlots, setEquippedSkillSlots] = useState<Record<string, string>>(() => ({
     ...DEFAULT_EQUIPPED_SLOTS,
     ...(savedData?.equippedSkillSlots || {})
@@ -304,7 +315,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     skillRunes,
     skillLevels,
     achievementStats,
-    claimedAchievements
+    claimedAchievements,
+    hasSeenTutorial
   };
 
   // Debounced autosave — HP/rage change every hit; writing JSON every frame stalls 1-core clients.
@@ -628,6 +640,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       maxUnlockedDifficulty,
       achievementStats,
       claimedAchievements,
+      hasSeenTutorial,
       timestamp: Date.now()
     };
     try {
@@ -655,6 +668,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data.consumables) setConsumables(data.consumables);
       if (data.achievementStats) setAchievementStats(data.achievementStats);
       if (data.claimedAchievements) setClaimedAchievements(data.claimedAchievements);
+      if (data.hasSeenTutorial !== undefined) setHasSeenTutorial(data.hasSeenTutorial);
       if (data.currentDungeonId) {
         const d = DUNGEONS_DATA.find(x => x.id === data.currentDungeonId) || DUNGEONS_DATA[0];
         setCurrentDungeon(d);
@@ -1605,7 +1619,20 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       addLog('🧪 상인에게서 생명력 물약 5개를 구매했습니다! (-200G)', 'loot');
     };
 
-    const resetGameSave = () => {
+    const startTutorial = () => {
+    setViewMode('town');
+    closeModal();
+    setTutorialStep(0);
+    setIsTutorialOpen(true);
+  };
+
+  const completeTutorial = () => {
+    setIsTutorialOpen(false);
+    setHasSeenTutorial(true);
+    addLog('🎓 튜토리얼 완료! [Space] 키 또는 출격 버튼으로 첫 원정을 시작하세요.', 'system');
+  };
+
+  const resetGameSave = () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem(SAVE_KEY);
     }
@@ -1626,6 +1653,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setViewMode('town');
     setAchievementStats(INITIAL_ACHIEVEMENT_STATS);
     setClaimedAchievements([]);
+    setHasSeenTutorial(false);
+    setIsTutorialOpen(true);
+    setTutorialStep(0);
     addLog('💾 캐릭터를 레벨 1 및 단촐한 기본 장비로 초기화하고 새 모험을 시작했습니다.', 'system');
   };
 
@@ -1721,7 +1751,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     achievementStats,
     claimedAchievements,
     claimAchievementReward,
-    claimAllAchievementRewards
+    claimAllAchievementRewards,
+    hasSeenTutorial,
+    isTutorialOpen,
+    tutorialStep,
+    startTutorial,
+    completeTutorial,
+    setTutorialStep
   }), [
     viewMode,
     activeModal,
@@ -1758,6 +1794,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     roomEventClaimed,
     achievementStats,
     claimedAchievements,
+    hasSeenTutorial,
+    isTutorialOpen,
+    tutorialStep,
     runesVault,
     equippedSkillSlots,
     equippedSkills,

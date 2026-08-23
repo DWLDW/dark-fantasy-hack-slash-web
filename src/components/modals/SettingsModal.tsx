@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useGame } from '../../state/gameStore';
-import { Settings, Volume2, VolumeX, Download, Upload, RotateCcw, X, Check, Copy, AlertTriangle } from 'lucide-react';
+import { Settings, Volume2, VolumeX, Download, Upload, RotateCcw, X, Check, Copy, AlertTriangle, GraduationCap } from 'lucide-react';
 
 export const SettingsModal: React.FC = () => {
   const {
@@ -11,6 +11,7 @@ export const SettingsModal: React.FC = () => {
     setIsMuted,
     exportSaveData,
     importSaveData,
+    startTutorial,
     resetGameSave
   } = useGame();
 
@@ -152,6 +153,24 @@ export const SettingsModal: React.FC = () => {
             </p>
           )}
         </div>
+      </div>
+
+      {/* 2.5. Replay Tutorial */}
+      <div className="bg-iron-900/90 p-3 sm:p-4 rounded-lg border border-iron-750 flex items-center justify-between gap-3 shadow">
+        <div className="flex items-center gap-2">
+          <GraduationCap className="w-5 h-5 text-amber-400" />
+          <div>
+            <div className="text-xs font-bold text-gray-200">초기 튜토리얼 다시 보기</div>
+            <div className="text-[11px] text-gray-400 font-mono">주요 시설 및 단축키 인터랙티브 가이드를 다시 시작합니다.</div>
+          </div>
+        </div>
+        <button
+          onClick={startTutorial}
+          className="px-3.5 py-1.5 bg-gradient-to-r from-amber-600 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 text-iron-950 text-xs font-black rounded-lg transition shadow cursor-pointer flex items-center gap-1.5 flex-shrink-0 transform active:scale-95"
+        >
+          <GraduationCap className="w-3.5 h-3.5" />
+          <span>가이드 시작</span>
+        </button>
       </div>
 
       {/* 3. Reset Button */}
