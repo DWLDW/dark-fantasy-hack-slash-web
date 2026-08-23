@@ -16,47 +16,65 @@ const StatUpgradeButtons: React.FC<{
     onUpgrade(statKey, amount);
   }, 280, 50, canUpgrade);
 
-  if (!canUpgrade) return null;
-
   return (
-    <div className="flex items-center gap-1">
-      {/* +1 Button with Rapid Continuous Hold-Down & Shift+Click for +10 */}
-      <button
-        {...holdProps}
-        className="px-2 py-1 bg-gradient-to-r from-brass-500 to-amber-500 hover:from-brass-400 hover:to-amber-400 text-iron-950 rounded flex items-center justify-center font-black text-xs shadow transition transform active:scale-95 cursor-pointer select-none ring-1 ring-brass-300"
-        title="클릭: +1P / Shift+클릭: +10P / 길게 꾹 누르면 연속 자동 투자"
-      >
-        <Plus className="w-3.5 h-3.5 mr-0.5" />
-        <span>1</span>
-      </button>
+    <div className="w-[140px] flex items-center justify-end gap-1.5 flex-shrink-0">
+      {/* Slot 1: [+1] Button Slot (Strictly Fixed 36px width) */}
+      <div className="w-9 h-7 flex-shrink-0">
+        {availablePoints >= 1 ? (
+          <button
+            {...holdProps}
+            className="w-full h-full bg-gradient-to-r from-brass-500 to-amber-500 hover:from-brass-400 hover:to-amber-400 text-iron-950 rounded flex items-center justify-center font-black text-xs shadow transition transform active:scale-95 cursor-pointer select-none ring-1 ring-brass-300"
+            title="클릭: +1P / Shift+클릭: +10P / 길게 꾹 누르면 연속 자동 투자"
+          >
+            <Plus className="w-3.5 h-3.5 mr-0.2" />
+            <span>1</span>
+          </button>
+        ) : (
+          <div className="w-full h-full rounded bg-iron-950 border border-iron-850 text-gray-700 flex items-center justify-center text-xs font-mono select-none">
+            -
+          </div>
+        )}
+      </div>
 
-      {/* +10 Button (Instant 10 points) */}
-      {availablePoints >= 2 && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onUpgrade(statKey, Math.min(10, availablePoints));
-          }}
-          className="px-2 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded flex items-center justify-center font-mono font-black text-xs shadow transition transform active:scale-95 cursor-pointer select-none border border-amber-400"
-          title={`한 번에 +${Math.min(10, availablePoints)}P 즉시 투자`}
-        >
-          +{Math.min(10, availablePoints)}
-        </button>
-      )}
+      {/* Slot 2: [+10] Button Slot (Strictly Fixed 48px width) */}
+      <div className="w-12 h-7 flex-shrink-0">
+        {availablePoints >= 2 ? (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onUpgrade(statKey, Math.min(10, availablePoints));
+            }}
+            className="w-full h-full bg-amber-600 hover:bg-amber-500 text-white rounded flex items-center justify-center font-mono font-black text-xs shadow transition transform active:scale-95 cursor-pointer select-none border border-amber-400"
+            title={`한 번에 +${Math.min(10, availablePoints)}P 즉시 투자`}
+          >
+            +{Math.min(10, availablePoints)}
+          </button>
+        ) : (
+          <div className="w-full h-full rounded bg-iron-950 border border-iron-850 text-gray-700 flex items-center justify-center text-xs font-mono select-none">
+            -
+          </div>
+        )}
+      </div>
 
-      {/* +MAX Button if high points */}
-      {availablePoints >= 15 && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onUpgrade(statKey, availablePoints);
-          }}
-          className="px-1.5 py-1 bg-blood-600 hover:bg-blood-500 text-white rounded flex items-center justify-center font-mono font-black text-[10px] shadow transition transform active:scale-95 cursor-pointer select-none border border-blood-400"
-          title={`잔여 ${availablePoints}P 올인 투자`}
-        >
-          MAX
-        </button>
-      )}
+      {/* Slot 3: [MAX] Button Slot (Strictly Fixed 44px width) */}
+      <div className="w-11 h-7 flex-shrink-0">
+        {availablePoints >= 10 ? (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onUpgrade(statKey, availablePoints);
+            }}
+            className="w-full h-full bg-blood-600 hover:bg-blood-500 text-white rounded flex items-center justify-center font-mono font-black text-[10px] shadow transition transform active:scale-95 cursor-pointer select-none border border-blood-400"
+            title={`잔여 ${availablePoints}P 올인 투자`}
+          >
+            MAX
+          </button>
+        ) : (
+          <div className="w-full h-full rounded bg-iron-950 border border-iron-850 text-gray-700 flex items-center justify-center text-[10px] font-mono select-none">
+            -
+          </div>
+        )}
+      </div>
     </div>
   );
 };
@@ -70,11 +88,11 @@ export const CharacterModal: React.FC = React.memo(() => {
     { key: 'con', label: '체력 (CON)', desc: '최대 HP, 물리 방어력, 상태이상 저항', val: totalStats.con, base: playerStats.con },
     { key: 'int', label: '지능 (INT)', desc: '마법 주문력, 최대 마나', val: totalStats.int, base: playerStats.int },
     { key: 'wis', label: '지혜 (WIS)', desc: '마법 저항, 룬 효과 증폭', val: totalStats.wis, base: playerStats.wis },
-    { key: 'cha', label: '매력 (CHA)', desc: '행운(MF - 매직/유니크 드랍률), 상점 할인', val: totalStats.cha, base: playerStats.cha },
+    { key: 'cha', label: '매력 (CHA)', desc: '아이템 희귀도 상승(MF), 상점 할인', val: totalStats.cha, base: playerStats.cha },
   ] as const;
 
   return (
-    <div className="bg-iron-950 border-2 border-brass-500 rounded-lg p-4 md:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl text-xs md:text-sm select-none">
+    <div className="bg-iron-950 border-2 border-brass-500 rounded-lg p-4 md:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl text-xs md:text-sm select-none font-sans">
       {/* Header */}
       <div className="flex items-center justify-between pb-3 border-b border-iron-750 mb-4 gap-2">
         <div className="flex items-center gap-2.5 flex-wrap">
@@ -112,53 +130,54 @@ export const CharacterModal: React.FC = React.memo(() => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Left Column: 6 Core Attributes */}
-        <div className="bg-iron-900/90 p-4 rounded-lg border border-iron-750 space-y-3 shadow">
+        {/* Left Column: 6 Core Attributes with Bulletproof Zero-Movement Layout */}
+        <div className="bg-iron-900/90 p-3.5 sm:p-4 rounded-lg border border-iron-750 space-y-3 shadow">
           <h3 className="font-cinzel font-bold text-gray-100 border-b border-iron-750 pb-2 flex items-center gap-2">
             <Activity className="w-4 h-4 text-blood-400" />
-            기본 6대 스탯
+            기본 6대 스탯 투자
           </h3>
 
           <div className="space-y-2">
             {attributes.map(attr => (
               <div
                 key={attr.key}
-                className="flex items-center justify-between p-2.5 rounded bg-iron-950 border border-iron-700 hover:border-iron-500 transition"
+                className="flex items-center justify-between p-2 sm:p-2.5 rounded bg-iron-950 border border-iron-800 hover:border-iron-700 transition"
               >
-                <div>
-                  <div className="font-black text-white text-xs md:text-sm">{attr.label}</div>
-                  <div className="text-[11px] text-gray-300 font-medium">{attr.desc}</div>
+                {/* 1. Label & Description (Flex-1) */}
+                <div className="flex-1 min-w-0 pr-1">
+                  <div className="font-black text-white text-xs md:text-sm truncate">{attr.label}</div>
+                  <div className="text-[10px] sm:text-[11px] text-gray-400 font-medium truncate">{attr.desc}</div>
                 </div>
 
-                <div className="flex items-center space-x-2.5">
-                  <span className="font-mono font-black text-sm md:text-base text-brass-200">
-                    {attr.val}
-                    {attr.val > attr.base && (
-                      <span className="text-xs text-emerald-400 ml-1 font-bold">
-                        (+{attr.val - attr.base})
-                      </span>
-                    )}
-                  </span>
-                  
-                  <StatUpgradeButtons
-                    statKey={attr.key}
-                    availablePoints={playerStats.statPoints}
-                    onUpgrade={upgradeStat}
-                  />
+                {/* 2. Stat Current Value (Strictly Fixed 70px Width) */}
+                <div className="w-[70px] text-right pr-2 flex-shrink-0 font-mono font-black text-xs sm:text-sm text-brass-200">
+                  {attr.val}
+                  {attr.val > attr.base && (
+                    <span className="text-[11px] text-emerald-400 ml-0.5 font-bold">
+                      (+{attr.val - attr.base})
+                    </span>
+                  )}
                 </div>
+
+                {/* 3. Button Slots (Strictly Fixed 140px Width) */}
+                <StatUpgradeButtons
+                  statKey={attr.key}
+                  availablePoints={playerStats.statPoints}
+                  onUpgrade={upgradeStat}
+                />
               </div>
             ))}
           </div>
         </div>
 
-        {/* Right Column: Detailed Combat Stats */}
-        <div className="bg-iron-900/90 p-4 rounded-lg border border-iron-750 space-y-3 shadow">
-          <h3 className="font-cinzel font-bold text-gray-100 border-b border-iron-750 pb-2 flex items-center gap-2">
+        {/* Right Column: Detailed Combat Stats & Resistances */}
+        <div className="bg-iron-900/90 p-4 rounded-lg border border-iron-750 space-y-2.5 shadow">
+          <h3 className="font-cinzel font-bold text-gray-100 border-b border-iron-750 pb-1.5 flex items-center gap-2">
             <Swords className="w-4 h-4 text-amber-400" />
-            전투 및 공속 / 자원 수치
+            전투 능력치 & 저항 속성
           </h3>
 
-          <div className="space-y-2 text-xs font-mono">
+          <div className="space-y-1.5 text-xs font-mono">
             <StatRow
               label="물리 피해량 (Physical Power)"
               value={`${totalStats.minDmg} ~ ${totalStats.maxDmg}`}
@@ -199,11 +218,6 @@ export const CharacterModal: React.FC = React.memo(() => {
               value={`${totalStats.overkillEfficiency}%`}
               highlight="text-orange-300 font-black"
             />
-            <StatRow
-              label="생명력 흡수 (Life Steal)"
-              value={`${totalStats.lifeSteal}%`}
-              highlight="text-blood-300 font-bold"
-            />
             {totalStats.turnRageRegen > 0 && (
               <StatRow
                 label="🧘 명상 오라 (턴당 분노 충전)"
@@ -211,36 +225,48 @@ export const CharacterModal: React.FC = React.memo(() => {
                 highlight="text-amber-400 font-black"
               />
             )}
-            {totalStats.rageCostReduction > 0 && (
-              <StatRow
-                label="⚡ 스킬 분노 소모량 감소"
-                value={`-${totalStats.rageCostReduction}%`}
-                highlight="text-emerald-400 font-bold"
-              />
-            )}
-            <div className="pt-2 border-t border-iron-750" />
+            
+            {/* Elemental Resistances */}
+            <div className="pt-2 border-t border-iron-750 font-bold text-gray-300 text-[11px] flex items-center justify-between">
+              <span>원소 저항 속성</span>
+              <span className="text-[10px] text-gray-400 font-mono">최대 75%</span>
+            </div>
             <StatRow
-              label="매직 발견확률 (Magic Find %)"
-              value={`+${totalStats.fortune}%`}
-              highlight="text-purple-300 font-black text-sm"
+              label="🔮 모든 원소 저항 (All Resist)"
+              value={`+${totalStats.allResist || 0}%`}
+              highlight="text-purple-300 font-black"
+            />
+            <StatRow
+              label="🔥 화염 저항 (Fire Resist)"
+              value={`+${totalStats.allResist || 0}%`}
+              highlight="text-rose-400 font-mono"
+            />
+            <StatRow
+              label="❄️ 냉기 저항 (Cold Resist)"
+              value={`+${totalStats.allResist || 0}%`}
+              highlight="text-sky-300 font-mono"
+            />
+            <StatRow
+              label="⚡ 번개 저항 (Lightning Resist)"
+              value={`+${totalStats.allResist || 0}%`}
+              highlight="text-amber-300 font-mono"
+            />
+            <StatRow
+              label="🧪 독 저항 (Poison Resist)"
+              value={`+${totalStats.allResist || 0}%`}
+              highlight="text-emerald-300 font-mono"
             />
 
-            {totalStats.activeSetBonuses && totalStats.activeSetBonuses.length > 0 && (
-              <div className="mt-2 p-2 bg-emerald-950/50 rounded border border-emerald-600/80 space-y-1">
-                <div className="text-[11px] font-bold text-emerald-300 flex items-center gap-1">
-                  <span>🌿 [활성화된 세트 효과]</span>
-                </div>
-                {totalStats.activeSetBonuses.map((sb, sbIdx) => (
-                  <div key={sbIdx} className="text-[10px] text-emerald-200 font-mono">
-                    • <strong>{sb.setName}</strong>: {sb.description}
-                  </div>
-                ))}
-              </div>
-            )}
+            <div className="pt-2 border-t border-iron-750" />
+            <StatRow
+              label="✨ 아이템 희귀도 상승 (Item Rarity Boost %)"
+              value={`+${totalStats.fortune}%`}
+              highlight="text-teal-300 font-black text-sm"
+            />
           </div>
 
-          <div className="mt-3 p-2.5 bg-iron-950 rounded border border-iron-750 text-xs text-gray-300 leading-relaxed font-medium">
-            💡 <strong className="text-brass-300">편리한 스탯 분배:</strong> <span className="text-amber-300 font-bold">[+10]</span> 버튼을 누르거나, <span className="text-brass-400 font-bold">[+1]</span> 버튼을 <strong>Shift+클릭</strong> 또는 <strong>꾹 누르고 있으면(롱프레스)</strong> 즉시 대량으로 투자됩니다.
+          <div className="mt-2 p-2 bg-iron-950 rounded border border-iron-800 text-[11px] text-gray-300 leading-relaxed font-mono">
+            💡 <strong className="text-brass-300">스탯 고정 배치:</strong> 잔여 포인트 변동 시에도 [+1], [+10], [MAX] 버튼 위치가 절대 흔들리거나 이동하지 않습니다.
           </div>
         </div>
       </div>
@@ -251,7 +277,7 @@ export const CharacterModal: React.FC = React.memo(() => {
 CharacterModal.displayName = 'CharacterModal';
 
 const StatRow: React.FC<{ label: string; value: string; highlight?: string }> = ({ label, value, highlight = 'text-gray-100' }) => (
-  <div className="flex justify-between py-1.5 border-b border-iron-800">
+  <div className="flex justify-between py-1 border-b border-iron-800/80">
     <span className="text-gray-300 font-medium">{label}:</span>
     <span className={highlight}>{value}</span>
   </div>

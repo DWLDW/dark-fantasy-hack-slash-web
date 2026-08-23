@@ -23,6 +23,7 @@ export interface CalculatedTotalStats {
   critDamage: number;
   overkillEfficiency: number;
   fortune: number;
+  allResist: number;
   lifeSteal: number;
   attackSpeed: number;
   turnRageRegen: number;
@@ -199,6 +200,7 @@ export function calculateTotalStats(
     critDamage: Math.floor(critDamage),
     overkillEfficiency: Math.floor(overkillEfficiency),
     fortune: Math.floor(fortune),
+    allResist: Math.min(75, Math.floor(allResist)),
     lifeSteal: Math.floor(lifeSteal),
     attackSpeed: Math.floor(attackSpeed),
     turnRageRegen,
