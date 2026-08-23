@@ -226,7 +226,7 @@ const MainLayout: React.FC = () => {
           g.cyclePendingExit(e.key === 'ArrowLeft' ? -1 : 1);
           return;
         }
-        g.setPlayerLane(e.key === 'ArrowLeft' ? Math.max(0, g.playerLane - 1) : Math.min(4, g.playerLane + 1));
+        g.setPlayerLane(e.key === 'ArrowLeft' ? Math.max(0, g.playerLane - 1) : Math.min(3, g.playerLane + 1));
         return;
       }
 
@@ -249,10 +249,10 @@ const MainLayout: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-void flex flex-col justify-between relative overflow-x-hidden text-gray-200">
+    <div className="h-[100dvh] max-h-[100dvh] w-full bg-void flex flex-col justify-between relative overflow-hidden text-gray-200 overscroll-none select-none">
       <TopHUD />
 
-      <main className="flex-1 w-full flex flex-col justify-start">
+      <main className="flex-1 w-full flex flex-col justify-start overflow-y-auto overflow-x-hidden overscroll-contain pb-16 sm:pb-0">
         {viewMode === 'town' && <TownView />}
         {viewMode === 'dungeon_select' && (
           <Suspense fallback={<ViewFallback />}>

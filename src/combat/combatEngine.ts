@@ -457,12 +457,12 @@ export function findBestLaneForSkill(
   monsters: Monster[]
 ): number {
   const activeMonsters = monsters.filter(m => m.hp > 0);
-  if (activeMonsters.length === 0) return 2;
+  if (activeMonsters.length === 0) return 1;
 
-  let bestLane = 2;
+  let bestLane = 1;
   let bestScore = -1;
 
-  for (let lane = 0; lane < 5; lane++) {
+  for (let lane = 0; lane < 4; lane++) {
     const hasMonsters = skill.route === 'branch'
       ? activeMonsters.some(m => Math.abs(m.lane - lane) <= 1 && m.depth === 0)
       : skill.route === 'radius'

@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useGame } from '../../../state/gameStore';
 import { Monster } from '../../../types/game';
-import { Crown, Crosshair, Sparkles, ArrowRight } from 'lucide-react';
+import { Crown, Crosshair, Sparkles } from 'lucide-react';
 
 interface BattleFieldLanesProps {
   dyingMonsterIds: Set<string>;
@@ -31,9 +31,9 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
   const isCleared = totalMonsters === 0;
   const currentRoom = currentDungeon.rooms.find(r => r.id === currentRoomId);
 
-  // Group monsters by lane
+  // Group monsters by 4 lanes (0, 1, 2, 3)
   const laneMonsters = useMemo(() => {
-    const map: Record<number, Monster[]> = { 0: [], 1: [], 2: [], 3: [], 4: [] };
+    const map: Record<number, Monster[]> = { 0: [], 1: [], 2: [], 3: [] };
     monsters.forEach(m => {
       if (m.hp > 0 && map[m.lane]) {
         map[m.lane].push(m);
@@ -46,7 +46,7 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
   }, [monsters]);
 
   return (
-    <div className="bg-iron-900/90 border-2 border-iron-750 rounded-xl p-2 sm:p-3 shadow-2xl relative min-h-[220px] sm:min-h-[280px] select-none font-sans">
+    <div className="bg-iron-900/90 border-2 border-iron-750 rounded-xl p-1.5 sm:p-3 shadow-2xl relative min-h-[220px] sm:min-h-[280px] select-none font-sans">
       {isCleared ? (
         <div className="w-full min-h-[200px] sm:min-h-[260px] flex flex-col justify-center items-center relative z-20 py-2">
           {latestRoomLootEvent ? (
@@ -169,9 +169,9 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
           )}
         </div>
       ) : (
-        /* 5-LANE FULL HIGH-FIDELITY BATTLEFIELD */
-        <div className="grid grid-cols-5 gap-1 sm:gap-2 min-h-[185px] sm:min-h-[260px] relative">
-          {[0, 1, 2, 3, 4].map(laneIdx => {
+        /* 4-LANE STREAMLINED HIGH-FIDELITY BATTLEFIELD (33% MORE WIDTH PER LANE) */
+        <div className="grid grid-cols-4 gap-1 sm:gap-2.5 min-h-[185px] sm:min-h-[260px] relative">
+          {[0, 1, 2, 3].map(laneIdx => {
             const isPlayerInLane = playerLane === laneIdx;
             const laneList = laneMonsters[laneIdx] || [];
             const hasBoss = laneList.some(m => m.rank === 'boss');
@@ -204,15 +204,18 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                 }`}
               >
                 {/* Lane Header */}
-                <div className={`w-full py-0.5 px-0.5 text-center rounded text-[9px] sm:text-[10px] font-mono font-black mb-0.5 sm:mb-1 flex items-center justify-center gap-1 transition ${
+                <div className={`w-full py-0.5 px-1 text-center rounded text-[10px] sm:text-xs font-mono font-black mb-0.5 sm:mb-1 flex items-center justify-between transition ${
                   hasBoss
                     ? 'bg-gradient-to-r from-red-600 via-rose-600 to-amber-500 text-white font-black shadow-[0_0_12px_rgba(239,68,68,0.8)] border border-amber-300 animate-pulse'
                     : isPlayerInLane
                     ? 'bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-iron-950 font-black shadow-[0_0_10px_rgba(251,191,36,0.6)] ring-1 ring-amber-200'
-                    : 'bg-iron-950 text-gray-400 border border-iron-800'
+                    : 'bg-iron-950 text-gray-300 border border-iron-800'
                 }`}>
-                  <span>{hasBoss ? '👑 L3 BOSS' : `L${laneIdx + 1}`}</span>
-                  <span className={`px-1 py-0.2 rounded text-[8px] sm:text-[9px] font-bold ${
+                  <span className="flex items-center gap-0.5">
+                    {isPlayerInLane && <Crosshair className="w-3 h-3 text-blood-500 animate-spin-slow" />}
+                    <span>{hasBoss ? '👑 BOSS' : `레인 ${laneIdx + 1}`}</span>
+                  </span>
+                  <span className={`px-1 py-0.2 rounded text-[9px] font-bold ${
                     hasBoss
                       ? 'bg-black/40 text-amber-300'
                       : isPlayerInLane
@@ -221,12 +224,8 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                       ? 'bg-iron-800 text-amber-300 border border-iron-700'
                       : 'text-gray-600'
                   }`}>
-                    {laneList.length > 0 ? `${laneList.length}👹` : '0'}
+                    {laneList.length > 0 ? `${laneList.length}마리` : '0'}
                   </span>
-                  {isPlayerInLane && <span className="text-[10px] font-black animate-bounce">▼</span>}
-                  {!isPlayerInLane && bestLaneHint === laneIdx && laneList.length > 0 && (
-                    <span className="text-[9px] font-black text-emerald-300">↑</span>
-                  )}
                 </div>
 
                 {/* Queue / Stack & Hit Preview Indicator (Top of Lane) */}
@@ -234,7 +233,7 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                   <div className="w-full space-y-0.5 mb-1 z-10">
                     {/* Skill Attack Preview Badge */}
                     {hasHitsInLane && (
-                      <div className={`w-full text-center py-0.5 px-0.5 rounded text-[8px] sm:text-[9px] font-mono font-black border transition shadow-sm ${
+                      <div className={`w-full text-center py-0.5 px-0.5 rounded text-[9px] sm:text-[10px] font-mono font-black border transition shadow-sm ${
                         laneFatalHits === laneList.length
                           ? 'bg-gradient-to-r from-red-600 to-amber-600 border-amber-300 text-white shadow-[0_0_8px_rgba(245,158,11,0.7)] animate-pulse'
                           : laneFatalHits > 0
@@ -251,15 +250,15 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
 
                     {/* Rear Queue Stack Indicator */}
                     {laneList.length >= 2 && (
-                      <div className="w-full bg-iron-950/90 border border-iron-800 rounded px-1 py-0.5 text-[7px] sm:text-[8px] font-mono text-gray-300 flex items-center justify-between shadow-sm">
+                      <div className="w-full bg-iron-950/90 border border-iron-800 rounded px-1 py-0.5 text-[8px] sm:text-[9px] font-mono text-gray-300 flex items-center justify-between shadow-sm">
                         <span className="text-amber-400 font-bold truncate">
                           후열 {laneList.length - 1}마리 대기
                         </span>
                         <span className="flex items-center gap-0.5 text-amber-400 flex-shrink-0">
                           {Array.from({ length: Math.min(4, laneList.length - 1) }).map((_, i) => (
-                            <span key={i} className="text-[6px] sm:text-[7px]">●</span>
+                            <span key={i} className="text-[7px]">●</span>
                           ))}
-                          {laneList.length - 1 > 4 && <span className="text-[6px]">+</span>}
+                          {laneList.length - 1 > 4 && <span className="text-[7px]">+</span>}
                         </span>
                       </div>
                     )}
@@ -340,13 +339,12 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                         )}
 
                         {/* HP Bar */}
-                        <div className="flex justify-between items-center text-[7px] sm:text-[8px] font-mono text-gray-300 mt-0.5 leading-none">
-                          <span>HP {m.hp}</span>
+                        <div className="flex justify-between items-center text-[8px] sm:text-[9px] font-mono text-gray-300 mt-0.5 leading-none">
+                          <span className="font-bold text-rose-300">{m.hp} HP</span>
                           <span className="text-gray-400">방{m.defense}</span>
                         </div>
                         <div className={`w-full bg-iron-950 rounded-full overflow-hidden border mt-0.5 ${
-                          isBoss ? 'h-1.5 sm:h-2 border-red-700/80 shadow-inner' : 'h-1 sm:h-1.5 border-iron-750'
-                        }`}>
+                          isBoss ? 'h-1.5 sm:h-2 border-red-700/80 shadow-inner' : 'h-1 sm:h-1.5 border-iron-750'                        }`}>
                           <div
                             className={`h-full transition-all duration-200 ${
                               isBoss
@@ -363,22 +361,22 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
 
                         {/* Prediction & Targeting Badges */}
                         {isPredictedKill ? (
-                          <div className="text-[7px] sm:text-[8px] font-black text-blood-200 uppercase mt-0.5 bg-blood-950 px-0.5 rounded text-center border border-blood-700 shadow">
+                          <div className="text-[8px] sm:text-[9px] font-black text-blood-200 uppercase mt-0.5 bg-blood-950 px-0.5 rounded text-center border border-blood-700">
                             {isOverkillResidual ? '오버킬 관통' : '처치 예상'}
                           </div>
                         ) : isTargeted ? (
-                          <div className="text-[7px] sm:text-[8px] font-black text-red-200 uppercase mt-0.5 bg-red-950 px-0.5 rounded text-center border border-red-500 animate-pulse">
+                          <div className="text-[8px] sm:text-[9px] font-black text-red-200 uppercase mt-0.5 bg-red-950 px-0.5 rounded text-center border border-red-500 animate-pulse">
                             🎯 피격 (-{hitInfo.damage})
                           </div>
                         ) : null}
 
                         {m.isFrozen && (
-                          <div className="text-[7px] sm:text-[8px] font-black text-sky-200 uppercase mt-0.5 bg-sky-950 px-0.5 rounded text-center border border-sky-600 animate-pulse">
+                          <div className="text-[8px] sm:text-[9px] font-black text-sky-200 uppercase mt-0.5 bg-sky-950 px-0.5 rounded text-center border border-sky-600 animate-pulse">
                             ❄️ 빙결(행동불가)
                           </div>
                         )}
                         {isStopper && (
-                          <div className="text-[7px] sm:text-[8px] font-black text-amber-200 uppercase mt-0.5 bg-amber-950 px-0.5 rounded text-center border border-amber-700">
+                          <div className="text-[8px] sm:text-[9px] font-black text-amber-200 uppercase mt-0.5 bg-amber-950 px-0.5 rounded text-center border border-amber-700">
                             🛡️ 체인 저지점
                           </div>
                         )}
@@ -394,7 +392,7 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                       e.stopPropagation();
                       setPlayerLane(laneIdx);
                     }}
-                    className={`w-full py-0.5 text-[8px] sm:text-[9px] font-mono font-bold rounded border transition cursor-pointer ${
+                    className={`w-full py-1 text-[9px] sm:text-[10px] font-mono font-bold rounded border transition cursor-pointer ${
                       isPlayerInLane
                         ? 'bg-gradient-to-r from-amber-400 to-yellow-300 text-iron-950 border-amber-300 font-black shadow'
                         : 'bg-iron-950 text-gray-400 border-iron-800 hover:border-iron-700 hover:text-gray-200'

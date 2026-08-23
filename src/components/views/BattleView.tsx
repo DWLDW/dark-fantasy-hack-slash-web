@@ -60,7 +60,7 @@ export const BattleView: React.FC = React.memo(() => {
   const expectedIncomingDmg = useMemo(() => {
     if (isCleared || isEnemyTurn) return 0;
     let totalDmg = 0;
-    for (let l = 0; l < 5; l++) {
+    for (let l = 0; l < 4; l++) {
       const laneAlive = monsters.filter(m => m.lane === l && m.hp > 0).sort((a, b) => a.depth - b.depth);
       if (laneAlive.length > 0 && !laneAlive[0].isFrozen) {
         const m = laneAlive[0];

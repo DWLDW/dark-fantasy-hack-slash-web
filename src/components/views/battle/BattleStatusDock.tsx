@@ -8,6 +8,20 @@ interface BattleStatusDockProps {
   rageFloater: { text: string; type: 'spend' | 'gain'; id: number } | null;
 }
 
+const POTION_ICONS: Record<string, string> = {
+  c_hp: '❤️',
+  c_iron: '🛡️',
+  c_rage: '⚡',
+  c_poison: '🧪'
+};
+
+const POTION_SHORT_NAMES: Record<string, string> = {
+  c_hp: '체력',
+  c_iron: '철갑',
+  c_rage: '활력',
+  c_poison: '맹독'
+};
+
 export const BattleStatusDock: React.FC<BattleStatusDockProps> = React.memo(({
   expectedIncomingDmg,
   isLowHp,
@@ -135,30 +149,36 @@ export const BattleStatusDock: React.FC<BattleStatusDockProps> = React.memo(({
           </div>
         </div>
 
-        {/* Consumables Quick Belt (소모품 1 2 3 4) Column */}
+        {/* Consumables Quick Belt (소모품 1 2 3 4) Column with Concise Mobile Summaries */}
         <div className="md:col-span-5 flex flex-col justify-between space-y-1 font-mono">
           <div className="grid grid-cols-4 gap-1.5 h-full">
-            {consumables.map(item => (
-              <button
-                key={item.id}
-                onClick={() => useConsumable(item.id)}
-                disabled={item.count <= 0}
-                className={`p-1 sm:p-1.5 rounded-lg border flex flex-col items-center justify-center transition shadow cursor-pointer ${
-                  item.count > 0
-                    ? 'bg-iron-900/90 border-iron-750 text-gray-100 hover:border-amber-400 hover:bg-iron-850 active:scale-95'
-                    : 'bg-iron-950 text-gray-600 border-iron-850 opacity-40 cursor-not-allowed'
-                }`}
-                title={`${item.name} (${item.description}) [${item.hotkey}]`}
-              >
-                <div className="flex items-center justify-between w-full text-[9px] font-black">
-                  <span className="text-amber-400">[${item.hotkey}]</span>
-                  <span className={`${item.count > 0 ? 'text-amber-300' : 'text-gray-600'}`}>x${item.count}</span>
-                </div>
-                <div className="text-[10px] sm:text-xs font-bold text-gray-200 truncate mt-0.5">
-                  {item.name.replace(' 포션', '')}
-                </div>
-              </button>
-            ))}
+            {consumables.map(item => {
+              const icon = POTION_ICONS[item.id] || '🧪';
+              const shortName = POTION_SHORT_NAMES[item.id] || item.name.replace(' 포션', '');
+
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => useConsumable(item.id)}
+                  disabled={item.count <= 0}
+                  className={`p-1 sm:p-1.5 rounded-lg border flex flex-col items-center justify-center transition shadow cursor-pointer ${
+                    item.count > 0
+                      ? 'bg-iron-900/90 border-iron-750 text-gray-100 hover:border-amber-400 hover:bg-iron-850 active:scale-95'
+                      : 'bg-iron-950 text-gray-600 border-iron-850 opacity-40 cursor-not-allowed'
+                  }`}
+                  title={`${item.name} (${item.description}) [${item.hotkey}]`}
+                >
+                  <div className="flex items-center justify-between w-full text-[9px] font-black">
+                    <span className="text-amber-400">[${item.hotkey}]</span>
+                    <span className={`${item.count > 0 ? 'text-amber-300' : 'text-gray-600'}`}>x${item.count}</span>
+                  </div>
+                  <div className="text-[10px] sm:text-xs font-bold text-gray-200 truncate mt-0.5 flex items-center gap-0.5">
+                    <span>{icon}</span>
+                    <span>{shortName}</span>
+                  </div>
+                </button>
+              );
+            })}
           </div>
 
           <div className="flex items-center justify-between text-[10px] text-gray-400 px-1 pt-0.5">
