@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { EquipSlot, GameItem } from '../../../types/game';
-import { Sword, Sparkles } from 'lucide-react';
+import { Sword, Sparkles, Shield, Flame } from 'lucide-react';
 
 export interface EquipSlotBoxProps {
   slot: EquipSlot;
@@ -20,11 +20,46 @@ export const EquipSlotBox: React.FC<EquipSlotBoxProps> = ({
   onUnequip,
   isCombatMode
 }) => {
+  const statBadge = useMemo(() => {
+    if (!item) return null;
+    if (item.slot === 'weapon') {
+      return (
+        <span className="text-[9px] font-mono font-black text-amber-300 bg-iron-950/90 px-1 rounded border border-amber-500/40">
+          ⚔️ {item.stats.minDmg || 0}~{item.stats.maxDmg || 0}
+        </span>
+      );
+    }
+    if (item.slot === 'armor' || item.slot === 'shield' || item.slot === 'helm') {
+      return (
+        <span className="text-[9px] font-mono font-black text-blue-300 bg-iron-950/90 px-1 rounded border border-blue-500/40">
+          🛡️ +{item.stats.defense || 0}
+        </span>
+      );
+    }
+    if (item.slot === 'gloves' || item.slot === 'boots') {
+      return (
+        <span className="text-[9px] font-mono font-black text-blue-300 bg-iron-950/90 px-1 rounded border border-blue-500/40">
+          🛡️ +{item.stats.defense || 0}
+        </span>
+      );
+    }
+    if (item.stats.allResist) {
+      return <span className="text-[9px] font-mono font-black text-purple-300 bg-iron-950/90 px-1 rounded border border-purple-500/40">🔮 +{item.stats.allResist}%</span>;
+    }
+    if (item.stats.fortune) {
+      return <span className="text-[9px] font-mono font-black text-teal-300 bg-iron-950/90 px-1 rounded border border-teal-500/40">✨ +{item.stats.fortune}%</span>;
+    }
+    if (item.stats.str || item.stats.dex) {
+      return <span className="text-[9px] font-mono font-black text-red-300 bg-iron-950/90 px-1 rounded border border-red-500/40">+{item.stats.str || item.stats.dex} 스탯</span>;
+    }
+    return null;
+  }, [item]);
+
   return (
     <div
       onClick={onClick}
       onDoubleClick={() => !isCombatMode && item && onUnequip()}
-      className={`p-2 rounded-lg border-2 text-center cursor-pointer transition min-h-[68px] flex flex-col justify-between items-center relative shadow ${
+      className={`p-1.5 rounded-lg border-2 text-center cursor-pointer transition min-h-[72px] flex flex-col justify-between items-center relative shadow ${
         isSelected
           ? 'ring-2 ring-brass-400 border-brass-400 bg-iron-850 scale-105 shadow-[0_0_10px_rgba(222,178,67,0.5)]'
           : item
@@ -38,17 +73,26 @@ export const EquipSlotBox: React.FC<EquipSlotBoxProps> = ({
           : 'bg-iron-950 border-dashed border-iron-800 text-gray-500 hover:border-iron-700'
       }`}
     >
-      <div className={`text-[10px] font-mono font-bold leading-none ${isSelected ? 'text-brass-300 underline' : 'text-gray-400'}`}>
-        {label}
+      <div className="w-full flex items-center justify-between">
+        <span className={`text-[10px] font-mono font-bold leading-none ${isSelected ? 'text-brass-300 underline' : 'text-gray-400'}`}>
+          {label}
+        </span>
+        {item?.isRuneWord && (
+          <span className="text-[8px] font-mono text-amber-300 font-black px-1 rounded bg-amber-950/80 border border-amber-500/50">RW</span>
+        )}
       </div>
+
       {item ? (
-        <div className="font-black text-[11px] truncate w-full leading-tight mt-1">{item.name}</div>
+        <div className="font-black text-[11px] truncate w-full leading-tight my-0.5" title={item.name}>
+          {item.name}
+        </div>
       ) : (
-        <div className="text-[10px] text-gray-600 font-mono">[빈 슬롯]</div>
+        <div className="text-[10px] text-gray-600 font-mono my-auto">[빈 슬롯]</div>
       )}
-      {item?.isRuneWord && (
-        <div className="text-[8px] font-mono text-amber-300 font-black">[룬워드]</div>
-      )}
+
+      <div className="w-full flex items-center justify-center">
+        {statBadge}
+      </div>
     </div>
   );
 };
@@ -70,13 +114,31 @@ export const EquippedPaperdoll: React.FC<EquippedPaperdollProps> = React.memo(({
   onUnequipSlot,
   onOpenRuneVault
 }) => {
+  // Aggregate Equipped Total Combat Stats
+  const equippedSummary = useMemo(() => {
+    let totalDefense = 0;
+    let minDmg = 0;
+    let maxDmg = 0;
+
+    Object.values(equipment).forEach(item => {
+      if (!item) return;
+      if (item.stats.defense) totalDefense += item.stats.defense;
+      if (item.slot === 'weapon') {
+        minDmg = item.stats.minDmg || 0;
+        maxDmg = item.stats.maxDmg || 0;
+      }
+    });
+
+    return { totalDefense, minDmg, maxDmg };
+  }, [equipment]);
+
   return (
     <div className="bg-iron-900/90 p-3 rounded-lg border-2 border-iron-750 flex flex-col justify-between shadow">
       <div>
-        <div className="flex justify-between items-center mb-2.5 border-b border-iron-750 pb-1">
+        <div className="flex justify-between items-center mb-2 border-b border-iron-750 pb-1">
           <h3 className="font-cinzel font-bold text-gray-200 text-xs flex items-center gap-1">
             <Sword className="w-3.5 h-3.5 text-brass-400" />
-            <span>착용 중인 장비</span>
+            <span>착용 중인 장비 (3x3 슬롯)</span>
           </h3>
           <button
             onClick={() => onSelectSlot('all', null)}
@@ -90,8 +152,21 @@ export const EquippedPaperdoll: React.FC<EquippedPaperdollProps> = React.memo(({
           </button>
         </div>
 
+        {/* Total Equipment Stats Indicator Banner */}
+        <div className="mb-2 p-1.5 rounded bg-iron-950/90 border border-iron-750 flex items-center justify-around text-[11px] font-mono shadow">
+          <div className="flex items-center gap-1 text-amber-300">
+            <Flame className="w-3 h-3 text-amber-400" />
+            <span>무기: <strong>{equippedSummary.minDmg}~{equippedSummary.maxDmg}</strong></span>
+          </div>
+          <div className="w-[1px] h-3.5 bg-iron-750" />
+          <div className="flex items-center gap-1 text-blue-300">
+            <Shield className="w-3 h-3 text-blue-400" />
+            <span>장비 방어력: <strong>+{equippedSummary.totalDefense}</strong></span>
+          </div>
+        </div>
+
         {/* 3x3 Paperdoll Grid: All 9 slots */}
-        <div className="grid grid-cols-3 gap-2 max-w-[300px] mx-auto py-1">
+        <div className="grid grid-cols-3 gap-2 max-w-[320px] mx-auto py-1">
           {/* Row 1 */}
           <EquipSlotBox
             slot="weapon"
@@ -194,5 +269,3 @@ export const EquippedPaperdoll: React.FC<EquippedPaperdollProps> = React.memo(({
   );
 });
 EquippedPaperdoll.displayName = 'EquippedPaperdoll';
-
-

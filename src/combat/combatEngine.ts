@@ -316,6 +316,44 @@ export function resolveAttack(
         }
       }
     }
+  } else if (skill.id === 'berserk') {
+    const laneMonsters = monsters
+      .filter(m => m.lane === playerLane && m.hp > 0)
+      .sort((a, b) => a.depth - b.depth);
+
+    if (laneMonsters.length > 0) {
+      const frontTarget = laneMonsters[0];
+      const defMultiplier = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(frontTarget.defense));
+      const singleHitDmg = Math.floor(initialRawPayload * defMultiplier);
+      let curHp = frontTarget.hp;
+
+      for (let hit = 0; hit < 3; hit++) {
+        if (curHp <= 0) break;
+        const actualDmg = singleHitDmg;
+        const isFatal = actualDmg >= curHp;
+
+        targetsHit.push({
+          monsterId: frontTarget.id,
+          damage: actualDmg,
+          isFatal,
+          depth: frontTarget.depth,
+          lane: frontTarget.lane,
+          isOverkillHit: false
+        });
+
+        accumulatedDamage += actualDmg;
+        const updatedM = monsterMap.get(frontTarget.id)!;
+        if (isFatal) {
+          kills.push(frontTarget.id);
+          updatedM.hp = 0;
+          curHp = 0;
+          break;
+        } else {
+          curHp -= actualDmg;
+          updatedM.hp = curHp;
+        }
+      }
+    }
   } else if (skill.route === 'single') {
     const laneMonsters = monsters
       .filter(m => m.lane === playerLane && m.hp > 0)

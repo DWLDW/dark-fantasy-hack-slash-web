@@ -25,153 +25,482 @@ export const SHRINE_BUFFS_POOL: Record<string, Omit<DungeonBuff, 'id'>> = {
   }
 };
 
-export const ACT_ORDER = ['act1_crypt', 'act2_tomb', 'act3_jungle', 'act4_chaos', 'act5_worldstone'] as const;
+export const ACT_DUNGEON_GROUPS: Record<number, string[]> = {
+  1: ['act1_1_den', 'act1_2_crypt', 'act1_3_tower', 'act1_4_catacombs'],
+  2: ['act2_1_sewers', 'act2_2_halls', 'act2_3_maggot', 'act2_4_tomb'],
+  3: ['act3_1_spider', 'act3_2_jungle', 'act3_3_travincal', 'act3_4_durance'],
+  4: ['act4_1_plains', 'act4_2_forge', 'act4_3_sanctuary', 'act4_4_altar'],
+  5: ['act5_1_foothills', 'act5_2_summit', 'act5_3_keep', 'act5_4_throne']
+};
 
-export function isActUnlocked(dungeonId: string, dungeonClears: Record<string, number> = {}): boolean {
-  const idx = ACT_ORDER.indexOf(dungeonId as typeof ACT_ORDER[number]);
-  if (idx <= 0) return true;
-  const prev = ACT_ORDER[idx - 1];
-  return (dungeonClears[prev] || 0) >= 1;
+export const ALL_DUNGEON_IDS = Object.values(ACT_DUNGEON_GROUPS).flat();
+
+export function isDungeonUnlocked(dungeonId: string, dungeonClears: Record<string, number> = {}): boolean {
+  const index = ALL_DUNGEON_IDS.indexOf(dungeonId);
+  if (index <= 0) return true; // First dungeon of Act 1 is always unlocked
+
+  // Check which act this dungeon belongs to
+  let currentAct = 1;
+  let actDungeons: string[] = ACT_DUNGEON_GROUPS[1];
+  for (let act = 1; act <= 5; act++) {
+    if (ACT_DUNGEON_GROUPS[act].includes(dungeonId)) {
+      currentAct = act;
+      actDungeons = ACT_DUNGEON_GROUPS[act];
+      break;
+    }
+  }
+
+  const dIdxInAct = actDungeons.indexOf(dungeonId);
+
+  // If first dungeon of an Act > 1, must have cleared all dungeons of previous act
+  if (dIdxInAct === 0 && currentAct > 1) {
+    const prevActDungeons = ACT_DUNGEON_GROUPS[currentAct - 1];
+    return prevActDungeons.every(dId => (dungeonClears[dId] || 0) >= 1);
+  }
+
+  // Otherwise, must have cleared the previous dungeon in the same act
+  const prevDungeonId = actDungeons[dIdxInAct - 1];
+  return (dungeonClears[prevDungeonId] || 0) >= 1;
+}
+
+export function isActUnlocked(actOrDungeon: number | string, dungeonClears: Record<string, number> = {}): boolean {
+  if (typeof actOrDungeon === 'string') {
+    return isDungeonUnlocked(actOrDungeon, dungeonClears);
+  }
+  const actNum = actOrDungeon;
+  if (actNum <= 1) return true;
+  const prevActDungeons = ACT_DUNGEON_GROUPS[actNum - 1];
+  if (!prevActDungeons) return false;
+  return prevActDungeons.every(dId => (dungeonClears[dId] || 0) >= 1);
+}
+
+function create6RoomGraph(themeTitles: {
+  start: string;
+  wave: string;
+  elite: string;
+  treasure: string;
+  event: string;
+  boss: string;
+}, isRuneRoom: boolean = false): DungeonInfo['rooms'] {
+  return [
+    { id: 1, type: 'start', title: themeTitles.start, cleared: true, current: false, connections: [2], revealed: true },
+    { id: 2, type: 'normal', title: themeTitles.wave, cleared: false, current: false, connections: [3], revealed: false },
+    { id: 3, type: 'elite', title: themeTitles.elite, cleared: false, current: false, connections: [4, 5], revealed: false },
+    { id: 4, type: 'treasure', title: themeTitles.treasure, cleared: false, current: false, connections: [6], revealed: false, rewardDesc: '황금 보물함 및 희귀 장비' },
+    { id: 5, type: isRuneRoom ? 'rune' : 'shrine', title: themeTitles.event, cleared: false, current: false, connections: [6], revealed: false, rewardDesc: isRuneRoom ? '고급 룬 제단' : '성소 축복' },
+    { id: 6, type: 'boss', title: themeTitles.boss, cleared: false, current: false, connections: [], revealed: false, rewardDesc: '수호자 보스 드랍' }
+  ];
 }
 
 export const DUNGEONS_DATA: DungeonInfo[] = [
+  // ==================== ACT 1 (4 Dungeons) ====================
   {
-    id: 'act1_crypt',
-    name: '1막: 핏빛 황야와 지하묘지 (Crypt & Blood Moor)',
-    theme: '피로 물든 황야와 고대 언데드 납골당',
+    id: 'act1_1_den',
+    name: '1막 1장: 악의 소굴 (Den of Evil)',
+    theme: '황야 지하의 음침한 고블린 소굴',
     recommendedLevel: 1,
     difficulty: '쉬움',
     elementalInfo: '물리 취약, 관통 공격에 극도로 취약',
-    monsterSummary: '고블린 척탄병, 해골 궁수, 썩은 좀비 떼, 안다리엘의 환영',
+    monsterSummary: '황야 고블린, 해골 궁수, 불타는 시체좀비',
+    bestClearTime: '01분 15초',
+    maxChainRecord: 30,
+    dropItems: GAME_ITEMS_POOL.slice(0, 6),
+    rooms: create6RoomGraph({
+      start: '황야 야영지 입구',
+      wave: '악의 소굴 전초',
+      elite: '중간보스: 화염 고블린 투사',
+      treasure: '고블린 비밀 금고',
+      event: '황야의 성소',
+      boss: '우두머리: 불타는 시체좀비'
+    })
+  },
+  {
+    id: 'act1_2_crypt',
+    name: '1막 2장: 매장지 지하묘지 (Crypt & Mausoleum)',
+    theme: '피로 물든 황야와 고대 언데드 납골당',
+    recommendedLevel: 3,
+    difficulty: '쉬움',
+    elementalInfo: '언데드 물리 취약, 뼈 분쇄',
+    monsterSummary: '납골당 해골 전사, 부패 좀비, 핏빛 갈까마귀',
+    bestClearTime: '01분 30초',
+    maxChainRecord: 30,
+    dropItems: GAME_ITEMS_POOL.slice(0, 7),
+    rooms: create6RoomGraph({
+      start: '매장지 정문',
+      wave: '납골당 지하 회랑',
+      elite: '중간보스: 해골 군단장',
+      treasure: '고대인의 황금 보물함',
+      event: '납골당 룬 제단',
+      boss: '우두머리: 핏빛 갈까마귀의 환영'
+    }, true)
+  },
+  {
+    id: 'act1_3_tower',
+    name: '1막 3장: 잊혀진 탑 (The Forgotten Tower)',
+    theme: '백작부인의 핏빛 탑과 보물 지하 감옥',
+    recommendedLevel: 6,
+    difficulty: '보통',
+    elementalInfo: '화염/냉기 저항 권장, 룬 드랍 특화',
+    monsterSummary: '탑의 유령 기사, 타락한 궁수, 핏빛 백작부인',
     bestClearTime: '01분 45초',
     maxChainRecord: 30,
-    dropItems: [
-      GAME_ITEMS_POOL.find(i => i.id === 'e_short_sword_2s') || GAME_ITEMS_POOL[0],
-      GAME_ITEMS_POOL.find(i => i.id === 'e_scimitar_2s') || GAME_ITEMS_POOL[1],
-      GAME_ITEMS_POOL.find(i => i.id === 'e_studded_leather') || GAME_ITEMS_POOL[2],
-      GAME_ITEMS_POOL.find(i => i.id === 'e_nagelring') || GAME_ITEMS_POOL[3],
-      GAME_ITEMS_POOL.find(i => i.id === 'e_gull_dagger') || GAME_ITEMS_POOL[4],
-      GAME_ITEMS_POOL.find(i => i.id === 'e_cap_2s') || GAME_ITEMS_POOL[5],
-      GAME_ITEMS_POOL.find(i => i.id === 'e_bloodfist') || GAME_ITEMS_POOL[6]
-    ],
-    rooms: [
-      { id: 1, type: 'start', title: '황야 야영지 입구', cleared: true, current: false, connections: [2], revealed: true },
-      { id: 2, type: 'normal', title: '핏빛 황야 적 무리', cleared: false, current: false, connections: [3], revealed: false },
-      { id: 3, type: 'elite', title: '중간보스: 납골당 집행관', cleared: false, current: false, connections: [4, 5], revealed: false },
-      { id: 4, type: 'treasure', title: '고대인의 황금 보물함', cleared: false, current: false, connections: [6], revealed: false, rewardDesc: '황금 보물함 및 희귀 장비' },
-      { id: 5, type: 'shrine', title: '핏빛 고대 성소', cleared: false, current: false, connections: [6], revealed: false, rewardDesc: '행운/치명/방어 성소 축복' },
-      { id: 6, type: 'boss', title: '우두머리: 안다리엘의 방', cleared: false, current: false, connections: [], revealed: false, rewardDesc: '안다리엘의 환영 (유니크 장갑/목걸이)' }
-    ]
+    dropItems: GAME_ITEMS_POOL.slice(2, 9),
+    rooms: create6RoomGraph({
+      start: '잊혀진 탑 1층',
+      wave: '탑 지하 감옥',
+      elite: '중간보스: 고문관 악마',
+      treasure: '백작부인의 룬 보물함',
+      event: '탑의 핏빛 성소',
+      boss: '우두머리: 핏빛 백작부인'
+    })
   },
   {
-    id: 'act2_tomb',
-    name: "2막: 루트 골레인의 탈 라샤 무덤 (Tal Rasha's Tomb)",
-    theme: '사막의 모래폭풍과 봉인된 일곱 무덤',
-    recommendedLevel: 15,
+    id: 'act1_4_catacombs',
+    name: '1막 4장: 수도원 지하묘지 (Catacombs: Andariel)',
+    theme: '고뇌의 여왕 안다리엘의 거처',
+    recommendedLevel: 10,
     difficulty: '보통',
-    elementalInfo: '화염/번개 저항 권장, 전기 스캐럽 주의',
-    monsterSummary: '사막 딱정벌레, 미이라 사제, 모래 약탈자, 두리엘의 유령',
+    elementalInfo: '독 저항 필수, 화염 취약',
+    monsterSummary: '어둠의 주술사, 고뇌의 악마, 안다리엘의 환영',
+    bestClearTime: '02분 00초',
+    maxChainRecord: 30,
+    dropItems: GAME_ITEMS_POOL.slice(0, 10),
+    rooms: create6RoomGraph({
+      start: '카타콤 4층 진입로',
+      wave: '고뇌의 성소 전초',
+      elite: '중간보스: 고뇌의 사제',
+      treasure: '타락한 성녀의 금고',
+      event: '고대 비전의 룬 제단',
+      boss: '우두머리: 고뇌의 여왕 안다리엘'
+    }, true)
+  },
+
+  // ==================== ACT 2 (4 Dungeons) ====================
+  {
+    id: 'act2_1_sewers',
+    name: '2막 1장: 루트 골레인 하수구 (Sewers)',
+    theme: '사막 도시 밑바닥의 썩은 오폐수 미로',
+    recommendedLevel: 14,
+    difficulty: '보통',
+    elementalInfo: '독/물리 저항 권장',
+    monsterSummary: '사막 딱정벌레, 하수구 시체약탈자, 라다먼트',
+    bestClearTime: '02분 10초',
+    maxChainRecord: 30,
+    dropItems: GAME_ITEMS_POOL.slice(4, 12),
+    rooms: create6RoomGraph({
+      start: '하수구 1층 입구',
+      wave: '오폐수 수로',
+      elite: '중간보스: 미이라 역병사제',
+      treasure: '도굴꾼의 숨겨진 보물',
+      event: '사막의 룬 제단',
+      boss: '우두머리: 시체약탈자 라다먼트'
+    }, true)
+  },
+  {
+    id: 'act2_2_halls',
+    name: '2막 2장: 죽음의 홀 (Halls of the Dead)',
+    theme: '호라드릭 큐브가 잠든 고대 사막 묘지',
+    recommendedLevel: 18,
+    difficulty: '보통',
+    elementalInfo: '전기 스캐럽 주의, 번개 저항 권장',
+    monsterSummary: '모래 딱정벌레 군단, 언데드 파수병, 미라 수호자',
+    bestClearTime: '02분 30초',
+    maxChainRecord: 30,
+    dropItems: GAME_ITEMS_POOL.slice(5, 14),
+    rooms: create6RoomGraph({
+      start: '죽음의 홀 입구',
+      wave: '모래 석실',
+      elite: '중간보스: 딱정벌레 여왕',
+      treasure: '호라드릭 황금 상자',
+      event: '태양의 사막 성소',
+      boss: '우두머리: 고대 미이라 수호장'
+    })
+  },
+  {
+    id: 'act2_3_maggot',
+    name: '2막 3장: 마고트 동굴 (Maggot Lair)',
+    theme: '거대 모래벌레들의 좁은 굴과 산란실',
+    recommendedLevel: 22,
+    difficulty: '어려움',
+    elementalInfo: '독 면역 주의, 좁은 통로 관통 극대화',
+    monsterSummary: '거대 모래벌레, 산란 독충, 콜디웜 버로우어',
+    bestClearTime: '02분 45초',
+    maxChainRecord: 30,
+    dropItems: GAME_ITEMS_POOL.slice(6, 16),
+    rooms: create6RoomGraph({
+      start: '마고트 굴 입구',
+      wave: '산란 동굴 통로',
+      elite: '중간보스: 독충 군단장',
+      treasure: '모래벌레 소굴 보물',
+      event: '사막 비전 룬 제단',
+      boss: '우두머리: 거대 산란 여왕 콜디웜'
+    }, true)
+  },
+  {
+    id: 'act2_4_tomb',
+    name: '2막 4장: 탈 라샤의 진정한 무덤 (Tal Rasha: Duriel)',
+    theme: '고통의 대공 두리엘이 봉인된 일곱 무덤 심연',
+    recommendedLevel: 26,
+    difficulty: '어려움',
+    elementalInfo: '빙결 저항 필수, 결빙 오라 주의',
+    monsterSummary: '사막 미이라 사제, 화염 군주, 고통의 대공 두리엘',
     bestClearTime: '03분 12초',
     maxChainRecord: 30,
-    dropItems: [
-      GAME_ITEMS_POOL.find(i => i.id === 'e_crystal_sword_4s') || GAME_ITEMS_POOL[0],
-      GAME_ITEMS_POOL.find(i => i.id === 'e_broad_sword_4s') || GAME_ITEMS_POOL[1],
-      GAME_ITEMS_POOL.find(i => i.id === 'e_breast_plate_3s') || GAME_ITEMS_POOL[2],
-      GAME_ITEMS_POOL.find(i => i.id === 'u_tarnhelm') || GAME_ITEMS_POOL[3],
-      GAME_ITEMS_POOL.find(i => i.id === 'u_chance_guards') || GAME_ITEMS_POOL[4],
-      GAME_ITEMS_POOL.find(i => i.id === 'u_magefist') || GAME_ITEMS_POOL[5]
-    ],
-    rooms: [
-      { id: 1, type: 'start', title: '루트 골레인 성문', cleared: true, current: false, connections: [2], revealed: true },
-      { id: 2, type: 'normal', title: '사막 딱정벌레 무리', cleared: false, current: false, connections: [3], revealed: false },
-      { id: 3, type: 'elite', title: '중간보스: 모래 약탈자 군주', cleared: false, current: false, connections: [4, 5], revealed: false },
-      { id: 4, type: 'treasure', title: '파라오의 황금 석관', cleared: false, current: false, connections: [6], revealed: false, rewardDesc: '중급 룬 및 샤크스킨 방어구' },
-      { id: 5, type: 'rune', title: '사막의 룬 제단', cleared: false, current: false, connections: [6], revealed: false, rewardDesc: 'Amn / Sol 룬 제단' },
-      { id: 6, type: 'boss', title: '우두머리: 진정한 탈 라샤의 방', cleared: false, current: false, connections: [], revealed: false, rewardDesc: '두리엘의 유령 (구교복/소켓 무기 드랍)' }
-    ]
+    dropItems: GAME_ITEMS_POOL.slice(7, 18),
+    rooms: create6RoomGraph({
+      start: '탈 라샤 무덤 성문',
+      wave: '봉인된 일곱 무덤 회랑',
+      elite: '중간보스: 화염 파괴자 사제',
+      treasure: '파라오의 황금 석관',
+      event: '고통의 사막 성소',
+      boss: '우두머리: 고통의 대공 두리엘'
+    })
+  },
+
+  // ==================== ACT 3 (4 Dungeons) ====================
+  {
+    id: 'act3_1_spider',
+    name: '3막 1장: 거미 숲 동굴 (Spider Cavern)',
+    theme: '독무가 가득한 정글과 맹독 거미 소굴',
+    recommendedLevel: 30,
+    difficulty: '어려움',
+    elementalInfo: '독 저항 75% 필수',
+    monsterSummary: '자이언트 스파이더, 정글 모스키토, 불꽃눈 거미',
+    bestClearTime: '03분 30초',
+    maxChainRecord: 30,
+    dropItems: GAME_ITEMS_POOL.slice(8, 20),
+    rooms: create6RoomGraph({
+      start: '쿠라스트 부두 전초',
+      wave: '거미 숲 늪지대',
+      elite: '중간보스: 맹독 거미 군주',
+      treasure: '정글 원주민 금고',
+      event: '밀림의 독기 성소',
+      boss: '우두머리: 불꽃눈 거미'
+    })
   },
   {
-    id: 'act3_jungle',
-    name: '3막: 쿠라스트 밀림과 트라빈칼 (Travincal & Durance)',
-    theme: '짙은 독무가 가득한 정글과 증오의 사원',
-    recommendedLevel: 25,
+    id: 'act3_2_jungle',
+    name: '3막 2장: 약탈자 밀림 사원 (Flayer Dungeon)',
+    theme: '원주민 우달과 주술사들의 비밀 의식장',
+    recommendedLevel: 34,
     difficulty: '어려움',
-    elementalInfo: '독/냉기 저항 필수, 카운실 하이드라 주의',
-    monsterSummary: '우달 몽둥이병, 자이언트 모스키토, 하이 카운실, 메피스토의 환영',
+    elementalInfo: '화염/번개 저항 권장, 맹렬한 공속',
+    monsterSummary: '우달 몽둥이병, 약탈자 주술사, 마녀 닥 파란',
+    bestClearTime: '03분 50초',
+    maxChainRecord: 30,
+    dropItems: GAME_ITEMS_POOL.slice(10, 22),
+    rooms: create6RoomGraph({
+      start: '약탈자 정글 입구',
+      wave: '늪지 동굴 회랑',
+      elite: '중간보스: 우달 족장',
+      treasure: '기드빈 의식 보물함',
+      event: '증오의 밀림 룬 제단',
+      boss: '우두머리: 약탈자 대주술사'
+    }, true)
+  },
+  {
+    id: 'act3_3_travincal',
+    name: '3막 3장: 트라빈칼 평의회 (Travincal)',
+    theme: '자카룸 하이 카운실의 성스러운 타락 사원',
+    recommendedLevel: 38,
+    difficulty: '지옥',
+    elementalInfo: '화염 저항 필수, 카운실 하이드라 주의',
+    monsterSummary: '하이 카운실, 광신도 전사, 젤레브 스파크피스트',
+    bestClearTime: '04분 15초',
+    maxChainRecord: 30,
+    dropItems: GAME_ITEMS_POOL.slice(12, 24),
+    rooms: create6RoomGraph({
+      start: '트라빈칼 사원 회랑',
+      wave: '평의회 중앙 광장',
+      elite: '중간보스: 카운실 집행관 토르크',
+      treasure: '평의회 황금 성궤',
+      event: '신성한 증오의 성소',
+      boss: '우두머리: 하이 카운실 이스마일'
+    })
+  },
+  {
+    id: 'act3_4_durance',
+    name: '3막 4장: 증오의 억류지 (Durance: Mephisto)',
+    theme: '증오의 군주 메피스토의 핏빛 심연',
+    recommendedLevel: 42,
+    difficulty: '지옥',
+    elementalInfo: '냉기/번개 저항 필수, 번개 구체 주의',
+    monsterSummary: '블러드 로드, 저주받은 영혼, 증오의 군주 메피스토',
     bestClearTime: '04분 50초',
     maxChainRecord: 30,
-    dropItems: [
-      GAME_ITEMS_POOL.find(i => i.id === 'e_zweihander_5s') || GAME_ITEMS_POOL[0],
-      GAME_ITEMS_POOL.find(i => i.id === 'e_mage_plate_3s') || GAME_ITEMS_POOL[1],
-      GAME_ITEMS_POOL.find(i => i.id === 'm_vipermagi') || GAME_ITEMS_POOL[2],
-      GAME_ITEMS_POOL.find(i => i.id === 'u_vampire_gaze') || GAME_ITEMS_POOL[3],
-      GAME_ITEMS_POOL.find(i => i.id === 'm_waterwalk') || GAME_ITEMS_POOL[4],
-      GAME_ITEMS_POOL.find(i => i.id === 'u_soj') || GAME_ITEMS_POOL[6]
-    ],
-    rooms: [
-      { id: 1, type: 'start', title: '쿠라스트 부두', cleared: true, current: false, connections: [2], revealed: true },
-      { id: 2, type: 'normal', title: '거미 숲 모스키토 군단', cleared: false, current: false, connections: [3], revealed: false },
-      { id: 3, type: 'elite', title: '중간보스: 트라빈칼 평의회장', cleared: false, current: false, connections: [4, 5], revealed: false, rewardDesc: '하이 카운실 (고급 룬/유니크 악세)' },
-      { id: 4, type: 'treasure', title: '핏빛 보물창고', cleared: false, current: false, connections: [6], revealed: false, rewardDesc: '엘리트 소켓 장비 및 보석' },
-      { id: 5, type: 'shrine', title: '증오의 피빛 성소', cleared: false, current: false, connections: [6], revealed: false, rewardDesc: '행운/치명 축복 성소' },
-      { id: 6, type: 'boss', title: '우두머리: 증오의 억류지 3층', cleared: false, current: false, connections: [], revealed: false, rewardDesc: '메피스토의 환영 (샤코/조던링/워트래블러)' }
-    ]
+    dropItems: GAME_ITEMS_POOL.slice(14, 26),
+    rooms: create6RoomGraph({
+      start: '증오의 억류지 3층 입구',
+      wave: '핏빛 피의 호수',
+      elite: '중간보스: 카운실 수호자 브렘',
+      treasure: '메피스토의 핏빛 보물창고',
+      event: '증오의 고대 룬 제단',
+      boss: '우두머리: 증오의 군주 메피스토'
+    }, true)
   },
+
+  // ==================== ACT 4 (4 Dungeons) ====================
   {
-    id: 'act4_chaos',
-    name: '4막: 혼돈의 성역 (Chaos Sanctuary)',
-    theme: '불타는 지옥과 디아블로의 5대 봉인',
-    recommendedLevel: 35,
+    id: 'act4_1_plains',
+    name: '4막 1장: 절망의 평원 (Plains of Despair)',
+    theme: '불타는 지옥과 타락한 대천사 이주얼',
+    recommendedLevel: 46,
     difficulty: '지옥',
-    elementalInfo: '화염/번개 저항 75% 필수, 붉은 번개 주의',
-    monsterSummary: '죽음의 기사, 폭풍 시전사, 베놈 로드, 디아블로',
-    bestClearTime: '06분 20초',
+    elementalInfo: '냉기/물리 저항 필수',
+    monsterSummary: '지옥불 악마, 절망의 유령 기사, 타락한 천사 이주얼',
+    bestClearTime: '05분 10초',
     maxChainRecord: 30,
-    dropItems: [
-      GAME_ITEMS_POOL.find(i => i.id === 'e_phase_blade_5s') || GAME_ITEMS_POOL[0],
-      GAME_ITEMS_POOL.find(i => i.id === 'e_archon_plate_4s') || GAME_ITEMS_POOL[1],
-      GAME_ITEMS_POOL.find(i => i.id === 'e_monarch_4s') || GAME_ITEMS_POOL[2],
-      GAME_ITEMS_POOL.find(i => i.id === 'u_shako') || GAME_ITEMS_POOL[3],
-      GAME_ITEMS_POOL.find(i => i.id === 'u_gorerider') || GAME_ITEMS_POOL[4],
-      GAME_ITEMS_POOL.find(i => i.id === 'u_draculs') || GAME_ITEMS_POOL[5],
-      GAME_ITEMS_POOL.find(i => i.id === 'u_highlords_wrath') || GAME_ITEMS_POOL[6]
-    ],
-    rooms: [
-      { id: 1, type: 'start', title: '판데모니움 요새', cleared: true, current: false, connections: [2], revealed: true },
-      { id: 2, type: 'normal', title: '절망의 평원 베놈 로드', cleared: false, current: false, connections: [3], revealed: false },
-      { id: 3, type: 'elite', title: '중간보스: 대장장이 헤파스토', cleared: false, current: false, connections: [4, 5], revealed: false, rewardDesc: '대장장이 헤파스토 (Ist / Gul 룬 드랍)' },
-      { id: 4, type: 'rune', title: '지옥불 룬 제단', cleared: false, current: false, connections: [6], revealed: false, rewardDesc: 'Vex / Ohm / Lo 최고급 룬 제단' },
-      { id: 5, type: 'shrine', title: '혼돈의 지옥 성소', cleared: false, current: false, connections: [6], revealed: false, rewardDesc: '지옥의 축복 버프' },
-      { id: 6, type: 'boss', title: '우두머리: 오각성 중앙 제단', cleared: false, current: false, connections: [], revealed: false, rewardDesc: '공포의 군주 디아블로 (마라/할배검/윈드포스)' }
-    ]
+    dropItems: GAME_ITEMS_POOL.slice(16, 28),
+    rooms: create6RoomGraph({
+      start: '판데모니움 요새 성문',
+      wave: '절망의 평원 용암 지대',
+      elite: '중간보스: 심연의 악마 장군',
+      treasure: '타락천사의 보물함',
+      event: '지옥불 성소',
+      boss: '우두머리: 타락한 대천사 이주얼'
+    })
   },
   {
-    id: 'act5_worldstone',
-    name: '5막: 세계석 성채와 바알의 옥좌 (Worldstone Keep)',
-    theme: '아리앗 산의 얼어붙은 정상과 파멸의 세계석',
+    id: 'act4_2_forge',
+    name: '4막 2장: 불길의 강 대장간 (River of Flame)',
+    theme: '지옥의 모루와 대장장이 헤파스토',
     recommendedLevel: 50,
     difficulty: '지옥',
-    elementalInfo: '모든 저항 및 물리 피해 감소 극대화 필수',
-    monsterSummary: '블러드 로드, 저주받은 오블리비언 나이트, 바알의 미니언 군단, 파멸의 군주 바알',
+    elementalInfo: '화염 저항 80% 필수, 화염 파동 주의',
+    monsterSummary: '베놈 로드, 폭풍 시전사, 대장장이 헤파스토',
+    bestClearTime: '05분 35초',
+    maxChainRecord: 30,
+    dropItems: GAME_ITEMS_POOL.slice(18, 30),
+    rooms: create6RoomGraph({
+      start: '불길의 강 협곡',
+      wave: '용암 제련소 회랑',
+      elite: '중간보스: 불길의 강 수호대장',
+      treasure: '지옥 대장장이의 룬 금고',
+      event: '지옥불 고급 룬 제단',
+      boss: '우두머리: 대장장이 헤파스토'
+    }, true)
+  },
+  {
+    id: 'act4_3_sanctuary',
+    name: '4막 3장: 혼돈의 성역 (Chaos Sanctuary)',
+    theme: '오각성 5대 봉인과 죽음의 기사단',
+    recommendedLevel: 54,
+    difficulty: '지옥',
+    elementalInfo: '모든 저항 극대화, 물리 피해 감소 필수',
+    monsterSummary: '오블리비언 나이트, 독침 시전사, 영혼의 잠식자',
+    bestClearTime: '06분 00초',
+    maxChainRecord: 30,
+    dropItems: GAME_ITEMS_POOL.slice(20, 32),
+    rooms: create6RoomGraph({
+      start: '성역 봉인 입구',
+      wave: '5대 봉인 중앙 회랑',
+      elite: '중간보스: 대군주 사이스',
+      treasure: '혼돈의 보물함',
+      event: '공포의 지옥 성소',
+      boss: '우두머리: 봉인 파수관 영혼의 잠식자'
+    })
+  },
+  {
+    id: 'act4_4_altar',
+    name: '4막 4장: 공포의 제단 (Diablo: Lord of Terror)',
+    theme: '공포의 군주 디아블로의 중앙 오각성',
+    recommendedLevel: 58,
+    difficulty: '지옥',
+    elementalInfo: '붉은 번개 주의, 화염/번개 저항 85% 필수',
+    monsterSummary: '망각의 기사단, 베놈 로드 군단, 공포의 군주 디아블로',
+    bestClearTime: '06분 30초',
+    maxChainRecord: 30,
+    dropItems: GAME_ITEMS_POOL.slice(22, 34),
+    rooms: create6RoomGraph({
+      start: '오각성 중앙 진입로',
+      wave: '공포의 지옥불 군단',
+      elite: '중간보스: 베놈 로드 군주',
+      treasure: '공포의 군주 비밀 석관',
+      event: '파멸의 최고급 룬 제단',
+      boss: '우두머리: 공포의 군주 디아블로'
+    }, true)
+  },
+
+  // ==================== ACT 5 (4 Dungeons) ====================
+  {
+    id: 'act5_1_foothills',
+    name: '5막 1장: 피의 언덕 공성전 (Bloody Foothills)',
+    theme: '아리앗 산의 투석기와 바알의 침략 선봉대',
+    recommendedLevel: 62,
+    difficulty: '지옥',
+    elementalInfo: '원거리 투석기 포격 주의, 방어 극대화',
+    monsterSummary: '블러드 로드 전사, 공성 투석기 악마, 쉔크 더 오버시어',
+    bestClearTime: '06분 50초',
+    maxChainRecord: 30,
+    dropItems: GAME_ITEMS_POOL.slice(24, 36),
+    rooms: create6RoomGraph({
+      start: '하로가스 공성 성벽',
+      wave: '피의 언덕 참호',
+      elite: '중간보스: 투석기 지휘관',
+      treasure: '바바리안 군용 보급상자',
+      event: '아리앗 혹한 성소',
+      boss: '우두머리: 감독관 쉔크'
+    })
+  },
+  {
+    id: 'act5_2_summit',
+    name: '5막 2장: 아리앗 정상의 시험 (Arreat Summit)',
+    theme: '고대 3대 바바리안 수호신들의 시험',
+    recommendedLevel: 66,
+    difficulty: '지옥',
+    elementalInfo: '휠윈드/도약 공격 주의, 물리 피해 감소 필수',
+    monsterSummary: '탈릭(휠윈드), 코릭(도약), 마다크(투척)',
+    bestClearTime: '07분 15초',
+    maxChainRecord: 30,
+    dropItems: GAME_ITEMS_POOL.slice(26, 38),
+    rooms: create6RoomGraph({
+      start: '정상 성문 광장',
+      wave: '고대인의 얼어붙은 제단',
+      elite: '중간보스: 수호신 탈릭',
+      treasure: '고대인의 황금 유물함',
+      event: '고대인의 궁극 룬 제단',
+      boss: '우두머리: 3대 고대 바바리안 수호신'
+    }, true)
+  },
+  {
+    id: 'act5_3_keep',
+    name: '5막 3장: 세계석 성채 (Worldstone Keep)',
+    theme: '아리앗 산 깊은 심연의 세계석 수호 성채',
+    recommendedLevel: 70,
+    difficulty: '지옥',
+    elementalInfo: '모든 저항 75% 필수, 블랙 소울 주의',
+    monsterSummary: '오블리비언 로드, 서큐버스, 블랙 소울 군단',
+    bestClearTime: '07분 40초',
+    maxChainRecord: 30,
+    dropItems: GAME_ITEMS_POOL.slice(28, 40),
+    rooms: create6RoomGraph({
+      start: '세계석 성채 3층',
+      wave: '성채 심연 회랑',
+      elite: '중간보스: 블랙 소울 여왕',
+      treasure: '세계석 파괴의 보물창고',
+      event: '궁극의 세계석 성소',
+      boss: '우두머리: 바알의 선봉대 군단'
+    })
+  },
+  {
+    id: 'act5_4_throne',
+    name: '5막 4장: 파멸의 옥좌 심연 (Baal: Lord of Destruction)',
+    theme: '파멸의 군주 바알과 5대 미니언 파상 공세',
+    recommendedLevel: 75,
+    difficulty: '지옥',
+    elementalInfo: '종결급 스탯 & 전 저항 극대화 필수',
+    monsterSummary: '콜렌조, 아크멜, 바르툭, 벤타르, 리스터 더 토멘터, 파멸의 군주 바알',
     bestClearTime: '08분 15초',
     maxChainRecord: 30,
-    dropItems: [
-      GAME_ITEMS_POOL.find(i => i.id === 'e_colossus_blade_6s') || GAME_ITEMS_POOL[0],
-      GAME_ITEMS_POOL.find(i => i.id === 'e_thresher_4s') || GAME_ITEMS_POOL[1],
-      GAME_ITEMS_POOL.find(i => i.id === 'u_grandfather') || GAME_ITEMS_POOL[2],
-      GAME_ITEMS_POOL.find(i => i.id === 'u_windforce') || GAME_ITEMS_POOL[3],
-      GAME_ITEMS_POOL.find(i => i.id === 'u_stormshield') || GAME_ITEMS_POOL[4],
-      GAME_ITEMS_POOL.find(i => i.id === 'u_maras') || GAME_ITEMS_POOL[5],
-      GAME_ITEMS_POOL.find(i => i.id === 'u_tyraels_might') || GAME_ITEMS_POOL[6]
-    ],
-    rooms: [
-      { id: 1, type: 'start', title: '하로가스 성채', cleared: true, current: false, connections: [2], revealed: true },
-      { id: 2, type: 'normal', title: '피의 언덕 블러드 로드', cleared: false, current: false, connections: [3], revealed: false },
-      { id: 3, type: 'elite', title: '중간보스: 오블리비언 나이트', cleared: false, current: false, connections: [4, 5], revealed: false, rewardDesc: '바알의 선봉대 (Ber / Jah / Cham 룬 드랍)' },
-      { id: 4, type: 'treasure', title: '아리앗 고대인의 금고', cleared: false, current: false, connections: [6], revealed: false, rewardDesc: '엘리트 유니크 풀세트 드랍' },
-      { id: 5, type: 'rune', title: '파괴의 룬 제단', cleared: false, current: false, connections: [6], revealed: false, rewardDesc: 'Jah / Cham / Zod 궁극의 룬 제단' },
-      { id: 6, type: 'boss', title: '우두머리: 파멸의 옥좌 심연', cleared: false, current: false, connections: [], revealed: false, rewardDesc: '파멸의 군주 바알 (종결 신기 및 고대 룬 대량 드랍)' }
-    ]
+    dropItems: GAME_ITEMS_POOL.slice(30, 42),
+    rooms: create6RoomGraph({
+      start: '파멸의 옥좌 진입로',
+      wave: '바알의 5대 미니언 군단',
+      elite: '중간보스: 리스터 더 토멘터',
+      treasure: '고대 세계석 궁극 금고',
+      event: '파괴의 신화 룬 제단 (Zod / Cham / Jah)',
+      boss: '우두머리: 파멸의 군주 바알'
+    }, true)
   }
 ];
 
@@ -190,27 +519,34 @@ export function createDungeonFormation(
   let bossName = '안다리엘의 환영';
   let iconType = 'Goblin';
 
-  if (dungeonId === 'act2_tomb') {
+  if (dungeonId.startsWith('act2_')) {
     baseMonsterName = '사막 딱정벌레';
     eliteMonsterName = '모래 약탈자';
     bossName = '두리엘의 유령';
     iconType = 'Bug';
-  } else if (dungeonId === 'act3_jungle') {
+  } else if (dungeonId.startsWith('act3_')) {
     baseMonsterName = '정글 모스키토';
     eliteMonsterName = '트라빈칼 평의회원';
     bossName = '메피스토의 환영';
     iconType = 'Mosquito';
-  } else if (dungeonId === 'act4_chaos') {
+  } else if (dungeonId.startsWith('act4_')) {
     baseMonsterName = '심연의 베놈 로드';
     eliteMonsterName = '죽음의 기사단장';
     bossName = '공포의 군주 디아블로';
     iconType = 'Demon';
-  } else if (dungeonId === 'act5_worldstone') {
+  } else if (dungeonId.startsWith('act5_')) {
     baseMonsterName = '블러드 로드 전사';
     eliteMonsterName = '오블리비언 로드';
     bossName = '파멸의 군주 바알';
     iconType = 'Lord';
   }
+
+  // Boss name overrides per final dungeon
+  if (dungeonId === 'act1_4_catacombs') bossName = '안다리엘의 환영';
+  else if (dungeonId === 'act2_4_tomb') bossName = '두리엘의 유령';
+  else if (dungeonId === 'act3_4_durance') bossName = '메피스토의 환영';
+  else if (dungeonId === 'act4_4_altar') bossName = '공포의 군주 디아블로';
+  else if (dungeonId === 'act5_4_throne') bossName = '파멸의 군주 바알';
 
   for (let l = 0; l < 5; l++) {
     for (let d = 0; d < 6; d++) {

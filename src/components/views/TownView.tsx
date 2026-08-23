@@ -15,6 +15,7 @@ export const TownView: React.FC = React.memo(() => {
     runesVault,
     currentDungeon,
     currentDifficulty,
+    maxUnlockedDifficulty,
     craftRuneWord,
     craftRuneWordWithTransmute,
     transmuteRunesInVault,
@@ -31,6 +32,7 @@ export const TownView: React.FC = React.memo(() => {
     claimedAchievements
   } = useGame();
 
+  const autoDeployDiff = Math.max(1, maxUnlockedDifficulty || currentDifficulty || 1);
   // Re-ordered: Cain first, Gamble second, RuneWords third, Horadric Cube last
   const [activeFacility, setActiveFacility] = useState<'cain' | 'gamble' | 'runewords' | 'cube'>('cain');
   const [gambleFeedback, setGambleFeedback] = useState<{ item: GameItem; isHighRarity: boolean; cost: number } | null>(null);
@@ -107,11 +109,11 @@ export const TownView: React.FC = React.memo(() => {
           </button>
           
           <button
-            data-tutorial="deploy" onClick={() => enterDungeon(lastDungeon.id, currentDifficulty)}
+            data-tutorial="deploy" onClick={() => enterDungeon(lastDungeon.id, autoDeployDiff)}
             className="px-4 py-1.5 bg-gradient-to-r from-blood-700 via-blood-600 to-amber-600 hover:from-blood-600 hover:to-amber-500 text-white font-black rounded text-xs flex items-center gap-1.5 shadow-xl ring-1 ring-amber-400/60 transition transform active:scale-95 animate-pulse cursor-pointer"
-            title={`이전 던전 [${lastDungeon.name.split(":")[0]}] (난이도 Lv.${currentDifficulty})으로 즉시 출격`}
+            title={`이전 던전 [${lastDungeon.name.split(":")[0]}] (개방 최고 난이도 Lv.${autoDeployDiff})으로 즉시 출격`}
           >
-            <span>[Space] [${lastDungeon.name.split(":")[0]}] Lv.${currentDifficulty} 즉시 출격</span>
+            <span>[Space] [${lastDungeon.name.split(":")[0]}] Lv.${autoDeployDiff} 즉시 출격</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
