@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useGame } from '../../state/gameStore';
 import { useHoldAction } from '../../utils/useHoldAction';
-import { WARRIOR_SKILLS, SKILL_RUNES_DATA, isSkillUnlocked } from '../../data/gameData';
+import { ALL_AVAILABLE_SKILLS, SKILL_RUNES_DATA, isSkillUnlocked, getSkillById } from '../../data/skills';
 import { Skill, SkillRune } from '../../types/game';
 import {
   X,
@@ -10,14 +10,13 @@ import {
   Flame,
   Snowflake,
   Skull,
-  Droplets,
-  Moon,
   Check,
   Plus,
   RotateCcw,
   Shield,
-  Heart,
-  Activity
+  Activity,
+  Layers,
+  Sword
 } from 'lucide-react';
 
 const SkillUpgradeButtons: React.FC<{
@@ -73,6 +72,8 @@ const SkillUpgradeButtons: React.FC<{
 
 export const SkillRuneModal: React.FC = React.memo(() => {
   const {
+    equippedSkillSlots,
+    equipSkillToSlot,
     skillRunes,
     setSkillRune,
     skillLevels,
@@ -84,19 +85,25 @@ export const SkillRuneModal: React.FC = React.memo(() => {
 
   const [selectedSkillId, setSelectedSkillId] = useState<string>('slash');
 
-  const selectedSkill = WARRIOR_SKILLS.find(s => s.id === selectedSkillId) || WARRIOR_SKILLS[0];
+  const selectedSkill = ALL_AVAILABLE_SKILLS.find(s => s.id === selectedSkillId) || ALL_AVAILABLE_SKILLS[0];
   const activeRuneId = skillRunes[selectedSkill.id] || selectedSkill.activeRuneId;
   const currentSkillLv = skillLevels[selectedSkill.id] || 1;
   const levelDamageBonus = (currentSkillLv - 1) * 15;
+  const isSelectedUnlocked = isSkillUnlocked(selectedSkill.id, playerStats.level);
+
+  // Find which slot the selected skill is currently in
+  const currentAssignedSlot = (Object.keys(equippedSkillSlots) as ('Q' | 'W' | 'E' | 'R')[]).find(
+    slot => equippedSkillSlots[slot] === selectedSkill.id
+  );
 
   return (
     <div className="bg-iron-950 border-2 border-brass-500 rounded-lg p-4 md:p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl text-xs md:text-sm select-none">
       {/* Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-iron-750 mb-4 gap-2">
+      <div className="flex items-center justify-between pb-3 border-b border-iron-750 mb-3 gap-2">
         <div className="flex items-center gap-2 flex-wrap">
           <h2 className="text-base md:text-lg font-cinzel font-black text-brass-200 tracking-wider flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-amber-400" />
-            스킬 트리 & 룬 결합 성소
+            스킬 슬롯 & 룬 결합 성소
           </h2>
           {playerStats.skillPoints > 0 && (
             <span className="bg-amber-500/30 text-amber-200 border border-amber-400 px-2.5 py-0.5 rounded text-xs font-black animate-pulse">
@@ -123,20 +130,70 @@ export const SkillRuneModal: React.FC = React.memo(() => {
         </div>
       </div>
 
+      {/* 4 Equipped Skill Quick Slots Bar */}
+      <div className="mb-4 p-3 rounded-lg bg-iron-900/90 border border-iron-750">
+        <div className="text-[11px] font-cinzel font-bold text-gray-400 mb-2 flex items-center justify-between">
+          <span className="flex items-center gap-1.5 text-brass-300 font-black">
+            <Layers className="w-3.5 h-3.5" />
+            현재 장착된 4대 액티브 스킬 슬롯 (Q / W / E / R)
+          </span>
+          <span className="text-[10px] text-gray-400">스킬을 선택한 뒤 아래 버튼으로 원하는 슬롯에 즉시 장착</span>
+        </div>
+        <div className="grid grid-cols-4 gap-2">
+          {(['Q', 'W', 'E', 'R'] as const).map(slot => {
+            const skillId = equippedSkillSlots[slot];
+            const sk = getSkillById(skillId) || ALL_AVAILABLE_SKILLS[0];
+            const isTargetSelected = sk.id === selectedSkillId;
+            const rId = skillRunes[sk.id] || sk.activeRuneId;
+            const currentRune = SKILL_RUNES_DATA.find(r => r.id === rId);
+
+            return (
+              <button
+                key={slot}
+                onClick={() => setSelectedSkillId(sk.id)}
+                className={`p-2 rounded-lg border text-left flex flex-col justify-between transition cursor-pointer relative shadow ${
+                  isTargetSelected
+                    ? 'bg-blood-950/70 border-brass-400 ring-2 ring-brass-400/80 shadow-[0_0_10px_rgba(251,191,36,0.3)]'
+                    : 'bg-iron-950 border-iron-800 hover:border-iron-600 hover:bg-iron-900'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="w-5 h-5 rounded bg-iron-900 border border-iron-700 font-mono font-black text-xs text-brass-300 flex items-center justify-center">
+                    {slot}
+                  </span>
+                  <span className="text-[10px] font-mono text-amber-300 font-bold">
+                    Lv.{skillLevels[sk.id] || 1}
+                  </span>
+                </div>
+                <div className="font-bold text-gray-100 text-xs truncate mt-1">
+                  {sk.name.split(' ')[0]}
+                </div>
+                <div className="text-[9px] truncate mt-0.5" style={{ color: currentRune?.color || '#9ca3af' }}>
+                  {currentRune ? currentRune.name.split(' ')[0] : '기본'}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        {/* Left Column: 4 Warrior Skills Selection */}
+        {/* Left Column: All Available Skills Library */}
         <div className="lg:col-span-5 space-y-2.5">
           <div className="text-xs font-cinzel font-bold text-gray-300 px-1 flex items-center justify-between">
-            <span>워리어 액티브 스킬 목록</span>
+            <span>워리어 스킬 라이브러리</span>
             <span className="text-[10px] text-gray-400 font-mono">레벨업 시 위력 +15%/Lv</span>
           </div>
 
-          {WARRIOR_SKILLS.map(skill => {
+          {ALL_AVAILABLE_SKILLS.map(skill => {
             const isSelected = skill.id === selectedSkillId;
             const sLevel = skillLevels[skill.id] || 1;
             const unlocked = isSkillUnlocked(skill.id, playerStats.level);
             const runeId = skillRunes[skill.id] || skill.activeRuneId;
             const currentRune = SKILL_RUNES_DATA.find(r => r.id === runeId);
+            const assignedSlot = (Object.keys(equippedSkillSlots) as ('Q' | 'W' | 'E' | 'R')[]).find(
+              slot => equippedSkillSlots[slot] === skill.id
+            );
 
             return (
               <div
@@ -152,9 +209,15 @@ export const SkillRuneModal: React.FC = React.memo(() => {
               >
                 <div className="flex items-center justify-between mb-1.5">
                   <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded bg-iron-900 border border-iron-700 flex items-center justify-center font-black font-mono text-xs text-brass-300">
-                      {skill.hotkey}
-                    </span>
+                    {assignedSlot ? (
+                      <span className="w-5 h-5 rounded bg-emerald-950 border border-emerald-500 font-mono font-black text-xs text-emerald-300 flex items-center justify-center">
+                        {assignedSlot}
+                      </span>
+                    ) : (
+                      <span className="w-5 h-5 rounded bg-iron-900 border border-iron-800 font-mono text-[10px] text-gray-500 flex items-center justify-center">
+                        -
+                      </span>
+                    )}
                     <span className="font-bold text-white text-sm tracking-wide">
                       {skill.name}
                     </span>
@@ -164,12 +227,12 @@ export const SkillRuneModal: React.FC = React.memo(() => {
                   </div>
 
                   {unlocked ? (
-                  <SkillUpgradeButtons
-                    skillId={skill.id}
-                    sLevel={sLevel}
-                    availablePoints={playerStats.skillPoints}
-                    onUpgrade={upgradeSkill}
-                  />
+                    <SkillUpgradeButtons
+                      skillId={skill.id}
+                      sLevel={sLevel}
+                      availablePoints={playerStats.skillPoints}
+                      onUpgrade={upgradeSkill}
+                    />
                   ) : (
                     <span className="text-[10px] text-gray-500 font-mono font-bold">잠김</span>
                   )}
@@ -203,30 +266,71 @@ export const SkillRuneModal: React.FC = React.memo(() => {
           })}
         </div>
 
-        {/* Right Column: Skill Rune Customization Shrine */}
+        {/* Right Column: Skill Slot Assignment & Rune Customization Shrine */}
         <div className="lg:col-span-7 bg-iron-900/90 p-4 rounded-lg border border-iron-750 space-y-4 shadow">
           {/* Selected Skill Header */}
-          <div className="border-b border-iron-750 pb-3 flex items-center justify-between gap-2">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-base md:text-lg font-black text-brass-200">
-                  {selectedSkill.name}
-                </span>
-                <span className="font-mono font-black text-amber-400 text-xs px-2 py-0.5 rounded bg-iron-950 border border-iron-750">
-                  Lv.{currentSkillLv} / 10 (+{levelDamageBonus}% 위력 증폭)
-                </span>
+          <div className="border-b border-iron-750 pb-3 space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-base md:text-lg font-black text-brass-200">
+                    {selectedSkill.name}
+                  </span>
+                  <span className="font-mono font-black text-amber-400 text-xs px-2 py-0.5 rounded bg-iron-950 border border-iron-750">
+                    Lv.{currentSkillLv} / 10 (+{levelDamageBonus}% 위력 증폭)
+                  </span>
+                </div>
+                <div className="text-xs text-gray-400 mt-1 font-mono">
+                  자원 소모: {selectedSkill.rageCost > 0 ? `분노 ${selectedSkill.rageCost}` : '자원 소모 없음'} | 궤적: {selectedSkill.route.toUpperCase()}
+                </div>
               </div>
-              <div className="text-xs text-gray-400 mt-1 font-mono">
-                자원 소모: {selectedSkill.rageCost > 0 ? `분노 ${selectedSkill.rageCost}` : '자원 소모 없음'} | 궤적: {selectedSkill.route.toUpperCase()}
-              </div>
+
+              {isSelectedUnlocked && (
+                <SkillUpgradeButtons
+                  skillId={selectedSkill.id}
+                  sLevel={currentSkillLv}
+                  availablePoints={playerStats.skillPoints}
+                  onUpgrade={upgradeSkill}
+                />
+              )}
             </div>
 
-            <SkillUpgradeButtons
-              skillId={selectedSkill.id}
-              sLevel={currentSkillLv}
-              availablePoints={playerStats.skillPoints}
-              onUpgrade={upgradeSkill}
-            />
+            {/* Quick Slot Assignment Buttons */}
+            {isSelectedUnlocked ? (
+              <div className="pt-2 border-t border-iron-800/80 flex items-center justify-between gap-2 flex-wrap">
+                <div className="text-xs font-bold text-gray-300 flex items-center gap-1.5">
+                  <Sword className="w-3.5 h-3.5 text-brass-400" />
+                  <span>단축키 슬롯 장착:</span>
+                  {currentAssignedSlot && (
+                    <span className="text-emerald-400 font-mono font-black">[{currentAssignedSlot} 슬롯 사용중]</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {(['Q', 'W', 'E', 'R'] as const).map(slot => {
+                    const isCurrentSlot = equippedSkillSlots[slot] === selectedSkill.id;
+                    return (
+                      <button
+                        key={slot}
+                        onClick={() => equipSkillToSlot(slot, selectedSkill.id)}
+                        className={`px-3 py-1 rounded font-mono font-black text-xs transition cursor-pointer flex items-center gap-1 ${
+                          isCurrentSlot
+                            ? 'bg-emerald-600 text-white border border-emerald-400 shadow ring-1 ring-emerald-300'
+                            : 'bg-iron-950 hover:bg-iron-800 text-brass-300 border border-iron-700 hover:border-brass-400'
+                        }`}
+                        title={`${slot} 슬롯에 이 스킬 장착`}
+                      >
+                        {isCurrentSlot && <Check className="w-3 h-3" />}
+                        <span>{slot} 슬롯</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="p-2 rounded bg-iron-950 border border-iron-800 text-xs text-amber-300/80 font-mono">
+                🔒 캐릭터 레벨 {selectedSkill.unlockLevel}에 도달하면 해금 및 슬롯 장착이 가능합니다.
+              </div>
+            )}
           </div>
 
           {/* 5 Elemental Skill Runes Selector */}

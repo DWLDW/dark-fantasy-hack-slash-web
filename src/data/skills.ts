@@ -1,4 +1,4 @@
-﻿import { Skill, SkillRune } from '../types/game';
+import { Skill, SkillRune } from '../types/game';
 
 export const SKILL_RUNES_DATA: SkillRune[] = [
   {
@@ -53,7 +53,7 @@ export const SKILL_RUNES_DATA: SkillRune[] = [
   }
 ];
 
-export const WARRIOR_SKILLS: Skill[] = [
+export const ALL_AVAILABLE_SKILLS: Skill[] = [
   {
     id: 'slash',
     name: '가르기 (Slash)',
@@ -86,7 +86,23 @@ export const WARRIOR_SKILLS: Skill[] = [
     icon: 'Skull',
     hotkey: 'W',
     activeRuneId: 'rune_poison',
-    unlockLevel: 8
+    unlockLevel: 3
+  },
+  {
+    id: 'shield_bash',
+    name: '방패 강타 (Shield Bash)',
+    level: 1,
+    maxLevel: 10,
+    rageCost: 15,
+    manaCost: 0,
+    damageMultiplier: 2.4,
+    overkillEfficiency: 0.65,
+    route: 'single',
+    description: '단단한 방패로 전방 적을 후려쳐 2.4배의 물리 피해를 입히고 적 방어력을 40% 분쇄합니다.',
+    icon: 'Shield',
+    hotkey: 'W',
+    activeRuneId: 'rune_frost',
+    unlockLevel: 6
   },
   {
     id: 'cleave',
@@ -103,7 +119,23 @@ export const WARRIOR_SKILLS: Skill[] = [
     icon: 'Zap',
     hotkey: 'E',
     activeRuneId: 'rune_lightning',
-    unlockLevel: 16
+    unlockLevel: 10
+  },
+  {
+    id: 'berserk',
+    name: '광폭 공격 (Berserk)',
+    level: 1,
+    maxLevel: 10,
+    rageCost: 25,
+    manaCost: 0,
+    damageMultiplier: 2.8,
+    overkillEfficiency: 0.75,
+    route: 'line',
+    description: '전방 1개 레인 전체를 분노로 관통하는 강력한 마법/물리 융합 공격입니다.',
+    icon: 'Flame',
+    hotkey: 'E',
+    activeRuneId: 'rune_fire',
+    unlockLevel: 15
   },
   {
     id: 'whirlwind',
@@ -114,18 +146,53 @@ export const WARRIOR_SKILLS: Skill[] = [
     manaCost: 0,
     damageMultiplier: 1.1,
     overkillEfficiency: 0.60,
-    rageGainPerHit: 0, // 자체 분노 생성 제거 -> 자원 소모형 순수 소탕기! (통찰 무기 착용 시 난사 가능)
+    rageGainPerHit: 0,
     route: 'radius',
     description: '전 레인 2열(10칸)을 휩쓰는 광역 폭풍. 타격 시 자체 분노를 생성하지 않아 자원을 소모하므로, 통찰(Insight) 룬워드를 착용하거나 가르기/휩쓸기와 연계해야 난사할 수 있습니다.',
     icon: 'RotateCw',
     hotkey: 'R',
     activeRuneId: 'rune_frost',
-    unlockLevel: 28
+    unlockLevel: 20
+  },
+  {
+    id: 'war_cry',
+    name: '전장의 함성 (War Cry)',
+    level: 1,
+    maxLevel: 10,
+    rageCost: 0,
+    manaCost: 0,
+    damageMultiplier: 1.4,
+    overkillEfficiency: 0.70,
+    rageGainPerHit: 10,
+    route: 'radius',
+    description: '포효를 내질러 전 레인 적들에게 충격을 주고 타격당 분노 +10을 획득합니다.',
+    icon: 'Activity',
+    hotkey: 'R',
+    activeRuneId: 'rune_void',
+    unlockLevel: 25
   }
 ];
 
+export const DEFAULT_EQUIPPED_SLOTS: Record<'Q' | 'W' | 'E' | 'R', string> = {
+  Q: 'slash',
+  W: 'execute',
+  E: 'cleave',
+  R: 'whirlwind'
+};
+
+export const WARRIOR_SKILLS: Skill[] = [
+  ALL_AVAILABLE_SKILLS.find(s => s.id === 'slash')!,
+  ALL_AVAILABLE_SKILLS.find(s => s.id === 'execute')!,
+  ALL_AVAILABLE_SKILLS.find(s => s.id === 'cleave')!,
+  ALL_AVAILABLE_SKILLS.find(s => s.id === 'whirlwind')!
+];
+
+export function getSkillById(id: string): Skill | undefined {
+  return ALL_AVAILABLE_SKILLS.find(s => s.id === id);
+}
+
 export function getSkillUnlockLevel(skillId: string): number {
-  const skill = WARRIOR_SKILLS.find(s => s.id === skillId);
+  const skill = ALL_AVAILABLE_SKILLS.find(s => s.id === skillId);
   return skill?.unlockLevel ?? 1;
 }
 

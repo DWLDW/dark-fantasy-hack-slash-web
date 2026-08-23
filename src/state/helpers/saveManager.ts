@@ -39,6 +39,7 @@ export interface SaveDataPayload {
   runesVault: Record<string, number>;
   skillLevels?: Record<string, number>;
   skillRunes?: Record<string, string>;
+  equippedSkillSlots?: Record<string, string>;
   consumables?: ConsumableItem[];
   currentDungeonId?: string;
   currentRoomId?: number;
@@ -81,3 +82,4 @@ export const decodeSaveData = (encodedData: string): SaveDataPayload | null => {
     return null;
   }
 };
+

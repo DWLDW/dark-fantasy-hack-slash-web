@@ -326,31 +326,6 @@ export function prepareDungeonRun(dungeon: DungeonInfo): DungeonRoom[] {
     current: false
   }));
 
-  const firstCombat = rooms.find(r => r.id === 2);
-  if (firstCombat && firstCombat.type !== 'boss' && firstCombat.type !== 'start') {
-    firstCombat.type = 'normal';
-    firstCombat.title = ENCOUNTER_LABEL.normal;
-  }
-
-  if (dungeon.id === 'act1_crypt') {
-    const left = rooms.find(r => r.id === 3);
-    const right = rooms.find(r => r.id === 4);
-    if (left && right) {
-      const swap = Math.random() < 0.5;
-      left.type = swap ? 'elite' : 'treasure';
-      right.type = swap ? 'treasure' : 'elite';
-      left.title = ENCOUNTER_LABEL[left.type];
-      right.title = ENCOUNTER_LABEL[right.type];
-    }
-    return rooms;
-  }
-
-  const mystery = rooms.filter(r => r.type !== 'start' && r.type !== 'boss' && r.id !== 2);
-  const pool = shuffleInPlace<RoomType>(['normal', 'elite', 'treasure']);
-  mystery.forEach((r, i) => {
-    r.type = pool[i % pool.length];
-    r.title = ENCOUNTER_LABEL[r.type] || r.title;
-  });
   return rooms;
 }
 
@@ -422,3 +397,4 @@ export function makeFirstClearSteelBase(): GameItem {
     description: '[첫 원정 보상] 빈 소켓 2개. 룬 보관함의 Tir + El 순서로 박으면 강철(Steel) 룬워드가 됩니다.'
   };
 }
+

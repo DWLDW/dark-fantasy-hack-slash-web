@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useGame } from '../../state/gameStore';
-import { WARRIOR_SKILLS, isSkillUnlocked } from '../../data/skills';
+import { isSkillUnlocked } from '../../data/skills';
 import { equippedCompareHint } from '../../state/helpers/dungeonEventHelper';
 import { MiniRoomGraph } from '../layout/MiniRoomGraph';
 import { Monster, Skill } from '../../types/game';
@@ -30,6 +30,7 @@ export const BattleView: React.FC = React.memo(() => {
     setPlayerLane,
     selectedSkill,
     selectSkillOrExecute,
+    equippedSkills,
     executeAttack,
     isAttacking,
     isEnemyTurn,
@@ -871,7 +872,7 @@ export const BattleView: React.FC = React.memo(() => {
           <div className="flex-1 space-y-1.5 min-w-0">
             <div className="flex items-center gap-1 sm:gap-2">
               <div className="grid grid-cols-4 gap-1 sm:gap-1.5 flex-1 min-w-0">
-                {WARRIOR_SKILLS.map(skill => {
+                {equippedSkills.map(skill => {
                   const isSelected = selectedSkill.id === skill.id;
                   const sLevel = skillLevels[skill.id] || 1;
                   const unlocked = isSkillUnlocked(skill.id, playerStats.level);

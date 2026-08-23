@@ -4,7 +4,7 @@ import { TopHUD } from './components/layout/TopHUD';
 import { BottomDock } from './components/layout/BottomDock';
 import { GlobalModalHost } from './components/modals/GlobalModalHost';
 import { TownView } from './components/views/TownView';
-import { WARRIOR_SKILLS } from './data/skills';
+
 import { startBGM, initAudio } from './utils/audio';
 
 const DungeonSelectView = lazy(() =>
@@ -42,7 +42,8 @@ const MainLayout: React.FC = () => {
     roomEventClaimed,
     claimTreasure,
     claimRuneAltar,
-    claimShrine
+    claimShrine,
+    getSkillForSlot
   } = useGame();
 
   const keysRef = useRef({
@@ -66,7 +67,8 @@ const MainLayout: React.FC = () => {
     roomEventClaimed,
     claimTreasure,
     claimRuneAltar,
-    claimShrine
+    claimShrine,
+    getSkillForSlot
   });
   keysRef.current = {
     viewMode,
@@ -89,7 +91,8 @@ const MainLayout: React.FC = () => {
     roomEventClaimed,
     claimTreasure,
     claimRuneAltar,
-    claimShrine
+    claimShrine,
+    getSkillForSlot
   };
 
   useEffect(() => {
@@ -201,10 +204,10 @@ const MainLayout: React.FC = () => {
 
       if (g.viewMode === 'battle' && !g.activeModal) {
         const key = e.key.toLowerCase();
-        if (key === 'q') g.selectSkillOrExecute(WARRIOR_SKILLS[0]);
-        if (key === 'w') g.selectSkillOrExecute(WARRIOR_SKILLS[1]);
-        if (key === 'e') g.selectSkillOrExecute(WARRIOR_SKILLS[2]);
-        if (key === 'r') g.selectSkillOrExecute(WARRIOR_SKILLS[3]);
+        if (key === 'q') g.selectSkillOrExecute(g.getSkillForSlot('Q'));
+        if (key === 'w') g.selectSkillOrExecute(g.getSkillForSlot('W'));
+        if (key === 'e') g.selectSkillOrExecute(g.getSkillForSlot('E'));
+        if (key === 'r') g.selectSkillOrExecute(g.getSkillForSlot('R'));
       }
     };
 

@@ -19,7 +19,6 @@ import {
   INITIAL_EQUIPMENT,
   SAMPLE_INVENTORY,
   GAME_ITEMS_POOL,
-  WARRIOR_SKILLS,
   DUNGEONS_DATA,
   INITIAL_CONSUMABLES,
   D2_RUNES,
@@ -34,7 +33,7 @@ import { upgradeSkillHelper, resetSkillPointsHelper, getEffectiveSkill } from '.
 import { getItemSellPrice, bulkSellHelper, socketRuneHelper, cubeTransmuteHelper } from './helpers/cubeCraftingHelper';
 import { claimTreasureHelper, claimRuneAltarHelper, createShrineBuff, generateVictoryLoot, prepareDungeonRun, makeFirstClearSteelBase, generateRoomClearLoot } from './helpers/dungeonEventHelper';
 import { isActUnlocked } from '../data/dungeons';
-import { isSkillUnlocked } from '../data/skills';
+import { WARRIOR_SKILLS, ALL_AVAILABLE_SKILLS, DEFAULT_EQUIPPED_SLOTS, getSkillById, isSkillUnlocked } from '../data/skills';
 import { calculateAttackGains, compressLaneSurvivors, resolveHordeCounterAttack } from './helpers/combatActionHelper';
 import {
   SAVE_KEY,
@@ -137,7 +136,11 @@ interface GameContextType {
   addLog: (text: string, type?: CombatLogEntry['type']) => void;
   resetBattleFormation: () => void;
   
-  // Skill Runes & Point Upgrades
+  // Skill Slots & Runes & Point Upgrades
+  equippedSkillSlots: Record<string, string>;
+  equipSkillToSlot: (slot: 'Q' | 'W' | 'E' | 'R', skillId: string) => void;
+  equippedSkills: Skill[];
+  getSkillForSlot: (slot: 'Q' | 'W' | 'E' | 'R') => Skill;
   skillRunes: Record<string, string>;
   setSkillRune: (skillId: string, runeId: string | null) => void;
   skillLevels: Record<string, number>;
@@ -250,6 +253,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [maxUnlockedDifficulty, setMaxUnlockedDifficulty] = useState<number>(() => savedData?.maxUnlockedDifficulty || 1);
   const [latestRoomLootEvent, setLatestRoomLootEvent] = useState<RoomLootEvent | null>(null);
   const clearLatestRoomLootEvent = () => setLatestRoomLootEvent(null);
+  const [equippedSkillSlots, setEquippedSkillSlots] = useState<Record<string, string>>(() => ({
+    ...DEFAULT_EQUIPPED_SLOTS,
+    ...(savedData?.equippedSkillSlots || {})
+  }));
   const [skillRunes, setSkillRunes] = useState<Record<string, string>>(() => savedData?.skillRunes || {
     slash: 'rune_fire'
   });
@@ -312,7 +319,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }, 450);
     return () => window.clearTimeout(timer);
-  }, [playerStats, equipment, inventory, runesVault, consumables, currentDungeon.id, currentRoomId, currentDifficulty, maxUnlockedDifficulty, skillRunes, skillLevels, achievementStats, claimedAchievements]);
+  }, [playerStats, equipment, inventory, runesVault, consumables, currentDungeon.id, currentRoomId, currentDifficulty, maxUnlockedDifficulty, equippedSkillSlots, skillRunes, skillLevels, achievementStats, claimedAchievements]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -516,6 +523,30 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     addLog(res.message, 'loot');
     return true;
   };
+  const equipSkillToSlot = (slot: 'Q' | 'W' | 'E' | 'R', skillId: string) => {
+    setEquippedSkillSlots(prev => ({ ...prev, [slot]: skillId }));
+    const sk = getSkillById(skillId);
+    if (sk) {
+      addLog(`⚡ [${slot}] 슬롯에 '${sk.name}' 스킬이 장착되었습니다.`, 'system');
+    }
+  };
+
+  const getSkillForSlot = useCallback((slot: 'Q' | 'W' | 'E' | 'R'): Skill => {
+    const skillId = equippedSkillSlots[slot] || DEFAULT_EQUIPPED_SLOTS[slot];
+    const base = getSkillById(skillId) || WARRIOR_SKILLS[0];
+    return {
+      ...base,
+      hotkey: slot,
+      activeRuneId: skillRunes[base.id] || base.activeRuneId || null,
+      level: skillLevels[base.id] || 1
+    };
+  }, [equippedSkillSlots, skillRunes, skillLevels]);
+
+  const equippedSkills = useMemo<Skill[]>(() => {
+    const slots: ('Q' | 'W' | 'E' | 'R')[] = ['Q', 'W', 'E', 'R'];
+    return slots.map(slot => getSkillForSlot(slot));
+  }, [getSkillForSlot]);
+
   const setSkillRune = (skillId: string, runeId: string | null) => {
     setSkillRunes(prev => {
       const copy = { ...prev };
@@ -618,6 +649,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data.equipment) setEquipment(data.equipment);
       if (data.inventory) setInventory(data.inventory);
       if (data.runesVault) setRunesVault(data.runesVault);
+      if (data.equippedSkillSlots) setEquippedSkillSlots(data.equippedSkillSlots);
       if (data.skillLevels) setSkillLevels(data.skillLevels);
       if (data.skillRunes) setSkillRunes(data.skillRunes);
       if (data.consumables) setConsumables(data.consumables);
@@ -1204,6 +1236,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       addLog('이전 막을 클리어해야 이 던전에 진입할 수 있습니다.', 'system');
       return;
     }
+    if (inventory.length >= 40) {
+      addLog('❌ 가방이 가득 찼습니다. 판매 후 출발하세요.', 'system');
+      return;
+    }
+    if (inventory.length >= 35) {
+      addLog(`⚠️ 가방이 거의 찼습니다 (${inventory.length}/40)`, 'system');
+    }
     const dungeon = DUNGEONS_DATA.find(d => d.id === dungeonId) || DUNGEONS_DATA[0];
     const diffToUse = difficulty || currentDifficulty || 1;
     setCurrentDifficulty(diffToUse);
@@ -1637,6 +1676,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     abandonDungeon,
     addLog,
     resetBattleFormation,
+    equippedSkillSlots,
+    equipSkillToSlot,
+    equippedSkills,
+    getSkillForSlot,
     skillRunes,
     setSkillRune,
     skillLevels,
@@ -1716,6 +1759,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     achievementStats,
     claimedAchievements,
     runesVault,
+    equippedSkillSlots,
+    equippedSkills,
     skillRunes,
     skillLevels
   ]);
