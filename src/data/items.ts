@@ -894,7 +894,7 @@ export const INITIAL_CONSUMABLES: ConsumableItem[] = [
   {
     id: 'c_hp',
     name: '생명력 물약',
-    count: 10,
+    count: 3,
     type: 'hp',
     effectValue: 100,
     description: '생명력을 100 즉시 회복합니다. (전투 중 체력 위기 시 자동 복용)',
@@ -904,7 +904,7 @@ export const INITIAL_CONSUMABLES: ConsumableItem[] = [
   {
     id: 'c_rage',
     name: '활력의 물약 (Rejuvenation)',
-    count: 6,
+    count: 2,
     type: 'rage',
     effectValue: 50,
     description: '분노를 50 즉시 충전하여 휠윈드나 처형 스킬을 즉시 발동합니다.',
@@ -914,7 +914,7 @@ export const INITIAL_CONSUMABLES: ConsumableItem[] = [
   {
     id: 'c_def',
     name: '철갑 영약',
-    count: 3,
+    count: 1,
     type: 'defense',
     effectValue: 40,
     description: '전투 중 방어력을 +40 임시 증가시킵니다.',
@@ -924,7 +924,7 @@ export const INITIAL_CONSUMABLES: ConsumableItem[] = [
   {
     id: 'c_overkill',
     name: '질풍의 비약',
-    count: 3,
+    count: 1,
     type: 'overkill',
     effectValue: 25,
     description: '오버킬 관통 전이 효율을 +25% 임시 증폭합니다.',

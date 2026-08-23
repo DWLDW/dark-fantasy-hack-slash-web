@@ -1,4 +1,4 @@
-import { PlayerStats, GameItem, ConsumableItem, DungeonInfo, AchievementStats } from '../../types/game';
+import { PlayerStats, GameItem, ConsumableItem, DungeonInfo, AchievementStats, TownUpgrades, DEFAULT_TOWN_UPGRADES } from '../../types/game';
 
 export const SAVE_KEY = 'DARK_FANTASY_SAVE_V1';
 
@@ -48,6 +48,7 @@ export interface SaveDataPayload {
   achievementStats?: AchievementStats;
   claimedAchievements?: string[];
   hasSeenTutorial?: boolean;
+  townUpgrades?: TownUpgrades;
   timestamp?: number;
 }
 

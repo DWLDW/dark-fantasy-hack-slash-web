@@ -13,7 +13,9 @@ import {
   Skill,
   CombatLogEntry,
   ConsumableItem,
-  RoomLootEvent
+  RoomLootEvent,
+  TownUpgrades,
+  DEFAULT_TOWN_UPGRADES
 } from '../types/game';
 import {
   INITIAL_EQUIPMENT,
@@ -30,7 +32,7 @@ import { calculateTotalStats, CalculatedTotalStats } from './helpers/statCalcula
 import { generateGambleItem, identifyItemHelper } from './helpers/itemGenerator';
 import { calculateRuneWordItem, craftRuneWordHelper, craftRuneWordWithTransmuteHelper, transmuteRuneInVaultHelper } from './helpers/runeWordCalculator';
 import { upgradeSkillHelper, resetSkillPointsHelper, getEffectiveSkill } from './helpers/skillManager';
-import { getItemSellPrice, bulkSellHelper, socketRuneHelper, cubeTransmuteHelper } from './helpers/cubeCraftingHelper';
+import { getItemSellPrice, bulkSellHelper, socketRuneHelper, cubeTransmuteHelper, POTION_CAPACITY_TIERS, getPotionCapacityUpgradeCost, getPotionHealingUpgradeCost, getConsumablePowerUpgradeCost, getGambleLevelUpgradeCost } from './helpers/cubeCraftingHelper';
 import { claimTreasureHelper, claimRuneAltarHelper, createShrineBuff, generateVictoryLoot, prepareDungeonRun, makeFirstClearSteelBase, generateRoomClearLoot } from './helpers/dungeonEventHelper';
 import { isActUnlocked } from '../data/dungeons';
 import { WARRIOR_SKILLS, ALL_AVAILABLE_SKILLS, DEFAULT_EQUIPPED_SLOTS, getSkillById, isSkillUnlocked } from '../data/skills';
@@ -146,6 +148,10 @@ interface GameContextType {
   skillLevels: Record<string, number>;
   upgradeSkill: (skillId: string, amount?: number) => void;
   resetSkillPoints: () => void;
+
+  // Horadric Permanent Upgrades
+  townUpgrades: TownUpgrades;
+  upgradeTownFacility: (facility: 'potionCapacity' | 'potionHealing' | 'consumablePower' | 'gambleLevel') => boolean;
 
   // Dedicated Rune Vault (El to Zod counts) & Smart Crafting
   runesVault: Record<string, number>;
@@ -264,6 +270,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [maxUnlockedDifficulty, setMaxUnlockedDifficulty] = useState<number>(() => savedData?.maxUnlockedDifficulty || 1);
   const [latestRoomLootEvent, setLatestRoomLootEvent] = useState<RoomLootEvent | null>(null);
   const clearLatestRoomLootEvent = () => setLatestRoomLootEvent(null);
+  const [townUpgrades, setTownUpgrades] = useState<TownUpgrades>(() => savedData?.townUpgrades || DEFAULT_TOWN_UPGRADES);
   const [hasSeenTutorial, setHasSeenTutorial] = useState<boolean>(() => savedData?.hasSeenTutorial ?? false);
   const [isTutorialOpen, setIsTutorialOpen] = useState<boolean>(() => !(savedData?.hasSeenTutorial ?? false));
   const [tutorialStep, setTutorialStep] = useState<number>(0);
@@ -319,7 +326,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     skillLevels,
     achievementStats,
     claimedAchievements,
-    hasSeenTutorial
+    hasSeenTutorial,
+    townUpgrades
   };
 
   // Debounced autosave — HP/rage change every hit; writing JSON every frame stalls 1-core clients.
@@ -644,6 +652,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       achievementStats,
       claimedAchievements,
       hasSeenTutorial,
+      townUpgrades,
       timestamp: Date.now()
     };
     try {
@@ -672,6 +681,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data.achievementStats) setAchievementStats(data.achievementStats);
       if (data.claimedAchievements) setClaimedAchievements(data.claimedAchievements);
       if (data.hasSeenTutorial !== undefined) setHasSeenTutorial(data.hasSeenTutorial);
+      if (data.townUpgrades) setTownUpgrades(data.townUpgrades);
       if (data.currentDungeonId) {
         const d = DUNGEONS_DATA.find(x => x.id === data.currentDungeonId) || DUNGEONS_DATA[0];
         setCurrentDungeon(d);
@@ -1290,7 +1300,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       shards: playerStats.shards
     });
 
-    setConsumables(curr => curr.map(c => c.id === 'c_hp' ? { ...c, count: Math.max(5, c.count) } : c));
+    setConsumables(curr => curr.map(c => c.id === 'c_hp' ? { ...c, count: Math.max(POTION_CAPACITY_TIERS[townUpgrades.potionCapacityLevel] || 3, c.count) } : c));
     setRoomEventClaimed(false);
     setLatestRoomLootEvent(null);
     setDungeonBuffs([]);
@@ -1366,7 +1376,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setTempBuffs({ defenseBonus: 0, overkillBonus: 0 });
     setDungeonSnapshot(null);
     setPendingExitRoomId(null);
-    setConsumables(curr => curr.map(c => c.id === 'c_hp' ? { ...c, count: Math.max(5, c.count) } : c));
+    setConsumables(curr => curr.map(c => c.id === 'c_hp' ? { ...c, count: Math.max(POTION_CAPACITY_TIERS[townUpgrades.potionCapacityLevel] || 3, c.count) } : c));
     startBGM('town');
     addLog('마을로 귀환했습니다. (생명력 물약 5개 무료 자동 충전 완료)', 'system');
   };
@@ -1393,7 +1403,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setPendingExitRoomId(null);
     setDungeonSnapshot(null);
     setTempBuffs({ defenseBonus: 0, overkillBonus: 0 });
-    setConsumables(curr => curr.map(c => c.id === 'c_hp' ? { ...c, count: Math.max(5, c.count) } : c));
+    setConsumables(curr => curr.map(c => c.id === 'c_hp' ? { ...c, count: Math.max(POTION_CAPACITY_TIERS[townUpgrades.potionCapacityLevel] || 3, c.count) } : c));
     setViewMode('town');
     startBGM('town');
     addLog('원정을 포기했습니다. 이번 런에서 얻은 전리품은 모두 사라집니다.', 'system');
@@ -1420,7 +1430,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         rage: 0
       }));
     }
-    setConsumables(curr => curr.map(c => c.id === 'c_hp' ? { ...c, count: Math.max(5, c.count) } : c));
+    setConsumables(curr => curr.map(c => c.id === 'c_hp' ? { ...c, count: Math.max(POTION_CAPACITY_TIERS[townUpgrades.potionCapacityLevel] || 3, c.count) } : c));
     setViewMode('town');
     setTempBuffs({ defenseBonus: 0, overkillBonus: 0 });
     setDungeonSnapshot(null);
@@ -1497,7 +1507,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setPlayerStats(prev => ({ ...prev, gold: prev.gold - cost }));
     const pLevel = playerStats.level || 1;
-    const { item: newItem, isHighRarity } = generateGambleItem(gambleType, pLevel, cost);
+    const { item: newItem, isHighRarity } = generateGambleItem(gambleType, townUpgrades.gambleLevel, cost);
 
     setInventory(prev => [newItem, ...prev]);
     if (isHighRarity) {
@@ -1647,7 +1657,34 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       addLog('🧪 상인에게서 생명력 물약 5개를 구매했습니다! (-200G)', 'loot');
     };
 
-    const startTutorial = () => {
+    const upgradeTownFacility = (facility: 'potionCapacity' | 'potionHealing' | 'consumablePower' | 'gambleLevel'): boolean => {
+    let cost: number | null = null;
+    if (facility === 'potionCapacity') cost = getPotionCapacityUpgradeCost(townUpgrades.potionCapacityLevel);
+    else if (facility === 'potionHealing') cost = getPotionHealingUpgradeCost(townUpgrades.potionHealingLevel);
+    else if (facility === 'consumablePower') cost = getConsumablePowerUpgradeCost(townUpgrades.consumablePowerLevel);
+    else if (facility === 'gambleLevel') cost = getGambleLevelUpgradeCost(townUpgrades.gambleLevel);
+
+    if (cost === null || playerStats.gold < cost) {
+      addLog(`골드가 부족하거나 이미 최고 레벨입니다! (필요: ${cost?.toLocaleString() || '-'} G)`, 'system');
+      return false;
+    }
+
+    setPlayerStats(p => ({ ...p, gold: p.gold - (cost || 0) }));
+    setTownUpgrades(prev => {
+      const next = { ...prev };
+      if (facility === 'potionCapacity') next.potionCapacityLevel += 1;
+      else if (facility === 'potionHealing') next.potionHealingLevel += 1;
+      else if (facility === 'consumablePower') next.consumablePowerLevel += 1;
+      else if (facility === 'gambleLevel') next.gambleLevel += 1;
+      return next;
+    });
+
+    playRuneWordSound();
+    addLog(`✨ [호라드릭 영구 강화] 시설 레벨업 완료! (-${cost.toLocaleString()} G)`, 'loot');
+    return true;
+  };
+
+  const startTutorial = () => {
     setViewMode('town');
     closeModal();
     setTutorialStep(0);
@@ -1682,6 +1719,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setAchievementStats(INITIAL_ACHIEVEMENT_STATS);
     setClaimedAchievements([]);
     setHasSeenTutorial(false);
+    setTownUpgrades(DEFAULT_TOWN_UPGRADES);
     setIsTutorialOpen(true);
     setTutorialStep(0);
     addLog('💾 캐릭터를 레벨 1 및 단촐한 기본 장비로 초기화하고 새 모험을 시작했습니다.', 'system');
@@ -1786,6 +1824,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     hasSeenTutorial,
     isTutorialOpen,
     tutorialStep,
+    townUpgrades,
+    upgradeTownFacility,
     startTutorial,
     completeTutorial,
     setTutorialStep

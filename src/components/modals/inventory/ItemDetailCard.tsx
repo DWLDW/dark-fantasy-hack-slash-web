@@ -1,4 +1,5 @@
 import React from 'react';
+import { Sparkles, Shield, Sword } from 'lucide-react';
 import { GameItem } from '../../../types/game';
 import { SET_DEFINITIONS } from '../../../data/setItems';
 
@@ -106,6 +107,23 @@ export const ItemDetailCard: React.FC<ItemDetailCardProps> = React.memo(({ item,
           )}
         </div>
       </div>
+
+            {/* Socketed Runes & RuneWord Details Banner */}
+      {item.socketedRunes && item.socketedRunes.length > 0 && (
+        <div className="p-2 bg-gradient-to-r from-purple-950/70 via-iron-900 to-amber-950/70 rounded border border-purple-500/70 text-[11px] space-y-1 shadow">
+          <div className="flex items-center justify-between flex-wrap gap-1">
+            <div className="flex items-center gap-1.5 text-purple-300 font-bold font-mono">
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span>각인된 룬: [{item.socketedRunes.join(' + ')}]</span>
+            </div>
+            {item.isRuneWord && (
+              <span className="text-amber-300 font-black px-1.5 py-0.2 rounded bg-amber-950/80 border border-amber-400/70 font-mono animate-pulse">
+                ❖ [{item.runeWordName || item.name}] 룬워드 발동!
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Full Detailed Stats Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 pt-1 text-[11px] font-mono">

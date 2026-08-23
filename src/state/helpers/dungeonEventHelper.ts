@@ -153,7 +153,7 @@ function makeDungeonDrop(
     };
   }
 
-  return identifyItemHelper(stub, Math.max(1, 8 + difficultyLevel));
+  return stub;
 }
 
 export function claimTreasureHelper(

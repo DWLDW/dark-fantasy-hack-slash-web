@@ -8,9 +8,10 @@ export interface GambleResult {
 
 export function generateGambleItem(
   gambleType: 'weapon' | 'armor' | 'ring' | 'amulet',
-  pLevel: number,
+  gambleLevel: number = 1,
   cost: number
 ): GambleResult {
+  const effLevel = gambleLevel >= 5 ? 50 : gambleLevel === 4 ? 38 : gambleLevel === 3 ? 26 : gambleLevel === 2 ? 15 : 1;
   const roll = Math.random() * 100;
   let rarity: GameItem['rarity'] = 'magic';
   if (roll > 99) rarity = 'legendary';
@@ -28,7 +29,8 @@ export function generateGambleItem(
 
   if (gambleType === 'weapon') {
     icon = 'Sword';
-    if (pLevel >= 26) {
+    const effLevel = gambleLevel >= 4 ? 35 : gambleLevel === 3 ? 26 : gambleLevel === 2 ? 15 : 1;
+    if (effLevel >= 26) {
       const pool = [
         { name: '페이즈 블레이드', min: 35, max: 55, atb: 85, spd: 'very_fast' as const },
         { name: '츠바이핸더', min: 25, max: 48, atb: 60, spd: 'fast' as const },
@@ -41,7 +43,7 @@ export function generateGambleItem(
       baseMaxDmg = choice.max;
       baseAtbPercent = choice.atb;
       speedCategory = choice.spd;
-    } else if (pLevel >= 11) {
+    } else if (effLevel >= 11) {
       const pool = [
         { name: '롱소드', min: 12, max: 22, atb: 55, spd: 'normal' as const },
         { name: '크리스탈 소드', min: 15, max: 28, atb: 60, spd: 'fast' as const },
@@ -68,7 +70,7 @@ export function generateGambleItem(
     }
   } else if (gambleType === 'armor') {
     icon = 'Shield';
-    if (pLevel >= 26) {
+    if (effLevel >= 26) {
       const pool = [
         { name: '아칸 플레이트', def: 180, slot: 'armor' as const },
         { name: '샤코', def: 90, slot: 'helm' as const, icon: 'HardHat' },
@@ -78,7 +80,7 @@ export function generateGambleItem(
       baseItemName = choice.name;
       baseDefense = choice.def;
       icon = choice.icon || 'Shield';
-    } else if (pLevel >= 11) {
+    } else if (effLevel >= 11) {
       const pool = [
         { name: '메이지 플레이트', def: 95, slot: 'armor' as const },
         { name: '본 헬름', def: 40, slot: 'helm' as const, icon: 'HardHat' },
@@ -156,7 +158,7 @@ export function generateGambleItem(
   return { item: newItem, isHighRarity };
 }
 
-export function identifyItemHelper(item: GameItem, pLevel: number): GameItem {
+export function identifyItemHelper(item: GameItem, effLevel: number): GameItem {
   if (item.isIdentified) return item;
 
   // 0. Predefined drop with a locked unique name (treasure/victory loot): reveal the REAL item, never re-roll.
@@ -182,9 +184,9 @@ export function identifyItemHelper(item: GameItem, pLevel: number): GameItem {
   const isWpn = item.slot === 'weapon';
   const isArm = item.slot === 'armor' || item.slot === 'shield' || item.slot === 'helm';
 
-  const baseMin = item.stats.minDmg || (isWpn ? Math.max(5, pLevel * 2) : 0);
-  const baseMax = item.stats.maxDmg || (isWpn ? Math.max(10, pLevel * 3.5) : 0);
-  const baseDef = item.stats.defense || (isArm ? Math.max(10, pLevel * 3) : 0);
+  const baseMin = item.stats.minDmg || (isWpn ? Math.max(5, effLevel * 2) : 0);
+  const baseMax = item.stats.maxDmg || (isWpn ? Math.max(10, effLevel * 3.5) : 0);
+  const baseDef = item.stats.defense || (isArm ? Math.max(10, effLevel * 3) : 0);
 
   const AFFIX_POOL = [
     { id: 'crit', name: '예리함', value: Math.floor(6 + Math.random() * 8), label: '치명타 확률' },
@@ -217,7 +219,7 @@ export function identifyItemHelper(item: GameItem, pLevel: number): GameItem {
     finalName = item.realUniqueName || namesList[Math.floor(Math.random() * namesList.length)];
     chosenAffixes = pickAffixes(3);
 
-    const edMult = 2.0 + (pLevel * 0.05);
+    const edMult = 2.0 + (effLevel * 0.05);
     finalStats = {
       ...finalStats,
       ...(isWpn ? { minDmg: Math.floor(baseMin * edMult) + 15, maxDmg: Math.floor(baseMax * edMult) + 30, attackSpeed: (finalStats.attackSpeed || 10) + 15 } : {}),
@@ -235,7 +237,7 @@ export function identifyItemHelper(item: GameItem, pLevel: number): GameItem {
     finalName = `${pfx} ${baseName} (${sfx})`;
     chosenAffixes = pickAffixes(2);
 
-    const edMult = 1.5 + (pLevel * 0.03);
+    const edMult = 1.5 + (effLevel * 0.03);
     finalStats = {
       ...finalStats,
       ...(isWpn ? { minDmg: Math.floor(baseMin * edMult) + 5, maxDmg: Math.floor(baseMax * edMult) + 12, attackSpeed: (finalStats.attackSpeed || 0) + 10 } : {}),

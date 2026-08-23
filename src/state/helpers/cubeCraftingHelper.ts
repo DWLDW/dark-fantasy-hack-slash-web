@@ -170,3 +170,28 @@ export function cubeTransmuteHelper(selectedItems: GameItem[]): CubeTransmuteRes
 
   return { success: false, message: '일치하는 호라드릭 큐브 레시피가 없습니다.' };
 }
+
+
+export const POTION_CAPACITY_TIERS = [3, 4, 5, 6, 8, 10];
+export const POTION_CAPACITY_COSTS = [1500, 4000, 10000, 25000, 60000];
+export const GAMBLE_LEVEL_COSTS = [0, 5000, 18000, 50000, 120000];
+
+export function getPotionCapacityUpgradeCost(currentLevel: number): number | null {
+  if (currentLevel >= POTION_CAPACITY_COSTS.length) return null;
+  return POTION_CAPACITY_COSTS[currentLevel];
+}
+
+export function getPotionHealingUpgradeCost(currentLevel: number): number | null {
+  if (currentLevel >= 10) return null;
+  return (currentLevel + 1) * 2000;
+}
+
+export function getConsumablePowerUpgradeCost(currentLevel: number): number | null {
+  if (currentLevel >= 10) return null;
+  return (currentLevel + 1) * 2500;
+}
+
+export function getGambleLevelUpgradeCost(currentLevel: number): number | null {
+  if (currentLevel >= 5) return null;
+  return GAMBLE_LEVEL_COSTS[currentLevel];
+}

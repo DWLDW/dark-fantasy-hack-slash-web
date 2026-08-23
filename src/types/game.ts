@@ -233,3 +233,18 @@ export interface RoomLootEvent {
   buffName?: string;
   buffDesc?: string;
 }
+
+
+export interface TownUpgrades {
+  potionCapacityLevel: number; // 0..5 (3, 4, 5, 6, 8, 10)
+  potionHealingLevel: number; // 0..10 (+15 HP/Lv)
+  consumablePowerLevel: number; // 0..10 (+10 def / +10 rage/Lv)
+  gambleLevel: number; // 1..5 (1: Normal, 2: Exceptional, 3: Elite I, 4: Elite II, 5: Ancient End-Game)
+}
+
+export const DEFAULT_TOWN_UPGRADES: TownUpgrades = {
+  potionCapacityLevel: 0,
+  potionHealingLevel: 0,
+  consumablePowerLevel: 0,
+  gambleLevel: 1
+};

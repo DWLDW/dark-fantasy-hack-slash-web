@@ -163,6 +163,11 @@ export const InventoryModal: React.FC = () => {
     return equipment[slot] || null;
   }, [selectedItem, equipment, selectedSlot, ringTargetSlot]);
 
+  const isSelectedItemEquipped = useMemo(() => {
+    if (!selectedItem) return false;
+    return Object.values(equipment).some(eq => eq?.id === selectedItem.id);
+  }, [selectedItem, equipment]);
+
   // Items eligible for batch selling (Normal & Magic non-runeword equipment)
   const sellableItems = useMemo(() => {
     return inventory.filter(i =>
@@ -478,7 +483,9 @@ export const InventoryModal: React.FC = () => {
                       <ItemDetailCard item={selectedItem} />
 
                       {/* 2. BOTTOM SECTION: Side-by-Side Equipment Comparison Table */}
-                      <ItemCompareTable selectedItem={selectedItem} equippedItem={equippedItemForCompare} />
+                      {!isSelectedItemEquipped && equippedItemForCompare && equippedItemForCompare.id !== selectedItem.id && (
+                        <ItemCompareTable selectedItem={selectedItem} equippedItem={equippedItemForCompare} />
+                      )}
                     </div>
                   )}
                 </div>
