@@ -35,7 +35,7 @@ export const TownView: React.FC = React.memo(() => {
     upgradeTownFacility
   } = useGame();
 
-  const autoDeployDiff = Math.max(1, maxUnlockedDifficulty || currentDifficulty || 1);
+  const autoDeployDiff = currentDifficulty || 1;
   // Re-ordered: Cain first, Gamble second, RuneWords third, Horadric Cube last
   const [activeFacility, setActiveFacility] = useState<'cain' | 'gamble' | 'runewords' | 'cube'>('cain');
   const [gambleFeedback, setGambleFeedback] = useState<{ item: GameItem; isHighRarity: boolean; cost: number } | null>(null);
@@ -52,8 +52,7 @@ export const TownView: React.FC = React.memo(() => {
   const [selectedBaseItem, setSelectedBaseItem] = useState<GameItem | null>(null);
   const [selectedRuneToSocket, setSelectedRuneToSocket] = useState<GameItem | null>(null);
 
-  const recommendedDungeon = DUNGEONS_DATA.find(d => playerStats.level <= d.recommendedLevel + 4) || DUNGEONS_DATA[DUNGEONS_DATA.length - 1];
-  const lastDungeon = currentDungeon || recommendedDungeon;
+  const lastDungeon = currentDungeon || DUNGEONS_DATA[0];
 
   const handleToggleCubeItem = (id: string) => {
     if (selectedCubeItems.includes(id)) {

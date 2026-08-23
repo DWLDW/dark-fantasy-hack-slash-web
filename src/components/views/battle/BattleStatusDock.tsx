@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useGame } from '../../../state/gameStore';
+import { X, BookOpen, ScrollText } from 'lucide-react';
 
 interface BattleStatusDockProps {
   expectedIncomingDmg: number;
@@ -44,19 +45,61 @@ export const BattleStatusDock: React.FC<BattleStatusDockProps> = React.memo(({
   const expectedNextHp = Math.max(0, playerStats.hp - dmgToHp);
 
   return (
-    <div className="space-y-1.5 select-none font-sans flex-shrink-0">
+    <div className="space-y-1.5 select-none font-sans flex-shrink-0 relative">
+      
+      {/* 📜 Floating Combat Logs Drawer (Floats Above Dock Without Moving Any Elements) */}
+      {showLogs && (
+        <div className="absolute bottom-full mb-2 left-0 right-0 z-50 bg-iron-950/98 border-2 border-iron-750 rounded-xl p-3 shadow-2xl space-y-2 animate-fade-in font-mono text-xs">
+          <div className="flex items-center justify-between border-b border-iron-800 pb-1.5">
+            <span className="font-cinzel font-black text-amber-300 flex items-center gap-1.5 text-xs sm:text-sm">
+              <ScrollText className="w-4 h-4 text-amber-400" />
+              실시간 전투 기록 (Combat Logs)
+            </span>
+            <button
+              onClick={() => setShowLogs(false)}
+              className="p-1 text-gray-400 hover:text-white hover:bg-iron-800 rounded transition cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="max-h-36 overflow-y-auto space-y-1 pr-1 text-[11px] leading-relaxed">
+            {combatLogs.length === 0 ? (
+              <div className="text-gray-500 py-2 text-center">전투 기록이 없습니다.</div>
+            ) : (
+              combatLogs.slice(-10).map(log => (
+                <div key={log.id} className="flex items-start gap-1.5 text-gray-200">
+                  <span className="text-gray-500 font-bold flex-shrink-0">[{log.timestamp}]</span>
+                  <span className={
+                    log.type === 'loot'
+                      ? 'text-amber-300 font-bold'
+                      : log.type === 'chain'
+                      ? 'text-purple-300 font-bold'
+                      : log.type === 'system'
+                      ? 'text-cyan-300'
+                      : 'text-gray-200'
+                  }>
+                    {log.text}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
       {/* ROW 2: Strictly Fixed Horizontal Dual Gauges (ㅡ LIFE / RAGE) & Consumables Quick Belt */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-2 pt-1 border-t border-iron-800 items-center">
         
         {/* Gauges Column (Rock-Solid Fixed ㅡ Horizontal Bars) */}
         <div className="md:col-span-7 space-y-1 relative">
           
-          {/* LIFE Gauge Bar (Strictly Fixed 30px Height, Zero Jitter) */}
+          {/* LIFE Gauge Bar (Strictly Fixed Height, Zero Shift) */}
           <div className="relative">
             {lifeFloater && (
               <div
                 key={lifeFloater.id}
-                className={`absolute -top-5 right-2 z-50 font-mono font-black text-xs pointer-events-none animate-bounce drop-shadow px-2 py-0.2 rounded ${
+                className={`absolute -top-5 right-2 z-40 font-mono font-black text-xs pointer-events-none animate-bounce drop-shadow px-2 py-0.2 rounded ${
                   lifeFloater.type === 'damage'
                     ? 'text-red-300 bg-red-950/95 border border-red-500'
                     : 'text-emerald-300 bg-emerald-950/95 border border-emerald-400'
@@ -106,7 +149,7 @@ export const BattleStatusDock: React.FC<BattleStatusDockProps> = React.memo(({
                 )}
               </div>
 
-              {/* 2. Center Status Slot (Flexible center notification) */}
+              {/* 2. Center Status Slot */}
               <div className="relative z-10 font-mono font-bold text-[9px] text-center flex-1 truncate px-1">
                 {expectedIncomingDmg > 0 && !isCleared ? (
                   <span className="text-red-200 bg-red-950/90 px-1.5 py-0.2 rounded border border-red-500 animate-pulse">
@@ -126,12 +169,12 @@ export const BattleStatusDock: React.FC<BattleStatusDockProps> = React.memo(({
             </div>
           </div>
 
-          {/* RAGE Gauge Bar (Strictly Fixed 26px Height, Zero Jitter) */}
+          {/* RAGE Gauge Bar (Strictly Fixed Height, Zero Shift) */}
           <div className="relative">
             {rageFloater && (
               <div
                 key={rageFloater.id}
-                className="absolute -top-5 right-2 z-50 font-mono font-black text-xs pointer-events-none animate-bounce drop-shadow px-2 py-0.2 rounded text-amber-300 bg-amber-950/95 border border-amber-500"
+                className="absolute -top-5 right-2 z-40 font-mono font-black text-xs pointer-events-none animate-bounce drop-shadow px-2 py-0.2 rounded text-amber-300 bg-amber-950/95 border border-amber-500"
               >
                 {rageFloater.text}
               </div>
@@ -201,24 +244,18 @@ export const BattleStatusDock: React.FC<BattleStatusDockProps> = React.memo(({
             <span>단축키 [1~4]</span>
             <button
               onClick={() => setShowLogs(!showLogs)}
-              className="hover:text-white underline cursor-pointer text-[10px]"
+              className={`px-2 py-0.5 rounded border transition cursor-pointer text-[10px] flex items-center gap-1 ${
+                showLogs
+                  ? 'bg-amber-500 text-iron-950 font-black border-amber-400'
+                  : 'bg-iron-900 text-gray-300 border-iron-750 hover:text-white'
+              }`}
             >
-              {showLogs ? '로그 닫기' : '전투 로그'}
+              <BookOpen className="w-3 h-3" />
+              <span>{showLogs ? '로그 닫기' : '전투 로그'}</span>
             </button>
           </div>
         </div>
       </div>
-
-      {/* Expandable Combat Logs Drawer */}
-      {showLogs && (
-        <div className="p-2 bg-iron-950 rounded border border-iron-800 max-h-24 overflow-y-auto font-mono text-[10px] text-gray-300 space-y-0.5 animate-fade-in">
-          {combatLogs.slice(-6).map(log => (
-            <div key={log.id} className="truncate">
-              <span className="text-gray-500">[{log.timestamp}]</span> {log.text}
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 });
