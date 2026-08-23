@@ -1154,18 +1154,22 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       addLog(`[${skill.name}]은(는) 레벨 ${skill.unlockLevel ?? '?'}에 해금됩니다.`, 'system');
       return;
     }
+    const best = findBestLaneForSkill(playerStats.level, totalStats, skill, monsters);
     if (selectedSkill.id === skill.id) {
-      if (monsters.length > 0) {
-        executeAttack();
+      if (playerLane !== best && monsters.some(m => m.lane === best && m.hp > 0)) {
+        setPlayerLane(best);
+      } else {
+        if (monsters.length > 0) {
+          executeAttack();
+        }
       }
     } else {
       setSelectedSkill(skill);
       if (monsters.length > 0) {
-        const best = findBestLaneForSkill(playerStats.level, totalStats, skill, monsters);
         setPlayerLane(best);
       }
     }
-  }, [selectedSkill, executeAttack, playerStats.level, monsters, addLog]);
+  }, [selectedSkill, playerLane, totalStats, playerStats.level, monsters, executeAttack, setPlayerLane, addLog]);
 
   // Consumables Quick Slot
   const useConsumable = useCallback((hotkeyOrId: string) => {

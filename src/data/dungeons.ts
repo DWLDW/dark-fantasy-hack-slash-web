@@ -507,77 +507,67 @@ export const DUNGEONS_DATA: DungeonInfo[] = [
 export function createDungeonFormation(
   dungeonId: string,
   roomType: 'normal' | 'elite' | 'boss' | 'treasure' | 'rune' | 'shrine' | 'start' = 'normal',
+  playerLevel: number = 1,
   difficultyLevel: number = 1
 ): Monster[] {
   const monsters: Monster[] = [];
-  const hpMult = 1 + (difficultyLevel - 1) * 0.35;
-  const defMult = 1 + (difficultyLevel - 1) * 0.20;
-  const dmgMult = 1 + (difficultyLevel - 1) * 0.25;
-
-  let baseMonsterName = '황야 고블린';
-  let eliteMonsterName = '오크 집행관';
-  let bossName = '안다리엘의 환영';
-  let iconType = 'Goblin';
-
-  if (dungeonId.startsWith('act2_')) {
-    baseMonsterName = '사막 딱정벌레';
-    eliteMonsterName = '모래 약탈자';
-    bossName = '두리엘의 유령';
-    iconType = 'Bug';
-  } else if (dungeonId.startsWith('act3_')) {
-    baseMonsterName = '정글 모스키토';
-    eliteMonsterName = '트라빈칼 평의회원';
-    bossName = '메피스토의 환영';
-    iconType = 'Mosquito';
-  } else if (dungeonId.startsWith('act4_')) {
-    baseMonsterName = '심연의 베놈 로드';
-    eliteMonsterName = '죽음의 기사단장';
-    bossName = '공포의 군주 디아블로';
-    iconType = 'Demon';
-  } else if (dungeonId.startsWith('act5_')) {
-    baseMonsterName = '블러드 로드 전사';
-    eliteMonsterName = '오블리비언 로드';
-    bossName = '파멸의 군주 바알';
-    iconType = 'Lord';
+  if (roomType === 'treasure' || roomType === 'rune' || roomType === 'shrine' || roomType === 'start') {
+    return monsters;
   }
 
-  // Boss name overrides per final dungeon
-  if (dungeonId === 'act1_4_catacombs') bossName = '안다리엘의 환영';
-  else if (dungeonId === 'act2_4_tomb') bossName = '두리엘의 유령';
-  else if (dungeonId === 'act3_4_durance') bossName = '메피스토의 환영';
-  else if (dungeonId === 'act4_4_altar') bossName = '공포의 군주 디아블로';
-  else if (dungeonId === 'act5_4_throne') bossName = '파멸의 군주 바알';
+  const diff = Math.max(1, difficultyLevel);
+  const hpMult = 1 + (diff - 1) * 0.35 + (playerLevel * 0.04);
+  const defMult = 1 + (diff - 1) * 0.20;
+  const dmgMult = 1 + (diff - 1) * 0.25 + (playerLevel * 0.02);
+
+  const dungeon = DUNGEONS_DATA.find(d => d.id === dungeonId) || DUNGEONS_DATA[0];
+
+  const monsterNames = (dungeon.monsterSummary || '').split(',').map(s => s.trim()).filter(Boolean);
+  const baseName1 = monsterNames[0] || '어둠의 방랑자';
+  const baseName2 = monsterNames[1] || '해골 궁수';
+  const baseName3 = monsterNames[2] || '타락한 주술사';
+  const bossName = monsterNames[monsterNames.length - 1] || '지옥의 군주';
+  const eliteName = monsterNames.length > 2 ? monsterNames[monsterNames.length - 2] : '정예 집행관';
+
+  const baseHp = 60 + dungeon.recommendedLevel * 14;
+  const baseDef = 10 + dungeon.recommendedLevel * 3;
+  const baseDmg = 6 + dungeon.recommendedLevel * 2;
+
+  // 5 Lanes x 4 depths = 20 monsters total (fills screen vertically)
+  const depthsPerLane = 4;
 
   for (let l = 0; l < 5; l++) {
-    for (let d = 0; d < 6; d++) {
+    for (let d = 0; d < depthsPerLane; d++) {
       const isBoss = (roomType === 'boss') && (l === 2 && d === 0);
       const isElite = !isBoss && (roomType === 'elite' || roomType === 'boss') && (d === 0 && (l === 1 || l === 3));
 
-      let mHp = Math.floor(65 * hpMult);
-      let mDef = Math.floor(15 * defMult);
-      let mDmg = Math.floor(6 * dmgMult);
-      let mName = baseMonsterName;
+      let mHp = Math.floor(baseHp * hpMult);
+      let mDef = Math.floor(baseDef * defMult);
+      let mDmg = Math.floor(baseDmg * dmgMult);
+      let mName = d === 0 ? baseName1 : (d % 2 === 1 ? baseName2 : baseName3);
       let rank: 'normal' | 'elite' | 'boss' = 'normal';
 
       if (isBoss) {
-        mHp = Math.floor(1800 * hpMult);
-        mDef = Math.floor(60 * defMult);
-        mDmg = Math.floor(25 * dmgMult);
+        mHp = Math.floor(baseHp * 12 * hpMult);
+        mDef = Math.floor(baseDef * 3.5 * defMult);
+        mDmg = Math.floor(baseDmg * 3.2 * dmgMult);
         mName = `👑 ${bossName}`;
         rank = 'boss';
       } else if (isElite) {
-        mHp = Math.floor(280 * hpMult);
-        mDef = Math.floor(35 * defMult);
-        mDmg = Math.floor(14 * dmgMult);
-        mName = `⭐ ${eliteMonsterName}`;
+        mHp = Math.floor(baseHp * 4.5 * hpMult);
+        mDef = Math.floor(baseDef * 2.2 * defMult);
+        mDmg = Math.floor(baseDmg * 2.0 * dmgMult);
+        mName = `⭐ ${eliteName}`;
         rank = 'elite';
       } else if (d === 0) {
-        mHp = Math.floor(95 * hpMult);
-        mDef = Math.floor(20 * defMult);
+        mHp = Math.floor(mHp * 1.3);
+        mDef = Math.floor(mDef * 1.3);
+      } else if (d === 2) {
+        mDmg = Math.floor(mDmg * 1.25);
       }
 
       monsters.push({
-        id: `mon_${l}_${d}_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+        id: `${dungeonId}_l${l}_d${d}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
         name: mName,
         hp: mHp,
         maxHp: mHp,
@@ -588,9 +578,10 @@ export function createDungeonFormation(
         intent: {
           type: 'attack',
           damage: mDmg,
-          targetLane: l
+          targetLane: l,
+          chargePercent: 50
         },
-        icon: iconType
+        icon: isBoss ? 'BOSS' : isElite ? 'ELITE' : 'NORMAL'
       });
     }
   }
