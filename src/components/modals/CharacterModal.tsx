@@ -264,10 +264,6 @@ export const CharacterModal: React.FC = React.memo(() => {
               highlight="text-teal-300 font-black text-sm"
             />
           </div>
-
-          <div className="mt-2 p-2 bg-iron-950 rounded border border-iron-800 text-[11px] text-gray-300 leading-relaxed font-mono">
-            💡 <strong className="text-brass-300">스탯 고정 배치:</strong> 잔여 포인트 변동 시에도 [+1], [+10], [MAX] 버튼 위치가 절대 흔들리거나 이동하지 않습니다.
-          </div>
         </div>
       </div>
     </div>

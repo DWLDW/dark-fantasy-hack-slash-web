@@ -52,7 +52,7 @@ export const DungeonSelectView: React.FC = React.memo(() => {
   const mfBonus = (selectedDifficulty - 1) * 3;
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-3 sm:p-5 flex flex-col justify-between min-h-[calc(100dvh-5.5rem)] text-gray-200 select-none font-sans">
+    <div className="w-full max-w-6xl mx-auto p-3 sm:p-5 flex flex-col justify-between min-h-[calc(100dvh-5.5rem)] pb-28 sm:pb-20 text-gray-200 select-none font-sans">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-iron-750 pb-3 mb-3">
         <div className="flex items-center gap-2.5">
