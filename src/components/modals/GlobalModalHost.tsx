@@ -5,6 +5,7 @@ import { CharacterModal } from './CharacterModal';
 import { SkillRuneModal } from './SkillRuneModal';
 import { DungeonVictoryModal } from './DungeonVictoryModal';
 import { DeathModal } from './DeathModal';
+import { SettingsModal } from './SettingsModal';
 
 export const GlobalModalHost: React.FC = () => {
   const { activeModal, closeModal, isDeathModalOpen, confirmDeathAndReturnToTown } = useGame();
@@ -28,6 +29,7 @@ export const GlobalModalHost: React.FC = () => {
           {activeModal === 'inventory' && <InventoryModal />}
           {activeModal === 'character' && <CharacterModal />}
           {activeModal === 'skills' && <SkillRuneModal />}
+          {activeModal === 'settings' && <SettingsModal />}
         </div>
       )}
     </>

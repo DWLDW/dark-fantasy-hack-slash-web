@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useGame } from '../../state/gameStore';
-import { Shield, Flame, Coins, Sparkles, MapPin, Home, RotateCcw, AlertTriangle, Sparkle } from 'lucide-react';
+import { Shield, Flame, Coins, Sparkles, MapPin, Home, RotateCcw, AlertTriangle, Settings } from 'lucide-react';
 
 export const TopHUD: React.FC = () => {
-  const { playerStats, viewMode, currentDungeon, setViewMode, resetGameSave, isLevelUpAnimated } = useGame();
+  const { playerStats, viewMode, currentDungeon, setViewMode, resetGameSave, isLevelUpAnimated, openModal } = useGame();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   const hpPercent = Math.max(0, Math.min(100, (playerStats.hp / playerStats.maxHp) * 100));
@@ -14,9 +14,9 @@ export const TopHUD: React.FC = () => {
     <>
       <header className="bg-iron-950 border-b border-iron-750 px-2 sm:px-3 py-1.5 sm:py-2 text-xs md:text-sm select-none sticky top-0 z-40 shadow-xl overflow-x-hidden">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-1.5 sm:gap-2 flex-wrap">
-          {/* Left: Player Level & Class & Exp & Quick Reset */}
+          {/* Left: Player Level & Class & Exp & Settings & Quick Reset */}
           <div className="flex items-center space-x-1.5 sm:space-x-2.5">
-            {/* Level Badge with Glowing Flash Animation upon Level Up */}
+            {/* Level Badge */}
             <div className={`flex flex-col items-center justify-center min-w-[34px] sm:min-w-[40px] h-8 sm:h-9 px-1 rounded shadow transition-all duration-300 relative ${
               isLevelUpAnimated
                 ? 'bg-gradient-to-r from-amber-600 via-yellow-400 to-amber-500 border-2 border-white ring-4 ring-amber-400 shadow-[0_0_25px_rgba(251,191,36,1)] scale-110 animate-bounce text-iron-950'
@@ -33,7 +33,6 @@ export const TopHUD: React.FC = () => {
                 {playerStats.level}
               </span>
 
-              {/* Floating Level Up Tag */}
               {isLevelUpAnimated && (
                 <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-amber-400 text-iron-950 text-[8px] font-black px-1.5 py-0.2 rounded-full whitespace-nowrap shadow-lg border border-white animate-pulse">
                   LEVEL UP!
@@ -41,7 +40,17 @@ export const TopHUD: React.FC = () => {
               )}
             </div>
 
-            {/* Reset Button next to Level Badge */}
+            {/* Settings Button */}
+            <button
+              onClick={() => openModal('settings')}
+              className="p-1 sm:p-1.5 bg-iron-900 hover:bg-iron-800 border border-brass-600/60 text-brass-300 hover:text-white rounded shadow transition flex items-center gap-1 text-[9px] sm:text-[10px] font-mono font-bold"
+              title="게임 설정 & 세이브 백업/복원"
+            >
+              <Settings className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-brass-400" />
+              <span className="hidden sm:inline">설정</span>
+            </button>
+
+            {/* Reset Button */}
             <button
               onClick={() => setShowResetConfirm(true)}
               className="p-1 sm:p-1.5 bg-blood-950/80 hover:bg-blood-900 border border-blood-700/80 text-blood-300 hover:text-white rounded shadow transition flex items-center gap-1 text-[9px] sm:text-[10px] font-mono font-bold"

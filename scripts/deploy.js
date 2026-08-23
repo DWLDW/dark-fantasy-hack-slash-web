@@ -14,9 +14,15 @@ const SERVER_HOST = '193.122.127.129';
 const REMOTE_DEST = '/var/www/dark-fantasy';
 
 // 2. Resolve SSH Key
-const defaultKeyPath = 'C:\\Users\\tooya\\Downloads\\ssh-key-2026-08-22.key';
-const envKeyPath = process.env.ORACLE_SSH_KEY || process.env.SSH_KEY_PATH;
-const keyPath = process.argv[2] || envKeyPath || defaultKeyPath;
+const candidateKeyPaths = [
+  process.argv[2],
+  process.env.ORACLE_SSH_KEY,
+  process.env.SSH_KEY_PATH,
+  'C:\\Users\\tooya\\Documents\\xwechat_files\\wxid_oqs5lzgndx6f12_d6b1\\msg\\file\\2026-08\\ssh-key-2026-08-22.key',
+  'C:\\Users\\tooya\\Downloads\\ssh-key-2026-08-22.key'
+].filter(Boolean);
+
+const keyPath = candidateKeyPaths.find(p => fs.existsSync(p)) || candidateKeyPaths[0];
 
 console.log('====================================================');
 console.log('🚀 Dark Fantasy Hack & Slash - Oracle Cloud Deployment');
@@ -41,7 +47,6 @@ function getLocalIPs() {
       }
     }
   }
-  // Prioritize typical LAN/Wi-Fi IPs (192.168.x.x, 10.x.x.x, 172.x.x.x) over 198.18.x.x (Clash TUN)
   return ips.sort((a, b) => {
     if (a.startsWith('192.168.')) return -1;
     if (b.startsWith('192.168.')) return 1;
@@ -49,7 +54,7 @@ function getLocalIPs() {
   });
 }
 
-// 4. Test SSH Connectivity (Direct vs BindAddress Fallback)
+// 4. Test SSH Connectivity (Direct vs BindAddress vs Proxy Fallback)
 async function testSSH() {
   console.log('\n🔍 Testing SSH connectivity...');
 
@@ -59,7 +64,9 @@ async function testSSH() {
         ...extraArgs,
         '-i', keyPath,
         '-o', 'StrictHostKeyChecking=no',
-        '-o', 'ConnectTimeout=3',
+        '-o', 'PubkeyAcceptedAlgorithms=+ssh-rsa',
+        '-o', 'HostKeyAlgorithms=+ssh-rsa',
+        '-o', 'ConnectTimeout=4',
         `${SERVER_USER}@${SERVER_HOST}`,
         'echo SSH_OK'
       ]);
@@ -76,7 +83,7 @@ async function testSSH() {
   // Try 1: Direct SSH
   if (await runTest([])) {
     console.log('✅ Direct SSH connection successful!');
-    return [];
+    return ['-o', 'PubkeyAcceptedAlgorithms=+ssh-rsa', '-o', 'HostKeyAlgorithms=+ssh-rsa'];
   }
 
   // Try 2: Bind to local active IPs
@@ -86,7 +93,7 @@ async function testSSH() {
   for (const ip of localIps) {
     if (await runTest(['-o', `BindAddress=${ip}`])) {
       console.log(`✅ SSH connection succeeded with BindAddress=${ip}`);
-      return ['-o', `BindAddress=${ip}`];
+      return ['-o', `BindAddress=${ip}`, '-o', 'PubkeyAcceptedAlgorithms=+ssh-rsa', '-o', 'HostKeyAlgorithms=+ssh-rsa'];
     }
   }
 
@@ -95,9 +102,7 @@ async function testSSH() {
 }
 
 async function main() {
-  const sshBindArgs = await testSSH();
-
-  // 5. Build Web Project
+  // Step 1: Build Web Project
   console.log('\n📦 Step 1: Building project for production...');
   try {
     execSync('npm run build', { cwd: projectRoot, stdio: 'inherit' });
@@ -107,7 +112,7 @@ async function main() {
     process.exit(1);
   }
 
-  // 6. Create Tarball of dist
+  // Step 2: Create Tarball of dist
   console.log('\n🗜️ Step 2: Compressing dist archive...');
   const tarPath = path.join(projectRoot, 'dist.tar.gz');
 
@@ -120,7 +125,9 @@ async function main() {
     process.exit(1);
   }
 
-  // 7. Streaming Tarball directly into Remote Extraction
+  const sshBindArgs = await testSSH();
+
+  // Step 3: Streaming Tarball directly into Remote Extraction
   console.log('\n📤 Step 3: Streaming and extracting directly onto Oracle Cloud Server...');
   const remoteCommand = `
     sudo mkdir -p ${REMOTE_DEST} && \

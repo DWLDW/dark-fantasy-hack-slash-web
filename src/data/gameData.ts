@@ -852,9 +852,9 @@ export const WARRIOR_SKILLS: Skill[] = [
     manaCost: 0,
     damageMultiplier: 1.2,
     overkillEfficiency: 0.50,
-    rageGainPerHit: 30, // 평타 1대당 분노 +30 대폭 충전!
+    rageGainPerHit: 12, // 평타 타격당 분노 +12 균형 충전
     route: 'line',
-    description: '기본 베기 공격. 자원 소모가 없으며 타격당 분노 +30을 생성하여 휩쓸기/처형/휠윈드로 신속히 연계합니다.',
+    description: '기본 베기 공격. 자원 소모가 없으며 타격당 분노 +12를 생성하여 처형/휠윈드 스킬을 빌드업합니다.',
     icon: 'Sword',
     hotkey: 'Q',
     activeRuneId: 'rune_fire'
@@ -913,11 +913,11 @@ export const WARRIOR_SKILLS: Skill[] = [
 export const INITIAL_CONSUMABLES: ConsumableItem[] = [
   {
     id: 'c_hp',
-    name: '대형 생명력 물약',
-    count: 8,
+    name: '생명력 물약',
+    count: 4,
     type: 'hp',
-    effectValue: 250,
-    description: '생명력을 즉시 250 회복합니다.',
+    effectValue: 60,
+    description: '생명력을 즉시 60 회복합니다.',
     icon: 'Heart',
     hotkey: '1'
   },
@@ -1118,81 +1118,96 @@ export const DUNGEONS_DATA: DungeonInfo[] = [
 
 // 8. Dynamic Formation Factory per Dungeon and Room with Distinct Monster Visuals
 export function createDungeonFormation(dungeonId = 'act1_crypt', roomId = 4): Monster[] {
+  const dungeon = DUNGEONS_DATA.find(d => d.id === dungeonId) || DUNGEONS_DATA[0];
+  const room = dungeon.rooms.find(r => r.id === roomId);
+
+  // 1. Non-Combat Event Rooms (Start, Treasure, Shrine, Rune Altar) -> 0 monsters
+  if (room && (room.type === 'start' || room.type === 'treasure' || room.type === 'shrine' || room.type === 'rune')) {
+    return [];
+  }
+
+  const isBossRoom = room?.type === 'boss';
+  const isEliteRoom = room?.type === 'elite';
+
   const monsters: Monster[] = [];
   let idCounter = 1;
 
-  // Dungeon Difficulty Scaling
-  let baseHp = 22;
-  let baseDef = 2;
-  let baseDmg = 3; // 1막 일반 몬스터 공격력 3 (플레이어 방어구 착용 시 1~2 피해)
-  let eliteHp = 140;
-  let eliteDef = 15;
-  let eliteDmg = 9; // 1막 엘리트 공격력 9
+  // Scaling base stats per act
+  let baseHp = 36;
+  let baseDef = 3;
+  let baseDmg = 6;
+  let eliteHp = 180;
+  let eliteDef = 18;
+  let eliteDmg = 14;
   let eliteTitle = '오크 집행관 [ELITE]';
   let normalName1 = '고블린 전사';
   let normalName2 = '해골 궁수';
   let shieldName = '오크 방패병';
 
+  let bossName = '[BOSS] 언데드 대장 (Skeleton King)';
+  let bossHp = 380;
+  let bossDef = 20;
+  let bossDmg = 18;
+  let bossGimmick = '3턴마다 해골 호위병 소환 & 50% HP 광폭화';
+
   if (dungeonId === 'act2_tomb') {
-    baseHp = 50;
-    baseDef = 8;
-    baseDmg = 7;
-    eliteHp = 320;
-    eliteDef = 25;
-    eliteDmg = 20;
+    baseHp = 50; baseDef = 8; baseDmg = 7;
+    eliteHp = 320; eliteDef = 25; eliteDmg = 20;
     eliteTitle = '고대 무덤 수호자 [ELITE]';
-    normalName1 = '사막 전갈';
-    normalName2 = '미이라 사제';
-    shieldName = '석관 방패병';
+    normalName1 = '사막 전갈'; normalName2 = '미이라 사제'; shieldName = '석관 방패병';
+    bossName = '[BOSS] 고통의 군주 두리엘 (Duriel)';
+    bossHp = 750; bossDef = 32; bossDmg = 30;
+    bossGimmick = '한기 오라(분노 -10) & 맹렬한 동결 강타';
   } else if (dungeonId === 'act3_jungle') {
-    baseHp = 110;
-    baseDef = 18;
-    baseDmg = 15;
-    eliteHp = 650;
-    eliteDef = 40;
-    eliteDmg = 45;
+    baseHp = 110; baseDef = 18; baseDmg = 15;
+    eliteHp = 650; eliteDef = 40; eliteDmg = 45;
     eliteTitle = '자카룸 하이 프리스트 [ELITE]';
-    normalName1 = '광신도 척살병';
-    normalName2 = '정글 주술사';
-    shieldName = '성전사 방패병';
+    normalName1 = '광신도 척살병'; normalName2 = '정글 주술사'; shieldName = '성전사 방패병';
+    bossName = '[BOSS] 증오의 군주 메피스토 (Mephisto)';
+    bossHp = 1500; bossDef = 50; bossDmg = 60;
+    bossGimmick = '매 턴 증오의 맹독 지속 피해 & 번개 방전';
   } else if (dungeonId === 'act4_chaos') {
-    baseHp = 220;
-    baseDef = 30;
-    baseDmg = 30;
-    eliteHp = 1300;
-    eliteDef = 55;
-    eliteDmg = 90;
+    baseHp = 220; baseDef = 30; baseDmg = 30;
+    eliteHp = 1300; eliteDef = 55; eliteDmg = 90;
     eliteTitle = '카오스 집행관 [ELITE]';
-    normalName1 = '망각의 기사';
-    normalName2 = '베놈 로드';
-    shieldName = '지옥불 방패병';
+    normalName1 = '망각의 기사'; normalName2 = '베놈 로드'; shieldName = '지옥불 방패병';
+    bossName = '[BOSS] 공포의 군주 디아블로 (Diablo)';
+    bossHp = 3000; bossDef = 70; bossDmg = 120;
+    bossGimmick = '붉은 번개 숨결 광역 화염 폭격';
   } else if (dungeonId === 'act5_worldstone') {
-    baseHp = 450;
-    baseDef = 45;
-    baseDmg = 60;
-    eliteHp = 2500;
-    eliteDef = 80;
-    eliteDmg = 180;
+    baseHp = 450; baseDef = 45; baseDmg = 60;
+    eliteHp = 2500; eliteDef = 80; eliteDmg = 180;
     eliteTitle = '죽음의 군주 (Death Lord) [ELITE]';
-    normalName1 = '피의 유혹자';
-    normalName2 = '바알의 파괴자';
-    shieldName = '성채 철벽 수호병';
+    normalName1 = '피의 유혹자'; normalName2 = '바알의 파괴자'; shieldName = '성채 철벽 수호병';
+    bossName = '[BOSS] 파괴의 군주 바알 (Baal)';
+    bossHp = 6000; bossDef = 95; bossDmg = 220;
+    bossGimmick = '분신 소환 & 마나/분노 증발';
   }
 
   // 5 Lanes x 6 Depths = Exactly 30 Monsters
   for (let l = 0; l < 5; l++) {
     for (let d = 0; d < 6; d++) {
-      const isEliteStopper = l === 2 && d === 1; // Lane 2 Depth 1 is Elite Anchor
+      const isBossCenter = isBossRoom && l === 2 && d === 1;
+      const isEliteStopper = !isBossRoom && ((isEliteRoom && (l === 1 || l === 3) && d === 1) || (!isEliteRoom && l === 2 && d === 1));
       const isFrontShield = d === 0 && (l === 1 || l === 2 || l === 3);
 
       let hp = Math.floor(baseHp + Math.random() * (baseHp * 0.3));
       let def = baseDef;
       let dmg = baseDmg;
-      let rank: 'normal' | 'elite' = 'normal';
+      let rank: Monster['rank'] = 'normal';
       let name = d % 2 === 0 ? normalName1 : normalName2;
       let icon = 'Sword';
+      let gimmick: string | undefined = undefined;
 
-      if (isEliteStopper) {
+      if (isBossCenter) {
+        hp = bossHp;
+        def = bossDef;
+        dmg = bossDmg;
+        rank = 'boss';
+        name = bossName;
+        icon = 'Crown';
+        gimmick = bossGimmick;
+      } else if (isEliteStopper) {
         hp = eliteHp;
         def = eliteDef;
         dmg = eliteDmg;
@@ -1206,7 +1221,6 @@ export function createDungeonFormation(dungeonId = 'act1_crypt', roomId = 4): Mo
         name = shieldName;
         icon = 'Shield';
       } else if (d >= 2) {
-        // Back rows are squishier for chain overkill thrills
         hp = Math.max(12, Math.floor(baseHp * 0.7));
         def = Math.max(1, Math.floor(baseDef * 0.5));
       }
@@ -1225,7 +1239,8 @@ export function createDungeonFormation(dungeonId = 'act1_crypt', roomId = 4): Mo
           damage: dmg,
           targetLane: l
         },
-        icon
+        icon,
+        bossGimmick: gimmick
       });
     }
   }
@@ -1233,7 +1248,7 @@ export function createDungeonFormation(dungeonId = 'act1_crypt', roomId = 4): Mo
   return monsters;
 }
 
-// Fallback compatibility factory for goblin 30 formation
+// Fallback compatibility
 export function createGoblin30Formation(): Monster[] {
   return createDungeonFormation('act1_crypt', 4);
 }

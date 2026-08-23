@@ -19,6 +19,9 @@ const MainLayout: React.FC = () => {
     playerLane,
     enterDungeon,
     currentDungeon,
+    currentRoomId,
+    selectNextRoom,
+    monsters,
     useConsumable
   } = useGame();
 
@@ -28,11 +31,18 @@ const MainLayout: React.FC = () => {
       // Ignore if typing in input
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
-      // Space / Enter: Execute attack or fast farm
+      // Space / Enter: Execute attack or advance to next room
       if (e.code === 'Space' || e.code === 'Enter') {
         e.preventDefault();
         if (viewMode === 'battle') {
-          executeAttack();
+          if (monsters.length === 0) {
+            const currentRoom = currentDungeon.rooms.find(r => r.id === currentRoomId);
+            if (currentRoom && currentRoom.connections && currentRoom.connections.length > 0) {
+              selectNextRoom(currentRoom.connections[0]);
+            }
+          } else {
+            executeAttack();
+          }
         } else if (viewMode === 'town') {
           enterDungeon(currentDungeon.id);
         }
@@ -73,7 +83,7 @@ const MainLayout: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [viewMode, activeModal, executeAttack, selectSkillOrExecute, setPlayerLane, playerLane, enterDungeon, currentDungeon, useConsumable]);
+  }, [viewMode, activeModal, executeAttack, selectSkillOrExecute, setPlayerLane, playerLane, enterDungeon, currentDungeon, currentRoomId, selectNextRoom, monsters, useConsumable]);
 
   return (
     <div className="min-h-screen bg-void flex flex-col justify-between relative overflow-x-hidden text-gray-200">

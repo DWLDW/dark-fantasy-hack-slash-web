@@ -4,8 +4,10 @@ import {
   ModalType,
   PlayerStats,
   GameItem,
+  ItemStats,
   EquipSlot,
   DungeonInfo,
+  DungeonBuff,
   Monster,
   Skill,
   CombatLogEntry,
@@ -25,6 +27,10 @@ import {
 import { resolveAttack, createGoblin30Formation, findBestLaneForSkill, AttackResolution, CombatHitResult } from '../combat/combatEngine';
 import { simulateRuneWordCrafting } from '../utils/runeCrafting';
 import {
+  setMasterVolume,
+  getMasterVolume,
+  setAudioMuted,
+  getAudioMuted,
   playSlashSound,
   playHitSound,
   playKillSound,
@@ -143,6 +149,22 @@ interface GameContextType {
   identifyItem: (itemId: string) => void;
   identifyAllItems: () => void;
   resetGameSave: () => void;
+
+  // Settings, Audio & Save Backup
+  soundVolume: number;
+  setSoundVolume: (v: number) => void;
+  isMuted: boolean;
+  setIsMuted: (muted: boolean) => void;
+  exportSaveData: () => string;
+  importSaveData: (encodedData: string) => boolean;
+  buyPotions: () => void;
+
+  // Room Events & Dungeon Buffs
+  dungeonBuffs: DungeonBuff[];
+  roomEventClaimed: boolean;
+  claimTreasure: () => { gold: number; items: GameItem[]; shards: number } | null;
+  claimRuneAltar: () => { runeName: string; count: number } | null;
+  claimShrine: (buffType: 'fortune' | 'crit' | 'defense') => void;
 }
 
 const SAVE_KEY = 'DARK_FANTASY_SAVE_V1';
@@ -191,6 +213,121 @@ const DEFAULT_PLAYER_STATS: PlayerStats = {
 };
 
 const GameContext = createContext<GameContextType | null>(null);
+
+
+/**
+ * Slot-Aware Item Identification & Affix Generation
+ * Guarantees zero slot corruption: Rings NEVER receive weapon stats, and predefined drops keep unique properties.
+ */
+export function identifySingleItem(item: GameItem): GameItem {
+  if (item.isIdentified) return item;
+
+  // 1. If it is a Unique / Legendary / Set item
+  if (item.rarity === 'unique' || item.rarity === 'legendary' || item.rarity === 'set') {
+    if (item.stats && Object.keys(item.stats).length > 0 && item.baseItemName && !item.name.includes('미확인')) {
+      return {
+        ...item,
+        isIdentified: true
+      };
+    }
+
+    const matchingUniques = GAME_ITEMS_POOL.filter(p =>
+      p.slot === item.slot && (p.rarity === item.rarity || p.rarity === 'unique' || p.rarity === 'set')
+    );
+
+    if (matchingUniques.length > 0) {
+      const picked = matchingUniques[Math.floor(Math.random() * matchingUniques.length)];
+      return {
+        ...item,
+        name: picked.name,
+        baseItemName: picked.baseItemName || picked.name,
+        stats: { ...picked.stats },
+        subAffixes: picked.subAffixes ? [...picked.subAffixes] : [],
+        specialEffect: picked.specialEffect,
+        description: picked.description,
+        icon: picked.icon,
+        isIdentified: true
+      };
+    }
+  }
+
+  // 2. Magic & Rare slot-specific identification
+  const slot = item.slot;
+  let baseStats: ItemStats = {};
+  let icon = item.icon || 'Shield';
+  let defaultName = '마법 장비';
+
+  const weaponAffixes = [
+    { id: 'crit', name: '예리함의', value: 8, label: '치명타 확률 +8%' },
+    { id: 'overkill', name: '도륙의', value: 20, label: '오버킬 잔여 피해 전이 +20%' },
+    { id: 'life', name: '흡혈의', value: 6, label: '타격 시 생명력 흡수 +6%' },
+    { id: 'str', name: '거인의', value: 12, label: '힘(STR) +12' },
+    { id: 'atk_spd', name: '질풍의', value: 15, label: '공격 속도 +15%' },
+    { id: 'crit_dmg', name: '파멸의', value: 30, label: '치명타 피해 +30%' }
+  ];
+
+  const armorAffixes = [
+    { id: 'def_boost', name: '철벽의', value: 30, label: '방어력 +30' },
+    { id: 'hp_boost', name: '생명의', value: 45, label: '최대 생명력 +45' },
+    { id: 'evasion', name: '민첩한', value: 8, label: '회피율(Dodge) +8%' },
+    { id: 'dr', name: '강철 피부의', value: 5, label: '물리 피해 감소 +5%' },
+    { id: 'con', name: '체력의', value: 10, label: '체력(CON) +10' },
+    { id: 'all_res', name: '수호의', value: 10, label: '모든 저항력 +10%' }
+  ];
+
+  const jewelryAffixes = [
+    { id: 'fortune', name: '행운의', value: 25, label: '매직 아이템 발견 확률(MF) +25%' },
+    { id: 'crit', name: '치명의', value: 6, label: '치명타 확률 +6%' },
+    { id: 'crit_dmg', name: '파멸의', value: 25, label: '치명타 피해 +25%' },
+    { id: 'life', name: '흡혈의', value: 5, label: '타격 시 생명력 흡수 +5%' },
+    { id: 'all_stats', name: '전지전능의', value: 6, label: '모든 능력치 +6' },
+    { id: 'all_res', name: '보호의', value: 12, label: '모든 저항력 +12%' }
+  ];
+
+  let affixPool = armorAffixes;
+  let affixCount = item.rarity === 'rare' ? 3 : item.rarity === 'magic' ? 2 : 1;
+
+  if (slot === 'weapon') {
+    affixPool = weaponAffixes;
+    icon = 'Sword';
+    baseStats = { minDmg: 18 + Math.floor(Math.random() * 12), maxDmg: 38 + Math.floor(Math.random() * 20), str: 6 };
+    const wNames = ['용사의 장검', '학살자의 칼날', '맹독의 비수', '서리 파쇄검', '화염의 대도'];
+    defaultName = wNames[Math.floor(Math.random() * wNames.length)];
+  } else if (slot === 'armor' || slot === 'shield' || slot === 'helm' || slot === 'boots' || slot === 'gloves') {
+    affixPool = armorAffixes;
+    icon = slot === 'armor' ? 'Shield' : slot === 'shield' ? 'Shield' : slot === 'helm' ? 'HardHat' : 'Sparkles';
+    baseStats = { defense: 35 + Math.floor(Math.random() * 25), hp: 25 + Math.floor(Math.random() * 20), con: 5 };
+    const aNames = ['수호자의 흉갑', '철벽의 판금갑옷', '성전사의 방패', '영웅의 투구', '견고한 경갑'];
+    defaultName = aNames[Math.floor(Math.random() * aNames.length)];
+  } else if (slot === 'ring1' || slot === 'ring2') {
+    affixPool = jewelryAffixes;
+    icon = 'CircleDot';
+    baseStats = { str: 4 + Math.floor(Math.random() * 6), dex: 4 + Math.floor(Math.random() * 6), fortune: 15 };
+    const rNames = ['영혼의 반지', '결속의 가락지', '행운의 은반지', '광전사의 인장'];
+    defaultName = rNames[Math.floor(Math.random() * rNames.length)];
+  } else if (slot === 'amulet') {
+    affixPool = jewelryAffixes;
+    icon = 'Sparkles';
+    baseStats = { str: 8 + Math.floor(Math.random() * 8), con: 8 + Math.floor(Math.random() * 8), allResist: 10, fortune: 20 };
+    const mNames = ['태양의 목걸이', '고대의 부적', '수호신의 펜던트', '지혜의 메달'];
+    defaultName = mNames[Math.floor(Math.random() * mNames.length)];
+  }
+
+  const shuffled = [...affixPool].sort(() => 0.5 - Math.random());
+  const selectedAffixes = shuffled.slice(0, affixCount);
+  const mergedStats = { ...baseStats, ...(item.stats || {}) };
+
+  return {
+    ...item,
+    name: item.baseItemName && !item.name.includes('미확인') ? item.name : defaultName,
+    baseItemName: item.baseItemName || defaultName,
+    icon,
+    isIdentified: true,
+    stats: mergedStats,
+    subAffixes: selectedAffixes,
+    description: '데커드 케인이 감정한 신비로운 장비입니다.'
+  };
+}
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('town');
@@ -536,6 +673,95 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const [isDeathModalOpen, setIsDeathModalOpen] = useState(false);
   const [isLevelUpAnimated, setIsLevelUpAnimated] = useState(false);
+  const [dungeonBuffs, setDungeonBuffs] = useState<DungeonBuff[]>([]);
+  const [roomEventClaimed, setRoomEventClaimed] = useState<boolean>(false);
+
+
+  // Sound volume & Mute settings
+  const [soundVolume, setSoundVolumeState] = useState<number>(() => {
+    if (typeof window === 'undefined') return 0.8;
+    const saved = localStorage.getItem('DARK_FANTASY_VOL');
+    const val = saved ? parseFloat(saved) : 0.8;
+    setMasterVolume(val);
+    return val;
+  });
+  const [isMuted, setIsMutedState] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    const muted = localStorage.getItem('DARK_FANTASY_MUTE') === 'true';
+    setAudioMuted(muted);
+    return muted;
+  });
+
+  const setSoundVolume = (v: number) => {
+    setSoundVolumeState(v);
+    setMasterVolume(v);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('DARK_FANTASY_VOL', v.toString());
+    }
+  };
+
+  const setIsMuted = (muted: boolean) => {
+    setIsMutedState(muted);
+    setAudioMuted(muted);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('DARK_FANTASY_MUTE', muted ? 'true' : 'false');
+    }
+  };
+
+  const exportSaveData = (): string => {
+    const data = {
+      playerStats,
+      equipment,
+      inventory,
+      runesVault,
+      skillLevels,
+      skillRunes,
+      consumables,
+      currentDungeonId: currentDungeon.id,
+      currentRoomId,
+      timestamp: Date.now()
+    };
+    try {
+      const json = JSON.stringify(data);
+      return btoa(encodeURIComponent(json));
+    } catch (e) {
+      console.error('Failed to export save data', e);
+      return '';
+    }
+  };
+
+  const importSaveData = (encodedData: string): boolean => {
+    try {
+      const json = decodeURIComponent(atob(encodedData.trim()));
+      const data = JSON.parse(json);
+      if (!data || !data.playerStats) return false;
+
+      if (data.playerStats) setPlayerStats(data.playerStats);
+      if (data.equipment) setEquipment(data.equipment);
+      if (data.inventory) setInventory(data.inventory);
+      if (data.runesVault) setRunesVault(data.runesVault);
+      if (data.skillLevels) setSkillLevels(data.skillLevels);
+      if (data.skillRunes) setSkillRunes(data.skillRunes);
+      if (data.consumables) setConsumables(data.consumables);
+      if (data.currentDungeonId) {
+        const d = DUNGEONS_DATA.find(x => x.id === data.currentDungeonId) || DUNGEONS_DATA[0];
+        setCurrentDungeon(d);
+      }
+      if (data.currentRoomId) setCurrentRoomId(data.currentRoomId);
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+      }
+      addLog('💾 세이브 데이터를 성공적으로 불러왔습니다!', 'system');
+      playRuneWordSound();
+      return true;
+    } catch (e) {
+      console.error('Failed to import save data', e);
+      addLog('❌ 잘못된 세이브 데이터 형식입니다.', 'system');
+      return false;
+    }
+  };
+
 
   const [dungeonSnapshot, setDungeonSnapshot] = useState<{
     inventory: GameItem[];
@@ -695,6 +921,21 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     });
 
+    
+    // Apply Active Dungeon Shrine Buffs
+    dungeonBuffs.forEach(b => {
+      if (b.type === 'fortune') fortune += b.value;
+      if (b.type === 'crit') critChance += b.value;
+      if (b.type === 'defense') {
+        defense += b.value;
+        damageReduction = Math.min(50, damageReduction + 10);
+      }
+      if (b.type === 'damage') {
+        minDmg += b.value;
+        maxDmg += b.value * 1.5;
+      }
+    });
+
     minDmg += Math.floor(str * 1.5);
     maxDmg += Math.floor(str * 2.0);
 
@@ -717,7 +958,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       lifeSteal: Math.floor(lifeSteal),
       baseAtbPercent
     };
-  }, [playerStats, equipment, tempBuffs]);
+  }, [playerStats, equipment, tempBuffs, dungeonBuffs]);
 
   // Active Skill with equipped Skill Rune and invested Skill Level
   const effectiveSkill: Skill = useMemo(() => {
@@ -1106,7 +1347,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
 
             // GDD Rule: Taking damage generates Rage (+5~10)
-            const rageGainOnHit = Math.min(25, Math.max(6, Math.floor(totalEnemyDamage * 1.5)));
+            const rageGainOnHit = Math.min(15, Math.max(4, Math.floor(totalEnemyDamage * 0.8)));
             return {
               ...prev,
               hp: nextHp,
@@ -1496,7 +1737,118 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     addLog(`📜 데커드 케인이 소지한 모든 미확인 아이템(${unidentified.length}개)을 식별했습니다!`, 'loot');
   };
 
-  const resetGameSave = () => {
+  
+    
+    const claimTreasure = () => {
+      if (roomEventClaimed) return null;
+      setRoomEventClaimed(true);
+
+      const dungeonIdx = Math.max(0, DUNGEONS_DATA.findIndex(d => d.id === currentDungeon.id));
+      const mult = dungeonIdx + 1;
+      const goldReward = Math.floor(500 * mult + Math.random() * 400);
+      const shardReward = 3 * mult;
+
+      const pool = currentDungeon.dropItems && currentDungeon.dropItems.length > 0
+        ? currentDungeon.dropItems
+        : GAME_ITEMS_POOL.slice(0, 5);
+      const droppedBase = pool[Math.floor(Math.random() * pool.length)];
+      const droppedItem: GameItem = {
+        ...droppedBase,
+        id: `treasure_${Date.now()}`,
+        isIdentified: false
+      };
+
+      setPlayerStats(p => ({
+        ...p,
+        gold: p.gold + goldReward,
+        shards: p.shards + shardReward
+      }));
+      setInventory(prev => [droppedItem, ...prev]);
+
+      playLegendaryDropSound();
+      addLog(`🎁 [황금 궤짝 개봉] ${goldReward} Gold, 샤드 ${shardReward}개, [미확인 ${droppedItem.name}] 획득!`, 'loot');
+      return { gold: goldReward, items: [droppedItem], shards: shardReward };
+    };
+
+    const claimRuneAltar = () => {
+      if (roomEventClaimed) return null;
+      setRoomEventClaimed(true);
+
+      const DUNGEON_RUNE_TIERS: Record<string, string[]> = {
+        act1_crypt: ['El', 'Eld', 'Tir', 'Nef', 'Eth', 'Ith', 'Tal', 'Ral', 'Ort'],
+        act2_tomb: ['Tal', 'Ral', 'Ort', 'Thul', 'Amn', 'Sol', 'Shael', 'Dol'],
+        act3_jungle: ['Sol', 'Shael', 'Dol', 'Hel', 'Io', 'Lum', 'Ko', 'Fal', 'Lem'],
+        act4_chaos: ['Lem', 'Pul', 'Um', 'Mal', 'Ist', 'Gul', 'Vex', 'Ohm'],
+        act5_worldstone: ['Gul', 'Vex', 'Ohm', 'Lo', 'Sur', 'Ber', 'Jah', 'Cham', 'Zod']
+      };
+
+      const runes = DUNGEON_RUNE_TIERS[currentDungeon.id] || DUNGEON_RUNE_TIERS['act1_crypt'];
+      const pickedRune = runes[Math.floor(Math.random() * runes.length)];
+      const count = 1;
+
+      setRunesVault(prev => ({
+        ...prev,
+        [pickedRune]: (prev[pickedRune] || 0) + count
+      }));
+
+      playRuneWordSound();
+      addLog(`✨ [고대 룬 제단] 기도를 통해 [${pickedRune} 룬] ${count}개를 직접 연성하여 보관함에 획득했습니다!`, 'loot');
+      return { runeName: pickedRune, count };
+    };
+
+    const claimShrine = (buffType: 'fortune' | 'crit' | 'defense') => {
+      if (roomEventClaimed) return;
+      setRoomEventClaimed(true);
+
+      let newBuff: DungeonBuff;
+      if (buffType === 'fortune') {
+        newBuff = {
+          id: `buff_sun_${Date.now()}`,
+          name: '태양의 축복',
+          type: 'fortune',
+          value: 35,
+          description: '매직 아이템 발견 확률(MF) +35%',
+          icon: '☀️'
+        };
+      } else if (buffType === 'crit') {
+        newBuff = {
+          id: `buff_blood_${Date.now()}`,
+          name: '피의 축복',
+          type: 'crit',
+          value: 15,
+          description: '체력 100% 즉시 완충 & 치명타율 +15%',
+          icon: '🩸'
+        };
+        setPlayerStats(p => ({ ...p, hp: p.maxHp }));
+      } else {
+        newBuff = {
+          id: `buff_iron_${Date.now()}`,
+          name: '강철의 축복',
+          type: 'defense',
+          value: 50,
+          description: '방어력 +50 & 물리 피해 감소 +10%',
+          icon: '🛡️'
+        };
+      }
+
+      setDungeonBuffs(prev => [...prev.filter(b => b.type !== buffType), newBuff]);
+      playRuneWordSound();
+      addLog(`🏛️ [성소의 축복] [${newBuff.name}] 활성화! (${newBuff.description})`, 'system');
+    };
+
+    const buyPotions = () => {
+      const cost = 200;
+      if (playerStats.gold < cost) {
+        addLog('골드가 부족합니다! (필요: 200G)', 'system');
+        return;
+      }
+      setPlayerStats(p => ({ ...p, gold: p.gold - cost }));
+      setConsumables(curr => curr.map(c => c.id === 'c_hp' ? { ...c, count: c.count + 5 } : c));
+      playRuneWordSound();
+      addLog('🧪 상인에게서 생명력 물약 5개를 구매했습니다! (-200G)', 'loot');
+    };
+
+    const resetGameSave = () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem(SAVE_KEY);
     }
@@ -1581,10 +1933,22 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         transmuteInCube,
         gambleItem,
         identifyItem,
-        identifyAllItems,
-        resetGameSave
-      }}
-    >
+          identifyAllItems,
+          resetGameSave,
+          soundVolume,
+          setSoundVolume,
+          isMuted,
+          setIsMuted,
+          exportSaveData,
+          importSaveData,
+          buyPotions,
+          dungeonBuffs,
+          roomEventClaimed,
+          claimTreasure,
+          claimRuneAltar,
+          claimShrine
+        }}
+      >
       {children}
     </GameContext.Provider>
   );

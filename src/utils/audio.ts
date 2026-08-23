@@ -1,6 +1,24 @@
 // Web Audio API procedural sound synthesizer for Dark Fantasy Hack & Slash
 
 let audioCtx: AudioContext | null = null;
+let masterVolume = 0.8;
+let isAudioMuted = false;
+
+export function setMasterVolume(v: number): void {
+  masterVolume = Math.max(0, Math.min(1, v));
+}
+
+export function getMasterVolume(): number {
+  return masterVolume;
+}
+
+export function setAudioMuted(muted: boolean): void {
+  isAudioMuted = muted;
+}
+
+export function getAudioMuted(): boolean {
+  return isAudioMuted;
+}
 
 function getAudioContext(): AudioContext | null {
   if (typeof window === 'undefined') return null;
@@ -25,7 +43,7 @@ export function initAudio(): void {
  */
 export function playSlashSound(): void {
   const ctx = getAudioContext();
-  if (!ctx) return;
+  if (!ctx || isAudioMuted || masterVolume <= 0) return;
 
   const now = ctx.currentTime;
   const bufferSize = ctx.sampleRate * 0.15;
@@ -46,7 +64,7 @@ export function playSlashSound(): void {
   filter.Q.setValueAtTime(3.0, now);
 
   const gain = ctx.createGain();
-  gain.gain.setValueAtTime(0.35, now);
+  gain.gain.setValueAtTime(0.35 * masterVolume, now);
   gain.gain.exponentialRampToValueAtTime(0.01, now + 0.14);
 
   noise.connect(filter);
@@ -62,11 +80,10 @@ export function playSlashSound(): void {
  */
 export function playHitSound(depth = 0): void {
   const ctx = getAudioContext();
-  if (!ctx) return;
+  if (!ctx || isAudioMuted || masterVolume <= 0) return;
 
   const now = ctx.currentTime;
 
-  // Low punch oscillator
   const osc = ctx.createOscillator();
   osc.type = 'triangle';
   const startFreq = 160 - Math.min(60, depth * 15);
@@ -74,7 +91,7 @@ export function playHitSound(depth = 0): void {
   osc.frequency.exponentialRampToValueAtTime(30, now + 0.15);
 
   const oscGain = ctx.createGain();
-  oscGain.gain.setValueAtTime(0.4, now);
+  oscGain.gain.setValueAtTime(0.4 * masterVolume, now);
   oscGain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
 
   osc.connect(oscGain);
@@ -89,13 +106,12 @@ export function playHitSound(depth = 0): void {
  */
 export function playKillSound(chainStep = 1): void {
   const ctx = getAudioContext();
-  if (!ctx) return;
+  if (!ctx || isAudioMuted || masterVolume <= 0) return;
 
   const now = ctx.currentTime;
   const osc = ctx.createOscillator();
   osc.type = 'sawtooth';
 
-  // Base A2 (110Hz) ascending chromatically with each sequential kill in chain
   const baseFreq = 120;
   const pitchStep = Math.min(24, chainStep);
   const targetFreq = baseFreq * Math.pow(1.06, pitchStep);
@@ -109,7 +125,7 @@ export function playKillSound(chainStep = 1): void {
   filter.frequency.exponentialRampToValueAtTime(300, now + 0.12);
 
   const gain = ctx.createGain();
-  gain.gain.setValueAtTime(0.3, now);
+  gain.gain.setValueAtTime(0.3 * masterVolume, now);
   gain.gain.exponentialRampToValueAtTime(0.005, now + 0.14);
 
   osc.connect(filter);
@@ -125,18 +141,17 @@ export function playKillSound(chainStep = 1): void {
  */
 export function playExplosionSound(): void {
   const ctx = getAudioContext();
-  if (!ctx) return;
+  if (!ctx || isAudioMuted || masterVolume <= 0) return;
 
   const now = ctx.currentTime;
 
-  // Sub bass boom
   const osc = ctx.createOscillator();
   osc.type = 'sine';
   osc.frequency.setValueAtTime(90, now);
   osc.frequency.exponentialRampToValueAtTime(20, now + 0.4);
 
   const oscGain = ctx.createGain();
-  oscGain.gain.setValueAtTime(0.55, now);
+  oscGain.gain.setValueAtTime(0.55 * masterVolume, now);
   oscGain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
 
   osc.connect(oscGain);
@@ -151,7 +166,7 @@ export function playExplosionSound(): void {
  */
 export function playHordeAttackSound(): void {
   const ctx = getAudioContext();
-  if (!ctx) return;
+  if (!ctx || isAudioMuted || masterVolume <= 0) return;
 
   const now = ctx.currentTime;
 
@@ -165,7 +180,7 @@ export function playHordeAttackSound(): void {
   filter.frequency.setValueAtTime(400, now);
 
   const gain = ctx.createGain();
-  gain.gain.setValueAtTime(0.45, now);
+  gain.gain.setValueAtTime(0.45 * masterVolume, now);
   gain.gain.exponentialRampToValueAtTime(0.01, now + 0.28);
 
   osc.connect(filter);
@@ -181,10 +196,10 @@ export function playHordeAttackSound(): void {
  */
 export function playRuneWordSound(): void {
   const ctx = getAudioContext();
-  if (!ctx) return;
+  if (!ctx || isAudioMuted || masterVolume <= 0) return;
 
   const now = ctx.currentTime;
-  const notes = [440, 554.37, 659.25, 880]; // A Major chord
+  const notes = [440, 554.37, 659.25, 880];
 
   notes.forEach((freq, idx) => {
     const osc = ctx.createOscillator();
@@ -192,7 +207,7 @@ export function playRuneWordSound(): void {
     osc.frequency.setValueAtTime(freq, now + idx * 0.08);
 
     const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.25, now + idx * 0.08);
+    gain.gain.setValueAtTime(0.25 * masterVolume, now + idx * 0.08);
     gain.gain.exponentialRampToValueAtTime(0.005, now + idx * 0.08 + 0.6);
 
     osc.connect(gain);
@@ -208,10 +223,10 @@ export function playRuneWordSound(): void {
  */
 export function playIdentifySound(): void {
   const ctx = getAudioContext();
-  if (!ctx) return;
+  if (!ctx || isAudioMuted || masterVolume <= 0) return;
 
   const now = ctx.currentTime;
-  const notes = [523.25, 659.25, 783.99, 1046.50]; // C Major arpeggio
+  const notes = [523.25, 659.25, 783.99, 1046.50];
 
   notes.forEach((freq, idx) => {
     const osc = ctx.createOscillator();
@@ -219,7 +234,7 @@ export function playIdentifySound(): void {
     osc.frequency.setValueAtTime(freq, now + idx * 0.06);
 
     const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.3, now + idx * 0.06);
+    gain.gain.setValueAtTime(0.3 * masterVolume, now + idx * 0.06);
     gain.gain.exponentialRampToValueAtTime(0.005, now + idx * 0.06 + 0.5);
 
     osc.connect(gain);
@@ -235,18 +250,17 @@ export function playIdentifySound(): void {
  */
 export function playLegendaryDropSound(): void {
   const ctx = getAudioContext();
-  if (!ctx) return;
+  if (!ctx || isAudioMuted || masterVolume <= 0) return;
 
   const now = ctx.currentTime;
 
-  // Sub bass boom
   const subOsc = ctx.createOscillator();
   subOsc.type = 'sine';
   subOsc.frequency.setValueAtTime(90, now);
   subOsc.frequency.exponentialRampToValueAtTime(35, now + 0.4);
 
   const subGain = ctx.createGain();
-  subGain.gain.setValueAtTime(0.5, now);
+  subGain.gain.setValueAtTime(0.5 * masterVolume, now);
   subGain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
 
   subOsc.connect(subGain);
@@ -254,15 +268,14 @@ export function playLegendaryDropSound(): void {
   subOsc.start(now);
   subOsc.stop(now + 0.45);
 
-  // Glorious celestial chime arpeggio
-  const celestialNotes = [587.33, 739.99, 880, 1174.66, 1479.98, 1760]; // D Major sparkling fanfare
+  const celestialNotes = [587.33, 739.99, 880, 1174.66, 1479.98, 1760];
   celestialNotes.forEach((freq, idx) => {
     const osc = ctx.createOscillator();
     osc.type = 'sine';
     osc.frequency.setValueAtTime(freq, now + idx * 0.07);
 
     const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.35, now + idx * 0.07);
+    gain.gain.setValueAtTime(0.35 * masterVolume, now + idx * 0.07);
     gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.07 + 0.8);
 
     osc.connect(gain);
@@ -272,4 +285,3 @@ export function playLegendaryDropSound(): void {
     osc.stop(now + idx * 0.07 + 0.85);
   });
 }
-

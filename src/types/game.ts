@@ -1,6 +1,6 @@
 export type ViewMode = 'town' | 'dungeon_select' | 'dungeon_exploration' | 'battle';
 
-export type ModalType = null | 'character' | 'inventory' | 'skills' | 'storage' | 'blacksmith';
+export type ModalType = null | 'character' | 'inventory' | 'skills' | 'storage' | 'blacksmith' | 'settings';
 
 export type ItemRarity = 'normal' | 'magic' | 'rare' | 'set' | 'unique' | 'runeword' | 'legendary';
 
@@ -107,6 +107,16 @@ export interface PlayerStats {
 
 export type RoomType = 'start' | 'normal' | 'elite' | 'treasure' | 'rune' | 'shrine' | 'boss';
 
+
+export interface DungeonBuff {
+  id: string;
+  name: string;
+  type: 'fortune' | 'crit' | 'defense' | 'damage';
+  value: number;
+  description: string;
+  icon: string;
+}
+
 export interface DungeonRoom {
   id: number;
   type: RoomType;
@@ -154,6 +164,7 @@ export interface Monster {
   isPredictedDead?: boolean;
   isFrozen?: boolean;
   incomingDamage?: number;
+  bossGimmick?: string;
 }
 
 export type SkillRoute = 'line' | 'branch' | 'radius' | 'single';
