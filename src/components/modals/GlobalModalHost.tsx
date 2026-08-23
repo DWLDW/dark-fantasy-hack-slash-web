@@ -1,5 +1,6 @@
 import React, { Suspense, lazy } from 'react';
 import { useGame } from '../../state/gameStore';
+import { ConfirmModal } from './ConfirmModal';
 
 // Code-split modals so they load on demand asynchronously without blocking initial page load
 const InventoryModal = lazy(() => import('./InventoryModal').then(m => ({ default: m.InventoryModal })));
@@ -20,36 +21,48 @@ const ModalLoadingFallback: React.FC = () => (
 );
 
 export const GlobalModalHost: React.FC = React.memo(() => {
-  const { activeModal, closeModal, isDeathModalOpen, isVictoryModalOpen, confirmDeathAndReturnToTown } = useGame();
+  const {
+    activeModal,
+    closeModal,
+    isDeathModalOpen,
+    isVictoryModalOpen,
+    confirmDeathAndReturnToTown,
+    confirmDialogState
+  } = useGame();
 
-  const isAnyModalOpen = Boolean(activeModal || isDeathModalOpen || isVictoryModalOpen);
+  const isAnyModalOpen = Boolean(activeModal || isDeathModalOpen || isVictoryModalOpen || confirmDialogState?.isOpen);
 
   if (!isAnyModalOpen) return null;
 
   return (
-    <Suspense fallback={<div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"><ModalLoadingFallback /></div>}>
-      {/* Victory Loot Modal (Triggered on Dungeon Completion) */}
-      {isVictoryModalOpen && <DungeonVictoryModal />}
+    <>
+      <Suspense fallback={<div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"><ModalLoadingFallback /></div>}>
+        {/* Victory Loot Modal (Triggered on Dungeon Completion) */}
+        {isVictoryModalOpen && <DungeonVictoryModal />}
 
-      {/* Death & Defeat Modal (Triggered on HP 0) */}
-      {isDeathModalOpen && <DeathModal isOpen={isDeathModalOpen} onConfirm={confirmDeathAndReturnToTown} />}
+        {/* Death & Defeat Modal (Triggered on HP 0) */}
+        {isDeathModalOpen && <DeathModal isOpen={isDeathModalOpen} onConfirm={confirmDeathAndReturnToTown} />}
 
-      {/* Standard Active Modals with Hardware-Accelerated Backdrop */}
-      {activeModal && (
-        <div
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto transform-gpu will-change-transform animate-fade-in"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) closeModal();
-          }}
-        >
-          {activeModal === 'inventory' && <InventoryModal />}
-          {activeModal === 'character' && <CharacterModal />}
-          {activeModal === 'skills' && <SkillRuneModal />}
-          {activeModal === 'settings' && <SettingsModal />}
-          {activeModal === 'achievement' && <AchievementModal />}
-        </div>
-      )}
-    </Suspense>
+        {/* Standard Active Modals with Hardware-Accelerated Backdrop */}
+        {activeModal && (
+          <div
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto transform-gpu will-change-transform animate-fade-in"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) closeModal();
+            }}
+          >
+            {activeModal === 'inventory' && <InventoryModal />}
+            {activeModal === 'character' && <CharacterModal />}
+            {activeModal === 'skills' && <SkillRuneModal />}
+            {activeModal === 'settings' && <SettingsModal />}
+            {activeModal === 'achievement' && <AchievementModal />}
+          </div>
+        )}
+      </Suspense>
+
+      {/* Global In-Game Confirmation Dialog (Top Layer z-[100]) */}
+      <ConfirmModal />
+    </>
   );
 });
 

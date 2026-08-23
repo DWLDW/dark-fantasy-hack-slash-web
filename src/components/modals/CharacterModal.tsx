@@ -80,7 +80,7 @@ const StatUpgradeButtons: React.FC<{
 };
 
 export const CharacterModal: React.FC = React.memo(() => {
-  const { playerStats, totalStats, upgradeStat, resetStatPoints, closeModal } = useGame();
+  const { playerStats, totalStats, upgradeStat, resetStatPoints, closeModal, openConfirmModal } = useGame();
 
   const attributes = [
     { key: 'str', label: '힘 (STR)', desc: '물리 공격력 및 중장비 요구조건', val: totalStats.str, base: playerStats.str },
@@ -114,7 +114,13 @@ export const CharacterModal: React.FC = React.memo(() => {
 
         <div className="flex items-center gap-2">
           <button
-            onClick={resetStatPoints}
+            onClick={() => openConfirmModal({
+            title: "캐릭터 스탯 초기화",
+            message: "투자한 모든 기본 6대 스탯 포인트를 전액 회수하여 다시 분배하시겠습니까?\n\n회수된 모든 포인트는 즉시 다시 자유롭게 분배할 수 있습니다.",
+            confirmText: "스탯 초기화",
+            type: "warning",
+            onConfirm: resetStatPoints
+          })}
             className="px-2.5 py-1 rounded bg-iron-900 hover:bg-iron-800 border border-iron-700 hover:border-iron-500 text-gray-300 hover:text-white text-xs font-mono font-bold flex items-center gap-1 transition shadow cursor-pointer"
             title="투자한 모든 스탯 포인트를 회수하여 다시 분배합니다"
           >
@@ -263,6 +269,10 @@ export const CharacterModal: React.FC = React.memo(() => {
               value={`+${totalStats.fortune}%`}
               highlight="text-teal-300 font-black text-sm"
             />
+          </div>
+
+          <div className="mt-2 p-2 bg-iron-950 rounded border border-iron-800 text-[11px] text-gray-300 leading-relaxed font-mono">
+            💡 <strong className="text-brass-300">스탯 고정 배치:</strong> 잔여 포인트 변동 시에도 [+1], [+10], [MAX] 버튼 위치가 절대 흔들리거나 이동하지 않습니다.
           </div>
         </div>
       </div>

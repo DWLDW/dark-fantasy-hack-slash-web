@@ -3,7 +3,7 @@ import { useGame } from '../../state/gameStore';
 import { Shield, Backpack, Zap, Compass, Home } from 'lucide-react';
 
 export const BottomDock: React.FC = React.memo(() => {
-  const { activeModal, openModal, closeModal, viewMode, setViewMode, playerStats, abandonDungeon } = useGame();
+  const { activeModal, openModal, closeModal, viewMode, setViewMode, playerStats, abandonDungeon, openConfirmModal } = useGame();
 
   const leaveBattle = (dest: 'town' | 'dungeon_select') => {
     if (viewMode === 'battle') {

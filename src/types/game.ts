@@ -248,3 +248,15 @@ export const DEFAULT_TOWN_UPGRADES: TownUpgrades = {
   consumablePowerLevel: 0,
   gambleLevel: 1
 };
+
+
+export interface ConfirmDialogState {
+  isOpen: boolean;
+  title: string;
+  message: string;
+  confirmText?: string;
+  cancelText?: string;
+  type?: 'warning' | 'danger' | 'info';
+  onConfirm: () => void;
+  onCancel?: () => void;
+}

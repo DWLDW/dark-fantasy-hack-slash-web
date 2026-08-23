@@ -79,6 +79,7 @@ export const SkillRuneModal: React.FC = React.memo(() => {
     skillLevels,
     upgradeSkill,
     resetSkillPoints,
+    openConfirmModal,
     playerStats,
     totalStats,
     closeModal
@@ -115,7 +116,13 @@ export const SkillRuneModal: React.FC = React.memo(() => {
 
         <div className="flex items-center gap-2">
           <button
-            onClick={resetSkillPoints}
+            onClick={() => openConfirmModal({
+            title: "스킬 포인트 초기화",
+            message: "모든 스킬에 투자된 스킬 포인트를 전액 회수하여 다시 분배하시겠습니까?\n\n(장착된 스킬 룬과 룬워드 효과는 그대로 유지됩니다)",
+            confirmText: "스킬 초기화",
+            type: "warning",
+            onConfirm: resetSkillPoints
+          })}
             className="px-2.5 py-1 rounded bg-iron-900 hover:bg-iron-800 border border-iron-700 hover:border-iron-500 text-gray-300 hover:text-white text-xs font-mono font-bold flex items-center gap-1 transition shadow cursor-pointer"
             title="투자한 모든 스킬 포인트를 전액 회수합니다"
           >

@@ -15,7 +15,8 @@ import {
   ConsumableItem,
   RoomLootEvent,
   TownUpgrades,
-  DEFAULT_TOWN_UPGRADES
+  DEFAULT_TOWN_UPGRADES,
+  ConfirmDialogState
 } from '../types/game';
 import {
   INITIAL_EQUIPMENT,
@@ -120,6 +121,9 @@ interface GameContextType {
   setViewMode: (view: ViewMode) => void;
   openModal: (modal: ModalType) => void;
   closeModal: () => void;
+  confirmDialogState: ConfirmDialogState | null;
+  openConfirmModal: (options: Omit<ConfirmDialogState, 'isOpen'>) => void;
+  closeConfirmModal: () => void;
   equipItem: (item: GameItem, targetSlot?: EquipSlot) => void;
   unequipItem: (slot: EquipSlot) => void;
   upgradeStat: (stat: 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha', amount?: number) => void;
@@ -232,6 +236,15 @@ const GameContext = createContext<GameContextType | null>(null);
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('town');
   const [activeModal, setActiveModal] = useState<ModalType>(null);
+  const [confirmDialogState, setConfirmDialogState] = useState<ConfirmDialogState | null>(null);
+
+  const openConfirmModal = useCallback((options: Omit<ConfirmDialogState, 'isOpen'>) => {
+    setConfirmDialogState({ ...options, isOpen: true });
+  }, []);
+
+  const closeConfirmModal = useCallback(() => {
+    setConfirmDialogState(null);
+  }, []);
   
   const [playerStats, setPlayerStats] = useState<PlayerStats>(() => savedData?.playerStats || DEFAULT_PLAYER_STATS);
   const [equipment, setEquipment] = useState<Record<string, GameItem>>(() => savedData?.equipment || INITIAL_EQUIPMENT);
@@ -1768,6 +1781,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setViewMode,
     openModal,
     closeModal,
+    confirmDialogState,
+    openConfirmModal,
+    closeConfirmModal,
     equipItem,
     unequipItem,
     upgradeStat,

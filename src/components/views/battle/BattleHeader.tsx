@@ -9,7 +9,8 @@ export const BattleHeader: React.FC = React.memo(() => {
     hordeTimelinePercent,
     chainCount,
     abandonDungeon,
-    dungeonBuffs
+    dungeonBuffs,
+    openConfirmModal
   } = useGame();
 
   return (
