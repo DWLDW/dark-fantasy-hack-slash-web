@@ -125,7 +125,7 @@ export const TownView: React.FC = React.memo(() => {
       {/* Main 3-Column Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Col 1 (3 Cols): Quick Character Status & Sockets */}
-        <div className="lg:col-span-3 bg-iron-900/90 p-4 rounded-lg border-2 border-iron-750 flex flex-col justify-between space-y-3 shadow-md">
+        <div className="order-2 lg:order-1 lg:col-span-3 bg-iron-900/90 p-3 sm:p-4 rounded-lg border-2 border-iron-750 flex flex-col justify-between space-y-3 shadow-md">
           <div>
             <div className="flex justify-between items-center border-b border-iron-750 pb-2 mb-3">
               <h2 className="font-cinzel font-bold text-gray-100 text-sm flex items-center gap-1.5">
@@ -267,7 +267,7 @@ export const TownView: React.FC = React.memo(() => {
         </div>
 
         {/* Col 2 (5 Cols): D2 Facilities (Cain first, Gamble second, RuneWords third, Horadric Cube fourth) */}
-        <div className="lg:col-span-5 bg-iron-900/90 p-4 rounded-lg border-2 border-iron-750 flex flex-col shadow-md">
+        <div className="order-1 lg:order-2 lg:col-span-5 bg-iron-900/90 p-3 sm:p-4 rounded-lg border-2 border-iron-750 flex flex-col shadow-md">
           {/* Facility Nav Tabs */}
           <div className="flex border-b border-iron-750 gap-1.5 pb-2.5">
             {/* 1. DECKARD CAIN (맨 앞) */}
@@ -934,7 +934,7 @@ export const TownView: React.FC = React.memo(() => {
         </div>
 
         {/* Col 3 (4 Cols): 33 D2 Rune Vault with 3:1 Transmute System */}
-        <div className="lg:col-span-4 bg-iron-900/90 p-4 rounded-lg border-2 border-iron-750 flex flex-col space-y-2.5 shadow-md">
+        <div className="order-3 lg:order-3 lg:col-span-4 bg-iron-900/90 p-3 sm:p-4 rounded-lg border-2 border-iron-750 flex flex-col space-y-2.5 shadow-md">
           <div className="flex justify-between items-center border-b border-iron-750 pb-2">
             <h3 className="font-cinzel font-bold text-gray-100 text-sm flex items-center gap-1.5">
               <Sparkles className="w-4 h-4 text-purple-400" />

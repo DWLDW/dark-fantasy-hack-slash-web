@@ -1069,6 +1069,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
 
+      const isExecuteExtraTurn = effectiveSkill.id === 'execute' && result.kills.length > 0;
+      if (isExecuteExtraTurn) {
+        setIsAttacking(false);
+        setIsEnemyTurn(false);
+        setHordeTimelinePercent(0);
+        addLog('⚡ [처형 격살 성공!] 적을 절명시켜 [추가 턴 (EXTRA TURN)] 획득! 적의 반격이 무효화되고 즉시 추가 행동이 가능합니다!', 'loot');
+        return;
+      }
+
       // Horde Counter-Attack Turn
       setIsEnemyTurn(true);
       setHordeTimelinePercent(100);
