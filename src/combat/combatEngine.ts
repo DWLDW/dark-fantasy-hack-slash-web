@@ -6,35 +6,27 @@ export interface CombatHitResult {
   isFatal: boolean;
   depth: number;
   lane: number;
-  isOverkillHit?: boolean; // True if hit by overkill residual spillover
+  isOverkillHit?: boolean;
 }
 
 export interface AttackResolution {
   targetsHit: CombatHitResult[];
-  primaryHits: CombatHitResult[]; // Base hits that generate rage/resources
-  overkillHits: CombatHitResult[]; // Residual overkill hits that do NOT generate rage
-  kills: string[]; // Monster IDs killed in sequential order
-  chainCount: number; // Kills strictly from this 1 action
-  stopperId: string | null; // Monster that stopped the overkill chain
+  primaryHits: CombatHitResult[];
+  overkillHits: CombatHitResult[];
+  kills: string[];
+  chainCount: number;
+  stopperId: string | null;
   totalDamage: number;
   isCritical: boolean;
-  newMonsters: Monster[]; // Monster states after damage (HP=0 for dead)
+  isExtraStrike?: boolean;
+  newMonsters: Monster[];
 }
 
-/**
- * GDD Section 14: Defense & Damage Multiplier Formula
- * K = 100 + attackerLevel * 10
- * Multiplier = K / (K + targetDefense)
- */
 export function calculateDamageMultiplier(attackerLevel: number, targetDefense: number): number {
   const K = 100 + attackerLevel * 10;
   return K / (K + Math.max(0, targetDefense));
 }
 
-/**
- * GDD Section 13 & 14: Pure deterministic attack resolution engine
- * Used identically for BOTH real-time Preview and actual Attack Execution.
- */
 export function resolveAttack(
   attackerLevel: number,
   totalStats: {
@@ -43,11 +35,12 @@ export function resolveAttack(
     critChance: number;
     critDamage: number;
     overkillEfficiency: number;
+    attackSpeed?: number;
   },
   skill: Skill,
   playerLane: number,
   monsters: Monster[],
-  forceDeterministic = false // True for preview (use avg), False for real action roll
+  forceDeterministic = false
 ): AttackResolution {
   if (!monsters || monsters.length === 0) {
     return {
@@ -59,28 +52,30 @@ export function resolveAttack(
       stopperId: null,
       totalDamage: 0,
       isCritical: false,
+      isExtraStrike: false,
       newMonsters: []
     };
   }
 
-  // 1. Roll or Compute Base Raw Damage & Critical
   let isCritical = false;
+  let isExtraStrike = false;
   let baseDamage = Math.floor((totalStats.minDmg + totalStats.maxDmg) / 2);
 
-  // Chain Lightning Rune: Crit Rate +25%
   const effectiveCritRate = skill.activeRuneId === 'rune_lightning'
     ? totalStats.critChance + 25
     : totalStats.critChance;
 
+  const flurryChance = Math.min(75, Math.floor((totalStats.attackSpeed || 0) * 0.60));
+
   if (!forceDeterministic) {
     isCritical = Math.random() * 100 < effectiveCritRate;
+    isExtraStrike = Math.random() * 100 < flurryChance;
     baseDamage = Math.floor(Math.random() * (totalStats.maxDmg - totalStats.minDmg + 1)) + totalStats.minDmg;
   } else {
-    // Deterministic preview considers lightning rune crit bonus
     isCritical = effectiveCritRate >= 50;
+    isExtraStrike = flurryChance >= 50;
   }
 
-  // Skill Rune Modifiers
   let runeDmgBonus = 1.0;
   let runeOverkillBonus = 1.0;
 
@@ -103,38 +98,32 @@ export function resolveAttack(
 
   const skillLevelMult = 1 + ((skill.level || 1) - 1) * 0.15;
   const critMultiplier = isCritical ? totalStats.critDamage / 100 : 1.0;
-  const initialRawPayload = Math.floor(baseDamage * skill.damageMultiplier * skillLevelMult * runeDmgBonus * critMultiplier);
+  const flurryMultiplier = isExtraStrike ? 1.35 : 1.0;
+  const initialRawPayload = Math.floor(baseDamage * skill.damageMultiplier * skillLevelMult * runeDmgBonus * critMultiplier * flurryMultiplier);
 
   const targetsHit: CombatHitResult[] = [];
   const kills: string[] = [];
   let stopperId: string | null = null;
   let accumulatedDamage = 0;
 
-  // Helper for Venom Slaughter 50% defense shred
   const getEffectiveDefense = (def: number) => {
     return skill.activeRuneId === 'rune_poison' ? Math.floor(def * 0.5) : def;
   };
 
-  // Helper for Frost Shatter 40% Freeze/Stun application
   const applyFrostFreeze = (m: Monster) => {
     if (skill.activeRuneId === 'rune_frost') {
       if (!forceDeterministic) {
         if (Math.random() < 0.40) m.isFrozen = true;
       } else {
-        m.isFrozen = true; // Preview indicator
+        m.isFrozen = true;
       }
     }
   };
 
-  // Clone monsters for damage processing
   const monsterMap = new Map<string, Monster>(monsters.map(m => [m.id, { ...m }]));
-
-  // Effective overkill efficiency (Base skill * Character bonus * Rune bonus)
   const effectiveOverkillEff = skill.overkillEfficiency * (totalStats.overkillEfficiency / 100) * runeOverkillBonus;
 
-  // 2. Process Routes
   if (skill.route === 'line') {
-    // Slash (가르기): Primary hit on the FIRST alive monster in playerLane -> Overkill cascades forward to back
     const laneMonsters = monsters
       .filter(m => m.lane === playerLane && m.hp > 0)
       .sort((a, b) => a.depth - b.depth);
@@ -174,7 +163,6 @@ export function resolveAttack(
       }
     });
   } else if (skill.route === 'branch') {
-    // Cleave (휩쓸기): Primary hits on the FIRST alive monster of [playerLane - 1, playerLane, playerLane + 1]
     const targetLanes = [playerLane - 1, playerLane, playerLane + 1].filter(l => l >= 0 && l <= 4);
 
     targetLanes.forEach(l => {
@@ -221,7 +209,6 @@ export function resolveAttack(
       });
     });
   } else if (skill.route === 'radius') {
-    // Whirlwind (휠윈드): GUARANTEED independent strike on BOTH Front 2 rows (idx 0 and 1) across all 5 lanes, then overkill cascades to idx >= 2!
     for (let l = 0; l < 5; l++) {
       const laneMonsters = monsters
         .filter(m => m.lane === l && m.hp > 0)
@@ -229,11 +216,12 @@ export function resolveAttack(
 
       if (laneMonsters.length === 0) continue;
 
-      const isMainLane = l === playerLane || Math.abs(l - playerLane) === 1;
-      const baseLanePayload = Math.floor(initialRawPayload * (isMainLane ? 0.90 : 0.75));
+      const isCenterLane = l === playerLane;
+      const isAdjacentLane = Math.abs(l - playerLane) === 1;
+      const distanceMultiplier = isCenterLane ? 1.0 : isAdjacentLane ? 0.90 : 0.75;
+      const baseLanePayload = Math.floor(initialRawPayload * distanceMultiplier);
       let overkillBudget = 0;
 
-      // 1. Strike Front Row 1 (idx 0)
       if (laneMonsters.length > 0) {
         const m0 = laneMonsters[0];
         const defMultiplier = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(m0.defense));
@@ -246,7 +234,7 @@ export function resolveAttack(
           isFatal,
           depth: m0.depth,
           lane: m0.lane,
-          isOverkillHit: false // Primary hit!
+          isOverkillHit: false
         });
 
         accumulatedDamage += actualDmg;
@@ -263,7 +251,6 @@ export function resolveAttack(
         }
       }
 
-      // 2. Strike Front Row 2 (idx 1) - INDEPENDENT of Row 1!
       if (laneMonsters.length > 1) {
         const m1 = laneMonsters[1];
         const defMultiplier = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(m1.defense));
@@ -276,7 +263,7 @@ export function resolveAttack(
           isFatal,
           depth: m1.depth,
           lane: m1.lane,
-          isOverkillHit: false // Primary hit!
+          isOverkillHit: false
         });
 
         accumulatedDamage += actualDmg;
@@ -293,7 +280,6 @@ export function resolveAttack(
         }
       }
 
-      // 3. Overkill Cascades into Back Rows (idx 2, 3, 4, 5)
       if (overkillBudget > 0 && laneMonsters.length > 2) {
         for (let idx = 2; idx < laneMonsters.length; idx++) {
           if (overkillBudget <= 0) break;
@@ -310,7 +296,7 @@ export function resolveAttack(
             isFatal,
             depth: mb.depth,
             lane: mb.lane,
-            isOverkillHit: true // Overkill hit!
+            isOverkillHit: true
           });
 
           accumulatedDamage += actualDmg;
@@ -331,7 +317,6 @@ export function resolveAttack(
       }
     }
   } else if (skill.route === 'single') {
-    // Execute (처형): Massive primary strike on the FIRST alive monster in playerLane -> Overkill penetrates in a straight LINE through that lane's back rows!
     const laneMonsters = monsters
       .filter(m => m.lane === playerLane && m.hp > 0)
       .sort((a, b) => a.depth - b.depth);
@@ -349,7 +334,7 @@ export function resolveAttack(
         isFatal,
         depth: frontTarget.depth,
         lane: frontTarget.lane,
-        isOverkillHit: false // Primary single target!
+        isOverkillHit: false
       });
 
       accumulatedDamage += actualDmg;
@@ -359,11 +344,9 @@ export function resolveAttack(
         kills.push(frontTarget.id);
         updatedM.hp = 0;
 
-        // Line Penetration Overkill: Residual energy pierces straight through subsequent monsters in the SAME lane!
         const rawOverkill = Math.max(0, actualDmg - frontTarget.hp);
         let currentPayload = Math.floor(rawOverkill * effectiveOverkillEff);
 
-        // Pierce through behind monsters (idx 1, 2, 3, 4, 5)
         for (let idx = 1; idx < laneMonsters.length; idx++) {
           if (currentPayload <= 0) break;
 
@@ -379,7 +362,7 @@ export function resolveAttack(
             isFatal: isSmFatal,
             depth: sm.depth,
             lane: sm.lane,
-            isOverkillHit: true // Line penetration overkill hit!
+            isOverkillHit: true
           });
 
           accumulatedDamage += smDmg;
@@ -417,15 +400,11 @@ export function resolveAttack(
     stopperId,
     totalDamage: accumulatedDamage,
     isCritical,
+    isExtraStrike,
     newMonsters: Array.from(monsterMap.values())
   };
 }
 
-/**
- * Smart Auto-Targeting Algorithm:
- * Evaluates all 5 lanes for the given skill and finds the lane that produces the maximum kills/damage.
- * Prevents wasting attacks on empty or suboptimal lanes.
- */
 export function findBestLaneForSkill(
   attackerLevel: number,
   totalStats: {
@@ -434,18 +413,18 @@ export function findBestLaneForSkill(
     critChance: number;
     critDamage: number;
     overkillEfficiency: number;
+    attackSpeed?: number;
   },
   skill: Skill,
   monsters: Monster[]
 ): number {
   const activeMonsters = monsters.filter(m => m.hp > 0);
-  if (activeMonsters.length === 0) return 2; // Default center
+  if (activeMonsters.length === 0) return 2;
 
   let bestLane = 2;
   let bestScore = -1;
 
   for (let lane = 0; lane < 5; lane++) {
-    // Check if this lane or affected area has any monsters
     const hasMonsters = skill.route === 'branch'
       ? activeMonsters.some(m => Math.abs(m.lane - lane) <= 1 && m.depth === 0)
       : skill.route === 'radius'
@@ -455,7 +434,6 @@ export function findBestLaneForSkill(
     if (!hasMonsters) continue;
 
     const res = resolveAttack(attackerLevel, totalStats, skill, lane, monsters, true);
-    // Score heavily weights kills, then raw damage
     const score = res.chainCount * 10000 + res.totalDamage;
 
     if (score > bestScore) {
@@ -467,14 +445,6 @@ export function findBestLaneForSkill(
   return bestLane;
 }
 
-/**
- * GDD Section 26 Benchmark: Fixed 30 Goblin Formation
- * 5 Lanes x 6 Depths = Exactly 30 Monsters
- * Designed specifically to test:
- * 1. Line Overkill through weak lane (Lane 0 / Lane 4 -> 6 kills in 1 hit!)
- * 2. Elite Anchor Chain Stopper at Lane 2 Depth 1 (Orc Enforcer stops the chain)
- * 3. Front Guard Shield Wall at Lane 1 & 3
- */
 export function createGoblin30Formation(): Monster[] {
   const monsters: Monster[] = [];
 
@@ -495,7 +465,7 @@ export function createGoblin30Formation(): Monster[] {
         name = '오크 집행관 [ELITE]';
         hp = 280;
         maxHp = 280;
-        defense = 35; // High armor chain stopper
+        defense = 35;
         rank = 'elite';
       } else if (isShieldGuard) {
         name = '고블린 방패병';
@@ -538,6 +508,143 @@ export function createGoblin30Formation(): Monster[] {
         },
         icon: isCenterElite ? 'ELITE' : isShieldGuard ? 'GUARD' : 'NORMAL'
       });
+    }
+  }
+
+  return monsters;
+}
+
+export function createDungeonFormation(dungeonId: string, roomType: string, playerLevel: number, difficultyLevel: number = 1): Monster[] {
+  const monsters: Monster[] = [];
+  const diff = Math.max(1, difficultyLevel);
+  const diffScale = 1 + (diff - 1) * 0.35 + Math.pow((diff - 1) * 0.04, 1.4);
+  const dmgDiffScale = 1 + (diff - 1) * 0.18 + (diff - 1) * 0.05;
+  const defDiffScale = 1 + (diff - 1) * 0.20;
+  const scale = (1 + (playerLevel * 0.05)) * diffScale;
+  const addMonster = (
+    lane: number, depth: number, 
+    name: string, hp: number, def: number, dmg: number, 
+    rank: Monster['rank'] = 'normal', icon: string = 'NORMAL'
+  ) => {
+    const scaledHp = Math.floor(hp * scale);
+    const scaledDmg = Math.floor(dmg * (1 + (playerLevel * 0.03)) * dmgDiffScale);
+    const scaledDef = Math.floor(def * defDiffScale);
+    monsters.push({
+      id: `${dungeonId}_l${lane}_d${depth}_${Math.random().toString(36).substring(2,7)}`,
+      name,
+      hp: scaledHp,
+      maxHp: scaledHp,
+      defense: scaledDef,
+      rank,
+      lane,
+      depth,
+      intent: { type: 'attack', damage: scaledDmg, targetLane: lane, chargePercent: 50 },
+      icon,
+      isFrozen: false
+    });
+  };
+
+  const laneDepthCounts = [0, 0, 0, 0, 0];
+  const spawnToRandomLane = (name: string, hp: number, def: number, dmg: number, rank: Monster['rank'] = 'normal', icon: string = 'NORMAL') => {
+    const minDepth = Math.min(...laneDepthCounts);
+    const availableLanes = [0,1,2,3,4].filter(l => laneDepthCounts[l] === minDepth);
+    const lane = availableLanes[Math.floor(Math.random() * availableLanes.length)];
+    const depth = laneDepthCounts[lane]++;
+    addMonster(lane, depth, name, hp, def, dmg, rank, icon);
+  };
+
+  if (dungeonId === 'act1_crypt') {
+    if (roomType === 'boss') {
+      addMonster(2, 0, '고블린 정예 방패병', 80, 15, 5, 'champion', 'GUARD');
+      addMonster(2, 1, '고블린 주술 대장', 70, 5, 8, 'champion', 'GUARD');
+      addMonster(2, 2, '고블린 킹', 450, 25, 12, 'boss', 'BOSS');
+      laneDepthCounts[2] = 3;
+      for (let i = 0; i < 8; i++) spawnToRandomLane('호위 고블린', 50, 3, 4, 'normal', 'GUARD');
+    } else if (roomType === 'treasure') {
+      for (let i = 0; i < 12; i++) spawnToRandomLane('황금 탐욕 고블린', 35, 2, 3, 'normal', 'NORMAL');
+      for (let i = 0; i < 4; i++) spawnToRandomLane('보물 궤짝 파수꾼', 75, 10, 5, 'champion', 'GUARD');
+    } else if (roomType === 'rune') {
+      for (let i = 0; i < 10; i++) spawnToRandomLane('룬 주술사', 45, 0, 5, 'normal', 'NORMAL');
+      for (let i = 0; i < 4; i++) spawnToRandomLane('고대 룬 골렘', 120, 15, 6, 'champion', 'GUARD');
+    } else if (roomType === 'shrine') {
+      for (let i = 0; i < 12; i++) spawnToRandomLane('타락한 묘지기', 40, 4, 3, 'normal', 'NORMAL');
+      for (let i = 0; i < 3; i++) spawnToRandomLane('광신도 사제', 60, 2, 6, 'champion', 'NORMAL');
+    } else {
+      const count = roomType === 'start' ? 8 : Math.floor(Math.random() * 9) + 14;
+      for (let i = 0; i < count; i++) {
+        const rand = Math.random();
+        if (rand < 0.70) spawnToRandomLane('고블린 정찰병', 30 + Math.random() * 20, Math.floor(Math.random() * 4), 2 + Math.floor(Math.random() * 3));
+        else if (rand < 0.90) spawnToRandomLane('고블린 궁수', 40, 1, 4);
+        else spawnToRandomLane('고블린 주술사', 50, 0, 3);
+      }
+      if (roomType === 'elite') {
+        const eliteCount = Math.floor(Math.random() * 2) + 2;
+        for (let i = 0; i < eliteCount; i++) spawnToRandomLane('오크 집행관', 160, 15, 7, 'elite', 'ELITE');
+      }
+    }
+  } else if (dungeonId === 'act2_tomb') {
+    if (roomType === 'boss') {
+      addMonster(2, 0, '고대 무덤 수호병', 120, 20, 8, 'champion', 'GUARD');
+      addMonster(2, 1, '미이라 고위 사제', 100, 10, 12, 'champion', 'GUARD');
+      addMonster(2, 2, '본 킹 (두리엘)', 900, 35, 18, 'boss', 'BOSS');
+      laneDepthCounts[2] = 3;
+      for (let i = 0; i < 8; i++) spawnToRandomLane('해골 소환 가드', 90, 15, 6, 'normal', 'GUARD');
+    } else if (roomType === 'treasure') {
+      for (let i = 0; i < 12; i++) spawnToRandomLane('미이라 도굴꾼', 60, 8, 5, 'normal', 'NORMAL');
+      for (let i = 0; i < 4; i++) spawnToRandomLane('고대 무덤 수호병', 140, 22, 8, 'champion', 'GUARD');
+    } else if (roomType === 'rune') {
+      for (let i = 0; i < 10; i++) spawnToRandomLane('사막 비전 사제', 65, 5, 9, 'normal', 'NORMAL');
+      for (let i = 0; i < 3; i++) spawnToRandomLane('룬 결계 수호자', 160, 25, 10, 'champion', 'GUARD');
+    } else if (roomType === 'shrine') {
+      for (let i = 0; i < 10; i++) spawnToRandomLane('모래 메뚜기 떼', 45, 4, 4, 'normal', 'NORMAL');
+      for (let i = 0; i < 4; i++) spawnToRandomLane('태양의 광신도', 85, 12, 7, 'champion', 'NORMAL');
+    } else {
+      const count = roomType === 'start' ? 10 : Math.floor(Math.random() * 7) + 12;
+      for (let i = 0; i < count; i++) {
+        const rand = Math.random();
+        if (rand < 0.60) spawnToRandomLane('스켈레톤 전사', 60 + Math.random() * 30, 8 + Math.floor(Math.random() * 8), 4 + Math.floor(Math.random() * 3));
+        else if (rand < 0.85) spawnToRandomLane('스켈레톤 궁수', 70, 8, 6);
+        else if (rand < 0.95) spawnToRandomLane('스켈레톤 마법사', 60, 5, 8);
+        else spawnToRandomLane('스켈레톤 방패병', 90, 30, 4, 'champion', 'GUARD');
+      }
+      if (roomType === 'elite') {
+        for (let i = 0; i < 2; i++) spawnToRandomLane('데스나이트', 250, 25, 10, 'elite', 'ELITE');
+      }
+    }
+  } else if (dungeonId === 'act3_jungle') {
+    if (roomType === 'boss') {
+      addMonster(2, 0, '마그마 골렘', 250, 30, 12, 'champion', 'GUARD');
+      addMonster(2, 1, '지옥 기사', 200, 25, 15, 'champion', 'GUARD');
+      addMonster(2, 2, '인페르노 골렘 (메피스토)', 1600, 45, 22, 'boss', 'BOSS');
+      laneDepthCounts[2] = 3;
+      for (let i = 0; i < 8; i++) spawnToRandomLane('용암 정령', 180, 25, 10, 'normal', 'GUARD');
+    } else if (roomType === 'treasure') {
+      for (let i = 0; i < 12; i++) spawnToRandomLane('화염 보물 약탈자', 110, 15, 7, 'normal', 'NORMAL');
+      for (let i = 0; i < 4; i++) spawnToRandomLane('마그마 골렘', 220, 30, 12, 'champion', 'GUARD');
+    } else if (roomType === 'rune') {
+      for (let i = 0; i < 10; i++) spawnToRandomLane('증오의 룬 주술사', 120, 10, 12, 'normal', 'NORMAL');
+      for (let i = 0; i < 3; i++) spawnToRandomLane('지옥 불꽃 골렘', 250, 32, 14, 'champion', 'GUARD');
+    } else {
+      const count = roomType === 'start' ? 10 : Math.floor(Math.random() * 7) + 12;
+      for (let i = 0; i < count; i++) {
+        const rand = Math.random();
+        if (rand < 0.50) spawnToRandomLane('화염 임프', 100 + Math.random() * 80, 15 + Math.floor(Math.random() * 11), 6 + Math.floor(Math.random() * 5));
+        else if (rand < 0.80) spawnToRandomLane('용암 골렘', 180, 25, 8);
+        else if (rand < 0.95) spawnToRandomLane('화염 정령', 120, 15, 10);
+        else spawnToRandomLane('지옥 기사', 150, 30, 12, 'champion', 'ELITE');
+      }
+      if (roomType === 'elite') {
+        for (let i = 0; i < 2; i++) spawnToRandomLane('인페르노 가디언', 450, 35, 15, 'elite', 'ELITE');
+      }
+    }
+  } else {
+    const count = 15;
+    for (let i = 0; i < count; i++) spawnToRandomLane('카오스 악마', 120, 15, 10);
+    if (roomType === 'boss') {
+      addMonster(2, 0, '망각의 기사', 300, 35, 15, 'champion', 'GUARD');
+      addMonster(2, 1, '베놈 로드', 400, 40, 20, 'champion', 'GUARD');
+      addMonster(2, 2, '지옥의 군주 (디아블로)', 2500, 50, 30, 'boss', 'BOSS');
+      laneDepthCounts[2] = 3;
     }
   }
 

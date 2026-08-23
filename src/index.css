@@ -6,6 +6,8 @@
   body {
     @apply bg-void text-gray-100 antialiased selection:bg-blood-700 selection:text-white;
     font-family: 'Noto Sans KR', system-ui, -apple-system, sans-serif;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
   }
 
   h1, h2, h3, h4, .font-cinzel {
@@ -31,10 +33,197 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.98); }
-  to { opacity: 1; transform: scale(1); }
+  from { opacity: 0; transform: scale(0.98) translateZ(0); }
+  to { opacity: 1; transform: scale(1) translateZ(0); }
 }
 
+@keyframes floatDamage {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.8) translateY(0);
+  }
+  20% {
+    transform: translate(-50%, -50%) scale(1.25) translateY(-8px);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1) translateY(-32px);
+  }
+}
+
+@keyframes whirlwindSpin {
+  0% { transform: rotate(0deg) scale(0.9); opacity: 0.7; }
+  50% { transform: rotate(180deg) scale(1.1); opacity: 1; }
+  100% { transform: rotate(360deg) scale(0.9); opacity: 0.7; }
+}
+
+@keyframes bossPulse {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(220, 38, 38, 0.7), inset 0 0 15px rgba(220, 38, 38, 0.4);
+    border-color: rgba(251, 191, 36, 0.9);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(239, 68, 68, 0.95), inset 0 0 25px rgba(185, 28, 28, 0.6);
+    border-color: rgba(239, 68, 68, 1);
+  }
+}
+
+@keyframes hitShake {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-3px, 2px); }
+  40% { transform: translate(3px, -2px); }
+  60% { transform: translate(-2px, -1px); }
+  80% { transform: translate(2px, 1px); }
+}
+
+/* GPU Accelerated Modal Entrance */
 .animate-fade-in {
-  animation: fadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeIn 0.12s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.animate-float-damage {
+  animation: floatDamage 0.75s ease-out forwards;
+}
+
+.animate-whirlwind-spin {
+  animation: whirlwindSpin 0.6s linear infinite;
+}
+
+.animate-boss-pulse {
+  animation: bossPulse 2s ease-in-out infinite;
+}
+
+.animate-hit-shake {
+  animation: hitShake 0.25s ease-in-out;
+}
+
+/* ===== Phase 1: Combat Visual Feedback ===== */
+
+/* Monster Death Animation */
+@keyframes deathShrink {
+  0% { opacity: 1; transform: scale(1); filter: brightness(1); }
+  30% { opacity: 1; transform: scale(1.1); filter: brightness(2) saturate(2); }
+  100% { opacity: 0; transform: scale(0.3) translateY(10px); filter: brightness(0.5) saturate(0); }
+}
+.animate-death-shrink {
+  animation: deathShrink 0.45s ease-in forwards;
+  pointer-events: none;
+}
+
+/* Floating Damage Number */
+@keyframes floatDamageUp {
+  0% { opacity: 1; transform: translateY(0) scale(0.7); }
+  15% { opacity: 1; transform: translateY(-6px) scale(1.2); }
+  100% { opacity: 0; transform: translateY(-36px) scale(0.9); }
+}
+.animate-float-dmg {
+  animation: floatDamageUp 0.8s ease-out forwards;
+  pointer-events: none;
+}
+
+/* Critical Hit Emphasis */
+@keyframes critFlash {
+  0% { opacity: 1; transform: translateY(0) scale(0.6); text-shadow: 0 0 0 transparent; }
+  15% { opacity: 1; transform: translateY(-8px) scale(1.5); text-shadow: 0 0 16px rgba(251, 191, 36, 0.9); }
+  100% { opacity: 0; transform: translateY(-40px) scale(1.1); text-shadow: 0 0 0 transparent; }
+}
+.animate-crit-dmg {
+  animation: critFlash 0.9s ease-out forwards;
+  pointer-events: none;
+}
+
+/* Chain Kill Milestone Banner */
+@keyframes chainBannerSlam {
+  0% { opacity: 0; transform: translateX(-50%) scale(2.5); }
+  15% { opacity: 1; transform: translateX(-50%) scale(0.9); }
+  25% { transform: translateX(-50%) scale(1.05); }
+  40% { transform: translateX(-50%) scale(1); }
+  85% { opacity: 1; transform: translateX(-50%) scale(1); }
+  100% { opacity: 0; transform: translateX(-50%) scale(0.8); }
+}
+.animate-chain-banner {
+  animation: chainBannerSlam 1.8s ease-out forwards;
+  pointer-events: none;
+}
+
+/* Screen Shake - Light (x5-9 kills) */
+@keyframes shakeLight {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-2px, 1px); }
+  30% { transform: translate(2px, -1px); }
+  50% { transform: translate(-1px, -2px); }
+  70% { transform: translate(1px, 2px); }
+  90% { transform: translate(-1px, 1px); }
+}
+.animate-shake-light {
+  animation: shakeLight 0.3s ease-in-out;
+}
+
+/* Screen Shake - Medium (x10-24 kills) */
+@keyframes shakeMedium {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-4px, 2px); }
+  20% { transform: translate(4px, -3px); }
+  30% { transform: translate(-3px, -2px); }
+  40% { transform: translate(3px, 3px); }
+  50% { transform: translate(-5px, 1px); }
+  60% { transform: translate(4px, -2px); }
+  70% { transform: translate(-2px, 3px); }
+  80% { transform: translate(3px, -1px); }
+  90% { transform: translate(-1px, 2px); }
+}
+.animate-shake-medium {
+  animation: shakeMedium 0.4s ease-in-out;
+}
+
+/* Screen Shake - Heavy (x25+ kills) */
+@keyframes shakeHeavy {
+  0%, 100% { transform: translate(0, 0); }
+  5% { transform: translate(-6px, 3px); }
+  15% { transform: translate(7px, -4px); }
+  25% { transform: translate(-5px, -5px); }
+  35% { transform: translate(6px, 4px); }
+  45% { transform: translate(-8px, 2px); }
+  55% { transform: translate(7px, -3px); }
+  65% { transform: translate(-4px, 5px); }
+  75% { transform: translate(5px, -2px); }
+  85% { transform: translate(-3px, 3px); }
+  95% { transform: translate(2px, -1px); }
+}
+.animate-shake-heavy {
+  animation: shakeHeavy 0.5s ease-in-out;
+}
+
+/* Overkill Path Glow Line */
+@keyframes overkillGlow {
+  0% { box-shadow: 0 0 4px rgba(249, 115, 22, 0.4); }
+  50% { box-shadow: 0 0 12px rgba(249, 115, 22, 0.9), 0 0 20px rgba(239, 68, 68, 0.4); }
+  100% { box-shadow: 0 0 4px rgba(249, 115, 22, 0.4); }
+}
+.animate-overkill-glow {
+  animation: overkillGlow 0.8s ease-in-out infinite;
+}
+
+/* Full Screen Flash for massive kills */
+@keyframes screenFlash {
+  0% { opacity: 0.6; }
+  100% { opacity: 0; }
+}
+.animate-screen-flash {
+  animation: screenFlash 0.3s ease-out forwards;
+  pointer-events: none;
+}
+
+/* Level Up Celebration */
+@keyframes levelUpShine {
+  0% { opacity: 0; transform: scale(0.5); }
+  30% { opacity: 1; transform: scale(1.1); }
+  70% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.2); }
+}
+.animate-level-up {
+  animation: levelUpShine 2s ease-out forwards;
 }

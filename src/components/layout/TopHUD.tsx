@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useGame } from '../../state/gameStore';
-import { Shield, Flame, Coins, Sparkles, MapPin, Home, RotateCcw, AlertTriangle, Settings } from 'lucide-react';
+import { Shield, Flame, Coins, Sparkles, MapPin, Home, RotateCcw, AlertTriangle, Settings, Trophy } from 'lucide-react';
 
-export const TopHUD: React.FC = () => {
+export const TopHUD: React.FC = React.memo(() => {
   const { playerStats, viewMode, currentDungeon, setViewMode, resetGameSave, isLevelUpAnimated, openModal } = useGame();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
@@ -39,6 +39,16 @@ export const TopHUD: React.FC = () => {
                 </div>
               )}
             </div>
+
+            {/* Achievements Button */}
+            <button
+              onClick={() => openModal('achievement')}
+              className="p-1 sm:p-1.5 bg-iron-900 hover:bg-iron-800 border border-amber-500/60 text-amber-300 hover:text-white rounded shadow transition flex items-center gap-1 text-[9px] sm:text-[10px] font-mono font-bold"
+              title="성역의 위업 (업적 및 보상)"
+            >
+              <Trophy className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-400" />
+              <span className="hidden sm:inline">업적</span>
+            </button>
 
             {/* Settings Button */}
             <button
@@ -187,4 +197,6 @@ export const TopHUD: React.FC = () => {
       )}
     </>
   );
-};
+});
+TopHUD.displayName = 'TopHUD';
+

@@ -3,7 +3,7 @@ import { useGame } from '../../state/gameStore';
 import { DungeonRoom, RoomType } from '../../types/game';
 import { Skull, Gift, Zap, Sparkles, ChevronRight, Check } from 'lucide-react';
 
-export const MiniRoomGraph: React.FC = () => {
+export const MiniRoomGraph: React.FC = React.memo(() => {
   const { currentDungeon, currentRoomId, selectNextRoom, monsters } = useGame();
   const rooms = currentDungeon.rooms;
   const currentRoom = rooms.find(r => r.id === currentRoomId) || rooms[0];
@@ -59,7 +59,7 @@ export const MiniRoomGraph: React.FC = () => {
         {rooms.map((room, idx) => {
           const isCurrent = room.id === currentRoomId;
           const isAccessible = currentRoom.connections.includes(room.id);
-          const isPassed = room.id < currentRoomId;
+          const isPassed = room.cleared && !isCurrent;
 
           return (
             <React.Fragment key={room.id}>
@@ -106,4 +106,6 @@ export const MiniRoomGraph: React.FC = () => {
       )}
     </div>
   );
-};
+});
+MiniRoomGraph.displayName = 'MiniRoomGraph';
+

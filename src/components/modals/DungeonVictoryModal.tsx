@@ -1,6 +1,6 @@
 import React from 'react';
 import { useGame } from '../../state/gameStore';
-import { Trophy, Sparkles, BookOpen, Coins, Gem, ArrowRight, CheckCircle2, Flame, Shield, HelpCircle } from 'lucide-react';
+import { Trophy, Sparkles, BookOpen, Coins, Gem, ArrowRight, Flame, HelpCircle, Zap } from 'lucide-react';
 import { D2_RUNES } from '../../data/gameData';
 
 export const DungeonVictoryModal: React.FC = () => {
@@ -8,9 +8,10 @@ export const DungeonVictoryModal: React.FC = () => {
     isVictoryModalOpen,
     dungeonVictoryLoot,
     currentDungeon,
+    currentDifficulty,
     closeVictoryModal,
     identifyAllVictoryLoot,
-    equipItem
+    enterDungeon
   } = useGame();
 
   if (!isVictoryModalOpen || !dungeonVictoryLoot) return null;
@@ -20,20 +21,45 @@ export const DungeonVictoryModal: React.FC = () => {
     i => i.isIdentified && (i.rarity === 'unique' || i.rarity === 'legendary' || i.rarity === 'set')
   ).length;
 
+  const nextDiff = dungeonVictoryLoot.nextDifficulty || (currentDifficulty + (dungeonVictoryLoot.advanceLevels || 1));
+
+  const handleNextDifficulty = () => {
+    closeVictoryModal();
+    enterDungeon(currentDungeon.id, nextDiff);
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in select-none">
-      <div className="bg-gradient-to-b from-iron-950 via-iron-900 to-iron-950 border-2 border-brass-400 rounded-xl p-5 md:p-7 w-full max-w-2xl max-h-[92vh] overflow-y-auto shadow-[0_0_50px_rgba(251,191,36,0.3)] space-y-5 text-xs md:text-sm">
+      <div className="bg-gradient-to-b from-iron-950 via-iron-900 to-iron-950 border-2 border-brass-400 rounded-xl p-5 md:p-7 w-full max-w-2xl max-h-[92vh] overflow-y-auto shadow-[0_0_50px_rgba(251,191,36,0.3)] space-y-4 text-xs md:text-sm">
         {/* Top Glorious Header */}
-        <div className="text-center space-y-1.5 border-b border-brass-600/60 pb-4 relative">
+        <div className="text-center space-y-1.5 border-b border-brass-600/60 pb-3 relative">
           <div className="inline-flex items-center justify-center p-3 rounded-full bg-amber-950/80 border-2 border-amber-400 text-amber-300 shadow-[0_0_20px_rgba(251,191,36,0.5)] animate-bounce">
             <Trophy className="w-8 h-8" />
           </div>
           <h2 className="text-xl md:text-2xl font-cinzel font-black text-transparent bg-clip-text bg-gradient-to-r from-brass-300 via-amber-200 to-brass-400 tracking-wider">
             던전 정복 완료! (Dungeon Cleared)
           </h2>
-          <p className="text-xs text-gray-300 font-mono">
-            [{currentDungeon.name}]의 모든 시련을 극복하고 전리품을 쟁취했습니다.
-          </p>
+          <div className="flex items-center justify-center gap-2 pt-0.5">
+            <span className="px-2.5 py-0.5 bg-gradient-to-r from-red-600 to-amber-500 text-white font-mono font-black text-xs rounded-full border border-amber-300 shadow">
+              🔥 난이도 Lv.{currentDifficulty} 돌파
+            </span>
+            <span className="text-xs text-gray-300 font-mono">
+              [{currentDungeon.name.split(':')[0]}]
+            </span>
+          </div>
+
+          {/* Performance Leap Banner (+1 ~ +5 Jump) */}
+          {dungeonVictoryLoot.performanceGrade && (
+            <div className="mt-2 p-2 rounded-lg bg-gradient-to-r from-amber-950/90 via-blood-950 to-amber-950/90 border border-amber-400 text-center font-mono animate-pulse shadow-lg">
+              <div className="text-amber-300 font-black text-xs md:text-sm flex items-center justify-center gap-1.5">
+                <Zap className="w-4 h-4 text-yellow-300" />
+                <span>{dungeonVictoryLoot.performanceGrade}</span>
+              </div>
+              <div className="text-[11px] text-gray-300 mt-0.5">
+                남은 체력 및 클리어 성적에 따라 다음 난이도 <strong className="text-amber-300 font-black">Lv.{nextDiff}</strong>가 즉시 해금되었습니다!
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Reward Currency Stats Bar */}
@@ -64,7 +90,7 @@ export const DungeonVictoryModal: React.FC = () => {
               <span>경험치</span>
             </div>
             <span className="text-sm md:text-base font-black text-emerald-200 mt-0.5">
-              +{dungeonVictoryLoot.exp} EXP
+              +{dungeonVictoryLoot.exp.toLocaleString()} EXP
             </span>
           </div>
         </div>
@@ -106,7 +132,7 @@ export const DungeonVictoryModal: React.FC = () => {
             )}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-48 overflow-y-auto pr-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-44 overflow-y-auto pr-1">
             {dungeonVictoryLoot.items.map(item => {
               const isIdentified = item.isIdentified !== false;
               const isLegendary = isIdentified && (item.rarity === 'unique' || item.rarity === 'legendary');
@@ -114,7 +140,7 @@ export const DungeonVictoryModal: React.FC = () => {
               return (
                 <div
                   key={item.id}
-                  className={`p-3 rounded-lg border-2 transition relative flex flex-col justify-between shadow ${
+                  className={`p-2.5 rounded-lg border-2 transition relative flex flex-col justify-between shadow ${
                     !isIdentified
                       ? 'bg-blood-950/40 border-blood-600 text-blood-200'
                       : isLegendary
@@ -127,25 +153,25 @@ export const DungeonVictoryModal: React.FC = () => {
                   <div className="flex justify-between items-start">
                     <div>
                       <div className="font-black text-xs md:text-sm flex items-center gap-1.5">
-                        <span>{isIdentified ? item.name : '미확인 장비 (Unidentified)'}</span>
+                        <span>{item.name}</span>
                         {!isIdentified && <HelpCircle className="w-3.5 h-3.5 text-blood-400 animate-spin" />}
                       </div>
                       <div className="text-[10px] text-gray-400 capitalize font-mono mt-0.5">
-                        {item.slot} {isIdentified && `| ${item.rarity}`}
+                        {item.slot} {item.tier ? `| [${item.tier}]` : ''} {isIdentified && `| ${item.rarity}`}
                       </div>
                     </div>
                   </div>
 
                   {isIdentified ? (
-                    <div className="mt-2 text-[11px] text-gray-300 font-sans leading-tight">
+                    <div className="mt-1.5 text-[10px] text-gray-300 font-sans leading-tight">
                       <p>{item.description}</p>
                       {item.specialEffect && (
-                        <p className="text-amber-300 font-bold mt-1">★ {item.specialEffect}</p>
+                        <p className="text-amber-300 font-bold mt-0.5">★ {item.specialEffect}</p>
                       )}
                     </div>
                   ) : (
-                    <div className="mt-2 text-[10px] text-blood-300 italic">
-                      데커드 케인의 감정을 받으면 강력한 잠재 옵션이 드러납니다.
+                    <div className="mt-1.5 text-[10px] text-blood-300 italic">
+                      데커드 케인의 감정을 받으면 강력한 난이도 스케일링 옵션이 드러납니다.
                     </div>
                   )}
                 </div>
@@ -155,16 +181,16 @@ export const DungeonVictoryModal: React.FC = () => {
         </div>
 
         {/* Deckard Cain Instant Identify Facility Banner */}
-        <div className="p-3.5 rounded-lg bg-gradient-to-r from-blue-950/60 via-iron-900 to-blue-950/60 border-2 border-blue-600/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-blue-900 border-2 border-blue-400 flex items-center justify-center text-blue-200 font-serif font-black text-base shadow flex-shrink-0">
+        <div className="p-3 rounded-lg bg-gradient-to-r from-blue-950/60 via-iron-900 to-blue-950/60 border-2 border-blue-600/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-lg">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-full bg-blue-900 border-2 border-blue-400 flex items-center justify-center text-blue-200 font-serif font-black text-sm shadow flex-shrink-0">
               DC
             </div>
             <div>
-              <div className="font-cinzel font-bold text-blue-200 text-xs md:text-sm flex items-center gap-1.5">
+              <div className="font-cinzel font-bold text-blue-200 text-xs sm:text-sm flex items-center gap-1.5">
                 <span>현자 데커드 케인 (Deckard Cain)</span>
               </div>
-              <p className="text-[11px] text-gray-300 font-medium italic mt-0.5">
+              <p className="text-[11px] text-gray-300 font-medium italic">
                 "잠시 내 말에 귀 기울여보게나... 고대의 지혜로 이 전리품들의 잠재력을 밝혀주겠네."
               </p>
             </div>
@@ -173,7 +199,7 @@ export const DungeonVictoryModal: React.FC = () => {
           <button
             onClick={identifyAllVictoryLoot}
             disabled={!hasUnidentified}
-            className={`px-4 py-2.5 rounded-lg text-xs font-black transition shadow flex items-center justify-center gap-1.5 flex-shrink-0 ${
+            className={`px-4 py-2 rounded-lg text-xs font-black transition shadow flex items-center justify-center gap-1.5 flex-shrink-0 cursor-pointer ${
               hasUnidentified
                 ? 'bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white ring-2 ring-blue-300 animate-pulse'
                 : 'bg-iron-800 text-gray-500 border border-iron-700 cursor-not-allowed opacity-50'
@@ -184,14 +210,22 @@ export const DungeonVictoryModal: React.FC = () => {
           </button>
         </div>
 
-        {/* Bottom Return Action */}
-        <div className="pt-2">
+        {/* Bottom Dual Action Buttons: Next Difficulty Jump vs Return Town */}
+        <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <button
+            onClick={handleNextDifficulty}
+            className="w-full py-3 bg-gradient-to-r from-blood-600 via-amber-600 to-yellow-500 hover:from-blood-500 hover:to-yellow-400 text-iron-950 font-black rounded-lg text-xs md:text-sm transition shadow-xl ring-2 ring-amber-300 transform active:scale-95 flex items-center justify-center gap-2 animate-pulse cursor-pointer"
+          >
+            <Flame className="w-4 h-4 text-iron-950" />
+            <span>🔥 다음 난이도(Lv.{nextDiff})로 즉시 출격</span>
+            <ArrowRight className="w-4 h-4 text-iron-950" />
+          </button>
+
           <button
             onClick={closeVictoryModal}
-            className="w-full py-3 bg-gradient-to-r from-brass-600 via-brass-500 to-amber-500 hover:from-brass-500 hover:to-amber-400 text-iron-950 font-black rounded-lg text-xs md:text-sm transition shadow-xl transform active:scale-95 flex items-center justify-center gap-2"
+            className="w-full py-3 bg-iron-900 hover:bg-iron-800 border-2 border-iron-700 hover:border-iron-500 text-gray-200 hover:text-white font-bold rounded-lg text-xs md:text-sm transition shadow-lg flex items-center justify-center gap-2 cursor-pointer"
           >
-            <span>전리품을 챙겨 마을로 귀환</span>
-            <ArrowRight className="w-4 h-4" />
+            <span>🏘️ 전리품 챙겨 마을로 귀환</span>
           </button>
         </div>
       </div>

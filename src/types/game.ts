@@ -1,6 +1,6 @@
 export type ViewMode = 'town' | 'dungeon_select' | 'dungeon_exploration' | 'battle';
 
-export type ModalType = null | 'character' | 'inventory' | 'skills' | 'storage' | 'blacksmith' | 'settings';
+export type ModalType = null | 'character' | 'inventory' | 'skills' | 'storage' | 'blacksmith' | 'settings' | 'achievement';
 
 export type ItemRarity = 'normal' | 'magic' | 'rare' | 'set' | 'unique' | 'runeword' | 'legendary';
 
@@ -37,14 +37,16 @@ export interface GameItem {
   name: string;
   baseItemName?: string;
   rarity: ItemRarity;
-  tier?: 'normal' | 'exceptional' | 'elite';
-  slot: EquipSlot | 'rune' | 'gem' | 'material' | 'consumable';
+  tier?: 'normal' | 'exceptional' | 'elite' | string;
+  slot: EquipSlot | 'rune' | 'gem' | 'material' | 'consumable' | 'ring';
   stats: ItemStats;
   sockets?: number; // 0 to 4
   socketedRunes?: string[]; // e.g. ['Tir', 'El']
   isRuneWord?: boolean;
   runeWordName?: string;
   isIdentified?: boolean;
+  realUniqueName?: string;
+  setName?: string;
   subAffixes?: { id: string; name: string; value: number; label: string }[];
   specialEffect?: string;
   speedCategory?: 'very_fast' | 'fast' | 'normal' | 'slow' | 'very_slow';
@@ -62,10 +64,13 @@ export interface RuneWordRecipe {
   requiredRunes: string[]; // e.g. ['Tir', 'El']
   allowedSlot: EquipSlot;
   requiredSockets: number;
+  enhancedDamage?: number; // e.g. +50 means +50% base min/max damage
+  enhancedDefense?: number; // e.g. +50 means +50% base defense
   bonusStats: ItemStats;
   specialEffect: string;
   description: string;
 }
+
 
 export interface ConsumableItem {
   id: string;
@@ -207,4 +212,19 @@ export interface CombatLogEntry {
   timestamp: string;
   text: string;
   type: 'damage' | 'kill' | 'chain' | 'system' | 'loot';
+}
+
+export type { Achievement, AchievementStats } from '../data/achievements';
+
+
+export interface RoomLootEvent {
+  type: 'treasure' | 'rune' | 'shrine';
+  title: string;
+  gold?: number;
+  shards?: number;
+  items?: GameItem[];
+  runeName?: string;
+  count?: number;
+  buffName?: string;
+  buffDesc?: string;
 }

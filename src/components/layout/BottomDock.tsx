@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useGame } from '../../state/gameStore';
 import { Shield, Backpack, Zap, Compass, Home } from 'lucide-react';
 
-export const BottomDock: React.FC = () => {
+export const BottomDock: React.FC = React.memo(() => {
   const { activeModal, openModal, closeModal, viewMode, setViewMode, playerStats } = useGame();
 
   useEffect(() => {
@@ -129,4 +129,6 @@ export const BottomDock: React.FC = () => {
       </div>
     </footer>
   );
-};
+});
+BottomDock.displayName = 'BottomDock';
+
