@@ -56,18 +56,11 @@ export const DUNGEONS_DATA: DungeonInfo[] = [
     ],
     rooms: [
       { id: 1, type: 'start', title: '황야 야영지 입구', cleared: true, current: false, connections: [2], revealed: true },
-      { id: 2, type: 'normal', title: '핏빛 황야 1구역', cleared: false, current: false, connections: [3], revealed: false },
-      { id: 3, type: 'normal', title: '핏빛 황야 2구역', cleared: false, current: false, connections: [4, 5], revealed: false },
-      { id: 4, type: 'elite', title: '황야 순찰대장 (강적)', cleared: false, current: false, connections: [6], revealed: false },
-      { id: 5, type: 'normal', title: '황야 우회로 (적 무리)', cleared: false, current: false, connections: [6], revealed: false },
-      { id: 6, type: 'normal', title: '지하묘지 1층 진입로', cleared: false, current: false, connections: [7, 8], revealed: false },
-      { id: 7, type: 'elite', title: '납골당 묘지기 (강적)', cleared: false, current: false, connections: [9], revealed: false },
-      { id: 8, type: 'treasure', title: '고대인의 황금 보물함', cleared: false, current: false, connections: [9], revealed: false, rewardDesc: '황금 보물함 및 희귀 장비' },
-      { id: 9, type: 'normal', title: '지하묘지 2층 회랑', cleared: false, current: false, connections: [10], revealed: false },
-      { id: 10, type: 'normal', title: '고뇌의 성소 전초', cleared: false, current: false, connections: [11, 12], revealed: false },
-      { id: 11, type: 'shrine', title: '핏빛 고대 성소', cleared: false, current: false, connections: [13], revealed: false, rewardDesc: '행운/치명/방어 성소 축복' },
-      { id: 12, type: 'rune', title: '비전의 룬 제단', cleared: false, current: false, connections: [13], revealed: false, rewardDesc: 'El / Eld / Tir 룬 제단' },
-      { id: 13, type: 'boss', title: '안다리엘의 고뇌의 방', cleared: false, current: false, connections: [], revealed: false, rewardDesc: '안다리엘의 환영 (유니크 장갑/목걸이)' }
+      { id: 2, type: 'normal', title: '핏빛 황야 적 무리', cleared: false, current: false, connections: [3], revealed: false },
+      { id: 3, type: 'elite', title: '중간보스: 납골당 집행관', cleared: false, current: false, connections: [4, 5], revealed: false },
+      { id: 4, type: 'treasure', title: '고대인의 황금 보물함', cleared: false, current: false, connections: [6], revealed: false, rewardDesc: '황금 보물함 및 희귀 장비' },
+      { id: 5, type: 'shrine', title: '핏빛 고대 성소', cleared: false, current: false, connections: [6], revealed: false, rewardDesc: '행운/치명/방어 성소 축복' },
+      { id: 6, type: 'boss', title: '우두머리: 안다리엘의 방', cleared: false, current: false, connections: [], revealed: false, rewardDesc: '안다리엘의 환영 (유니크 장갑/목걸이)' }
     ]
   },
   {
@@ -90,18 +83,11 @@ export const DUNGEONS_DATA: DungeonInfo[] = [
     ],
     rooms: [
       { id: 1, type: 'start', title: '루트 골레인 성문', cleared: true, current: false, connections: [2], revealed: true },
-      { id: 2, type: 'normal', title: '사막 외곽 협곡', cleared: false, current: false, connections: [3], revealed: false },
-      { id: 3, type: 'normal', title: '모래 약탈자 전초기지', cleared: false, current: false, connections: [4, 5], revealed: false },
-      { id: 4, type: 'elite', title: '딱정벌레 여왕 (강적)', cleared: false, current: false, connections: [6], revealed: false },
+      { id: 2, type: 'normal', title: '사막 딱정벌레 무리', cleared: false, current: false, connections: [3], revealed: false },
+      { id: 3, type: 'elite', title: '중간보스: 모래 약탈자 군주', cleared: false, current: false, connections: [4, 5], revealed: false },
+      { id: 4, type: 'treasure', title: '파라오의 황금 석관', cleared: false, current: false, connections: [6], revealed: false, rewardDesc: '중급 룬 및 샤크스킨 방어구' },
       { id: 5, type: 'rune', title: '사막의 룬 제단', cleared: false, current: false, connections: [6], revealed: false, rewardDesc: 'Amn / Sol 룬 제단' },
-      { id: 6, type: 'normal', title: '잊혀진 도시 무덤 회랑', cleared: false, current: false, connections: [7, 8], revealed: false },
-      { id: 7, type: 'elite', title: '모래 군주의 석실 (강적)', cleared: false, current: false, connections: [9], revealed: false },
-      { id: 8, type: 'normal', title: '지하 수로 미로', cleared: false, current: false, connections: [9], revealed: false },
-      { id: 9, type: 'normal', title: '탈 라샤 무덤 심층', cleared: false, current: false, connections: [10, 11], revealed: false },
-      { id: 10, type: 'treasure', title: '파라오의 황금 석관', cleared: false, current: false, connections: [12], revealed: false, rewardDesc: '중급 룬 및 샤크스킨 방어구' },
-      { id: 11, type: 'shrine', title: '태양의 사막 성소', cleared: false, current: false, connections: [12], revealed: false, rewardDesc: '행운/방어 축복 성소' },
-      { id: 12, type: 'normal', title: '봉인된 일곱 무덤 입구', cleared: false, current: false, connections: [13], revealed: false },
-      { id: 13, type: 'boss', title: '진정한 탈 라샤의 방', cleared: false, current: false, connections: [], revealed: false, rewardDesc: '두리엘의 유령 (구교복/소켓 무기 드랍)' }
+      { id: 6, type: 'boss', title: '우두머리: 진정한 탈 라샤의 방', cleared: false, current: false, connections: [], revealed: false, rewardDesc: '두리엘의 유령 (구교복/소켓 무기 드랍)' }
     ]
   },
   {
@@ -124,18 +110,11 @@ export const DUNGEONS_DATA: DungeonInfo[] = [
     ],
     rooms: [
       { id: 1, type: 'start', title: '쿠라스트 부두', cleared: true, current: false, connections: [2], revealed: true },
-      { id: 2, type: 'normal', title: '거미 숲 늪지대', cleared: false, current: false, connections: [3], revealed: false },
-      { id: 3, type: 'normal', title: '밀림 심층 늪지', cleared: false, current: false, connections: [4, 5], revealed: false },
-      { id: 4, type: 'elite', title: '자이언트 모스키토 군단 (강적)', cleared: false, current: false, connections: [6], revealed: false },
-      { id: 5, type: 'normal', title: '밀림 지하 동굴 (적 무리)', cleared: false, current: false, connections: [6], revealed: false },
-      { id: 6, type: 'normal', title: '쿠라스트 바자 회랑', cleared: false, current: false, connections: [7, 8], revealed: false },
-      { id: 7, type: 'elite', title: '트라빈칼 평의회 석실 (강적)', cleared: false, current: false, connections: [9], revealed: false, rewardDesc: '하이 카운실 (고급 룬/유니크 악세)' },
-      { id: 8, type: 'treasure', title: '핏빛 보물창고', cleared: false, current: false, connections: [9], revealed: false, rewardDesc: '엘리트 소켓 장비 및 보석' },
-      { id: 9, type: 'normal', title: '증오의 억류지 1층', cleared: false, current: false, connections: [10], revealed: false },
-      { id: 10, type: 'normal', title: '증오의 억류지 2층', cleared: false, current: false, connections: [11, 12], revealed: false },
-      { id: 11, type: 'rune', title: '증오의 룬 제단', cleared: false, current: false, connections: [13], revealed: false, rewardDesc: 'Shael / Um / Mal 룬 제단' },
-      { id: 12, type: 'shrine', title: '증오의 피빛 성소', cleared: false, current: false, connections: [13], revealed: false, rewardDesc: '행운/치명 축복 성소' },
-      { id: 13, type: 'boss', title: '증오의 억류지 3층', cleared: false, current: false, connections: [], revealed: false, rewardDesc: '메피스토의 환영 (샤코/조던링/워트래블러)' }
+      { id: 2, type: 'normal', title: '거미 숲 모스키토 군단', cleared: false, current: false, connections: [3], revealed: false },
+      { id: 3, type: 'elite', title: '중간보스: 트라빈칼 평의회장', cleared: false, current: false, connections: [4, 5], revealed: false, rewardDesc: '하이 카운실 (고급 룬/유니크 악세)' },
+      { id: 4, type: 'treasure', title: '핏빛 보물창고', cleared: false, current: false, connections: [6], revealed: false, rewardDesc: '엘리트 소켓 장비 및 보석' },
+      { id: 5, type: 'shrine', title: '증오의 피빛 성소', cleared: false, current: false, connections: [6], revealed: false, rewardDesc: '행운/치명 축복 성소' },
+      { id: 6, type: 'boss', title: '우두머리: 증오의 억류지 3층', cleared: false, current: false, connections: [], revealed: false, rewardDesc: '메피스토의 환영 (샤코/조던링/워트래블러)' }
     ]
   },
   {
@@ -159,18 +138,11 @@ export const DUNGEONS_DATA: DungeonInfo[] = [
     ],
     rooms: [
       { id: 1, type: 'start', title: '판데모니움 요새', cleared: true, current: false, connections: [2], revealed: true },
-      { id: 2, type: 'normal', title: '절망의 평원 1구역', cleared: false, current: false, connections: [3], revealed: false },
-      { id: 3, type: 'normal', title: '절망의 평원 2구역', cleared: false, current: false, connections: [4, 5], revealed: false },
-      { id: 4, type: 'elite', title: '죽음의 기사단 (강적)', cleared: false, current: false, connections: [6], revealed: false },
-      { id: 5, type: 'normal', title: '지옥불 용암 지대 (적 무리)', cleared: false, current: false, connections: [6], revealed: false },
-      { id: 6, type: 'normal', title: '불길의 강 전초', cleared: false, current: false, connections: [7, 8], revealed: false },
-      { id: 7, type: 'elite', title: '불길의 강 대장간 (헤파스토)', cleared: false, current: false, connections: [9], revealed: false, rewardDesc: '대장장이 헤파스토 (Ist / Gul 룬 드랍)' },
-      { id: 8, type: 'rune', title: '지옥불 룬 제단', cleared: false, current: false, connections: [9], revealed: false, rewardDesc: 'Vex / Ohm / Lo 최고급 룬 제단' },
-      { id: 9, type: 'normal', title: '혼돈의 성역 5대 봉인 회랑', cleared: false, current: false, connections: [10], revealed: false },
-      { id: 10, type: 'normal', title: '봉인 수호자 집결지', cleared: false, current: false, connections: [11, 12], revealed: false },
-      { id: 11, type: 'shrine', title: '혼돈의 지옥 성소', cleared: false, current: false, connections: [13], revealed: false, rewardDesc: '지옥의 축복 버프' },
-      { id: 12, type: 'treasure', title: '지옥 군주의 비밀 금고', cleared: false, current: false, connections: [13], revealed: false, rewardDesc: '혼돈의 고대 장비 상자' },
-      { id: 13, type: 'boss', title: '오각성 중앙 제단', cleared: false, current: false, connections: [], revealed: false, rewardDesc: '공포의 군주 디아블로 (마라/할배검/윈드포스)' }
+      { id: 2, type: 'normal', title: '절망의 평원 베놈 로드', cleared: false, current: false, connections: [3], revealed: false },
+      { id: 3, type: 'elite', title: '중간보스: 대장장이 헤파스토', cleared: false, current: false, connections: [4, 5], revealed: false, rewardDesc: '대장장이 헤파스토 (Ist / Gul 룬 드랍)' },
+      { id: 4, type: 'rune', title: '지옥불 룬 제단', cleared: false, current: false, connections: [6], revealed: false, rewardDesc: 'Vex / Ohm / Lo 최고급 룬 제단' },
+      { id: 5, type: 'shrine', title: '혼돈의 지옥 성소', cleared: false, current: false, connections: [6], revealed: false, rewardDesc: '지옥의 축복 버프' },
+      { id: 6, type: 'boss', title: '우두머리: 오각성 중앙 제단', cleared: false, current: false, connections: [], revealed: false, rewardDesc: '공포의 군주 디아블로 (마라/할배검/윈드포스)' }
     ]
   },
   {
@@ -194,18 +166,11 @@ export const DUNGEONS_DATA: DungeonInfo[] = [
     ],
     rooms: [
       { id: 1, type: 'start', title: '하로가스 성채', cleared: true, current: false, connections: [2], revealed: true },
-      { id: 2, type: 'normal', title: '피의 언덕 전초기지', cleared: false, current: false, connections: [3], revealed: false },
-      { id: 3, type: 'normal', title: '얼어붙은 고원', cleared: false, current: false, connections: [4, 5], revealed: false },
-      { id: 4, type: 'elite', title: '블러드 로드 군단 (강적)', cleared: false, current: false, connections: [6], revealed: false },
-      { id: 5, type: 'treasure', title: '아리앗 고대인의 금고', cleared: false, current: false, connections: [6], revealed: false, rewardDesc: '엘리트 유니크 풀세트 드랍' },
-      { id: 6, type: 'normal', title: '아리앗 산 정상 통로', cleared: false, current: false, connections: [7, 8], revealed: false },
-      { id: 7, type: 'elite', title: '세계석 성채 선봉대 (강적)', cleared: false, current: false, connections: [9], revealed: false, rewardDesc: '바알의 선봉대 (Ber / Jah / Cham 룬 드랍)' },
-      { id: 8, type: 'normal', title: '성채 지하 2층 미로', cleared: false, current: false, connections: [9], revealed: false },
-      { id: 9, type: 'normal', title: '옥좌의 전당 진입로', cleared: false, current: false, connections: [10], revealed: false },
-      { id: 10, type: 'normal', title: '파멸의 미니언 집결지', cleared: false, current: false, connections: [11, 12], revealed: false },
-      { id: 11, type: 'rune', title: '파괴의 룬 제단', cleared: false, current: false, connections: [13], revealed: false, rewardDesc: 'Jah / Cham / Zod 궁극의 룬 제단' },
-      { id: 12, type: 'shrine', title: '세계석 성소', cleared: false, current: false, connections: [13], revealed: false, rewardDesc: '궁극의 축복' },
-      { id: 13, type: 'boss', title: '파멸의 옥좌 심연', cleared: false, current: false, connections: [], revealed: false, rewardDesc: '파멸의 군주 바알 (종결 신기 및 고대 룬 대량 드랍)' }
+      { id: 2, type: 'normal', title: '피의 언덕 블러드 로드', cleared: false, current: false, connections: [3], revealed: false },
+      { id: 3, type: 'elite', title: '중간보스: 오블리비언 나이트', cleared: false, current: false, connections: [4, 5], revealed: false, rewardDesc: '바알의 선봉대 (Ber / Jah / Cham 룬 드랍)' },
+      { id: 4, type: 'treasure', title: '아리앗 고대인의 금고', cleared: false, current: false, connections: [6], revealed: false, rewardDesc: '엘리트 유니크 풀세트 드랍' },
+      { id: 5, type: 'rune', title: '파괴의 룬 제단', cleared: false, current: false, connections: [6], revealed: false, rewardDesc: 'Jah / Cham / Zod 궁극의 룬 제단' },
+      { id: 6, type: 'boss', title: '우두머리: 파멸의 옥좌 심연', cleared: false, current: false, connections: [], revealed: false, rewardDesc: '파멸의 군주 바알 (종결 신기 및 고대 룬 대량 드랍)' }
     ]
   }
 ];

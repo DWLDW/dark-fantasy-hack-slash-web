@@ -199,7 +199,10 @@ interface GameContextType {
   roomEventClaimed: boolean;
   claimTreasure: () => { gold: number; items: GameItem[]; shards: number } | null;
   claimRuneAltar: () => { runeName: string; count: number } | null;
-  claimShrine: (buffType: 'fortune' | 'crit' | 'defense') => void;
+  selectedShrineType: 'fortune' | 'crit' | 'defense';
+  setSelectedShrineType: (type: 'fortune' | 'crit' | 'defense') => void;
+  cycleShrineSelection: (dir: number) => void;
+  claimShrine: (buffType?: 'fortune' | 'crit' | 'defense') => void;
 
   // Interactive Onboarding Tutorial
   hasSeenTutorial: boolean;
@@ -1138,6 +1141,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } else {
       setSelectedSkill(skill);
+      if (monsters.length > 0) {
+        const best = findBestLaneForSkill(playerStats.level, totalStats, skill, monsters);
+        setPlayerLane(best);
+      }
     }
   }, [selectedSkill, executeAttack, playerStats.level, monsters, addLog]);
 
@@ -1593,7 +1600,19 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { runeName, count };
   };
 
-  const claimShrine = (buffType: "fortune" | "crit" | "defense") => {
+  const SHRINE_TYPES: ('fortune' | 'crit' | 'defense')[] = ['fortune', 'crit', 'defense'];
+  const [selectedShrineType, setSelectedShrineType] = useState<'fortune' | 'crit' | 'defense'>('fortune');
+
+  const cycleShrineSelection = useCallback((dir: number) => {
+    setSelectedShrineType(prev => {
+      const idx = SHRINE_TYPES.indexOf(prev);
+      const nextIdx = (idx + dir + SHRINE_TYPES.length) % SHRINE_TYPES.length;
+      return SHRINE_TYPES[nextIdx];
+    });
+  }, []);
+
+  const claimShrine = (buffTypeParam?: "fortune" | "crit" | "defense") => {
+    const buffType = buffTypeParam || selectedShrineType;
     if (roomEventClaimed) return;
     setRoomEventClaimed(true);
 
@@ -1756,6 +1775,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     roomEventClaimed,
     claimTreasure,
     claimRuneAltar,
+    selectedShrineType,
+    setSelectedShrineType,
+    cycleShrineSelection,
     claimShrine,
     achievementStats,
     claimedAchievements,

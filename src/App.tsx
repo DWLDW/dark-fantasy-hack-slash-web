@@ -44,7 +44,10 @@ const MainLayout: React.FC = () => {
     claimTreasure,
     claimRuneAltar,
     claimShrine,
-    getSkillForSlot
+    getSkillForSlot,
+    selectedShrineType,
+    cycleShrineSelection,
+    playerStats
   } = useGame();
 
   const keysRef = useRef({
@@ -69,7 +72,10 @@ const MainLayout: React.FC = () => {
     claimTreasure,
     claimRuneAltar,
     claimShrine,
-    getSkillForSlot
+    getSkillForSlot,
+    selectedShrineType,
+    cycleShrineSelection,
+    playerStats
   });
   keysRef.current = {
     viewMode,
@@ -93,7 +99,10 @@ const MainLayout: React.FC = () => {
     claimTreasure,
     claimRuneAltar,
     claimShrine,
-    getSkillForSlot
+    getSkillForSlot,
+    selectedShrineType,
+    cycleShrineSelection,
+    playerStats
   };
 
   useEffect(() => {
@@ -144,12 +153,31 @@ const MainLayout: React.FC = () => {
     };
   }, []);
 
+  const prevHpRef = useRef(playerStats.hp);
+  const dangerLockUntilRef = useRef<number>(0);
+
+  useEffect(() => {
+    const isLow = playerStats.hp > 0 && (playerStats.hp / Math.max(1, playerStats.maxHp)) <= 0.25;
+    const wasLow = prevHpRef.current > 0 && (prevHpRef.current / Math.max(1, playerStats.maxHp)) <= 0.25;
+    if (isLow && !wasLow) {
+      dangerLockUntilRef.current = Date.now() + 1000;
+    }
+    prevHpRef.current = playerStats.hp;
+  }, [playerStats.hp, playerStats.maxHp]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       const g = keysRef.current;
 
       if (g.activeModal) return;
+
+      if (Date.now() < dangerLockUntilRef.current) {
+        if (!['1', '2', '3', '4'].includes(e.key)) {
+          e.preventDefault();
+          return;
+        }
+      }
 
       if (e.code === 'Space' || e.code === 'Enter') {
         e.preventDefault();
@@ -166,7 +194,7 @@ const MainLayout: React.FC = () => {
             if (isEventRoom && !g.roomEventClaimed) {
               if (currentRoom.type === 'treasure') g.claimTreasure();
               else if (currentRoom.type === 'rune') g.claimRuneAltar();
-              else if (currentRoom.type === 'shrine') g.claimShrine('fortune');
+              else if (currentRoom.type === 'shrine') g.claimShrine(g.selectedShrineType);
               return;
             }
 
@@ -189,6 +217,10 @@ const MainLayout: React.FC = () => {
         if (g.viewMode !== 'battle') return;
         const currentRoom = g.currentDungeon.rooms.find(r => r.id === g.currentRoomId);
         const isEventRoom = currentRoom && (currentRoom.type === 'treasure' || currentRoom.type === 'rune' || currentRoom.type === 'shrine');
+        if (isEventRoom && !g.roomEventClaimed && currentRoom?.type === 'shrine') {
+          g.cycleShrineSelection(e.key === 'ArrowLeft' ? -1 : 1);
+          return;
+        }
         const canPickExit = g.monsters.length === 0 && (!isEventRoom || g.roomEventClaimed) && (currentRoom?.connections?.length || 0) > 1;
         if (canPickExit) {
           g.cyclePendingExit(e.key === 'ArrowLeft' ? -1 : 1);
