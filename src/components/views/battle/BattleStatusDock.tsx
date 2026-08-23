@@ -185,8 +185,8 @@ export const BattleStatusDock: React.FC<BattleStatusDockProps> = React.memo(({
                   title={`${item.name} (${item.description}) [${item.hotkey}]`}
                 >
                   <div className="flex items-center justify-between w-full text-[9px] font-black">
-                    <span className="text-amber-400">[${item.hotkey}]</span>
-                    <span className={`${item.count > 0 ? 'text-amber-300' : 'text-gray-600'}`}>x${item.count}</span>
+                    <span className="text-amber-400">[{item.hotkey}]</span>
+                    <span className={`${item.count > 0 ? 'text-amber-300' : 'text-gray-600'}`}>x{item.count}</span>
                   </div>
                   <div className="text-[10px] sm:text-xs font-bold text-gray-200 truncate mt-0.5 flex items-center gap-0.5">
                     <span>{icon}</span>
