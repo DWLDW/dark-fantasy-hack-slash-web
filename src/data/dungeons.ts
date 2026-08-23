@@ -25,12 +25,21 @@ export const SHRINE_BUFFS_POOL: Record<string, Omit<DungeonBuff, 'id'>> = {
   }
 };
 
+export const ACT_ORDER = ['act1_crypt', 'act2_tomb', 'act3_jungle', 'act4_chaos', 'act5_worldstone'] as const;
+
+export function isActUnlocked(dungeonId: string, dungeonClears: Record<string, number> = {}): boolean {
+  const idx = ACT_ORDER.indexOf(dungeonId as typeof ACT_ORDER[number]);
+  if (idx <= 0) return true;
+  const prev = ACT_ORDER[idx - 1];
+  return (dungeonClears[prev] || 0) >= 1;
+}
+
 export const DUNGEONS_DATA: DungeonInfo[] = [
   {
     id: 'act1_crypt',
     name: '1막: 핏빛 황야와 지하묘지 (Crypt & Blood Moor)',
     theme: '피로 물든 황야와 고대 언데드 납골당',
-    recommendedLevel: 5,
+    recommendedLevel: 1,
     difficulty: '쉬움',
     elementalInfo: '물리 취약, 관통 공격에 극도로 취약',
     monsterSummary: '고블린 척탄병, 해골 궁수, 썩은 좀비 떼, 안다리엘의 환영',
@@ -46,12 +55,11 @@ export const DUNGEONS_DATA: DungeonInfo[] = [
       GAME_ITEMS_POOL.find(i => i.id === 'e_bloodfist') || GAME_ITEMS_POOL[6]
     ],
     rooms: [
-      { id: 1, type: 'start', title: '황야의 야영지', cleared: true, current: false, connections: [2] },
-      { id: 2, type: 'normal', title: '핏빛 동굴 통로', cleared: true, current: false, connections: [3, 4], monsterCount: 30 },
-      { id: 3, type: 'treasure', title: '숨겨진 룬 궤짝', cleared: false, current: false, connections: [5], rewardDesc: '기본 룬(El~Ort) 및 골드' },
-      { id: 4, type: 'elite', title: '묘지기 오크의 석실', cleared: false, current: true, connections: [5], monsterCount: 30, rewardDesc: '오크 집행관 (나겔링/소켓 드랍)' },
-      { id: 5, type: 'rune', title: '고대 제단', cleared: false, current: false, connections: [6], rewardDesc: 'Tal / Ral 룬 제단' },
-      { id: 6, type: 'boss', title: '지하묘지 4층 심연', cleared: false, current: false, connections: [], monsterCount: 30, rewardDesc: '안다리엘의 환영 (전설/유니크 대량 드랍)' }
+      { id: 1, type: 'start', title: '입구', cleared: true, current: false, connections: [2], revealed: true },
+      { id: 2, type: 'normal', title: '적 무리', cleared: false, current: false, connections: [3, 4], revealed: false },
+      { id: 3, type: 'elite', title: '강적', cleared: false, current: false, connections: [5], revealed: false },
+      { id: 4, type: 'treasure', title: '보물', cleared: false, current: false, connections: [5], revealed: false },
+      { id: 5, type: 'boss', title: '우두머리', cleared: false, current: false, connections: [], revealed: false }
     ]
   },
   {

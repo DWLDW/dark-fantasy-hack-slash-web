@@ -68,7 +68,8 @@ export const WARRIOR_SKILLS: Skill[] = [
     description: '기본 베기 공격. 자원 소모가 없으며 타격당 분노 +12를 생성하여 처형/휠윈드 스킬을 빌드업합니다.',
     icon: 'Sword',
     hotkey: 'Q',
-    activeRuneId: 'rune_fire'
+    activeRuneId: 'rune_fire',
+    unlockLevel: 1
   },
   {
     id: 'execute',
@@ -84,7 +85,8 @@ export const WARRIOR_SKILLS: Skill[] = [
     description: '전방 단일 적에게 4.2배수의 치명적 처형 일격을 가하며 체력 50%를 흡혈합니다. 전열 몬스터 격살 시 막대한 오버킬 에너지가 후열 전체를 관통 소탕합니다!',
     icon: 'Skull',
     hotkey: 'W',
-    activeRuneId: 'rune_poison'
+    activeRuneId: 'rune_poison',
+    unlockLevel: 8
   },
   {
     id: 'cleave',
@@ -100,7 +102,8 @@ export const WARRIOR_SKILLS: Skill[] = [
     description: '전방 및 좌우 3개 Lane의 전열을 강타. 명중한 적 1마리당 분노 +15를 생성하여 자원을 급속 충전합니다!',
     icon: 'Zap',
     hotkey: 'E',
-    activeRuneId: 'rune_lightning'
+    activeRuneId: 'rune_lightning',
+    unlockLevel: 16
   },
   {
     id: 'whirlwind',
@@ -116,6 +119,16 @@ export const WARRIOR_SKILLS: Skill[] = [
     description: '전 레인 2열(10칸)을 휩쓰는 광역 폭풍. 타격 시 자체 분노를 생성하지 않아 자원을 소모하므로, 통찰(Insight) 룬워드를 착용하거나 가르기/휩쓸기와 연계해야 난사할 수 있습니다.',
     icon: 'RotateCw',
     hotkey: 'R',
-    activeRuneId: 'rune_frost'
+    activeRuneId: 'rune_frost',
+    unlockLevel: 28
   }
 ];
+
+export function getSkillUnlockLevel(skillId: string): number {
+  const skill = WARRIOR_SKILLS.find(s => s.id === skillId);
+  return skill?.unlockLevel ?? 1;
+}
+
+export function isSkillUnlocked(skillId: string, playerLevel: number): boolean {
+  return playerLevel >= getSkillUnlockLevel(skillId);
+}

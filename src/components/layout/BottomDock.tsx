@@ -3,7 +3,17 @@ import { useGame } from '../../state/gameStore';
 import { Shield, Backpack, Zap, Compass, Home } from 'lucide-react';
 
 export const BottomDock: React.FC = React.memo(() => {
-  const { activeModal, openModal, closeModal, viewMode, setViewMode, playerStats } = useGame();
+  const { activeModal, openModal, closeModal, viewMode, setViewMode, playerStats, abandonDungeon } = useGame();
+
+  const leaveBattle = (dest: 'town' | 'dungeon_select') => {
+    if (viewMode === 'battle') {
+      if (!window.confirm('원정을 포기하면 이번 런 전리품을 잃습니다. 계속할까요?')) return;
+      abandonDungeon();
+      if (dest === 'dungeon_select') setViewMode('dungeon_select');
+      return;
+    }
+    setViewMode(dest);
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -32,7 +42,7 @@ export const BottomDock: React.FC = React.memo(() => {
         {/* Navigation Links */}
         <div className="flex items-center space-x-1.5 md:space-x-2.5">
           <button
-            onClick={() => setViewMode('town')}
+            onClick={() => leaveBattle('town')}
             className={`flex flex-col md:flex-row items-center gap-1.5 px-3 py-1.5 rounded transition text-xs font-bold ${
               viewMode === 'town'
                 ? 'bg-brass-500/25 text-brass-200 border border-brass-400 shadow'
@@ -44,7 +54,7 @@ export const BottomDock: React.FC = React.memo(() => {
           </button>
 
           <button
-            onClick={() => setViewMode('dungeon_select')}
+            onClick={() => leaveBattle('dungeon_select')}
             className={`flex flex-col md:flex-row items-center gap-1.5 px-3 py-1.5 rounded transition text-xs font-bold ${
               viewMode === 'dungeon_select' || viewMode === 'battle'
                 ? 'bg-blood-950/60 text-blood-200 border border-blood-500 shadow'

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useGame } from '../../state/gameStore';
 import { useHoldAction } from '../../utils/useHoldAction';
-import { WARRIOR_SKILLS, SKILL_RUNES_DATA } from '../../data/gameData';
+import { WARRIOR_SKILLS, SKILL_RUNES_DATA, isSkillUnlocked } from '../../data/gameData';
 import { Skill, SkillRune } from '../../types/game';
 import {
   X,
@@ -82,7 +82,7 @@ export const SkillRuneModal: React.FC = React.memo(() => {
     closeModal
   } = useGame();
 
-  const [selectedSkillId, setSelectedSkillId] = useState<string>('whirlwind');
+  const [selectedSkillId, setSelectedSkillId] = useState<string>('slash');
 
   const selectedSkill = WARRIOR_SKILLS.find(s => s.id === selectedSkillId) || WARRIOR_SKILLS[0];
   const activeRuneId = skillRunes[selectedSkill.id] || selectedSkill.activeRuneId;
@@ -134,6 +134,7 @@ export const SkillRuneModal: React.FC = React.memo(() => {
           {WARRIOR_SKILLS.map(skill => {
             const isSelected = skill.id === selectedSkillId;
             const sLevel = skillLevels[skill.id] || 1;
+            const unlocked = isSkillUnlocked(skill.id, playerStats.level);
             const runeId = skillRunes[skill.id] || skill.activeRuneId;
             const currentRune = SKILL_RUNES_DATA.find(r => r.id === runeId);
 
@@ -142,7 +143,9 @@ export const SkillRuneModal: React.FC = React.memo(() => {
                 key={skill.id}
                 onClick={() => setSelectedSkillId(skill.id)}
                 className={`p-3 rounded-lg border transition cursor-pointer relative ${
-                  isSelected
+                  !unlocked
+                    ? 'bg-iron-950/80 border-iron-800 opacity-60'
+                    : isSelected
                     ? 'bg-iron-900 border-brass-500 ring-1 ring-brass-400/50 shadow-lg'
                     : 'bg-iron-950/80 border-iron-800 hover:border-iron-600 hover:bg-iron-900/50'
                 }`}
@@ -156,16 +159,20 @@ export const SkillRuneModal: React.FC = React.memo(() => {
                       {skill.name}
                     </span>
                     <span className="text-xs font-mono font-black px-1.5 py-0.2 rounded bg-iron-900 text-amber-300 border border-iron-750">
-                      Lv.{sLevel}
+                      {unlocked ? `Lv.${sLevel}` : `Lv.${skill.unlockLevel} 해금`}
                     </span>
                   </div>
 
+                  {unlocked ? (
                   <SkillUpgradeButtons
                     skillId={skill.id}
                     sLevel={sLevel}
                     availablePoints={playerStats.skillPoints}
                     onUpgrade={upgradeSkill}
                   />
+                  ) : (
+                    <span className="text-[10px] text-gray-500 font-mono font-bold">잠김</span>
+                  )}
                 </div>
 
                 <div className="text-xs text-gray-300 line-clamp-2 leading-relaxed mb-2 font-medium">

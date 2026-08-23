@@ -46,6 +46,7 @@ export const InventoryModal: React.FC = () => {
     equipItem,
     unequipItem,
     viewMode,
+    monsters,
     closeModal,
     identifyItem,
     sellItem,
@@ -61,7 +62,7 @@ export const InventoryModal: React.FC = () => {
   const [detailSubTab, setDetailSubTab] = useState<'compare' | 'craft'>('compare');
   const [ringTargetSlot, setRingTargetSlot] = useState<'ring1' | 'ring2'>('ring1');
 
-  const isCombatMode = viewMode === 'battle';
+  const isCombatMode = viewMode === 'battle' && monsters.length > 0;
 
   const isRingItem = (item: GameItem | null) => {
     if (!item) return false;

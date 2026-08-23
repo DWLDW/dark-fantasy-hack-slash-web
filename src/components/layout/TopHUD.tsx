@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useGame } from '../../state/gameStore';
-import { Shield, Flame, Coins, Sparkles, MapPin, Home, RotateCcw, AlertTriangle, Settings, Trophy } from 'lucide-react';
+import { Shield, Flame, Coins, Sparkles, MapPin, Home, Settings, Trophy } from 'lucide-react';
 
 export const TopHUD: React.FC = React.memo(() => {
-  const { playerStats, viewMode, currentDungeon, setViewMode, resetGameSave, isLevelUpAnimated, openModal } = useGame();
-  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const { playerStats, viewMode, currentDungeon, setViewMode, isLevelUpAnimated, openModal, abandonDungeon } = useGame();
 
   const hpPercent = Math.max(0, Math.min(100, (playerStats.hp / playerStats.maxHp) * 100));
   const ragePercent = Math.max(0, Math.min(100, (playerStats.rage / playerStats.maxRage) * 100));
@@ -58,16 +57,6 @@ export const TopHUD: React.FC = React.memo(() => {
             >
               <Settings className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-brass-400" />
               <span className="hidden sm:inline">설정</span>
-            </button>
-
-            {/* Reset Button */}
-            <button
-              onClick={() => setShowResetConfirm(true)}
-              className="p-1 sm:p-1.5 bg-blood-950/80 hover:bg-blood-900 border border-blood-700/80 text-blood-300 hover:text-white rounded shadow transition flex items-center gap-1 text-[9px] sm:text-[10px] font-mono font-bold"
-              title="캐릭터 세이브 초기화 (Lv 1 리셋)"
-            >
-              <RotateCcw className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-              <span className="hidden sm:inline">초기화</span>
             </button>
 
             <div className="flex flex-col">
@@ -152,7 +141,14 @@ export const TopHUD: React.FC = React.memo(() => {
             {/* Mode Switcher Shortcut */}
             {viewMode !== 'town' && (
               <button
-                onClick={() => setViewMode('town')}
+                onClick={() => {
+                  if (viewMode === 'battle') {
+                    if (!window.confirm('원정을 포기하면 이번 런 전리품을 잃습니다. 계속할까요?')) return;
+                    abandonDungeon();
+                    return;
+                  }
+                  setViewMode('town');
+                }}
                 className="px-2.5 py-1 bg-iron-850 hover:bg-iron-750 border border-brass-600/60 rounded text-brass-200 text-xs flex items-center gap-1 transition shadow font-bold"
                 title="마을로 즉시 이동"
               >
@@ -163,38 +159,6 @@ export const TopHUD: React.FC = React.memo(() => {
           </div>
         </div>
       </header>
-
-      {/* Global Reset Modal Confirmation */}
-      {showResetConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-          <div className="bg-iron-950 border-2 border-blood-500 rounded-lg p-5 max-w-md w-full shadow-2xl space-y-4 animate-scale-in select-none">
-            <div className="flex items-center gap-2.5 text-blood-300 border-b border-blood-800 pb-2.5">
-              <AlertTriangle className="w-6 h-6 text-yellow-400 flex-shrink-0" />
-              <h3 className="font-cinzel font-black text-base text-white">캐릭터 데이터 완전 초기화</h3>
-            </div>
-
-            <p className="text-xs text-gray-300 leading-relaxed font-sans">
-              정말로 캐릭터를 초기화하시겠습니까?<br />
-              <span className="text-amber-300 font-bold">레벨 1, 기본 장비, 기본 룬, 초기 스탯</span>으로 완전히 리셋되며 되돌릴 수 없습니다.
-            </p>
-
-            <div className="flex justify-end items-center gap-2 pt-2 border-t border-iron-800">
-              <button
-                onClick={() => { resetGameSave(); setShowResetConfirm(false); }}
-                className="px-4 py-2 bg-gradient-to-r from-blood-700 to-blood-600 hover:from-blood-600 hover:to-blood-500 text-white font-black text-xs rounded-lg shadow transition"
-              >
-                초기화 확인 (Lv 1 시작)
-              </button>
-              <button
-                onClick={() => setShowResetConfirm(false)}
-                className="px-3 py-2 bg-iron-800 hover:bg-iron-700 text-gray-300 font-bold text-xs rounded-lg transition"
-              >
-                취소
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 });

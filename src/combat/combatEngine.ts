@@ -72,8 +72,8 @@ export function resolveAttack(
     isExtraStrike = Math.random() * 100 < flurryChance;
     baseDamage = Math.floor(Math.random() * (totalStats.maxDmg - totalStats.minDmg + 1)) + totalStats.minDmg;
   } else {
-    isCritical = effectiveCritRate >= 50;
-    isExtraStrike = flurryChance >= 50;
+    isCritical = false;
+    isExtraStrike = false;
   }
 
   let runeDmgBonus = 1.0;
@@ -553,33 +553,36 @@ export function createDungeonFormation(dungeonId: string, roomType: string, play
     addMonster(lane, depth, name, hp, def, dmg, rank, icon);
   };
 
+  if (roomType === 'treasure' || roomType === 'start') {
+    return monsters;
+  }
+
   if (dungeonId === 'act1_crypt') {
+    const firstRun = difficultyLevel <= 1 && playerLevel <= 3;
     if (roomType === 'boss') {
-      addMonster(2, 0, '고블린 정예 방패병', 80, 15, 5, 'champion', 'GUARD');
-      addMonster(2, 1, '고블린 주술 대장', 70, 5, 8, 'champion', 'GUARD');
-      addMonster(2, 2, '고블린 킹', 450, 25, 12, 'boss', 'BOSS');
-      laneDepthCounts[2] = 3;
-      for (let i = 0; i < 8; i++) spawnToRandomLane('호위 고블린', 50, 3, 4, 'normal', 'GUARD');
-    } else if (roomType === 'treasure') {
-      for (let i = 0; i < 12; i++) spawnToRandomLane('황금 탐욕 고블린', 35, 2, 3, 'normal', 'NORMAL');
-      for (let i = 0; i < 4; i++) spawnToRandomLane('보물 궤짝 파수꾼', 75, 10, 5, 'champion', 'GUARD');
-    } else if (roomType === 'rune') {
-      for (let i = 0; i < 10; i++) spawnToRandomLane('룬 주술사', 45, 0, 5, 'normal', 'NORMAL');
-      for (let i = 0; i < 4; i++) spawnToRandomLane('고대 룬 골렘', 120, 15, 6, 'champion', 'GUARD');
-    } else if (roomType === 'shrine') {
-      for (let i = 0; i < 12; i++) spawnToRandomLane('타락한 묘지기', 40, 4, 3, 'normal', 'NORMAL');
-      for (let i = 0; i < 3; i++) spawnToRandomLane('광신도 사제', 60, 2, 6, 'champion', 'NORMAL');
-    } else {
-      const count = roomType === 'start' ? 8 : Math.floor(Math.random() * 9) + 14;
-      for (let i = 0; i < count; i++) {
-        const rand = Math.random();
-        if (rand < 0.70) spawnToRandomLane('고블린 정찰병', 30 + Math.random() * 20, Math.floor(Math.random() * 4), 2 + Math.floor(Math.random() * 3));
-        else if (rand < 0.90) spawnToRandomLane('고블린 궁수', 40, 1, 4);
-        else spawnToRandomLane('고블린 주술사', 50, 0, 3);
+      if (firstRun) {
+        addMonster(2, 0, '고블린 족장', 130, 8, 4, 'boss', 'BOSS');
+        spawnToRandomLane('호위 고블린', 20, 1, 2);
+        spawnToRandomLane('호위 고블린', 20, 1, 2);
+      } else {
+        addMonster(2, 0, '고블린 정예 방패병', 80, 15, 5, 'champion', 'GUARD');
+        addMonster(2, 1, '고블린 주술 대장', 70, 5, 8, 'champion', 'GUARD');
+        addMonster(2, 2, '고블린 킹', 450, 25, 12, 'boss', 'BOSS');
+        laneDepthCounts[2] = 3;
+        for (let i = 0; i < 8; i++) spawnToRandomLane('호위 고블린', 50, 3, 4, 'normal', 'GUARD');
       }
-      if (roomType === 'elite') {
-        const eliteCount = Math.floor(Math.random() * 2) + 2;
-        for (let i = 0; i < eliteCount; i++) spawnToRandomLane('오크 집행관', 160, 15, 7, 'elite', 'ELITE');
+    } else if (roomType === 'elite') {
+      addMonster(2, 0, '오크 집행관', firstRun ? 75 : 180, firstRun ? 6 : 15, firstRun ? 4 : 7, 'elite', 'ELITE');
+    } else {
+      const count = firstRun ? 10 : Math.floor(Math.random() * 9) + 14;
+      for (let i = 0; i < count; i++) {
+        if (firstRun) spawnToRandomLane('고블린 정찰병', 22, 1, 2);
+        else {
+          const rand = Math.random();
+          if (rand < 0.70) spawnToRandomLane('고블린 정찰병', 30 + Math.random() * 20, Math.floor(Math.random() * 4), 2 + Math.floor(Math.random() * 3));
+          else if (rand < 0.90) spawnToRandomLane('고블린 궁수', 40, 1, 4);
+          else spawnToRandomLane('고블린 주술사', 50, 0, 3);
+        }
       }
     }
   } else if (dungeonId === 'act2_tomb') {
@@ -589,6 +592,8 @@ export function createDungeonFormation(dungeonId: string, roomType: string, play
       addMonster(2, 2, '본 킹 (두리엘)', 900, 35, 18, 'boss', 'BOSS');
       laneDepthCounts[2] = 3;
       for (let i = 0; i < 8; i++) spawnToRandomLane('해골 소환 가드', 90, 15, 6, 'normal', 'GUARD');
+    } else if (roomType === 'elite') {
+      addMonster(2, 0, '데스나이트', 280, 25, 10, 'elite', 'ELITE');
     } else if (roomType === 'treasure') {
       for (let i = 0; i < 12; i++) spawnToRandomLane('미이라 도굴꾼', 60, 8, 5, 'normal', 'NORMAL');
       for (let i = 0; i < 4; i++) spawnToRandomLane('고대 무덤 수호병', 140, 22, 8, 'champion', 'GUARD');
@@ -607,9 +612,6 @@ export function createDungeonFormation(dungeonId: string, roomType: string, play
         else if (rand < 0.95) spawnToRandomLane('스켈레톤 마법사', 60, 5, 8);
         else spawnToRandomLane('스켈레톤 방패병', 90, 30, 4, 'champion', 'GUARD');
       }
-      if (roomType === 'elite') {
-        for (let i = 0; i < 2; i++) spawnToRandomLane('데스나이트', 250, 25, 10, 'elite', 'ELITE');
-      }
     }
   } else if (dungeonId === 'act3_jungle') {
     if (roomType === 'boss') {
@@ -618,6 +620,8 @@ export function createDungeonFormation(dungeonId: string, roomType: string, play
       addMonster(2, 2, '인페르노 골렘 (메피스토)', 1600, 45, 22, 'boss', 'BOSS');
       laneDepthCounts[2] = 3;
       for (let i = 0; i < 8; i++) spawnToRandomLane('용암 정령', 180, 25, 10, 'normal', 'GUARD');
+    } else if (roomType === 'elite') {
+      addMonster(2, 0, '인페르노 가디언', 450, 35, 15, 'elite', 'ELITE');
     } else if (roomType === 'treasure') {
       for (let i = 0; i < 12; i++) spawnToRandomLane('화염 보물 약탈자', 110, 15, 7, 'normal', 'NORMAL');
       for (let i = 0; i < 4; i++) spawnToRandomLane('마그마 골렘', 220, 30, 12, 'champion', 'GUARD');
@@ -633,11 +637,11 @@ export function createDungeonFormation(dungeonId: string, roomType: string, play
         else if (rand < 0.95) spawnToRandomLane('화염 정령', 120, 15, 10);
         else spawnToRandomLane('지옥 기사', 150, 30, 12, 'champion', 'ELITE');
       }
-      if (roomType === 'elite') {
-        for (let i = 0; i < 2; i++) spawnToRandomLane('인페르노 가디언', 450, 35, 15, 'elite', 'ELITE');
-      }
     }
   } else {
+    if (roomType === 'elite') {
+      addMonster(2, 0, '베놈 로드', 400, 40, 20, 'elite', 'ELITE');
+    } else {
     const count = 15;
     for (let i = 0; i < count; i++) spawnToRandomLane('카오스 악마', 120, 15, 10);
     if (roomType === 'boss') {
@@ -645,6 +649,7 @@ export function createDungeonFormation(dungeonId: string, roomType: string, play
       addMonster(2, 1, '베놈 로드', 400, 40, 20, 'champion', 'GUARD');
       addMonster(2, 2, '지옥의 군주 (디아블로)', 2500, 50, 30, 'boss', 'BOSS');
       laneDepthCounts[2] = 3;
+    }
     }
   }
 

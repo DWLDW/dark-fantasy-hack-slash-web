@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useGame } from '../../state/gameStore';
-import { DUNGEONS_DATA } from '../../data/gameData';
+import { DUNGEONS_DATA, isActUnlocked } from '../../data/gameData';
 import { DungeonInfo } from '../../types/game';
 import { Compass, Flame, Shield, Sparkles, Trophy, ArrowRight, Skull, Gem, Plus, Minus, Zap } from 'lucide-react';
 
@@ -13,7 +13,7 @@ const DUNGEON_RUNE_LABELS: Record<string, string> = {
 };
 
 export const DungeonSelectView: React.FC = React.memo(() => {
-  const { enterDungeon, setViewMode, playerStats, currentDifficulty, maxUnlockedDifficulty, setCurrentDifficulty } = useGame();
+  const { enterDungeon, setViewMode, playerStats, currentDifficulty, maxUnlockedDifficulty, setCurrentDifficulty, achievementStats } = useGame();
 
   const defaultRecommended = DUNGEONS_DATA.find(d => playerStats.level <= d.recommendedLevel + 4) || DUNGEONS_DATA[0];
   const [selectedDungeon, setSelectedDungeon] = useState<DungeonInfo>(defaultRecommended);
@@ -34,6 +34,7 @@ export const DungeonSelectView: React.FC = React.memo(() => {
   };
 
   const handleEnter = () => {
+    if (!isActUnlocked(selectedDungeon.id, achievementStats.dungeonClears)) return;
     setCurrentDifficulty(selectedDifficulty);
     enterDungeon(selectedDungeon.id, selectedDifficulty);
   };
@@ -76,16 +77,19 @@ export const DungeonSelectView: React.FC = React.memo(() => {
           {DUNGEONS_DATA.map(dungeon => {
             const isSelected = selectedDungeon.id === dungeon.id;
             const isRecommended = defaultRecommended.id === dungeon.id;
+            const unlocked = isActUnlocked(dungeon.id, achievementStats.dungeonClears);
             const runeRange = DUNGEON_RUNE_LABELS[dungeon.id] || '#1~#10';
 
             return (
               <div
                 key={dungeon.id}
-                onClick={() => setSelectedDungeon(dungeon)}
-                className={`p-2.5 sm:p-3 rounded-lg border-2 cursor-pointer transition flex flex-col justify-between shadow ${
-                  isSelected
-                    ? 'bg-blood-950/80 border-brass-400 ring-2 ring-brass-400/80 shadow-[0_0_12px_rgba(222,178,67,0.3)]'
-                    : 'bg-iron-900 border-iron-750 hover:border-iron-600 hover:bg-iron-850'
+                onClick={() => unlocked && setSelectedDungeon(dungeon)}
+                className={`p-2.5 sm:p-3 rounded-lg border-2 transition flex flex-col justify-between shadow ${
+                  !unlocked
+                    ? 'bg-iron-950 border-iron-800 opacity-50 cursor-not-allowed'
+                    : isSelected
+                    ? 'bg-blood-950/80 border-brass-400 ring-2 ring-brass-400/80 shadow-[0_0_12px_rgba(222,178,67,0.3)] cursor-pointer'
+                    : 'bg-iron-900 border-iron-750 hover:border-iron-600 hover:bg-iron-850 cursor-pointer'
                 }`}
               >
                 <div className="flex justify-between items-start">
@@ -94,9 +98,14 @@ export const DungeonSelectView: React.FC = React.memo(() => {
                       <h3 className="font-cinzel font-black text-xs sm:text-sm text-gray-100">
                         {dungeon.name}
                       </h3>
-                      {isRecommended && (
+                      {isRecommended && unlocked && (
                         <span className="text-[9px] bg-blood-600 text-white font-bold px-1 py-0.2 rounded animate-pulse">
                           추천
+                        </span>
+                      )}
+                      {!unlocked && (
+                        <span className="text-[9px] bg-iron-800 text-gray-400 font-bold px-1 py-0.2 rounded">
+                          잠김
                         </span>
                       )}
                     </div>
@@ -218,7 +227,8 @@ export const DungeonSelectView: React.FC = React.memo(() => {
                 {/* Instant Enter Button (Right in your face!) */}
                 <button
                   onClick={handleEnter}
-                  className="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-blood-600 via-amber-600 to-yellow-500 hover:from-blood-500 hover:to-yellow-400 text-iron-950 font-black rounded-lg text-xs sm:text-sm flex items-center justify-center gap-2 shadow-2xl transition transform active:scale-95 animate-pulse cursor-pointer flex-shrink-0 ring-2 ring-amber-300"
+                  disabled={!isActUnlocked(selectedDungeon.id, achievementStats.dungeonClears)}
+                  className="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-blood-600 via-amber-600 to-yellow-500 hover:from-blood-500 hover:to-yellow-400 disabled:opacity-40 disabled:cursor-not-allowed text-iron-950 font-black rounded-lg text-xs sm:text-sm flex items-center justify-center gap-2 shadow-2xl transition transform active:scale-95 animate-pulse cursor-pointer flex-shrink-0 ring-2 ring-amber-300"
                 >
                   <Flame className="w-4 h-4 text-iron-950" />
                   <span>[{selectedDungeon.name.split(':')[0]}] Lv.{selectedDifficulty} 출격</span>

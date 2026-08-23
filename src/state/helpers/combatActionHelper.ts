@@ -123,7 +123,10 @@ export function resolveHordeCounterAttack(
     }
 
     const isElite = m.rank === 'elite' || m.rank === 'boss';
-    const rawDmg = m.intent.damage || (isElite ? 8 : 3);
+    let rawDmg = m.intent.damage || (isElite ? 8 : 3);
+    if (m.rank === 'boss' && m.maxHp > 0 && m.hp / m.maxHp <= 0.3) {
+      rawDmg = Math.floor(rawDmg * 1.5);
+    }
     const k = 100 + playerLevel * 10;
     const defMult = k / (k + Math.max(0, defense));
     const drMult = (100 - (damageReduction || 0)) / 100;
@@ -141,11 +144,6 @@ export function resolveHordeCounterAttack(
         potionUsed = true;
         autoResurrected = true;
         nextHp = Math.min(playerMaxHp, 80 + Math.floor(playerMaxHp * 0.3));
-      }
-    } else if (nextHp <= playerMaxHp * 0.5) {
-      if (hpPotion && hpPotion.count > 0) {
-        potionUsed = true;
-        nextHp = Math.min(playerMaxHp, nextHp + 100);
       }
     }
   }

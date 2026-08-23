@@ -14,9 +14,10 @@ function getSlotBaseName(slot: string, baseItemName?: string): string {
   return '장비';
 }
 
-import { DungeonInfo, DungeonBuff, GameItem } from '../../types/game';
+import { DungeonInfo, DungeonBuff, GameItem, DungeonRoom, RoomType } from '../../types/game';
 import { DUNGEONS_DATA } from '../../data/dungeons';
 import { GAME_ITEMS_POOL } from '../../data/items';
+import { identifyItemHelper } from './itemGenerator';
 
 export const DUNGEON_RUNE_TIERS: Record<string, string[]> = {
   act1_crypt: ['El', 'Eld', 'Tir', 'Nef', 'Eth', 'Ith', 'Tal', 'Ral', 'Ort'],
@@ -109,30 +110,56 @@ function makeDungeonDrop(
     if (specialPool.length > 0) droppedBase = specialPool[Math.floor(Math.random() * specialPool.length)];
   }
   const scaled = scaleItemForDifficulty(droppedBase, difficultyLevel);
-
-  // Normal bases drop already-identified with their real name (no pointless gamble).
-  // Unique/Set bases drop unidentified, masked by their true base item name, and reveal the locked unique on identify.
   const isSpecialDrop = droppedBase.rarity === 'unique' || droppedBase.rarity === 'set' || droppedBase.rarity === 'legendary';
-  const maskedName = isSpecialDrop
-    ? `미확인 [${getSlotBaseName(droppedBase.slot, droppedBase.baseItemName)}]`
-    : droppedBase.name;
 
-  return {
+  if (isSpecialDrop && wantSpecial) {
+    return {
+      ...scaled,
+      id: `${idPrefix}_${Date.now()}_${index}_${Math.random().toString(36).substring(2, 6)}`,
+      name: `미확인 [${getSlotBaseName(droppedBase.slot, droppedBase.baseItemName)}]`,
+      baseItemName: droppedBase.baseItemName || getSlotBaseName(droppedBase.slot),
+      rarity: droppedBase.rarity,
+      sockets: scaled.sockets,
+      socketedRunes: [],
+      realUniqueName: droppedBase.name,
+      isIdentified: false
+    };
+  }
+
+  const roll = Math.random() * 100;
+  const magicBoost = Math.min(18, playerFortune * 0.06);
+  let rarity: GameItem['rarity'] = 'normal';
+  if (roll < 7 + magicBoost * 0.25) rarity = 'rare';
+  else if (roll < 30 + magicBoost) rarity = 'magic';
+
+  const stub: GameItem = {
     ...scaled,
     id: `${idPrefix}_${Date.now()}_${index}_${Math.random().toString(36).substring(2, 6)}`,
-    name: maskedName,
+    name: `미확인 [${getSlotBaseName(droppedBase.slot, droppedBase.baseItemName)}]`,
     baseItemName: droppedBase.baseItemName || getSlotBaseName(droppedBase.slot),
-    rarity: isSpecialDrop ? droppedBase.rarity : 'normal',
+    rarity,
     sockets: scaled.sockets,
     socketedRunes: [],
-    realUniqueName: isSpecialDrop ? droppedBase.name : undefined,
-    isIdentified: !isSpecialDrop
+    isIdentified: false
   };
+
+  if (rarity === 'normal') {
+    return {
+      ...stub,
+      name: droppedBase.name,
+      rarity: 'normal',
+      isIdentified: true,
+      description: droppedBase.description
+    };
+  }
+
+  return identifyItemHelper(stub, Math.max(1, 8 + difficultyLevel));
 }
 
 export function claimTreasureHelper(
   currentDungeon: DungeonInfo,
-  difficultyLevel: number = 1
+  difficultyLevel: number = 1,
+  playerFortune: number = 0
 ): TreasureReward {
   const dungeonIdx = Math.max(0, DUNGEONS_DATA.findIndex(d => d.id === currentDungeon.id));
   const mult = (dungeonIdx + 1) * (1 + (difficultyLevel - 1) * 0.40);
@@ -147,7 +174,7 @@ export function claimTreasureHelper(
   const droppedItems: GameItem[] = [];
 
   for (let i = 0; i < dropCount; i++) {
-    droppedItems.push(makeDungeonDrop(pool, { difficultyLevel, playerFortune: 0, dungeonIdx }, 'treasure', i));
+    droppedItems.push(makeDungeonDrop(pool, { difficultyLevel, playerFortune, dungeonIdx }, 'treasure', i));
   }
 
   return {
@@ -251,14 +278,14 @@ export function generateVictoryLoot(
   let performanceGrade = '🛡️ 클리어 승리 (+1 난이도)';
 
   if (playerHpPercent >= 90) {
-    advanceLevels = 5;
-    performanceGrade = '🌟 압도적인 무손실 대승 (+5 난이도 돌파!)';
-  } else if (playerHpPercent >= 70) {
-    advanceLevels = 3;
-    performanceGrade = '🔥 완벽한 전술 승리 (+3 난이도 돌파!)';
-  } else if (playerHpPercent >= 50) {
     advanceLevels = 2;
-    performanceGrade = '⚔️ 훌륭한 승리 (+2 난이도 돌파!)';
+    performanceGrade = '🌟 무손실 대승 (+2 난이도)';
+  } else if (playerHpPercent >= 70) {
+    advanceLevels = 1;
+    performanceGrade = '🔥 완벽한 승리 (+1 난이도)';
+  } else {
+    advanceLevels = 1;
+    performanceGrade = '⚔️ 클리어 (+1 난이도)';
   }
 
   const nextDifficulty = difficultyLevel + advanceLevels;
@@ -272,5 +299,126 @@ export function generateVictoryLoot(
     advanceLevels,
     nextDifficulty,
     performanceGrade
+  };
+}
+
+function shuffleInPlace<T>(arr: T[]): T[] {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = arr[i];
+    arr[i] = arr[j];
+    arr[j] = tmp;
+  }
+  return arr;
+}
+
+const ENCOUNTER_LABEL: Record<string, string> = {
+  normal: '적 무리',
+  elite: '강적',
+  treasure: '보물'
+};
+
+export function prepareDungeonRun(dungeon: DungeonInfo): DungeonRoom[] {
+  const rooms: DungeonRoom[] = dungeon.rooms.map(r => ({
+    ...r,
+    revealed: r.type === 'start',
+    cleared: r.type === 'start',
+    current: false
+  }));
+
+  const firstCombat = rooms.find(r => r.id === 2);
+  if (firstCombat && firstCombat.type !== 'boss' && firstCombat.type !== 'start') {
+    firstCombat.type = 'normal';
+    firstCombat.title = ENCOUNTER_LABEL.normal;
+  }
+
+  if (dungeon.id === 'act1_crypt') {
+    const left = rooms.find(r => r.id === 3);
+    const right = rooms.find(r => r.id === 4);
+    if (left && right) {
+      const swap = Math.random() < 0.5;
+      left.type = swap ? 'elite' : 'treasure';
+      right.type = swap ? 'treasure' : 'elite';
+      left.title = ENCOUNTER_LABEL[left.type];
+      right.title = ENCOUNTER_LABEL[right.type];
+    }
+    return rooms;
+  }
+
+  const mystery = rooms.filter(r => r.type !== 'start' && r.type !== 'boss' && r.id !== 2);
+  const pool = shuffleInPlace<RoomType>(['normal', 'elite', 'treasure']);
+  mystery.forEach((r, i) => {
+    r.type = pool[i % pool.length];
+    r.title = ENCOUNTER_LABEL[r.type] || r.title;
+  });
+  return rooms;
+}
+
+export function generateRoomClearLoot(
+  currentDungeon: DungeonInfo,
+  difficultyLevel: number,
+  playerFortune: number,
+  roomType: RoomType
+): { gold: number; items: GameItem[]; runeName?: string } {
+  const dungeonIdx = Math.max(0, DUNGEONS_DATA.findIndex(d => d.id === currentDungeon.id));
+  const pool = currentDungeon.dropItems && currentDungeon.dropItems.length > 0
+    ? currentDungeon.dropItems
+    : GAME_ITEMS_POOL.slice(0, 8);
+  const ctx = { difficultyLevel, playerFortune, dungeonIdx };
+  const items: GameItem[] = [];
+  let gold = 0;
+  let runeName: string | undefined;
+
+  if (roomType === 'elite') {
+    gold = Math.floor((80 + Math.random() * 60) * (dungeonIdx + 1));
+    items.push(makeDungeonDrop(pool, ctx, 'elite', 0));
+    if (Math.random() < 0.4) items.push(makeDungeonDrop(pool, ctx, 'elite', 1));
+    if (Math.random() < 0.35) {
+      const runes = DUNGEON_RUNE_TIERS[currentDungeon.id] || DUNGEON_RUNE_TIERS['act1_crypt'];
+      runeName = runes[Math.floor(Math.random() * Math.min(runes.length, 6))];
+    }
+  } else if (roomType === 'normal') {
+    gold = Math.floor((20 + Math.random() * 30) * (dungeonIdx + 1));
+    if (Math.random() < 0.42) {
+      items.push(makeDungeonDrop(pool, ctx, 'wave', 0));
+    }
+  }
+
+  return { gold, items, runeName };
+}
+
+export function equippedCompareHint(
+  item: GameItem,
+  equipment: Record<string, GameItem>
+): string {
+  const slotKey = item.slot === 'ring' ? 'ring1' : item.slot;
+  if (slotKey === 'rune' || slotKey === 'gem' || slotKey === 'material' || slotKey === 'consumable') return '';
+  const eq = equipment[slotKey as string];
+  if (!eq) return '빈 슬롯';
+  if (item.stats.minDmg != null && eq.stats.minDmg != null) {
+    const d = (item.stats.minDmg + (item.stats.maxDmg || 0)) - (eq.stats.minDmg + (eq.stats.maxDmg || 0));
+    if (d >= 3) return `공격 ↑${d}`;
+    if (d <= -3) return `공격 ↓${-d}`;
+    return '공격 비슷';
+  }
+  if (item.stats.defense != null && eq.stats.defense != null) {
+    const d = (item.stats.defense || 0) - (eq.stats.defense || 0);
+    if (d >= 3) return `방어 ↑${d}`;
+    if (d <= -3) return `방어 ↓${-d}`;
+    return '방어 비슷';
+  }
+  return '';
+}
+
+export function makeFirstClearSteelBase(): GameItem {
+  const base = GAME_ITEMS_POOL.find(i => i.id === 'e_short_sword_2s') || GAME_ITEMS_POOL[0];
+  return {
+    ...base,
+    id: `firstclear_steel_${Date.now()}`,
+    name: '숏소드 (2 소켓)',
+    isIdentified: true,
+    sockets: 2,
+    socketedRunes: [],
+    description: '[첫 원정 보상] 빈 소켓 2개. 룬 보관함의 Tir + El 순서로 박으면 강철(Steel) 룬워드가 됩니다.'
   };
 }

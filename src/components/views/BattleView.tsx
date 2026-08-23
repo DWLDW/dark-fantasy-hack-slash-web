@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useGame } from '../../state/gameStore';
-import { WARRIOR_SKILLS } from '../../data/gameData';
+import { WARRIOR_SKILLS, isSkillUnlocked } from '../../data/skills';
+import { equippedCompareHint } from '../../state/helpers/dungeonEventHelper';
 import { MiniRoomGraph } from '../layout/MiniRoomGraph';
 import { Monster, Skill } from '../../types/game';
 import { playHeartbeatSound } from '../../utils/audio';
@@ -11,7 +12,6 @@ import {
   ArrowLeft,
   ArrowRight,
   Zap,
-  RotateCcw,
   Sparkles,
   AlertTriangle,
   FlaskConical,
@@ -38,16 +38,19 @@ export const BattleView: React.FC = React.memo(() => {
     chainCount,
     maxChainThisRoom,
     preview,
+    bestLaneHint,
     combatLogs,
     playerStats,
     skillLevels,
     consumables,
     useConsumable,
-    resetBattleFormation,
-    returnToTown,
+    abandonDungeon,
+    equipment,
+    equipItem,
     currentDungeon,
     currentRoomId,
     selectNextRoom,
+    pendingExitRoomId,
     dungeonBuffs,
     roomEventClaimed,
     claimTreasure,
@@ -231,13 +234,7 @@ export const BattleView: React.FC = React.memo(() => {
               </div>
             </div>
 
-            <button
-              onClick={resetBattleFormation}
-              className="p-1 sm:p-1.5 bg-iron-800 hover:bg-iron-750 text-gray-300 hover:text-white rounded border border-iron-650 transition"
-              title="30마리 검증 포메이션으로 전장 초기화"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-            </button>
+            <span />
           </div>
         </div>
       </div>
@@ -365,7 +362,7 @@ export const BattleView: React.FC = React.memo(() => {
               {preview.chainCount > 0 ? (
                 <span className="text-emerald-300 bg-emerald-950/70 border border-emerald-500 px-1.5 py-0.2 rounded font-bold flex items-center gap-1 animate-pulse">
                   <Flame className="w-3 h-3 text-blood-400" />
-                  <span>예상 {preview.chainCount}처치</span>
+                  <span>예상 {preview.chainCount}처치 (치명 미포함)</span>
                 </span>
               ) : (
                 <span className="text-gray-400">처치 0</span>
@@ -416,20 +413,29 @@ export const BattleView: React.FC = React.memo(() => {
                     </div>
                   )}
                   {latestRoomLootEvent.items && latestRoomLootEvent.items.map((it, idx) => (
-                    <div
+                    <button
                       key={idx}
-                      className={`px-3 py-2 rounded-lg border-2 font-mono font-black text-xs sm:text-sm flex items-center gap-1.5 shadow-md ${
+                      type="button"
+                      onClick={() => {
+                        if (it.isIdentified === false) return;
+                        equipItem(it);
+                      }}
+                      className={`px-3 py-2 rounded-lg border-2 font-mono font-black text-xs sm:text-sm flex flex-col items-center gap-0.5 shadow-md ${
                         it.rarity === 'unique' || it.rarity === 'legendary'
-                          ? 'bg-orange-950/90 border-orange-400 text-orange-200 shadow-[0_0_15px_rgba(251,146,60,0.5)] animate-pulse'
+                          ? 'bg-orange-950/90 border-orange-400 text-orange-200 shadow-[0_0_15px_rgba(251,146,60,0.5)]'
                           : it.rarity === 'rare'
                           ? 'bg-yellow-950/90 border-yellow-400 text-yellow-200'
-                          : 'bg-blue-950/90 border-blue-400 text-blue-200'
+                          : it.rarity === 'magic'
+                          ? 'bg-blue-950/90 border-blue-400 text-blue-200'
+                          : 'bg-iron-900 border-iron-500 text-gray-200'
                       }`}
                     >
                       <span>⚔️ {it.name}</span>
-                      <span className="text-[10px] text-gray-400 font-normal">({it.slot})</span>
-                      {it.tier && <span className="text-[10px] text-amber-300 font-bold">[{it.tier}]</span>}
-                    </div>
+                      <span className="text-[10px] text-emerald-300 font-bold">{equippedCompareHint(it, equipment)}</span>
+                      <span className="text-[9px] text-gray-400 font-normal">
+                        {it.isIdentified === false ? '감정 필요' : '클릭 장착'}
+                      </span>
+                    </button>
                   ))}
                   {latestRoomLootEvent.buffName && (
                     <div className="px-3 py-2 rounded-lg bg-blue-950/90 border-2 border-blue-400 text-blue-200 font-mono font-black text-xs sm:text-sm flex items-center gap-1.5 shadow-md">
@@ -443,13 +449,18 @@ export const BattleView: React.FC = React.memo(() => {
                   {currentRoom?.connections.map(nextId => {
                     const nRoom = currentDungeon.rooms.find(r => r.id === nextId);
                     if (!nRoom) return null;
+                    const selected = pendingExitRoomId === nextId || (pendingExitRoomId == null && nextId === currentRoom.connections[0]);
                     return (
                       <button
                         key={nextId}
                         onClick={() => selectNextRoom(nextId)}
-                        className="px-6 py-3 bg-gradient-to-r from-brass-600 via-amber-500 to-brass-500 hover:from-brass-500 hover:to-amber-400 text-iron-950 font-black rounded-xl text-xs sm:text-sm md:text-base shadow-2xl ring-2 ring-amber-200 transition transform active:scale-95 animate-pulse cursor-pointer flex items-center gap-2"
+                        className={`px-6 py-3 font-black rounded-xl text-xs sm:text-sm md:text-base shadow-2xl transition transform active:scale-95 cursor-pointer flex items-center gap-2 ${
+                          selected
+                            ? 'bg-gradient-to-r from-brass-600 via-amber-500 to-brass-500 text-iron-950 ring-2 ring-amber-200'
+                            : 'bg-iron-900 border border-iron-600 text-gray-200'
+                        }`}
                       >
-                        <span>🚀 다음 경로 [Room #{nRoom.id}: {nRoom.title}] 진입 [Space]</span>
+                        <span>{nRoom.revealed ? nRoom.title : '?'} {selected ? '[Space]' : ''}</span>
                         <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
                       </button>
                     );
@@ -468,7 +479,7 @@ export const BattleView: React.FC = React.memo(() => {
                       {currentRoom.title} (황금 보물 상자)
                     </h3>
                     <p className="text-xs text-gray-300 max-w-md mx-auto font-medium">
-                      수호 몬스터 소탕 완료! 황금 궤짝을 열어 대량의 골드와 미확인 장비를 획득하세요.
+                      황금 궤짝을 발견했습니다. [Space]로 열어 골드와 장비를 획득하세요.
                     </p>
                     <button
                       onClick={claimTreasure}
@@ -548,13 +559,18 @@ export const BattleView: React.FC = React.memo(() => {
                   {currentRoom?.connections.map(nextId => {
                     const nRoom = currentDungeon.rooms.find(r => r.id === nextId);
                     if (!nRoom) return null;
+                    const selected = pendingExitRoomId === nextId || (pendingExitRoomId == null && nextId === currentRoom.connections[0]);
                     return (
                       <button
                         key={nextId}
                         onClick={() => selectNextRoom(nextId)}
-                        className="px-5 py-2.5 bg-gradient-to-r from-brass-600 to-amber-600 hover:from-brass-500 hover:to-amber-500 text-white font-black rounded-lg shadow-xl border border-brass-300 transition transform active:scale-95 flex items-center gap-2 cursor-pointer animate-pulse"
+                        className={`px-5 py-2.5 font-black rounded-lg shadow-xl border transition transform active:scale-95 flex items-center gap-2 cursor-pointer ${
+                          selected
+                            ? 'bg-gradient-to-r from-brass-600 to-amber-600 text-white border-brass-300'
+                            : 'bg-iron-900 text-gray-300 border-iron-600'
+                        }`}
                       >
-                        <span>Room #{nRoom.id}: {nRoom.title}</span>
+                        <span>{nRoom.revealed ? nRoom.title : '?'} {selected ? '[Space]' : ''}</span>
                         <ArrowRight className="w-4 h-4" />
                       </button>
                     );
@@ -618,6 +634,9 @@ export const BattleView: React.FC = React.memo(() => {
                     {laneList.length > 0 ? `${laneList.length}👹` : '0'}
                   </span>
                   {isPlayerInLane && <span className="text-[10px] font-black animate-bounce">▼</span>}
+                  {!isPlayerInLane && bestLaneHint === laneIdx && laneList.length > 0 && (
+                    <span className="text-[9px] font-black text-emerald-300">↑</span>
+                  )}
                 </div>
 
                 {/* Queue / Stack & Hit Preview Indicator (Top of Lane) */}
@@ -855,28 +874,31 @@ export const BattleView: React.FC = React.memo(() => {
                 {WARRIOR_SKILLS.map(skill => {
                   const isSelected = selectedSkill.id === skill.id;
                   const sLevel = skillLevels[skill.id] || 1;
+                  const unlocked = isSkillUnlocked(skill.id, playerStats.level);
                   const canAfford = playerStats.rage >= skill.rageCost;
 
                   return (
                     <button
                       key={skill.id}
-                      onClick={() => { if (isCleared || totalMonsters === 0) return; selectSkillOrExecute(skill); }}
-                      disabled={isAttacking || isEnemyTurn}
+                      onClick={() => { if (isCleared || totalMonsters === 0 || !unlocked) return; selectSkillOrExecute(skill); }}
+                      disabled={isAttacking || isEnemyTurn || !unlocked}
                       className={`p-1 sm:p-1.5 rounded-lg border text-left flex flex-col justify-between transition relative shadow cursor-pointer ${
-                        isSelected
+                        !unlocked
+                          ? 'bg-iron-950 border-iron-800 text-gray-600 opacity-50 cursor-not-allowed'
+                          : isSelected
                           ? 'bg-blood-950 border-brass-400 text-brass-100 ring-2 ring-brass-400 shadow-[0_0_10px_rgba(222,178,67,0.5)] scale-[1.02]'
                           : canAfford
                           ? 'bg-iron-900 border-iron-700 text-gray-100 hover:bg-iron-850 hover:border-iron-600'
                           : 'bg-iron-950/70 border-iron-800 text-gray-500 opacity-60'
                       }`}
-                      title={`${skill.name} (클릭 시 선택, 재클릭 시 즉시 시전)`}
+                      title={unlocked ? `${skill.name} (클릭 시 선택, 재클릭 시 즉시 시전)` : `Lv.${skill.unlockLevel} 해금`}
                     >
                       <div className="flex items-center justify-between text-[10px] sm:text-xs font-black font-cinzel leading-tight">
-                        <span className="truncate">{skill.name.split(' ')[0]}</span>
+                        <span className="truncate">{unlocked ? skill.name.split(' ')[0] : '잠김'}</span>
                         <span className={`text-[8px] sm:text-[9px] font-mono font-black px-1 rounded ${
                           isSelected ? 'bg-brass-400 text-iron-950' : 'bg-iron-950 text-gray-400'
                         }`}>
-                          [{skill.hotkey}]
+                          {unlocked ? `[${skill.hotkey}]` : `Lv.${skill.unlockLevel}`}
                         </span>
                       </div>
 
@@ -904,7 +926,9 @@ export const BattleView: React.FC = React.memo(() => {
                       return;
                     }
                     if (currentRoom && currentRoom.connections && currentRoom.connections.length > 0) {
-                      selectNextRoom(currentRoom.connections[0]);
+                      const cons = currentRoom.connections;
+                      const nextId = (pendingExitRoomId && cons.includes(pendingExitRoomId)) ? pendingExitRoomId : cons[0];
+                      selectNextRoom(nextId);
                     }
                   } else {
                     executeAttack();
@@ -967,7 +991,11 @@ export const BattleView: React.FC = React.memo(() => {
                 </button>
 
                 <button
-                  onClick={returnToTown}
+                  onClick={() => {
+                    if (window.confirm('원정을 포기하면 이번 런 전리품을 잃습니다. 마을로 돌아갈까요?')) {
+                      abandonDungeon();
+                    }
+                  }}
                   className="px-2 py-0.5 bg-blood-950/80 hover:bg-blood-900 border border-blood-800 text-blood-300 hover:text-white rounded text-[10px] font-bold transition shadow cursor-pointer"
                 >
                   마을 귀환

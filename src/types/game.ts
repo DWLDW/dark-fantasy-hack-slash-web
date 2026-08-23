@@ -131,6 +131,7 @@ export interface DungeonRoom {
   connections: number[];
   monsterCount?: number;
   rewardDesc?: string;
+  revealed?: boolean;
 }
 
 export interface DungeonInfo {
@@ -205,6 +206,7 @@ export interface Skill {
   hotkey: 'Q' | 'W' | 'E' | 'R' | string;
   soundType?: string;
   activeRuneId?: string | null;
+  unlockLevel?: number;
 }
 
 export interface CombatLogEntry {
@@ -218,7 +220,7 @@ export type { Achievement, AchievementStats } from '../data/achievements';
 
 
 export interface RoomLootEvent {
-  type: 'treasure' | 'rune' | 'shrine';
+  type: 'treasure' | 'rune' | 'shrine' | 'combat';
   title: string;
   gold?: number;
   shards?: number;

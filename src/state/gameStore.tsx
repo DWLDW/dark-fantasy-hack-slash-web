@@ -32,7 +32,9 @@ import { generateGambleItem, identifyItemHelper } from './helpers/itemGenerator'
 import { calculateRuneWordItem, craftRuneWordHelper, craftRuneWordWithTransmuteHelper, transmuteRuneInVaultHelper } from './helpers/runeWordCalculator';
 import { upgradeSkillHelper, resetSkillPointsHelper, getEffectiveSkill } from './helpers/skillManager';
 import { getItemSellPrice, bulkSellHelper, socketRuneHelper, cubeTransmuteHelper } from './helpers/cubeCraftingHelper';
-import { claimTreasureHelper, claimRuneAltarHelper, createShrineBuff, generateVictoryLoot } from './helpers/dungeonEventHelper';
+import { claimTreasureHelper, claimRuneAltarHelper, createShrineBuff, generateVictoryLoot, prepareDungeonRun, makeFirstClearSteelBase, generateRoomClearLoot } from './helpers/dungeonEventHelper';
+import { isActUnlocked } from '../data/dungeons';
+import { isSkillUnlocked } from '../data/skills';
 import { calculateAttackGains, compressLaneSurvivors, resolveHordeCounterAttack } from './helpers/combatActionHelper';
 import {
   SAVE_KEY,
@@ -111,6 +113,7 @@ interface GameContextType {
 
   // Preview calculation (100% matched with resolveAttack)
   preview: AttackResolution;
+  bestLaneHint: number;
 
   // Actions
   setViewMode: (view: ViewMode) => void;
@@ -127,7 +130,10 @@ interface GameContextType {
   useConsumable: (hotkeyOrId: string) => void;
   enterDungeon: (dungeonId: string, difficulty?: number) => void;
   selectNextRoom: (roomId: number) => void;
+  pendingExitRoomId: number | null;
+  cyclePendingExit: (dir: number) => void;
   returnToTown: () => void;
+  abandonDungeon: () => void;
   addLog: (text: string, type?: CombatLogEntry['type']) => void;
   resetBattleFormation: () => void;
   
@@ -238,16 +244,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     return DUNGEONS_DATA[0];
   });
-  const [currentRoomId, setCurrentRoomId] = useState<number>(() => savedData?.currentRoomId || 4);
+  const [currentRoomId, setCurrentRoomId] = useState<number>(() => savedData?.currentRoomId || 2);
+  const [pendingExitRoomId, setPendingExitRoomId] = useState<number | null>(null);
   const [currentDifficulty, setCurrentDifficulty] = useState<number>(() => savedData?.currentDifficulty || 1);
   const [maxUnlockedDifficulty, setMaxUnlockedDifficulty] = useState<number>(() => savedData?.maxUnlockedDifficulty || 1);
   const [latestRoomLootEvent, setLatestRoomLootEvent] = useState<RoomLootEvent | null>(null);
   const clearLatestRoomLootEvent = () => setLatestRoomLootEvent(null);
   const [skillRunes, setSkillRunes] = useState<Record<string, string>>(() => savedData?.skillRunes || {
-    slash: 'rune_fire',
-    execute: 'rune_poison',
-    cleave: 'rune_lightning',
-    whirlwind: 'rune_frost'
+    slash: 'rune_fire'
   });
   const [skillLevels, setSkillLevels] = useState<Record<string, number>>(() => savedData?.skillLevels || {
     slash: 1,
@@ -379,6 +383,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const upgradeSkill = (skillId: string, amount: number = 1) => {
+    if (!isSkillUnlocked(skillId, playerStats.level)) {
+      addLog('아직 해금되지 않은 스킬입니다.', 'system');
+      return;
+    }
     const res = upgradeSkillHelper(skillId, skillLevels, playerStats.skillPoints, amount);
     if (!res.success) {
       addLog(res.message, 'system');
@@ -474,14 +482,18 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     let hasLegendary = false;
     const identifiedItems = dungeonVictoryLoot.items.map(item => {
-      if (item.rarity === 'unique' || item.rarity === 'legendary' || item.rarity === 'set') {
+      const identified = identifyItemHelper(item, playerStats.level);
+      if (identified.rarity === 'unique' || identified.rarity === 'legendary' || identified.rarity === 'set') {
         hasLegendary = true;
       }
-      return { ...item, isIdentified: true };
+      return identified;
     });
 
     setDungeonVictoryLoot(prev => prev ? { ...prev, items: identifiedItems } : null);
-    setInventory(prev => prev.map(i => ({ ...i, isIdentified: true })));
+    setInventory(prev => prev.map(i => {
+      const found = identifiedItems.find(idItem => idItem.id === i.id);
+      return found ? found : i;
+    }));
 
     playIdentifySound();
     if (hasLegendary) {
@@ -639,7 +651,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     gold: number;
     exp: number;
     level: number;
+    shards: number;
   } | null>(null);
+  const runFortuneRef = useRef(0);
 
   const [combatLogs, setCombatLogs] = useState<CombatLogEntry[]>([
     { id: '1', timestamp: '12:00', text: '브라우저 로컬 자동 저장(Auto-Save) 활성화됨. [Space] 공격 / 빠른 파밍', type: 'system' }
@@ -745,6 +759,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       true // Deterministic for preview
     );
   }, [playerStats.level, totalStats, effectiveSkill, playerLane, monsters]);
+
+  const bestLaneHint = useMemo(() => {
+    if (!monsters.length) return playerLane;
+    return findBestLaneForSkill(playerStats.level, totalStats, effectiveSkill, monsters);
+  }, [playerStats.level, totalStats, effectiveSkill, monsters, playerLane]);
 
   // ==============================================================
   // REAL HACK & SLASH SEQUENTIAL EXECUTION & HORDE COUNTER-ATTACK
@@ -901,7 +920,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           addLog('👑 [보스 토벌 성공] 던전의 최종 보스를 쓰러뜨렸습니다! 승리의 전리품을 확인하세요!', 'loot');
           setTimeout(() => {
             const hpPercent = Math.max(1, Math.round((playerStats.hp / Math.max(1, playerStats.maxHp)) * 100));
-            const victory = generateVictoryLoot(currentDungeon, totalStats.fortune, currentDifficulty, hpPercent);
+            const victory = generateVictoryLoot(currentDungeon, runFortuneRef.current, currentDifficulty, hpPercent);
+            const isFirstAct1 = currentDungeon.id === 'act1_crypt' && !(achievementStats.dungeonClears['act1_crypt']);
+            if (isFirstAct1) {
+              const need = Math.max(1, calculateMaxExp(playerStats.level) - playerStats.exp);
+              victory.exp = Math.max(victory.exp, need);
+              victory.items = [makeFirstClearSteelBase(), ...victory.items];
+              victory.performanceGrade = '첫 원정 성공 · 레벨 업';
+            }
             setMaxUnlockedDifficulty(prev => Math.max(prev, victory.nextDifficulty));
 
             setPlayerStats(p => ({
@@ -953,7 +979,29 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           addLog('🎁 룸의 수호 몬스터들을 모두 소탕했습니다! 전장의 전리품을 수령하세요!', 'loot');
           return;
         } else {
-          addLog('🏆 룸의 모든 적을 소탕했습니다! 다음 경로를 선택하세요.', 'loot');
+          const cons = currentRoom?.connections || [];
+          setPendingExitRoomId(cons.length > 0 ? cons[0] : null);
+          if (currentRoom && (currentRoom.type === 'normal' || currentRoom.type === 'elite')) {
+            const drop = generateRoomClearLoot(currentDungeon, currentDifficulty, runFortuneRef.current, currentRoom.type);
+            if (drop.gold > 0) {
+              setPlayerStats(p => ({ ...p, gold: p.gold + drop.gold }));
+            }
+            if (drop.items.length > 0) {
+              setInventory(prev => [...drop.items, ...prev]);
+            }
+            if (drop.runeName) {
+              setRunesVault(prev => ({ ...prev, [drop.runeName!]: (prev[drop.runeName!] || 0) + 1 }));
+            }
+            setLatestRoomLootEvent({
+              type: 'combat',
+              title: currentRoom.type === 'elite' ? '엘리트 처치 전리품' : '소탕 전리품',
+              gold: drop.gold,
+              items: drop.items,
+              runeName: drop.runeName,
+              count: drop.runeName ? 1 : undefined
+            });
+          }
+          addLog('🏆 룸의 모든 적을 소탕했습니다. ←/→ 로 길을 고르고 [Space]로 진행하세요.', 'loot');
           return;
         }
       }
@@ -1020,26 +1068,24 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsEnemyTurn(false);
         setHordeTimelinePercent(totalStats.baseAtbPercent || 50);
 
-        const bestLane = findBestLaneForSkill(playerStats.level, totalStats, selectedSkill, survivors);
-        setPlayerLane(bestLane);
       }, 700);
 
     }, totalHitTime);
 
   }, [viewMode, isAttacking, isEnemyTurn, playerStats, selectedSkill, totalStats, playerLane, monsters, maxChainThisRoom, currentDungeon, currentRoomId, consumables, addLog, addPlayerExp]);
   const selectSkillOrExecute = useCallback((skill: Skill) => {
+    if (!isSkillUnlocked(skill.id, playerStats.level)) {
+      addLog(`[${skill.name}]은(는) 레벨 ${skill.unlockLevel ?? '?'}에 해금됩니다.`, 'system');
+      return;
+    }
     if (selectedSkill.id === skill.id) {
       if (monsters.length > 0) {
         executeAttack();
       }
     } else {
       setSelectedSkill(skill);
-      if (monsters.length > 0) {
-        const bestLane = findBestLaneForSkill(playerStats.level, totalStats, skill, monsters);
-        setPlayerLane(bestLane);
-      }
     }
-  }, [selectedSkill, executeAttack, playerStats.level, totalStats, monsters]);
+  }, [selectedSkill, executeAttack, playerStats.level, monsters, addLog]);
 
   // Consumables Quick Slot
   const useConsumable = useCallback((hotkeyOrId: string) => {
@@ -1081,7 +1127,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Equip / Unequip
   const equipItem = (item: GameItem, targetSlot?: EquipSlot) => {
-    if (viewMode === 'battle') {
+    if (viewMode === 'battle' && monsters.length > 0) {
       addLog('전투 중에는 장비를 교체할 수 없습니다!', 'system');
       return;
     }
@@ -1123,7 +1169,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 
   const unequipItem = (slot: EquipSlot) => {
-    if (viewMode === 'battle') {
+    if (viewMode === 'battle' && monsters.length > 0) {
       addLog('전투 중에는 장비를 해제할 수 없습니다!', 'system');
       return;
     }
@@ -1154,30 +1200,39 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const enterDungeon = (dungeonId: string, difficulty?: number) => {
+    if (!isActUnlocked(dungeonId, achievementStats.dungeonClears)) {
+      addLog('이전 막을 클리어해야 이 던전에 진입할 수 있습니다.', 'system');
+      return;
+    }
     const dungeon = DUNGEONS_DATA.find(d => d.id === dungeonId) || DUNGEONS_DATA[0];
     const diffToUse = difficulty || currentDifficulty || 1;
     setCurrentDifficulty(diffToUse);
-    const firstRoomId = dungeon.rooms[1]?.id || 2;
-    const roomType = dungeon.rooms.find(r => r.id === firstRoomId)?.type || "normal";
+    const rolledRooms = prepareDungeonRun(dungeon);
+    const firstRoomId = rolledRooms.find(r => r.id === 2)?.id || rolledRooms.find(r => r.type !== 'start')?.id || 2;
+    const firstRoom = rolledRooms.find(r => r.id === firstRoomId);
+    const roomType = firstRoom?.type || 'normal';
 
+    runFortuneRef.current = totalStats.fortune;
     setDungeonSnapshot({
       inventory: [...inventory],
       runesVault: { ...runesVault },
       gold: playerStats.gold,
       exp: playerStats.exp,
-      level: playerStats.level
+      level: playerStats.level,
+      shards: playerStats.shards
     });
 
     setConsumables(curr => curr.map(c => c.id === 'c_hp' ? { ...c, count: Math.max(5, c.count) } : c));
     setRoomEventClaimed(false);
     setLatestRoomLootEvent(null);
     setDungeonBuffs([]);
+    setPendingExitRoomId(null);
     setCurrentDungeon({
       ...dungeon,
-      rooms: dungeon.rooms.map(r => ({
+      rooms: rolledRooms.map(r => ({
         ...r,
-        cleared: r.id === firstRoomId && r.type === 'start',
-        current: r.id === firstRoomId
+        current: r.id === firstRoomId,
+        revealed: r.type === 'start' || r.id === firstRoomId
       }))
     });
     setCurrentRoomId(firstRoomId);
@@ -1186,24 +1241,27 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setMaxChainThisRoom(0);
     setViewMode('battle');
     startBGM('dungeon');
-    addLog("⚔️ [" + dungeon.name + "] (난이도 Lv." + diffToUse + ")에 진입했습니다! (생명력 물약 5개 자동 충전 완료)", "system");
+    addLog("⚔️ [" + dungeon.name + "] (난이도 Lv." + diffToUse + ") 진입. [Q] 가르기 · [Space] 공격 · [←/→] 레인", "system");
   };
 
   const selectNextRoom = (roomId: number) => {
     setRoomEventClaimed(false);
     setLatestRoomLootEvent(null);
+    setPendingExitRoomId(null);
     setCurrentRoomId(roomId);
     setCurrentDungeon(prev => ({
       ...prev,
       rooms: prev.rooms.map(r => ({
         ...r,
-        current: r.id === roomId
+        current: r.id === roomId,
+        revealed: r.revealed || r.id === roomId
       }))
     }));
 
     const room = currentDungeon.rooms.find(r => r.id === roomId);
     const roomType = room?.type || 'normal';
-    setMonsters(createDungeonFormation(currentDungeon.id, roomType, playerStats.level, currentDifficulty));
+    const spawned = createDungeonFormation(currentDungeon.id, roomType, playerStats.level, currentDifficulty);
+    setMonsters(spawned);
     setChainCount(0);
     setMaxChainThisRoom(0);
 
@@ -1213,7 +1271,24 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       startBGM('dungeon');
     }
 
-    addLog("새로운 룸(Room #" + roomId + ": " + (room?.title || "전장") + ")에 진입했습니다!", "system");
+    addLog("새로운 룸에 진입했습니다: " + (room?.revealed || true ? (room?.title || "전장") : "???"), "system");
+    if (spawned.length === 0 && (roomType === 'treasure' || roomType === 'rune' || roomType === 'shrine')) {
+      setPendingExitRoomId(null);
+    } else if (spawned.length === 0) {
+      const cons = room?.connections || [];
+      setPendingExitRoomId(cons[0] ?? null);
+    }
+  };
+
+  const cyclePendingExit = (dir: number) => {
+    const room = currentDungeon.rooms.find(r => r.id === currentRoomId);
+    const cons = room?.connections || [];
+    if (cons.length < 2) return;
+    setPendingExitRoomId(prev => {
+      const cur = prev ?? cons[0];
+      const idx = Math.max(0, cons.indexOf(cur));
+      return cons[(idx + dir + cons.length) % cons.length];
+    });
   };
 
 
@@ -1222,10 +1297,37 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setMonsters(createDungeonFormation('act1_crypt', 'normal', playerStats.level));
     setTempBuffs({ defenseBonus: 0, overkillBonus: 0 });
     setDungeonSnapshot(null);
-    // Auto Refill Potions in Town
+    setPendingExitRoomId(null);
     setConsumables(curr => curr.map(c => c.id === 'c_hp' ? { ...c, count: Math.max(5, c.count) } : c));
     startBGM('town');
     addLog('마을로 귀환했습니다. (생명력 물약 5개 무료 자동 충전 완료)', 'system');
+  };
+
+  const abandonDungeon = () => {
+    if (dungeonSnapshot) {
+      setInventory(dungeonSnapshot.inventory);
+      setRunesVault(dungeonSnapshot.runesVault);
+      setPlayerStats(p => ({
+        ...p,
+        hp: p.maxHp,
+        gold: dungeonSnapshot.gold,
+        exp: dungeonSnapshot.exp,
+        level: dungeonSnapshot.level,
+        shards: dungeonSnapshot.shards,
+        rage: 0
+      }));
+    } else {
+      setPlayerStats(p => ({ ...p, hp: p.maxHp, rage: 0 }));
+    }
+    setDungeonBuffs([]);
+    setLatestRoomLootEvent(null);
+    setPendingExitRoomId(null);
+    setDungeonSnapshot(null);
+    setTempBuffs({ defenseBonus: 0, overkillBonus: 0 });
+    setConsumables(curr => curr.map(c => c.id === 'c_hp' ? { ...c, count: Math.max(5, c.count) } : c));
+    setViewMode('town');
+    startBGM('town');
+    addLog('원정을 포기했습니다. 이번 런에서 얻은 전리품은 모두 사라집니다.', 'system');
   };
 
   const confirmDeathAndReturnToTown = () => {
@@ -1239,6 +1341,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         gold: dungeonSnapshot.gold,
         exp: dungeonSnapshot.exp,
         level: dungeonSnapshot.level,
+        shards: dungeonSnapshot.shards,
         rage: 0
       }));
     } else {
@@ -1373,7 +1476,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (roomEventClaimed) return null;
     setRoomEventClaimed(true);
 
-    const reward = claimTreasureHelper(currentDungeon, currentDifficulty);
+    const reward = claimTreasureHelper(currentDungeon, currentDifficulty, runFortuneRef.current);
     setPlayerStats(p => ({
       ...p,
       gold: p.gold + reward.gold,
@@ -1399,6 +1502,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     playLegendaryDropSound();
     addLog("🎁 [황금 궤짝 개봉] +" + reward.gold + "G, 샤드 +" + reward.shards + "개, 전리품 " + reward.items.length + "개(" + itemNames + ") 획득!", "loot");
+    const cons = currentDungeon.rooms.find(r => r.id === currentRoomId)?.connections || [];
+    setPendingExitRoomId(cons.length > 0 ? cons[0] : null);
     return { gold: reward.gold, items: reward.items, shards: reward.shards };
   };
 
@@ -1421,6 +1526,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     playRuneWordSound();
     addLog("✨ [고대 룬 제단] 기도를 통해 [" + runeName + " 룬] " + count + "개를 보관함에 획득했습니다!", "loot");
+    const cons = currentDungeon.rooms.find(r => r.id === currentRoomId)?.connections || [];
+    setPendingExitRoomId(cons.length > 0 ? cons[0] : null);
     return { runeName, count };
   };
 
@@ -1443,6 +1550,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     playRuneWordSound();
     addLog("🏛️ [성소의 축복] [" + newBuff.name + "] 활성화! (" + newBuff.description + ")", "system");
+    const cons = currentDungeon.rooms.find(r => r.id === currentRoomId)?.connections || [];
+    setPendingExitRoomId(cons.length > 0 ? cons[0] : null);
   };
 
     const buyPotions = () => {
@@ -1467,11 +1576,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setRunesVault(DEFAULT_RUNES_VAULT);
     setSkillLevels({ slash: 1, execute: 1, cleave: 1, whirlwind: 1 });
     setSkillRunes({
-      slash: 'rune_fire',
-      execute: 'rune_poison',
-      cleave: 'rune_lightning',
-      whirlwind: 'rune_frost'
+      slash: 'rune_fire'
     });
+    setPendingExitRoomId(null);
     setConsumables(INITIAL_CONSUMABLES);
     setCurrentDungeon(DUNGEONS_DATA[0]);
     setCurrentRoomId(2);
@@ -1509,6 +1616,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     floatingDamages,
     totalStats,
     preview,
+    bestLaneHint,
     setViewMode,
     openModal,
     closeModal,
@@ -1523,7 +1631,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     useConsumable,
     enterDungeon,
     selectNextRoom,
+    pendingExitRoomId,
+    cyclePendingExit,
     returnToTown,
+    abandonDungeon,
     addLog,
     resetBattleFormation,
     skillRunes,
@@ -1577,6 +1688,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     consumables,
     currentDungeon,
     currentRoomId,
+    pendingExitRoomId,
     currentDifficulty,
     maxUnlockedDifficulty,
     latestRoomLootEvent,
@@ -1592,6 +1704,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     floatingDamages,
     totalStats,
     preview,
+    bestLaneHint,
     isVictoryModalOpen,
     dungeonVictoryLoot,
     isDeathModalOpen,

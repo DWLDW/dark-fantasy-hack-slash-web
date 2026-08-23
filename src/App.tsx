@@ -25,6 +25,8 @@ const MainLayout: React.FC = () => {
     viewMode,
     activeModal,
     executeAttack,
+    isAttacking,
+    isEnemyTurn,
     selectSkillOrExecute,
     setPlayerLane,
     playerLane,
@@ -33,6 +35,8 @@ const MainLayout: React.FC = () => {
     currentRoomId,
     currentDifficulty,
     selectNextRoom,
+    pendingExitRoomId,
+    cyclePendingExit,
     monsters,
     useConsumable,
     roomEventClaimed,
@@ -45,6 +49,8 @@ const MainLayout: React.FC = () => {
     viewMode,
     activeModal,
     executeAttack,
+    isAttacking,
+    isEnemyTurn,
     selectSkillOrExecute,
     setPlayerLane,
     playerLane,
@@ -53,6 +59,8 @@ const MainLayout: React.FC = () => {
     currentRoomId,
     currentDifficulty,
     selectNextRoom,
+    pendingExitRoomId,
+    cyclePendingExit,
     monsters,
     useConsumable,
     roomEventClaimed,
@@ -64,6 +72,8 @@ const MainLayout: React.FC = () => {
     viewMode,
     activeModal,
     executeAttack,
+    isAttacking,
+    isEnemyTurn,
     selectSkillOrExecute,
     setPlayerLane,
     playerLane,
@@ -72,6 +82,8 @@ const MainLayout: React.FC = () => {
     currentRoomId,
     currentDifficulty,
     selectNextRoom,
+    pendingExitRoomId,
+    cyclePendingExit,
     monsters,
     useConsumable,
     roomEventClaimed,
@@ -133,9 +145,16 @@ const MainLayout: React.FC = () => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       const g = keysRef.current;
 
+      if (g.activeModal) return;
+
       if (e.code === 'Space' || e.code === 'Enter') {
         e.preventDefault();
         if (g.viewMode === 'battle') {
+          if (g.monsters.length > 0) {
+            if (!g.isAttacking && !g.isEnemyTurn) g.executeAttack();
+            return;
+          }
+          if (e.repeat) return;
           if (g.monsters.length === 0) {
             const currentRoom = g.currentDungeon.rooms.find(r => r.id === g.currentRoomId);
             const isEventRoom = currentRoom && (currentRoom.type === 'treasure' || currentRoom.type === 'rune' || currentRoom.type === 'shrine');
@@ -147,11 +166,13 @@ const MainLayout: React.FC = () => {
               return;
             }
 
-            if (currentRoom && currentRoom.connections && currentRoom.connections.length > 0) {
-              g.selectNextRoom(currentRoom.connections[0]);
+            const cons = currentRoom?.connections || [];
+            if (cons.length > 0) {
+              const nextId = (g.pendingExitRoomId && cons.includes(g.pendingExitRoomId))
+                ? g.pendingExitRoomId
+                : cons[0];
+              g.selectNextRoom(nextId);
             }
-          } else {
-            g.executeAttack();
           }
         } else if (g.viewMode === 'town') {
           g.enterDungeon(g.currentDungeon.id, g.currentDifficulty);
@@ -159,14 +180,17 @@ const MainLayout: React.FC = () => {
         return;
       }
 
-      if (e.key === 'ArrowLeft') {
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
         e.preventDefault();
-        if (g.viewMode === 'battle') g.setPlayerLane(Math.max(0, g.playerLane - 1));
-        return;
-      }
-      if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        if (g.viewMode === 'battle') g.setPlayerLane(Math.min(4, g.playerLane + 1));
+        if (g.viewMode !== 'battle') return;
+        const currentRoom = g.currentDungeon.rooms.find(r => r.id === g.currentRoomId);
+        const isEventRoom = currentRoom && (currentRoom.type === 'treasure' || currentRoom.type === 'rune' || currentRoom.type === 'shrine');
+        const canPickExit = g.monsters.length === 0 && (!isEventRoom || g.roomEventClaimed) && (currentRoom?.connections?.length || 0) > 1;
+        if (canPickExit) {
+          g.cyclePendingExit(e.key === 'ArrowLeft' ? -1 : 1);
+          return;
+        }
+        g.setPlayerLane(e.key === 'ArrowLeft' ? Math.max(0, g.playerLane - 1) : Math.min(4, g.playerLane + 1));
         return;
       }
 
