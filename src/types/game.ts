@@ -18,6 +18,7 @@ export interface ItemStats {
   minDmg?: number;
   maxDmg?: number;
   defense?: number;
+  shield?: number;
   evasion?: number; // 회피율 % (Dodge Chance)
   damageReduction?: number; // 물리 피해 감소 % (Damage Reduced By %)
   critChance?: number;
@@ -108,6 +109,7 @@ export interface PlayerStats {
 
   evasion?: number;
   damageReduction?: number;
+  shield?: number;
 }
 
 export type RoomType = 'start' | 'normal' | 'elite' | 'treasure' | 'rune' | 'shrine' | 'boss';
@@ -207,6 +209,7 @@ export interface Skill {
   soundType?: string;
   activeRuneId?: string | null;
   unlockLevel?: number;
+  hitCount?: number;
 }
 
 export interface CombatLogEntry {

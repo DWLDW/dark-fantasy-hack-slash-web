@@ -69,7 +69,8 @@ export const ALL_AVAILABLE_SKILLS: Skill[] = [
     icon: 'Sword',
     hotkey: 'Q',
     activeRuneId: 'rune_fire',
-    unlockLevel: 1
+    unlockLevel: 1,
+    hitCount: 1
   },
   {
     id: 'execute',
@@ -86,23 +87,8 @@ export const ALL_AVAILABLE_SKILLS: Skill[] = [
     icon: 'Skull',
     hotkey: 'W',
     activeRuneId: 'rune_poison',
-    unlockLevel: 3
-  },
-  {
-    id: 'shield_bash',
-    name: '방패 강타 (Shield Bash)',
-    level: 1,
-    maxLevel: 10,
-    rageCost: 15,
-    manaCost: 0,
-    damageMultiplier: 2.4,
-    overkillEfficiency: 0.65,
-    route: 'single',
-    description: '단단한 방패로 전방 적을 후려쳐 2.4배의 물리 피해를 입히고 적 방어력을 40% 분쇄합니다.',
-    icon: 'Shield',
-    hotkey: 'W',
-    activeRuneId: 'rune_frost',
-    unlockLevel: 6
+    unlockLevel: 2,
+    hitCount: 1
   },
   {
     id: 'cleave',
@@ -119,7 +105,25 @@ export const ALL_AVAILABLE_SKILLS: Skill[] = [
     icon: 'Zap',
     hotkey: 'E',
     activeRuneId: 'rune_lightning',
-    unlockLevel: 10
+    unlockLevel: 3,
+    hitCount: 3
+  },
+  {
+    id: 'shield_bash',
+    name: '방패 강타 (Shield Bash)',
+    level: 1,
+    maxLevel: 10,
+    rageCost: 15,
+    manaCost: 0,
+    damageMultiplier: 2.4,
+    overkillEfficiency: 0.65,
+    route: 'single',
+    description: '단단한 방패로 전방 적을 후려쳐 2.4배 물리 피해를 입히고 플레이어에게 생명력 보호막(Shield)을 생성합니다!',
+    icon: 'Shield',
+    hotkey: 'W',
+    activeRuneId: 'rune_frost',
+    unlockLevel: 6,
+    hitCount: 1
   },
   {
     id: 'berserk',
@@ -135,7 +139,8 @@ export const ALL_AVAILABLE_SKILLS: Skill[] = [
     icon: 'Flame',
     hotkey: 'E',
     activeRuneId: 'rune_fire',
-    unlockLevel: 15
+    unlockLevel: 15,
+    hitCount: 1
   },
   {
     id: 'whirlwind',
@@ -152,7 +157,8 @@ export const ALL_AVAILABLE_SKILLS: Skill[] = [
     icon: 'RotateCw',
     hotkey: 'R',
     activeRuneId: 'rune_frost',
-    unlockLevel: 20
+    unlockLevel: 20,
+    hitCount: 10
   },
   {
     id: 'war_cry',
@@ -169,7 +175,8 @@ export const ALL_AVAILABLE_SKILLS: Skill[] = [
     icon: 'Activity',
     hotkey: 'R',
     activeRuneId: 'rune_void',
-    unlockLevel: 25
+    unlockLevel: 25,
+    hitCount: 10
   }
 ];
 
@@ -198,4 +205,54 @@ export function getSkillUnlockLevel(skillId: string): number {
 
 export function isSkillUnlocked(skillId: string, playerLevel: number): boolean {
   return playerLevel >= getSkillUnlockLevel(skillId);
+}
+
+export function getSkillDamageText(
+  skill: Skill,
+  totalStats: { minDmg?: number; maxDmg?: number },
+  level: number = 1,
+  runeId?: string | null
+): string {
+  const minD = Math.max(1, totalStats.minDmg || 10);
+  const maxD = Math.max(minD, totalStats.maxDmg || 15);
+  const avgD = Math.round((minD + maxD) / 2);
+
+  const levelMult = 1 + (level - 1) * 0.15;
+  const activeRune = runeId ? SKILL_RUNES_DATA.find(r => r.id === runeId) : null;
+  const runeDmgBonus = 1 + (activeRune?.damageBonusPercent || 0) / 100;
+  const totalMult = skill.damageMultiplier * levelMult * runeDmgBonus;
+
+  const dmgMin = Math.floor(minD * totalMult);
+  const dmgMax = Math.floor(maxD * totalMult);
+  const dmgAvg = Math.floor(avgD * totalMult);
+  const percentStr = Math.round(totalMult * 100) + '%';
+
+  const hitSuffix = skill.hitCount && skill.hitCount > 1 ? ` x${skill.hitCount}` : '';
+  const shieldSuffix = skill.id === 'shield_bash' ? ' 🛡️' : '';
+
+  return `${percentStr}(${dmgAvg})${hitSuffix}${shieldSuffix}`;
+}
+
+export function getSkillDamageRangeDetail(
+  skill: Skill,
+  totalStats: { minDmg?: number; maxDmg?: number },
+  level: number = 1,
+  runeId?: string | null
+): { percent: number; minDamage: number; maxDamage: number; avgDamage: number; hitCount: number } {
+  const minD = Math.max(1, totalStats.minDmg || 10);
+  const maxD = Math.max(minD, totalStats.maxDmg || 15);
+  const avgD = Math.round((minD + maxD) / 2);
+
+  const levelMult = 1 + (level - 1) * 0.15;
+  const activeRune = runeId ? SKILL_RUNES_DATA.find(r => r.id === runeId) : null;
+  const runeDmgBonus = 1 + (activeRune?.damageBonusPercent || 0) / 100;
+  const totalMult = skill.damageMultiplier * levelMult * runeDmgBonus;
+
+  return {
+    percent: Math.round(totalMult * 100),
+    minDamage: Math.floor(minD * totalMult),
+    maxDamage: Math.floor(maxD * totalMult),
+    avgDamage: Math.floor(avgD * totalMult),
+    hitCount: skill.hitCount || 1
+  };
 }

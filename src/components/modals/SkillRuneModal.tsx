@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useGame } from '../../state/gameStore';
 import { useHoldAction } from '../../utils/useHoldAction';
-import { ALL_AVAILABLE_SKILLS, SKILL_RUNES_DATA, isSkillUnlocked, getSkillById } from '../../data/skills';
+import { ALL_AVAILABLE_SKILLS, SKILL_RUNES_DATA, isSkillUnlocked, getSkillById, getSkillDamageText } from '../../data/skills';
 import { Skill, SkillRune } from '../../types/game';
 import {
   X,
@@ -80,6 +80,7 @@ export const SkillRuneModal: React.FC = React.memo(() => {
     upgradeSkill,
     resetSkillPoints,
     playerStats,
+    totalStats,
     closeModal
   } = useGame();
 
@@ -222,7 +223,7 @@ export const SkillRuneModal: React.FC = React.memo(() => {
                       {skill.name}
                     </span>
                     <span className="text-xs font-mono font-black px-1.5 py-0.2 rounded bg-iron-900 text-amber-300 border border-iron-750">
-                      {unlocked ? `Lv.${sLevel}` : `Lv.${skill.unlockLevel} 해금`}
+                      {unlocked ? getSkillDamageText(skill, totalStats, sLevel, runeId) : `Lv.${skill.unlockLevel} 해금`}
                     </span>
                   </div>
 

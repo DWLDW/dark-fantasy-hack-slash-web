@@ -897,7 +897,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setMaxChainThisRoom(result.chainCount);
       }
 
-      const gains = calculateAttackGains(result, effectiveSkill, monsters);
+      const gains = calculateAttackGains(result, effectiveSkill, monsters, playerStats.maxHp, totalStats.defense);
 
       if (gains.actionExp > 0) {
         addPlayerExp(gains.actionExp);
@@ -908,9 +908,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         ...prev,
         gold: prev.gold + gains.gainedGold,
         rage: Math.min(prev.maxRage, prev.rage + gains.totalRageGained + turnRage),
-        hp: Math.min(prev.maxHp, prev.hp + gains.totalHpHealed)
+        hp: Math.min(prev.maxHp, prev.hp + gains.totalHpHealed),
+        shield: Math.min(prev.maxHp, (prev.shield || 0) + (gains.shieldGained || 0))
       }));
 
+      if (gains.shieldGained && gains.shieldGained > 0) {
+        addLog(`🛡️ [방패 강타] 생명력 보호막 +${gains.shieldGained} 생성! (현재 쉴드: ${Math.min(playerStats.maxHp, (playerStats.shield || 0) + gains.shieldGained)})`, "system");
+      }
       if (turnRage > 0) {
         addLog(`🧘 [명상 오라] 매 턴 분노 +${turnRage} 자동 충전!`, "system");
       }
@@ -1067,7 +1071,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           totalStats.evasion,
           totalStats.defense,
           totalStats.damageReduction,
-          consumables
+          consumables,
+          playerStats.shield || 0
         );
 
         if (hordeResult.frozenCount > 0) {
@@ -1078,6 +1083,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           addLog(`💨 민첩한 움직임으로 적 ${hordeResult.dodgedCount}마리의 공격을 완벽히 회피(DODGE!)했습니다! (피해 0)`, "system");
         }
 
+        if (hordeResult.absorbedDamage > 0) {
+          addLog(`🛡️ 보호막이 적 피해 ${hordeResult.absorbedDamage}을(를) 흡수했습니다! (남은 쉴드: ${hordeResult.nextShield})`, "system");
+        }
         if (hordeResult.totalEnemyDamage > 0) {
           playHordeAttackSound();
 
@@ -1367,7 +1375,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         exp: dungeonSnapshot.exp,
         level: dungeonSnapshot.level,
         shards: dungeonSnapshot.shards,
-        rage: 0
+        rage: 0,
+        shield: 0
       }));
     } else {
       setPlayerStats(p => ({ ...p, hp: p.maxHp, rage: 0 }));

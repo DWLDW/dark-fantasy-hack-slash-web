@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useGame } from '../../state/gameStore';
-import { isSkillUnlocked } from '../../data/skills';
+import { isSkillUnlocked, getSkillDamageText } from '../../data/skills';
 import { equippedCompareHint } from '../../state/helpers/dungeonEventHelper';
 import { MiniRoomGraph } from '../layout/MiniRoomGraph';
 import { Monster, Skill } from '../../types/game';
@@ -42,6 +42,8 @@ export const BattleView: React.FC = React.memo(() => {
     bestLaneHint,
     combatLogs,
     playerStats,
+    totalStats,
+    skillRunes,
     skillLevels,
     consumables,
     useConsumable,
@@ -854,9 +856,15 @@ export const BattleView: React.FC = React.memo(() => {
               >
                 <div className="w-full h-1.5 bg-rose-300/60 blur-[1px] animate-pulse" />
               </div>
+              {(playerStats.shield || 0) > 0 && (
+                <div
+                  className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-cyan-950 via-sky-600/80 to-cyan-400/90 transition-all duration-300 ease-out border-t-2 border-cyan-300"
+                  style={{ height: `${Math.max(0, Math.min(100, ((playerStats.shield || 0) / Math.max(1, playerStats.maxHp)) * 100))}%` }}
+                />
+              )}
               <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/20 via-transparent to-black/60 pointer-events-none" />
               <div className="relative z-10 text-center font-mono leading-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
-                <div className="text-[8px] sm:text-[9px] font-black text-rose-200 tracking-wider">LIFE</div>
+                <div className="text-[8px] sm:text-[9px] font-black text-rose-200 tracking-wider">{(playerStats.shield || 0) > 0 ? `🛡️ 쉴드 +${playerStats.shield}` : "LIFE"}</div>
                 <div className="text-xs sm:text-sm md:text-base font-black text-white">
                   {playerStats.hp}
                 </div>

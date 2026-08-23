@@ -12,12 +12,15 @@ export interface AttackGainsResult {
   voidHeal: number;
   bossKillsThisHit: number;
   primaryTargetCount: number;
+  shieldGained?: number;
 }
 
 export function calculateAttackGains(
   result: AttackResolution,
   effectiveSkill: Skill,
-  monsters: Monster[]
+  monsters: Monster[],
+  playerMaxHp: number = 120,
+  totalDefense: number = 0
 ): AttackGainsResult {
   const primaryTargets = result.targetsHit.filter(t => !t.isOverkillHit);
   const hitRage = primaryTargets.length * (effectiveSkill.rageGainPerHit || 0);
@@ -33,6 +36,11 @@ export function calculateAttackGains(
     : 0;
   const voidHeal = effectiveSkill.activeRuneId === 'rune_void' ? result.chainCount * 25 : 0;
   const totalHpHealed = skillHeal + voidHeal;
+
+  // Shield Bash generated shield
+  const shieldGained = effectiveSkill.id === 'shield_bash'
+    ? Math.floor(playerMaxHp * 0.25 + totalDefense * 0.6)
+    : 0;
 
   const gainedGold = result.chainCount * 25 + (result.stopperId ? 100 : 0);
 
@@ -58,7 +66,8 @@ export function calculateAttackGains(
     skillHeal,
     voidHeal,
     bossKillsThisHit,
-    primaryTargetCount: primaryTargets.length
+    primaryTargetCount: primaryTargets.length,
+    shieldGained
   };
 }
 
@@ -78,6 +87,8 @@ export function compressLaneSurvivors(newMonsters: Monster[]): Monster[] {
 
 export interface HordeAttackResult {
   totalEnemyDamage: number;
+  absorbedDamage: number;
+  nextShield: number;
   dodgedCount: number;
   frozenCount: number;
   activeAttackerCount: number;
@@ -99,7 +110,8 @@ export function resolveHordeCounterAttack(
   evasion: number,
   defense: number,
   damageReduction: number,
-  consumables: ConsumableItem[]
+  consumables: ConsumableItem[],
+  playerShield: number = 0
 ): HordeAttackResult {
   const frontRowAttackers: Monster[] = [];
   for (let l = 0; l < 5; l++) {
@@ -133,12 +145,23 @@ export function resolveHordeCounterAttack(
     totalEnemyDamage += Math.max(1, Math.floor(rawDmg * defMult * drMult));
   });
 
-  let nextHp = playerHp - totalEnemyDamage;
+  // Shield damage absorption
+  let absorbedDamage = 0;
+  let nextShield = Math.max(0, playerShield || 0);
+  let dmgToHp = totalEnemyDamage;
+
+  if (nextShield > 0 && totalEnemyDamage > 0) {
+    absorbedDamage = Math.min(nextShield, totalEnemyDamage);
+    nextShield -= absorbedDamage;
+    dmgToHp = totalEnemyDamage - absorbedDamage;
+  }
+
+  let nextHp = playerHp - dmgToHp;
   const hpPotion = consumables.find(c => c.id === 'c_hp');
   let potionUsed = false;
   let autoResurrected = false;
 
-  if (totalEnemyDamage > 0) {
+  if (dmgToHp > 0) {
     if (nextHp <= 0) {
       if (hpPotion && hpPotion.count > 0) {
         potionUsed = true;
@@ -157,6 +180,8 @@ export function resolveHordeCounterAttack(
 
   return {
     totalEnemyDamage,
+    absorbedDamage,
+    nextShield,
     dodgedCount,
     frozenCount,
     activeAttackerCount: activeAttackers.length,
