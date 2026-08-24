@@ -36,7 +36,7 @@ import { calculateRuneWordItem, craftRuneWordHelper, craftRuneWordWithTransmuteH
 import { upgradeSkillHelper, upgradePassiveHelper, resetSkillPointsHelper, getEffectiveSkill } from './helpers/skillManager';
 import { getItemSellPrice, bulkSellHelper, socketRuneHelper, cubeTransmuteHelper, POTION_CAPACITY_TIERS, getPotionCapacityUpgradeCost, getPotionHealingUpgradeCost, getConsumablePowerUpgradeCost, getGambleLevelUpgradeCost } from './helpers/cubeCraftingHelper';
 import { claimTreasureHelper, claimRuneAltarHelper, createShrineBuff, generateVictoryLoot, prepareDungeonRun, makeFirstClearSteelBase, generateRoomClearLoot } from './helpers/dungeonEventHelper';
-import { isActUnlocked, getNextStoryDungeon } from '../data/dungeons';
+import { isActUnlocked, isDungeonUnlocked, getHighestUnlockedDungeon, getNextStoryDungeon } from '../data/dungeons';
 import { findBestEquipmentPlan } from '../utils/itemScoring';
 import { WARRIOR_SKILLS, ALL_AVAILABLE_SKILLS, DEFAULT_EQUIPPED_SLOTS, getSkillById, isSkillUnlocked } from '../data/skills';
 import { calculateAttackGains, compressLaneSurvivors, resolveHordeCounterAttack } from './helpers/combatActionHelper';
@@ -1655,20 +1655,36 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const enterDungeon = (dungeonId: string, difficulty?: number) => {
-    if (!isActUnlocked(dungeonId, achievementStats.dungeonClears)) {
-      addLog('이전 막을 클리어해야 이 던전에 진입할 수 있습니다.', 'system');
+    let targetDungeonId = dungeonId;
+
+    // Verify dungeon lock state, fallback to highest unlocked dungeon if target is locked
+    if (!isDungeonUnlocked(targetDungeonId, achievementStats.dungeonClears)) {
+      const highestDungeon = getHighestUnlockedDungeon(achievementStats.dungeonClears);
+      targetDungeonId = highestDungeon.id;
+      addLog(`⚠️ 선택한 던전이 잠겨있어 현재 개방된 최고 던전 [${highestDungeon.name.split(':')[0]}]으로 출격합니다.`, 'system');
+    }
+
+    // Bag capacity check (expanded to 60, modal alert if overflowing)
+    if (inventory.length >= 60) {
+      openConfirmModal({
+        title: '소지품 가방 초과',
+        message: `소지품 가방이 가득 찼습니다 (${inventory.length}/60개).\n\n전리품을 온전히 획득하려면 가방[I]에서 필요 없는 장비를 판매하거나 모험가 보관함에 보관해주세요.`,
+        confirmText: '확인',
+        type: 'warning',
+        onConfirm: () => {}
+      });
+      addLog('❌ 가방이 가득 찼습니다. 보관 또는 판매 후 출발하세요.', 'system');
       return;
     }
-    if (inventory.length >= 40) {
-      addLog('❌ 가방이 가득 찼습니다. 판매 후 출발하세요.', 'system');
-      return;
+
+    if (inventory.length >= 50) {
+      addLog(`⚠️ 가방이 거의 찼습니다 (${inventory.length}/60)`, 'system');
     }
-    if (inventory.length >= 35) {
-      addLog(`⚠️ 가방이 거의 찼습니다 (${inventory.length}/40)`, 'system');
-    }
-    const dungeon = DUNGEONS_DATA.find(d => d.id === dungeonId) || DUNGEONS_DATA[0];
-    const diffToUse = difficulty || currentDifficulty || 1;
+
+    const dungeon = DUNGEONS_DATA.find(d => d.id === targetDungeonId) || DUNGEONS_DATA[0];
+    const diffToUse = Math.max(1, difficulty || currentDifficulty || 1);
     setCurrentDifficulty(diffToUse);
+
     const rolledRooms = prepareDungeonRun(dungeon);
     const firstRoomId = rolledRooms.find(r => r.id === 2)?.id || rolledRooms.find(r => r.type !== 'start')?.id || 2;
     const firstRoom = rolledRooms.find(r => r.id === firstRoomId);
@@ -1689,6 +1705,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLatestRoomLootEvent(null);
     setDungeonBuffs([]);
     setPendingExitRoomId(null);
+
     setCurrentDungeon({
       ...dungeon,
       rooms: rolledRooms.map(r => ({
@@ -1698,16 +1715,21 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }))
     });
     setCurrentRoomId(firstRoomId);
-    setMonsters(createDungeonFormation(dungeon.id, roomType, playerStats.level, diffToUse));
+
+    const initialMonsters = createDungeonFormation(dungeon.id, roomType, playerStats.level, diffToUse);
+    setMonsters(initialMonsters);
+
     setChainCount(0);
     setMaxChainThisRoom(0);
     bossTurnCountRef.current = 0;
     bossSummonedRef.current = {};
     setBossTurnCount(0);
     setBossGuardActive(false);
+
+    // Transition view directly to battle
     setViewMode('battle');
     startBGM('dungeon');
-    addLog("⚔️ [" + dungeon.name + "] (난이도 Lv." + diffToUse + ") 진입. [Q] 가르기 · [Space] 공격 · [←/→] 레인", "system");
+    addLog(`⚔️ [${dungeon.name}] (난이도 Lv.${diffToUse}) 진입 완료! [Q/W/E/R] 스킬 · [Space] 공격 · [←/→] 레인`, 'system');
   };
 
   const selectNextRoom = (roomId: number) => {

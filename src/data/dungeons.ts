@@ -36,6 +36,7 @@ export const ACT_DUNGEON_GROUPS: Record<number, string[]> = {
 export const ALL_DUNGEON_IDS = Object.values(ACT_DUNGEON_GROUPS).flat();
 
 export function isDungeonUnlocked(dungeonId: string, dungeonClears: Record<string, number> = {}): boolean {
+  if (!dungeonId) return true;
   const index = ALL_DUNGEON_IDS.indexOf(dungeonId);
   if (index <= 0) return true; // First dungeon of Act 1 is always unlocked
 
@@ -43,7 +44,7 @@ export function isDungeonUnlocked(dungeonId: string, dungeonClears: Record<strin
   let currentAct = 1;
   let actDungeons: string[] = ACT_DUNGEON_GROUPS[1];
   for (let act = 1; act <= 5; act++) {
-    if (ACT_DUNGEON_GROUPS[act].includes(dungeonId)) {
+    if (ACT_DUNGEON_GROUPS[act] && ACT_DUNGEON_GROUPS[act].includes(dungeonId)) {
       currentAct = act;
       actDungeons = ACT_DUNGEON_GROUPS[act];
       break;
@@ -51,15 +52,18 @@ export function isDungeonUnlocked(dungeonId: string, dungeonClears: Record<strin
   }
 
   const dIdxInAct = actDungeons.indexOf(dungeonId);
+  if (dIdxInAct === -1) return true; // Unknown dungeon fallback to open
 
   // If first dungeon of an Act > 1, must have cleared all dungeons of previous act
   if (dIdxInAct === 0 && currentAct > 1) {
     const prevActDungeons = ACT_DUNGEON_GROUPS[currentAct - 1];
+    if (!prevActDungeons) return true;
     return prevActDungeons.every(dId => (dungeonClears[dId] || 0) >= 1);
   }
 
   // Otherwise, must have cleared the previous dungeon in the same act
   const prevDungeonId = actDungeons[dIdxInAct - 1];
+  if (!prevDungeonId) return true;
   return (dungeonClears[prevDungeonId] || 0) >= 1;
 }
 
@@ -72,6 +76,17 @@ export function isActUnlocked(actOrDungeon: number | string, dungeonClears: Reco
   const prevActDungeons = ACT_DUNGEON_GROUPS[actNum - 1];
   if (!prevActDungeons) return false;
   return prevActDungeons.every(dId => (dungeonClears[dId] || 0) >= 1);
+}
+
+export function getHighestUnlockedDungeon(dungeonClears: Record<string, number> = {}): DungeonInfo {
+  for (let i = ALL_DUNGEON_IDS.length - 1; i >= 0; i--) {
+    const dId = ALL_DUNGEON_IDS[i];
+    if (isDungeonUnlocked(dId, dungeonClears)) {
+      const found = DUNGEONS_DATA.find(d => d.id === dId);
+      if (found) return found;
+    }
+  }
+  return DUNGEONS_DATA[0];
 }
 
 export function getNextStoryDungeon(currentDungeonId: string): DungeonInfo | null {

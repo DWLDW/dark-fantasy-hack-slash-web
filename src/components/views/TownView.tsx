@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useGame } from '../../state/gameStore';
 import { DUNGEONS_DATA, RUNEWORD_RECIPES, D2_RUNES } from '../../data/gameData';
 import { simulateRuneWordCrafting } from '../../utils/runeCrafting';
 import { POTION_CAPACITY_TIERS, getPotionCapacityUpgradeCost, getPotionHealingUpgradeCost, getConsumablePowerUpgradeCost, getGambleLevelUpgradeCost } from '../../state/helpers/cubeCraftingHelper';
 import { GameItem } from '../../types/game';
 import { ACHIEVEMENTS } from '../../data/achievements';
+import { isDungeonUnlocked, getHighestUnlockedDungeon } from '../../data/dungeons';
 import { Box, Sparkles, Dices, BookOpen, ArrowRight, Shield, Compass, Hammer, Trophy, Zap, Package } from 'lucide-react';
 
 export const TownView: React.FC = React.memo(() => {
@@ -48,7 +49,13 @@ export const TownView: React.FC = React.memo(() => {
   const [selectedCubeItems, setSelectedCubeItems] = useState<string[]>([]);
   const [selectedBaseItem, setSelectedBaseItem] = useState<GameItem | null>(null);
 
-  const lastDungeon = currentDungeon || DUNGEONS_DATA[0];
+  const highestUnlocked = useMemo(() => getHighestUnlockedDungeon(achievementStats.dungeonClears), [achievementStats.dungeonClears]);
+  const lastDungeon = useMemo(() => {
+    if (currentDungeon && isDungeonUnlocked(currentDungeon.id, achievementStats.dungeonClears)) {
+      return currentDungeon;
+    }
+    return highestUnlocked;
+  }, [currentDungeon, highestUnlocked, achievementStats.dungeonClears]);
 
   const handleToggleCubeItem = (id: string) => {
     if (selectedCubeItems.includes(id)) {
