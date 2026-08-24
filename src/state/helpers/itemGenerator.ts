@@ -6,18 +6,20 @@ export interface GambleResult {
   isHighRarity: boolean;
 }
 
+export type GambleCategory = 'weapon' | 'armor' | 'shield' | 'helm' | 'gloves' | 'boots' | 'ring' | 'amulet';
+
 export function generateGambleItem(
-  gambleType: 'weapon' | 'armor' | 'ring' | 'amulet',
+  gambleType: GambleCategory,
   gambleLevel: number = 1,
   cost: number
 ): GambleResult {
-  const effLevel = gambleLevel >= 5 ? 50 : gambleLevel === 4 ? 38 : gambleLevel === 3 ? 26 : gambleLevel === 2 ? 15 : 1;
+  const effLevel = gambleLevel >= 10 ? 75 : gambleLevel >= 5 ? 50 : gambleLevel === 4 ? 38 : gambleLevel === 3 ? 26 : gambleLevel === 2 ? 15 : 1;
   const roll = Math.random() * 100;
   let rarity: GameItem['rarity'] = 'magic';
-  if (roll > 99) rarity = 'legendary';
-  else if (roll > 93) rarity = 'unique';
-  else if (roll > 86) rarity = 'set';
-  else if (roll > 70) rarity = 'rare';
+  if (roll > 98.5) rarity = 'legendary';
+  else if (roll > 91) rarity = 'unique';
+  else if (roll > 83) rarity = 'set';
+  else if (roll > 65) rarity = 'rare';
 
   let baseItemName = '도검';
   let baseMinDmg = 5;
@@ -26,11 +28,12 @@ export function generateGambleItem(
   let baseAtbPercent = 50;
   let speedCategory: GameItem['speedCategory'] = 'normal';
   let icon = 'Sword';
+  let slot: EquipSlot = 'weapon';
 
   if (gambleType === 'weapon') {
+    slot = 'weapon';
     icon = 'Sword';
-    const effLvl = gambleLevel >= 4 ? 35 : gambleLevel === 3 ? 26 : gambleLevel === 2 ? 15 : 1;
-    if (effLvl >= 26) {
+    if (effLevel >= 38) {
       const pool = [
         { name: '페이즈 블레이드', min: 35, max: 55, atb: 85, spd: 'very_fast' as const },
         { name: '츠바이핸더', min: 25, max: 48, atb: 60, spd: 'fast' as const },
@@ -43,7 +46,7 @@ export function generateGambleItem(
       baseMaxDmg = pick.max;
       baseAtbPercent = pick.atb;
       speedCategory = pick.spd;
-    } else if (effLvl >= 15) {
+    } else if (effLevel >= 15) {
       const pool = [
         { name: '크리스탈 소드', min: 15, max: 28, atb: 70, spd: 'fast' as const },
         { name: '배틀 소드', min: 18, max: 35, atb: 55, spd: 'normal' as const },
@@ -70,56 +73,108 @@ export function generateGambleItem(
       speedCategory = pick.spd;
     }
   } else if (gambleType === 'armor') {
+    slot = 'armor';
     icon = 'Shield';
-    const effLvl = gambleLevel >= 4 ? 35 : gambleLevel === 3 ? 26 : gambleLevel === 2 ? 15 : 1;
-    if (effLvl >= 26) {
-      const pool = [
-        { name: '아콘 플레이트', def: 120 },
-        { name: '더스크 슈라우드', def: 105 },
-        { name: '샤코', def: 85 },
-        { name: '모나크', def: 95 }
-      ];
+    if (effLevel >= 38) {
+      const pool = [{ name: '아콘 플레이트', def: 120 }, { name: '더스크 슈라우드', def: 105 }, { name: '세이크리드 아머', def: 145 }];
       const pick = pool[Math.floor(Math.random() * pool.length)];
       baseItemName = pick.name;
       baseDefense = pick.def;
-    } else if (effLvl >= 15) {
-      const pool = [
-        { name: '메이지 플레이트', def: 55 },
-        { name: '고스트 아머', def: 45 },
-        { name: '본헬름', def: 35 },
-        { name: '타워 실드', def: 40 }
-      ];
+    } else if (effLevel >= 15) {
+      const pool = [{ name: '메이지 플레이트', def: 55 }, { name: '고스트 아머', def: 45 }, { name: '오네이트 플레이트', def: 75 }];
       const pick = pool[Math.floor(Math.random() * pool.length)];
       baseItemName = pick.name;
       baseDefense = pick.def;
     } else {
-      const pool = [
-        { name: '가죽 갑옷', def: 12 },
-        { name: '체인 메일', def: 20 },
-        { name: '캡', def: 8 },
-        { name: '버클러', def: 10 }
-      ];
+      const pool = [{ name: '가죽 갑옷', def: 12 }, { name: '하드 레더 아머', def: 16 }, { name: '체인 메일', def: 24 }];
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      baseItemName = pick.name;
+      baseDefense = pick.def;
+    }
+  } else if (gambleType === 'shield') {
+    slot = 'shield';
+    icon = 'Shield';
+    if (effLevel >= 38) {
+      const pool = [{ name: '모나크', def: 95 }, { name: '이지스', def: 110 }, { name: '워드', def: 125 }];
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      baseItemName = pick.name;
+      baseDefense = pick.def;
+    } else if (effLevel >= 15) {
+      const pool = [{ name: '타워 실드', def: 45 }, { name: '고딕 실드', def: 50 }, { name: '스큐텀', def: 55 }];
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      baseItemName = pick.name;
+      baseDefense = pick.def;
+    } else {
+      const pool = [{ name: '버클러', def: 10 }, { name: '스몰 실드', def: 14 }, { name: '라지 실드', def: 20 }];
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      baseItemName = pick.name;
+      baseDefense = pick.def;
+    }
+  } else if (gambleType === 'helm') {
+    slot = 'helm';
+    icon = 'Crown';
+    if (effLevel >= 38) {
+      const pool = [{ name: '샤코 (하를리퀸)', def: 85 }, { name: '코로나', def: 95 }, { name: '본 비지즈', def: 90 }];
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      baseItemName = pick.name;
+      baseDefense = pick.def;
+    } else if (effLevel >= 15) {
+      const pool = [{ name: '본헬름', def: 35 }, { name: '그랜드 크라운', def: 45 }, { name: '샐릿', def: 40 }];
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      baseItemName = pick.name;
+      baseDefense = pick.def;
+    } else {
+      const pool = [{ name: '캡', def: 8 }, { name: '스컬 캡', def: 12 }, { name: '헬름', def: 18 }];
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      baseItemName = pick.name;
+      baseDefense = pick.def;
+    }
+  } else if (gambleType === 'gloves') {
+    slot = 'gloves';
+    icon = 'Zap';
+    if (effLevel >= 38) {
+      const pool = [{ name: '뱀파이어팽 글로브', def: 60 }, { name: '크루세이더 건틀릿', def: 70 }, { name: '오우거 건틀릿', def: 75 }];
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      baseItemName = pick.name;
+      baseDefense = pick.def;
+    } else if (effLevel >= 15) {
+      const pool = [{ name: '워 건틀릿', def: 30 }, { name: '헤비 브레이서', def: 25 }, { name: '샤크스킨 글로브', def: 35 }];
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      baseItemName = pick.name;
+      baseDefense = pick.def;
+    } else {
+      const pool = [{ name: '가죽 장갑', def: 6 }, { name: '헤비 글로브', def: 10 }, { name: '체인 글로브', def: 14 }];
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      baseItemName = pick.name;
+      baseDefense = pick.def;
+    }
+  } else if (gambleType === 'boots') {
+    slot = 'boots';
+    icon = 'ArrowRight';
+    if (effLevel >= 38) {
+      const pool = [{ name: '미러드 부츠', def: 65 }, { name: '미르미돈 그리브', def: 75 }, { name: '스카라베 쉘 부츠', def: 70 }];
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      baseItemName = pick.name;
+      baseDefense = pick.def;
+    } else if (effLevel >= 15) {
+      const pool = [{ name: '워 부츠', def: 32 }, { name: '샤크스킨 부츠', def: 28 }, { name: '배틀 부츠', def: 36 }];
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      baseItemName = pick.name;
+      baseDefense = pick.def;
+    } else {
+      const pool = [{ name: '가죽 부츠', def: 6 }, { name: '헤비 부츠', def: 10 }, { name: '체인 부츠', def: 14 }];
       const pick = pool[Math.floor(Math.random() * pool.length)];
       baseItemName = pick.name;
       baseDefense = pick.def;
     }
   } else if (gambleType === 'ring') {
+    slot = 'ring1';
     icon = 'CircleDot';
     baseItemName = '반지';
   } else {
+    slot = 'amulet';
     icon = 'Sparkles';
     baseItemName = '목걸이';
-  }
-
-  let slot: EquipSlot = 'weapon';
-  if (gambleType === 'armor') {
-    if (baseItemName.includes('샤코') || baseItemName.includes('본헬름') || baseItemName.includes('캡')) slot = 'helm';
-    else if (baseItemName.includes('모나크') || baseItemName.includes('타워 실드') || baseItemName.includes('버클러')) slot = 'shield';
-    else slot = 'armor';
-  } else if (gambleType === 'ring') {
-    slot = 'ring1';
-  } else if (gambleType === 'amulet') {
-    slot = 'amulet';
   }
 
   const isHighRarity = rarity === 'unique' || rarity === 'legendary' || rarity === 'set';

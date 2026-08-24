@@ -188,9 +188,10 @@ export function cubeTransmuteHelper(selectedItems: GameItem[]): CubeTransmuteRes
   return { success: false, message: '일치하는 호라드릭 큐브 레시피가 없습니다.' };
 }
 
-export const POTION_CAPACITY_TIERS = [3, 4, 5, 6, 8, 10];
-export const POTION_CAPACITY_COSTS = [1500, 4000, 10000, 25000, 60000];
-export const GAMBLE_LEVEL_COSTS = [0, 5000, 18000, 50000, 120000];
+export const POTION_CAPACITY_TIERS = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20];
+export const POTION_CAPACITY_COSTS = [
+  1500, 4000, 10000, 25000, 50000, 100000, 200000, 400000, 800000, 1500000, 3000000, 6000000, 12000000
+];
 
 export function getPotionCapacityUpgradeCost(currentLevel: number): number | null {
   if (currentLevel >= POTION_CAPACITY_COSTS.length) return null;
@@ -198,16 +199,16 @@ export function getPotionCapacityUpgradeCost(currentLevel: number): number | nul
 }
 
 export function getPotionHealingUpgradeCost(currentLevel: number): number | null {
-  if (currentLevel >= 10) return null;
-  return (currentLevel + 1) * 2000;
+  if (currentLevel >= 30) return null;
+  return Math.floor(2000 * Math.pow(1.22, currentLevel));
 }
 
 export function getConsumablePowerUpgradeCost(currentLevel: number): number | null {
-  if (currentLevel >= 10) return null;
-  return (currentLevel + 1) * 2500;
+  if (currentLevel >= 30) return null;
+  return Math.floor(2500 * Math.pow(1.22, currentLevel));
 }
 
 export function getGambleLevelUpgradeCost(currentLevel: number): number | null {
-  if (currentLevel >= 5) return null;
-  return GAMBLE_LEVEL_COSTS[currentLevel];
+  if (currentLevel >= 20) return null;
+  return Math.floor(5000 * Math.pow(1.35, currentLevel));
 }

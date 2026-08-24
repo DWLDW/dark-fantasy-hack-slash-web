@@ -277,12 +277,12 @@ export function generateVictoryLoot(
   const actMultiplier = dungeonIndex + 1;
   const diffMultiplier = 1 + (difficultyLevel - 1) * 0.45;
 
+  const dungeonWithinAct = dungeonIndex % 4;
   const victoryGold = Math.floor((3000 * actMultiplier + Math.random() * 1000) * diffMultiplier);
-  const victoryShards = Math.floor(10 * actMultiplier * (1 + (difficultyLevel - 1) * 0.15));
+  const victoryShards = Math.floor((25 + actIndex * 35 + dungeonWithinAct * 10) * (1 + (difficultyLevel - 1) * 0.25));
 
   // Progressive base exp scale per Act: Act 1 (~100-300), Act 2 (~800-1500), Act 3 (~3500-6000), Act 4 (~15000-25000), Act 5 (~60000-100000)
   const actBaseExps = [150, 900, 4000, 18000, 75000];
-  const dungeonWithinAct = dungeonIndex % 4;
   const baseExp = Math.floor(actBaseExps[actIndex] * (1 + dungeonWithinAct * 0.35));
 
   const victoryExp = Math.floor(baseExp * (1 + (difficultyLevel - 1) * 0.40));

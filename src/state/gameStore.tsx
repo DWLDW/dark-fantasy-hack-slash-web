@@ -31,9 +31,9 @@ import {
 import { ACHIEVEMENTS, INITIAL_ACHIEVEMENT_STATS, AchievementStats } from '../data/achievements';
 import { resolveAttack, createGoblin30Formation, findBestLaneForSkill, AttackResolution, CombatHitResult, createDungeonFormation } from '../combat/combatEngine';
 import { calculateTotalStats, CalculatedTotalStats } from './helpers/statCalculator';
-import { generateGambleItem, identifyItemHelper } from './helpers/itemGenerator';
+import { generateGambleItem, identifyItemHelper, GambleCategory } from './helpers/itemGenerator';
 import { calculateRuneWordItem, craftRuneWordHelper, craftRuneWordWithTransmuteHelper, transmuteRuneInVaultHelper } from './helpers/runeWordCalculator';
-import { upgradeSkillHelper, upgradePassiveHelper, resetSkillPointsHelper, getEffectiveSkill } from './helpers/skillManager';
+import { upgradeSkillHelper, upgradePassiveHelper, resetSkillPointsHelper, getEffectiveSkill, calculateResetShardCost } from './helpers/skillManager';
 import { getItemSellPrice, bulkSellHelper, socketRuneHelper, cubeTransmuteHelper, POTION_CAPACITY_TIERS, getPotionCapacityUpgradeCost, getPotionHealingUpgradeCost, getConsumablePowerUpgradeCost, getGambleLevelUpgradeCost } from './helpers/cubeCraftingHelper';
 import { claimTreasureHelper, claimRuneAltarHelper, createShrineBuff, generateVictoryLoot, prepareDungeonRun, makeFirstClearSteelBase, generateRoomClearLoot } from './helpers/dungeonEventHelper';
 import { isActUnlocked, isDungeonUnlocked, getHighestUnlockedDungeon, getNextStoryDungeon } from '../data/dungeons';
@@ -208,7 +208,7 @@ interface GameContextType {
   // Diablo 2 Crafting & Features
   socketRuneIntoItem: (targetItemId: string, runeId: string) => void;
   transmuteInCube: (itemIds: string[]) => void;
-  gambleItem: (gambleType: 'weapon' | 'armor' | 'ring' | 'amulet') => { item: GameItem; isHighRarity: boolean } | null;
+  gambleItem: (gambleType: GambleCategory) => { item: GameItem; isHighRarity: boolean } | null;
   identifyItem: (itemId: string) => void;
   identifyAllItems: () => GameItem[];
   sellItem: (itemId: string) => number;
@@ -521,7 +521,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const resetSkillPoints = () => {
+  const resetSkillPoints = (): boolean => {
+    const shardCost = calculateResetShardCost(playerStats.level);
+    if (playerStats.shards < shardCost) {
+      addLog(`❌ 스킬 초기화에 필요한 샤드가 부족합니다! (필요: ${shardCost}개, 보유: ${playerStats.shards}개)`, 'system');
+      return false;
+    }
+
     const { newSkillLevels, newPassiveLevels, newSkillPoints, refundedPoints } = resetSkillPointsHelper(
       skillLevels,
       passiveLevels,
@@ -529,8 +535,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
     setSkillLevels(newSkillLevels);
     setPassiveLevels(newPassiveLevels);
-    setPlayerStats(prev => ({ ...prev, skillPoints: newSkillPoints }));
-    addLog(`🔄 모든 액티브 및 패시브 스킬 포인트(${refundedPoints}P)를 전액 회수하여 반환했습니다.`, "system");
+    setPlayerStats(prev => ({
+      ...prev,
+      shards: Math.max(0, prev.shards - shardCost),
+      skillPoints: newSkillPoints
+    }));
+    playRuneWordSound();
+    addLog(`🔄 샤드 ${shardCost}개를 소모하여 모든 액티브/패시브 스킬(${refundedPoints}P)을 전액 환급받았습니다.`, "system");
+    return true;
   };
 
   const addRuneToVault = (runeKey: string, count = 1) => {
@@ -877,10 +889,17 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   }, [addLog]);
 
-  const resetStatPoints = useCallback(() => {
+  const resetStatPoints = useCallback((): boolean => {
+    const shardCost = calculateResetShardCost(playerStats.level);
+    if (playerStats.shards < shardCost) {
+      addLog(`❌ 스탯 초기화에 필요한 샤드가 부족합니다! (필요: ${shardCost}개, 보유: ${playerStats.shards}개)`, 'system');
+      return false;
+    }
+
     const totalEarnedPoints = (playerStats.level - 1) * 5;
     setPlayerStats(prev => ({
       ...prev,
+      shards: Math.max(0, prev.shards - shardCost),
       str: 15,
       dex: 10,
       con: 15,
@@ -894,8 +913,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       mana: Math.min(prev.mana, 40 + (prev.level - 1) * 8 + 5 * 3)
     }));
     playRuneWordSound();
-    addLog(`🔄 투자한 모든 스탯 포인트를 회수하여 ${totalEarnedPoints}P를 환급받았습니다.`, 'system');
-  }, [playerStats.level, addLog]);
+    addLog(`🔄 샤드 ${shardCost}개를 소모하여 모든 스탯 포인트를 회수하고 ${totalEarnedPoints}P를 환급받았습니다.`, 'system');
+    return true;
+  }, [playerStats.level, playerStats.shards, addLog]);
 
   // Compute Total Character Stats
   const totalStats = useMemo(() => {
@@ -2037,17 +2057,25 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { count: sellableItems.length, gold: totalGold };
   };
 
-  const gambleItem = (gambleType: "weapon" | "armor" | "ring" | "amulet"): { item: GameItem; isHighRarity: boolean } | null => {
-    const costMap = { weapon: 3500, armor: 4000, ring: 6000, amulet: 7500 };
-    const cost = costMap[gambleType];
+  const gambleItem = (gambleType: GambleCategory): { item: GameItem; isHighRarity: boolean } | null => {
+    const costMap: Record<GambleCategory, number> = {
+      weapon: 3500,
+      armor: 4000,
+      shield: 3800,
+      helm: 3200,
+      gloves: 2800,
+      boots: 2800,
+      ring: 6000,
+      amulet: 7500
+    };
+    const cost = costMap[gambleType] || 3500;
 
     if (playerStats.gold < cost) {
-      addLog(`도박 골드가 부족합니다! (필요: ${cost}G, 보유: ${playerStats.gold}G)`, "system");
+      addLog(`도박 골드가 부족합니다! (필요: ${cost.toLocaleString()}G, 보유: ${playerStats.gold.toLocaleString()}G)`, "system");
       return null;
     }
 
     setPlayerStats(prev => ({ ...prev, gold: prev.gold - cost }));
-    const pLevel = playerStats.level || 1;
     const { item: newItem, isHighRarity } = generateGambleItem(gambleType, townUpgrades.gambleLevel, cost);
 
     setInventory(prev => [newItem, ...prev]);

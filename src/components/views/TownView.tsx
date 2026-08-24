@@ -484,7 +484,7 @@ export const TownView: React.FC = React.memo(() => {
                   </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-2 font-mono">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono">
                   <button
                     onClick={() => {
                       const res = gambleItem('weapon');
@@ -493,10 +493,10 @@ export const TownView: React.FC = React.memo(() => {
                     className="p-2.5 bg-iron-950 hover:bg-iron-850 border-2 border-iron-700 hover:border-amber-400 rounded-lg text-left transition space-y-1 shadow cursor-pointer transform active:scale-95"
                   >
                     <div className="font-bold text-gray-100 text-xs flex items-center justify-between">
-                      <span>⚔️ 미확인 도검류</span>
-                      <span className="text-[10px] text-amber-400">무기</span>
+                      <span>⚔️ 무기류</span>
+                      <span className="text-[10px] text-amber-400">도검/폴암</span>
                     </div>
-                    <div className="text-brass-200 font-black text-xs">3,500 Gold</div>
+                    <div className="text-brass-200 font-black text-xs">3,500 G</div>
                   </button>
 
                   <button
@@ -507,10 +507,66 @@ export const TownView: React.FC = React.memo(() => {
                     className="p-2.5 bg-iron-950 hover:bg-iron-850 border-2 border-iron-700 hover:border-blue-400 rounded-lg text-left transition space-y-1 shadow cursor-pointer transform active:scale-95"
                   >
                     <div className="font-bold text-gray-100 text-xs flex items-center justify-between">
-                      <span>🛡️ 미확인 판금갑옷</span>
-                      <span className="text-[10px] text-blue-400">방어구</span>
+                      <span>🥋 갑옷류</span>
+                      <span className="text-[10px] text-blue-400">판금갑옷</span>
                     </div>
-                    <div className="text-brass-200 font-black text-xs">4,000 Gold</div>
+                    <div className="text-brass-200 font-black text-xs">4,000 G</div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      const res = gambleItem('shield');
+                      if (res) setGambleFeedback({ item: res.item, isHighRarity: res.isHighRarity, cost: 3800 });
+                    }}
+                    className="p-2.5 bg-iron-950 hover:bg-iron-850 border-2 border-iron-700 hover:border-cyan-400 rounded-lg text-left transition space-y-1 shadow cursor-pointer transform active:scale-95"
+                  >
+                    <div className="font-bold text-gray-100 text-xs flex items-center justify-between">
+                      <span>🛡️ 방패류</span>
+                      <span className="text-[10px] text-cyan-400">방패/모나크</span>
+                    </div>
+                    <div className="text-brass-200 font-black text-xs">3,800 G</div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      const res = gambleItem('helm');
+                      if (res) setGambleFeedback({ item: res.item, isHighRarity: res.isHighRarity, cost: 3200 });
+                    }}
+                    className="p-2.5 bg-iron-950 hover:bg-iron-850 border-2 border-iron-700 hover:border-yellow-400 rounded-lg text-left transition space-y-1 shadow cursor-pointer transform active:scale-95"
+                  >
+                    <div className="font-bold text-gray-100 text-xs flex items-center justify-between">
+                      <span>🪖 투구류</span>
+                      <span className="text-[10px] text-yellow-400">투구/샤코</span>
+                    </div>
+                    <div className="text-brass-200 font-black text-xs">3,200 G</div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      const res = gambleItem('gloves');
+                      if (res) setGambleFeedback({ item: res.item, isHighRarity: res.isHighRarity, cost: 2800 });
+                    }}
+                    className="p-2.5 bg-iron-950 hover:bg-iron-850 border-2 border-iron-700 hover:border-emerald-400 rounded-lg text-left transition space-y-1 shadow cursor-pointer transform active:scale-95"
+                  >
+                    <div className="font-bold text-gray-100 text-xs flex items-center justify-between">
+                      <span>🧤 장갑류</span>
+                      <span className="text-[10px] text-emerald-400">건틀릿</span>
+                    </div>
+                    <div className="text-brass-200 font-black text-xs">2,800 G</div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      const res = gambleItem('boots');
+                      if (res) setGambleFeedback({ item: res.item, isHighRarity: res.isHighRarity, cost: 2800 });
+                    }}
+                    className="p-2.5 bg-iron-950 hover:bg-iron-850 border-2 border-iron-700 hover:border-emerald-400 rounded-lg text-left transition space-y-1 shadow cursor-pointer transform active:scale-95"
+                  >
+                    <div className="font-bold text-gray-100 text-xs flex items-center justify-between">
+                      <span>🥾 신발류</span>
+                      <span className="text-[10px] text-emerald-400">장화/그리브</span>
+                    </div>
+                    <div className="text-brass-200 font-black text-xs">2,800 G</div>
                   </button>
 
                   <button
@@ -521,10 +577,10 @@ export const TownView: React.FC = React.memo(() => {
                     className="p-2.5 bg-iron-950 hover:bg-iron-850 border-2 border-iron-700 hover:border-purple-400 rounded-lg text-left transition space-y-1 shadow cursor-pointer transform active:scale-95"
                   >
                     <div className="font-bold text-gray-100 text-xs flex items-center justify-between">
-                      <span>💍 미확인 반지 (Ring)</span>
-                      <span className="text-[10px] text-purple-400">조던/나겔링</span>
+                      <span>💍 반지 (Ring)</span>
+                      <span className="text-[10px] text-purple-400">조던/나겔</span>
                     </div>
-                    <div className="text-brass-200 font-black text-xs">6,000 Gold</div>
+                    <div className="text-brass-200 font-black text-xs">6,000 G</div>
                   </button>
 
                   <button
@@ -535,10 +591,10 @@ export const TownView: React.FC = React.memo(() => {
                     className="p-2.5 bg-iron-950 hover:bg-iron-850 border-2 border-iron-700 hover:border-purple-400 rounded-lg text-left transition space-y-1 shadow cursor-pointer transform active:scale-95"
                   >
                     <div className="font-bold text-gray-100 text-xs flex items-center justify-between">
-                      <span>📿 미확인 목걸이 (Amulet)</span>
+                      <span>📿 목걸이 (Amulet)</span>
                       <span className="text-[10px] text-purple-400">마라/대군주</span>
                     </div>
-                    <div className="text-brass-200 font-black text-xs">7,500 Gold</div>
+                    <div className="text-brass-200 font-black text-xs">7,500 G</div>
                   </button>
                 </div>
 
@@ -556,94 +612,121 @@ export const TownView: React.FC = React.memo(() => {
                 </div>
 
                 {/* Step 1: Base Item Selection */}
-                <div className="space-y-1.5">
-                  <div className="font-bold text-gray-200 text-xs">1. 소켓 베이스 아이템 선택:</div>
-                  <div className="flex gap-2 overflow-x-auto pb-1.5">
+                <div className="p-2.5 bg-iron-950 rounded-lg border border-iron-800 space-y-1.5">
+                  <div className="font-bold text-gray-200 text-xs flex justify-between items-center">
+                    <span>1. 소켓 베이스 아이템 선택 (선택 시 맞춤 필터링):</span>
+                    {selectedBaseItem && (
+                      <button
+                        onClick={() => setSelectedBaseItem(null)}
+                        className="text-[10px] text-amber-400 hover:underline cursor-pointer"
+                      >
+                        선택 해제 (전체 도감 보기)
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex gap-2 overflow-x-auto pb-1">
                     {socketableItems.map(item => (
                       <button
                         key={item.id}
-                        onClick={() => setSelectedBaseItem(item)}
-                        className={`p-2.5 rounded-lg border-2 text-left flex-shrink-0 min-w-[130px] transition shadow cursor-pointer ${
+                        onClick={() => setSelectedBaseItem(selectedBaseItem?.id === item.id ? null : item)}
+                        className={`p-2 rounded-lg border-2 text-left flex-shrink-0 min-w-[120px] transition shadow cursor-pointer ${
                           selectedBaseItem?.id === item.id
                             ? 'bg-blood-950 border-brass-300 text-brass-100 ring-2 ring-brass-400'
-                            : 'bg-iron-950 border-iron-700 text-gray-200 hover:bg-iron-850'
+                            : 'bg-iron-900 border-iron-750 text-gray-200 hover:bg-iron-800'
                         }`}
                       >
                         <div className="font-black text-xs truncate">{item.name}</div>
-                        <div className="text-xs text-purple-300 font-bold mt-1">
-                          소켓: {item.socketedRunes?.length || 0} / {item.sockets}개
+                        <div className="text-[10px] text-purple-300 font-bold mt-0.5">
+                          {item.slot.toUpperCase()} · {item.sockets}소켓
                         </div>
                       </button>
                     ))}
                     {socketableItems.length === 0 && (
-                      <div className="p-2.5 text-gray-500 font-mono bg-iron-950 rounded border border-iron-800 w-full text-center">
-                        소지품에 빈 소켓이 있는 장비가 없습니다.
+                      <div className="p-2 text-gray-500 font-mono text-[11px] w-full text-center">
+                        소지품에 빈 소켓 장비가 없습니다. (하단에서 전체 룬워드 레시피 도감을 확인할 수 있습니다)
                       </div>
                     )}
                   </div>
                 </div>
 
-                {/* Step 2: Recipes Match */}
-                {selectedBaseItem && (
-                  <div className="space-y-2 pt-2 border-t border-iron-750">
-                    <div className="font-bold text-gray-200 text-xs flex justify-between items-center">
-                      <span>2. 결합 가능한 룬워드 목록:</span>
-                      <span className="text-[10px] text-amber-300 font-mono">
-                        선택 베이스: {selectedBaseItem.name} ({selectedBaseItem.sockets}소켓)
-                      </span>
-                    </div>
+                {/* Step 2: Recipes Grid View */}
+                <div className="space-y-2 pt-1 border-t border-iron-750">
+                  <div className="font-bold text-gray-200 text-xs flex justify-between items-center">
+                    <span>2. 룬워드 도감 & 제작 목록:</span>
+                    <span className="text-[10px] text-purple-300 font-mono">
+                      {selectedBaseItem ? `선택 베이스: ${selectedBaseItem.name} (${selectedBaseItem.sockets}S)` : '전체 레시피'}
+                    </span>
+                  </div>
 
-                    <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
-                      {RUNEWORD_RECIPES.filter(r => r.allowedSlot === selectedBaseItem.slot && r.requiredSockets === selectedBaseItem.sockets).map(recipe => {
-                        const sim = simulateRuneWordCrafting(recipe, runesVault);
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1">
+                    {RUNEWORD_RECIPES.filter(r => {
+                      if (!selectedBaseItem) return true;
+                      return r.allowedSlot === selectedBaseItem.slot && r.requiredSockets === selectedBaseItem.sockets;
+                    }).map(recipe => {
+                      const sim = simulateRuneWordCrafting(recipe, runesVault);
+                      const isMatchingSelected = selectedBaseItem && recipe.allowedSlot === selectedBaseItem.slot && recipe.requiredSockets === selectedBaseItem.sockets;
 
-                        return (
-                          <div
-                            key={recipe.id}
-                            className={`p-2.5 rounded-lg border flex flex-col sm:flex-row sm:items-center justify-between gap-2 transition ${
-                              sim.canDirectCraft
-                                ? 'bg-amber-950/40 border-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.3)]'
-                                : sim.canTransmuteCraft
-                                ? 'bg-purple-950/40 border-purple-400 shadow-[0_0_8px_rgba(192,132,252,0.3)]'
-                                : 'bg-iron-900 border-iron-750 opacity-70'
-                            }`}
-                          >
-                            <div>
-                              <div className="font-black text-xs text-gray-100 flex items-center gap-1.5">
-                                <span className={sim.canDirectCraft ? 'text-amber-300' : sim.canTransmuteCraft ? 'text-purple-300' : 'text-gray-300'}>
-                                  {recipe.name}
-                                </span>
-                                <span className="text-[10px] font-mono text-purple-300 font-bold bg-iron-950 px-1 rounded border border-iron-700">
-                                  [{recipe.requiredRunes.join(' + ')}]
-                                </span>
-                              </div>
-                              <div className="text-[10px] text-gray-400 mt-0.5">
-                                {sim.canDirectCraft ? (
-                                  <span className="text-emerald-400 font-bold">✓ 직접 보유 룬 충족! 즉시 제작 가능</span>
-                                ) : sim.canTransmuteCraft ? (
-                                  <span className="text-purple-300 font-bold">🔮 하위 룬 합성으로 충당 가능!</span>
-                                ) : (
-                                  <span className="text-red-400 font-bold">부족: {sim.directMissingRunes.join(', ')}</span>
-                                )}
-                              </div>
+                      return (
+                        <div
+                          key={recipe.id}
+                          className={`p-2.5 rounded-lg border flex flex-col justify-between gap-2 transition ${
+                            isMatchingSelected && sim.canDirectCraft
+                              ? 'bg-amber-950/40 border-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.3)]'
+                              : isMatchingSelected && sim.canTransmuteCraft
+                              ? 'bg-purple-950/40 border-purple-400 shadow-[0_0_10px_rgba(192,132,252,0.3)]'
+                              : 'bg-iron-950 border-iron-800'
+                          }`}
+                        >
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-between">
+                              <span className="font-black text-xs text-amber-300">{recipe.name}</span>
+                              <span className="text-[10px] font-mono text-gray-400 bg-iron-900 px-1.5 py-0.5 rounded border border-iron-750">
+                                {recipe.allowedSlot === 'weapon' ? '무기' : recipe.allowedSlot === 'armor' ? '갑옷' : recipe.allowedSlot === 'shield' ? '방패' : '투구'} ({recipe.requiredSockets}소켓)
+                              </span>
                             </div>
 
-                            {/* Dual Buttons */}
-                            <div className="flex items-center gap-1.5 flex-shrink-0">
+                            {/* Rune Ingredients with Badges */}
+                            <div className="flex flex-wrap gap-1 pt-0.5">
+                              {recipe.requiredRunes.map((rk, rIdx) => {
+                                const vaultCount = runesVault[rk] || 0;
+                                const isAvailable = vaultCount >= 1;
+                                return (
+                                  <span
+                                    key={rIdx}
+                                    className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold border ${
+                                      isAvailable
+                                        ? 'bg-emerald-950 text-emerald-300 border-emerald-600'
+                                        : 'bg-iron-900 text-gray-500 border-iron-800'
+                                    }`}
+                                    title={`보유: ${vaultCount}개`}
+                                  >
+                                    {rk} ({vaultCount}/1)
+                                  </span>
+                                );
+                              })}
+                            </div>
+
+                            <p className="text-[10px] text-gray-400 leading-tight pt-1">
+                              {recipe.specialEffect || recipe.description}
+                            </p>
+                          </div>
+
+                          {/* Action Buttons */}
+                          {selectedBaseItem && isMatchingSelected ? (
+                            <div className="flex items-center gap-1.5 pt-1 border-t border-iron-800/80">
                               <button
                                 onClick={() => {
                                   craftRuneWord(selectedBaseItem.id, recipe.id);
                                   setSelectedBaseItem(null);
                                 }}
                                 disabled={!sim.canDirectCraft}
-                                className={`px-2.5 py-1.5 rounded-lg text-xs font-black transition shadow flex items-center gap-1 cursor-pointer ${
+                                className={`flex-1 py-1 rounded text-xs font-black transition shadow flex items-center justify-center gap-1 cursor-pointer ${
                                   sim.canDirectCraft
-                                    ? 'bg-gradient-to-r from-brass-500 to-amber-500 hover:from-brass-400 hover:to-amber-400 text-iron-950 ring-1 ring-brass-300 animate-pulse'
-                                    : 'bg-iron-800 text-gray-500 border border-iron-700 cursor-not-allowed opacity-50'
+                                    ? 'bg-gradient-to-r from-brass-500 to-amber-500 hover:from-brass-400 text-iron-950 ring-1 ring-brass-300'
+                                    : 'bg-iron-900 text-gray-600 border border-iron-800 cursor-not-allowed opacity-50'
                                 }`}
-                                title={sim.canDirectCraft ? '보유한 상위 룬으로 즉시 제작' : '해당 상위 룬 직접 부족'}
                               >
-                                <Sparkles className="w-3.5 h-3.5" />
+                                <Sparkles className="w-3 h-3" />
                                 <span>✨ 즉시 제작</span>
                               </button>
 
@@ -653,23 +736,26 @@ export const TownView: React.FC = React.memo(() => {
                                   setSelectedBaseItem(null);
                                 }}
                                 disabled={!sim.canTransmuteCraft}
-                                className={`px-2.5 py-1.5 rounded-lg text-xs font-black transition shadow flex items-center gap-1 cursor-pointer ${
+                                className={`flex-1 py-1 rounded text-xs font-black transition shadow flex items-center justify-center gap-1 cursor-pointer ${
                                   sim.canTransmuteCraft
-                                    ? 'bg-gradient-to-r from-purple-700 to-purple-500 hover:from-purple-600 hover:to-purple-400 text-white ring-1 ring-purple-300'
-                                    : 'bg-iron-800 text-gray-500 border border-iron-700 cursor-not-allowed opacity-50'
+                                    ? 'bg-gradient-to-r from-purple-700 to-purple-500 hover:from-purple-600 text-white ring-1 ring-purple-300'
+                                    : 'bg-iron-900 text-gray-600 border border-iron-800 cursor-not-allowed opacity-50'
                                 }`}
-                                title={sim.canTransmuteCraft ? '하위 룬들을 자동으로 합성하여 상위 룬을 충당한 뒤 제작' : '하위 룬 총량 부족'}
                               >
-                                <Hammer className="w-3.5 h-3.5" />
-                                <span>🔮 합성 후 제작</span>
+                                <Hammer className="w-3 h-3" />
+                                <span>🔮 합성 제작</span>
                               </button>
                             </div>
-                          </div>
-                        );
-                      })}
-                    </div>
+                          ) : (
+                            <div className="text-[10px] font-mono text-gray-500 pt-1 text-right">
+                              {selectedBaseItem ? '소켓 수 또는 슬롯 불일치' : '제작하려면 상단에서 소켓 베이스 선택'}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
-                )}
+                </div>
               </div>
             )}
 
@@ -682,7 +768,7 @@ export const TownView: React.FC = React.memo(() => {
                   <div className="flex items-center justify-between border-b border-purple-800/60 pb-1">
                     <span className="font-cinzel font-black text-xs text-purple-200 flex items-center gap-1.5">
                       <Sparkles className="w-4 h-4 text-amber-400" />
-                      호라드릭 영구 편의 연구소
+                      호라드릭 영구 편의 연구소 (최대 30레벨)
                     </span>
                     <span className="text-[10px] font-mono text-amber-300 font-bold">보유: {playerStats.gold.toLocaleString()} G</span>
                   </div>
@@ -693,7 +779,7 @@ export const TownView: React.FC = React.memo(() => {
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-[11px] text-rose-300">🧪 물약 상한</span>
                         <span className="text-[9px] font-mono font-black text-amber-300 bg-iron-950 px-1 rounded border border-iron-800">
-                          Lv.{townUpgrades.potionCapacityLevel}/5 ({POTION_CAPACITY_TIERS[townUpgrades.potionCapacityLevel] || 3}개)
+                          Lv.{townUpgrades.potionCapacityLevel}/{POTION_CAPACITY_TIERS.length - 1} ({POTION_CAPACITY_TIERS[townUpgrades.potionCapacityLevel] || 3}개)
                         </span>
                       </div>
                       {getPotionCapacityUpgradeCost(townUpgrades.potionCapacityLevel) !== null ? (
@@ -714,7 +800,7 @@ export const TownView: React.FC = React.memo(() => {
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-[11px] text-rose-300">💖 물약 회복량</span>
                         <span className="text-[9px] font-mono font-black text-amber-300 bg-iron-950 px-1 rounded border border-iron-800">
-                          Lv.{townUpgrades.potionHealingLevel}/10 (+{townUpgrades.potionHealingLevel * 15} HP)
+                          Lv.{townUpgrades.potionHealingLevel}/30 (+{townUpgrades.potionHealingLevel * 10}%)
                         </span>
                       </div>
                       {getPotionHealingUpgradeCost(townUpgrades.potionHealingLevel) !== null ? (
@@ -735,7 +821,7 @@ export const TownView: React.FC = React.memo(() => {
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-[11px] text-blue-300">🛡️ 소모품 연금술</span>
                         <span className="text-[9px] font-mono font-black text-amber-300 bg-iron-950 px-1 rounded border border-iron-800">
-                          Lv.{townUpgrades.consumablePowerLevel}/10
+                          Lv.{townUpgrades.consumablePowerLevel}/30 (+{townUpgrades.consumablePowerLevel * 8}%)
                         </span>
                       </div>
                       {getConsumablePowerUpgradeCost(townUpgrades.consumablePowerLevel) !== null ? (
@@ -751,12 +837,12 @@ export const TownView: React.FC = React.memo(() => {
                       )}
                     </div>
 
-                    {/* 4. Gamble Level */}
+                    {/* 4. Gamble Quality */}
                     <div className="p-2 bg-iron-900/90 rounded border border-iron-750 flex flex-col justify-between space-y-1">
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-[11px] text-yellow-300">🎪 도박장 레벨</span>
+                        <span className="font-bold text-[11px] text-purple-300">🎲 도박 품질</span>
                         <span className="text-[9px] font-mono font-black text-amber-300 bg-iron-950 px-1 rounded border border-iron-800">
-                          Lv.{townUpgrades.gambleLevel}/5
+                          Lv.{townUpgrades.gambleLevel}/20
                         </span>
                       </div>
                       {getGambleLevelUpgradeCost(townUpgrades.gambleLevel) !== null ? (

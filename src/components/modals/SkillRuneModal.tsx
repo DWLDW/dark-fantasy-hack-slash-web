@@ -109,10 +109,11 @@ export const SkillRuneModal: React.FC = React.memo(() => {
   };
 
   const handleResetSkills = () => {
+    const shardCost = Math.max(50, Math.floor(50 + (Math.max(1, playerStats.level) - 1) * (950 / 49)));
     openConfirmModal({
       title: '스킬 & 패시브 포인트 초기화',
-      message: '모든 액티브 스킬과 패시브 스킬에 투자된 스킬 포인트를 전액 회수하여 다시 분배하시겠습니까?\n\n(장착된 스킬 룬과 룬워드 효과는 안전하게 보존됩니다)',
-      confirmText: '전액 초기화',
+      message: `모든 액티브 스킬과 패시브 스킬에 투자된 스킬 포인트를 전액 회수하여 다시 분배하시겠습니까?\n\n💎 필요 샤드: ${shardCost}개 (보유: ${playerStats.shards || 0}개)\n(장착된 스킬 룬과 룬워드 효과는 안전하게 보존됩니다)`,
+      confirmText: `전액 초기화 (💎 ${shardCost}개)`,
       type: 'warning',
       onConfirm: resetSkillPoints
     });
@@ -122,6 +123,9 @@ export const SkillRuneModal: React.FC = React.memo(() => {
   const totalPassivePointsSpent = useMemo(() => {
     return Object.values(passiveLevels).reduce((acc, lv) => acc + (lv || 0), 0);
   }, [passiveLevels]);
+
+  const shardCost = Math.max(50, Math.floor(50 + (Math.max(1, playerStats.level) - 1) * (950 / 49)));
+  const hasEnoughShards = (playerStats.shards || 0) >= shardCost;
 
   return (
     <div className="bg-iron-950 border-2 border-brass-500 rounded-xl p-3.5 sm:p-5 w-full max-w-3xl max-h-[92vh] overflow-y-auto sm:overflow-hidden shadow-2xl space-y-2.5 text-xs md:text-sm select-none font-sans">
@@ -133,9 +137,16 @@ export const SkillRuneModal: React.FC = React.memo(() => {
             <Sparkles className="w-4 h-4 text-amber-400" />
             <span>스킬 & 패시브 마스터리</span>
           </h2>
-          {playerStats.skillPoints > 0 && (
-            <span className="bg-amber-500/30 text-amber-200 border border-amber-400 px-2 py-0.5 rounded text-xs font-black animate-pulse font-mono">
-              보유 SP: {playerStats.skillPoints}P
+
+          <div className="flex items-center gap-1 px-2 py-0.5 bg-amber-950/80 border border-amber-600/80 rounded font-mono font-bold text-amber-300 text-xs shadow">
+            <span>보유 SP:</span>
+            <span className="text-white font-black text-sm">{playerStats.skillPoints}</span>
+            <span>P</span>
+          </div>
+
+          {totalPassivePointsSpent > 0 && (
+            <span className="text-[10px] text-purple-300 font-mono bg-purple-950/60 px-1.5 py-0.5 rounded border border-purple-800/80">
+              투자된 패시브: {totalPassivePointsSpent}P
             </span>
           )}
         </div>
@@ -143,11 +154,18 @@ export const SkillRuneModal: React.FC = React.memo(() => {
         <div className="flex items-center gap-2">
           <button
             onClick={handleResetSkills}
-            className="px-2.5 py-1 rounded bg-iron-900 hover:bg-amber-950/40 border border-iron-700 hover:border-amber-500/80 text-gray-300 hover:text-amber-200 text-xs font-mono font-bold flex items-center gap-1 transition shadow cursor-pointer"
-            title="투자한 모든 액티브 및 패시브 포인트를 전액 회수합니다"
+            className={`px-2.5 py-1 rounded border text-xs font-mono font-bold flex items-center gap-1 transition shadow cursor-pointer ${
+              hasEnoughShards
+                ? 'bg-iron-900 hover:bg-amber-950/40 border-iron-700 hover:border-amber-500/80 text-gray-300 hover:text-amber-200'
+                : 'bg-iron-950 border-iron-800 text-gray-500 opacity-70'
+            }`}
+            title={`투자한 모든 액티브 및 패시브 포인트를 전액 회수합니다 (필요: 샤드 ${shardCost}개)`}
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>전체 초기화</span>
+            <span className={`text-[10px] ${hasEnoughShards ? 'text-amber-300 font-bold' : 'text-red-400'}`}>
+              (💎 {shardCost})
+            </span>
           </button>
           <button
             onClick={closeModal}

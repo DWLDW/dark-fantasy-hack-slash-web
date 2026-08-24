@@ -113,20 +113,33 @@ export const CharacterModal: React.FC = React.memo(() => {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Tier 5: Warning Reset Button */}
-          <button
-            onClick={() => openConfirmModal({
-              title: "캐릭터 스탯 초기화",
-              message: "투자한 모든 기본 6대 스탯 포인트를 전액 회수하여 다시 분배하시겠습니까?\n\n회수된 모든 포인트는 즉시 다시 자유롭게 분배할 수 있습니다.",
-              confirmText: "스탯 초기화",
-              type: "warning",
-              onConfirm: resetStatPoints
-            })}
-            className="px-2.5 py-1 rounded bg-iron-900 hover:bg-amber-950/40 border border-iron-700 hover:border-amber-500/80 text-gray-300 hover:text-amber-200 text-xs font-mono font-bold flex items-center gap-1 transition shadow cursor-pointer"
-            title="투자한 모든 스탯 포인트를 회수하여 다시 분배합니다"
-          >
-            🔄 <span>스탯 초기화</span>
-          </button>
+          {/* Tier 5: Warning Reset Button with Shard Cost */}
+          {(() => {
+            const shardCost = Math.max(50, Math.floor(50 + (Math.max(1, playerStats.level) - 1) * (950 / 49)));
+            const hasEnoughShards = (playerStats.shards || 0) >= shardCost;
+            return (
+              <button
+                onClick={() => openConfirmModal({
+                  title: "캐릭터 스탯 초기화",
+                  message: `투자한 모든 기본 6대 스탯 포인트를 전액 회수하여 다시 분배하시겠습니까?\n\n💎 필요 샤드: ${shardCost}개 (보유: ${playerStats.shards || 0}개)\n회수된 모든 포인트는 즉시 다시 자유롭게 분배할 수 있습니다.`,
+                  confirmText: `스탯 초기화 (💎 ${shardCost}개)`,
+                  type: "warning",
+                  onConfirm: resetStatPoints
+                })}
+                className={`px-2.5 py-1 rounded border text-xs font-mono font-bold flex items-center gap-1 transition shadow cursor-pointer ${
+                  hasEnoughShards
+                    ? 'bg-iron-900 hover:bg-amber-950/40 border-iron-700 hover:border-amber-500/80 text-gray-300 hover:text-amber-200'
+                    : 'bg-iron-950 border-iron-800 text-gray-500 opacity-70'
+                }`}
+                title={`스탯 초기화 (필요: 샤드 ${shardCost}개)`}
+              >
+                🔄 <span>스탯 초기화</span>
+                <span className={`text-[10px] ${hasEnoughShards ? 'text-amber-300 font-bold' : 'text-red-400'}`}>
+                  (💎 {shardCost})
+                </span>
+              </button>
+            );
+          })()}
           <button
             onClick={closeModal}
             className="text-gray-300 hover:text-white p-1 rounded hover:bg-iron-800 transition cursor-pointer"

@@ -115,6 +115,11 @@ export function resetSkillPointsHelper(
   };
 }
 
+export function calculateResetShardCost(playerLevel: number): number {
+  const level = Math.max(1, playerLevel);
+  return Math.max(50, Math.floor(50 + (level - 1) * (950 / 49)));
+}
+
 export function getEffectiveSkill(
   selectedSkill: Skill,
   skillLevels: Record<string, number>,
