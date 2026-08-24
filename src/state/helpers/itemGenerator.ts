@@ -211,11 +211,23 @@ export function identifyItemHelper(item: GameItem, effLevel: number): GameItem {
 
   const UNIQUE_WEAPONS = ['할배검 (The Grandfather)', '바람살 (Windforce)', '광란의 집행관 (Lightsabre)', '도살자의 절구통', '알리바바의 칼날', '마법사의 쐐기검'];
   const UNIQUE_ARMORS = ['독사마술사의 가죽 (구교복)', '샤프트스톱', '티리엘의 권능', '할리퀸 관모 (샤코)', '폭풍막이 (모나크)', '자카룸의 전령'];
+  const UNIQUE_GLOVES = ["드라큘의 손아귀 (Dracul's Grasp)", '안수 (Laying of Hands)', '메이지피스트 (Magefist)', '챈스 가드 (Chance Guards)', '블러드피스트 (Bloodfist)'];
+  const UNIQUE_BOOTS = ['고어 라이더 (Gore Rider)', '전쟁 여행자 (War Traveler)', '물나그네 부츠 (Waterwalk)', '핫스퍼 (Hotspur)', '통과의례'];
   const UNIQUE_RINGS = ['요르단의 반지 (Stone of Jordan)', '나겔링 (Nagelring)', '불카토스의 결혼반지', '왜성의 반지', '칠흑소용돌이 (Raven Frost)'];
   const UNIQUE_AMULETS = ["마라의 만화경 (Mara's Kaleidoscope)", "대군주의 진노 (Highlord's Wrath)", "고양이의 눈 (Cat's Eye)", "아트마의 스카라베"];
 
   if (item.rarity === 'unique' || item.rarity === 'legendary') {
-    const namesList = isWpn ? UNIQUE_WEAPONS : isArm ? UNIQUE_ARMORS : item.slot === 'amulet' ? UNIQUE_AMULETS : UNIQUE_RINGS;
+    const namesList = isWpn
+      ? UNIQUE_WEAPONS
+      : item.slot === 'gloves'
+      ? UNIQUE_GLOVES
+      : item.slot === 'boots'
+      ? UNIQUE_BOOTS
+      : item.slot === 'amulet'
+      ? UNIQUE_AMULETS
+      : isArm
+      ? UNIQUE_ARMORS
+      : UNIQUE_RINGS;
     finalName = item.realUniqueName || namesList[Math.floor(Math.random() * namesList.length)];
     chosenAffixes = pickAffixes(3);
 

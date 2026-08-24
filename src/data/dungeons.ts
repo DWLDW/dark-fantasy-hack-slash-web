@@ -1,5 +1,5 @@
 import { DungeonInfo, Monster, DungeonBuff } from '../types/game';
-import { GAME_ITEMS_POOL } from './items';
+import { GAME_ITEMS_POOL, getActDropPool } from './items';
 
 export const SHRINE_BUFFS_POOL: Record<string, Omit<DungeonBuff, 'id'>> = {
   fortune: {
@@ -113,7 +113,7 @@ export const DUNGEONS_DATA: DungeonInfo[] = [
     monsterSummary: '황야 고블린, 해골 궁수, 불타는 시체좀비',
     bestClearTime: '01분 15초',
     maxChainRecord: 30,
-    dropItems: GAME_ITEMS_POOL.slice(0, 6),
+    dropItems: getActDropPool(1),
     rooms: create6RoomGraph({
       start: '황야 야영지 입구',
       wave: '악의 소굴 전초',
@@ -133,7 +133,7 @@ export const DUNGEONS_DATA: DungeonInfo[] = [
     monsterSummary: '납골당 해골 전사, 부패 좀비, 핏빛 갈까마귀',
     bestClearTime: '01분 30초',
     maxChainRecord: 30,
-    dropItems: GAME_ITEMS_POOL.slice(0, 7),
+    dropItems: getActDropPool(1),
     rooms: create6RoomGraph({
       start: '매장지 정문',
       wave: '납골당 지하 회랑',
@@ -153,7 +153,7 @@ export const DUNGEONS_DATA: DungeonInfo[] = [
     monsterSummary: '탑의 유령 기사, 타락한 궁수, 핏빛 백작부인',
     bestClearTime: '01분 45초',
     maxChainRecord: 30,
-    dropItems: GAME_ITEMS_POOL.slice(2, 9),
+    dropItems: getActDropPool(1),
     rooms: create6RoomGraph({
       start: '잊혀진 탑 1층',
       wave: '탑 지하 감옥',
@@ -173,7 +173,7 @@ export const DUNGEONS_DATA: DungeonInfo[] = [
     monsterSummary: '어둠의 주술사, 고뇌의 악마, 안다리엘의 환영',
     bestClearTime: '02분 00초',
     maxChainRecord: 30,
-    dropItems: GAME_ITEMS_POOL.slice(0, 10),
+    dropItems: getActDropPool(1),
     rooms: create6RoomGraph({
       start: '카타콤 4층 진입로',
       wave: '고뇌의 성소 전초',
@@ -195,7 +195,7 @@ export const DUNGEONS_DATA: DungeonInfo[] = [
     monsterSummary: '사막 딱정벌레, 하수구 시체약탈자, 라다먼트',
     bestClearTime: '02분 10초',
     maxChainRecord: 30,
-    dropItems: GAME_ITEMS_POOL.slice(4, 12),
+    dropItems: getActDropPool(2),
     rooms: create6RoomGraph({
       start: '하수구 1층 입구',
       wave: '오폐수 수로',
@@ -215,7 +215,7 @@ export const DUNGEONS_DATA: DungeonInfo[] = [
     monsterSummary: '모래 딱정벌레 군단, 언데드 파수병, 미라 수호자',
     bestClearTime: '02분 30초',
     maxChainRecord: 30,
-    dropItems: GAME_ITEMS_POOL.slice(5, 14),
+    dropItems: getActDropPool(2),
     rooms: create6RoomGraph({
       start: '죽음의 홀 입구',
       wave: '모래 석실',
@@ -235,7 +235,7 @@ export const DUNGEONS_DATA: DungeonInfo[] = [
     monsterSummary: '거대 모래벌레, 산란 독충, 콜디웜 버로우어',
     bestClearTime: '02분 45초',
     maxChainRecord: 30,
-    dropItems: GAME_ITEMS_POOL.slice(6, 16),
+    dropItems: getActDropPool(2),
     rooms: create6RoomGraph({
       start: '마고트 굴 입구',
       wave: '산란 동굴 통로',
@@ -255,7 +255,7 @@ export const DUNGEONS_DATA: DungeonInfo[] = [
     monsterSummary: '사막 미이라 사제, 화염 군주, 고통의 대공 두리엘',
     bestClearTime: '03분 12초',
     maxChainRecord: 30,
-    dropItems: GAME_ITEMS_POOL.slice(7, 18),
+    dropItems: getActDropPool(2),
     rooms: create6RoomGraph({
       start: '탈 라샤 무덤 성문',
       wave: '봉인된 일곱 무덤 회랑',
@@ -277,7 +277,7 @@ export const DUNGEONS_DATA: DungeonInfo[] = [
     monsterSummary: '자이언트 스파이더, 정글 모스키토, 불꽃눈 거미',
     bestClearTime: '03분 30초',
     maxChainRecord: 30,
-    dropItems: GAME_ITEMS_POOL.slice(8, 20),
+    dropItems: getActDropPool(3),
     rooms: create6RoomGraph({
       start: '쿠라스트 부두 전초',
       wave: '거미 숲 늪지대',
@@ -297,7 +297,7 @@ export const DUNGEONS_DATA: DungeonInfo[] = [
     monsterSummary: '우달 몽둥이병, 약탈자 주술사, 마녀 닥 파란',
     bestClearTime: '03분 50초',
     maxChainRecord: 30,
-    dropItems: GAME_ITEMS_POOL.slice(10, 22),
+    dropItems: getActDropPool(3),
     rooms: create6RoomGraph({
       start: '약탈자 정글 입구',
       wave: '늪지 동굴 회랑',
@@ -317,7 +317,7 @@ export const DUNGEONS_DATA: DungeonInfo[] = [
     monsterSummary: '하이 카운실, 광신도 전사, 젤레브 스파크피스트',
     bestClearTime: '04분 15초',
     maxChainRecord: 30,
-    dropItems: GAME_ITEMS_POOL.slice(12, 24),
+    dropItems: getActDropPool(3),
     rooms: create6RoomGraph({
       start: '트라빈칼 사원 회랑',
       wave: '평의회 중앙 광장',
@@ -337,7 +337,7 @@ export const DUNGEONS_DATA: DungeonInfo[] = [
     monsterSummary: '블러드 로드, 저주받은 영혼, 증오의 군주 메피스토',
     bestClearTime: '04분 50초',
     maxChainRecord: 30,
-    dropItems: GAME_ITEMS_POOL.slice(14, 26),
+    dropItems: getActDropPool(3),
     rooms: create6RoomGraph({
       start: '증오의 억류지 3층 입구',
       wave: '핏빛 피의 호수',
@@ -359,7 +359,7 @@ export const DUNGEONS_DATA: DungeonInfo[] = [
     monsterSummary: '지옥불 악마, 절망의 유령 기사, 타락한 천사 이주얼',
     bestClearTime: '05분 10초',
     maxChainRecord: 30,
-    dropItems: GAME_ITEMS_POOL.slice(16, 28),
+    dropItems: getActDropPool(4),
     rooms: create6RoomGraph({
       start: '판데모니움 요새 성문',
       wave: '절망의 평원 용암 지대',
@@ -379,7 +379,7 @@ export const DUNGEONS_DATA: DungeonInfo[] = [
     monsterSummary: '베놈 로드, 폭풍 시전사, 대장장이 헤파스토',
     bestClearTime: '05분 35초',
     maxChainRecord: 30,
-    dropItems: GAME_ITEMS_POOL.slice(18, 30),
+    dropItems: getActDropPool(4),
     rooms: create6RoomGraph({
       start: '불길의 강 협곡',
       wave: '용암 제련소 회랑',
@@ -399,7 +399,7 @@ export const DUNGEONS_DATA: DungeonInfo[] = [
     monsterSummary: '오블리비언 나이트, 독침 시전사, 영혼의 잠식자',
     bestClearTime: '06분 00초',
     maxChainRecord: 30,
-    dropItems: GAME_ITEMS_POOL.slice(20, 32),
+    dropItems: getActDropPool(4),
     rooms: create6RoomGraph({
       start: '성역 봉인 입구',
       wave: '5대 봉인 중앙 회랑',
@@ -419,7 +419,7 @@ export const DUNGEONS_DATA: DungeonInfo[] = [
     monsterSummary: '망각의 기사단, 베놈 로드 군단, 공포의 군주 디아블로',
     bestClearTime: '06분 30초',
     maxChainRecord: 30,
-    dropItems: GAME_ITEMS_POOL.slice(22, 34),
+    dropItems: getActDropPool(4),
     rooms: create6RoomGraph({
       start: '오각성 중앙 진입로',
       wave: '공포의 지옥불 군단',
@@ -441,7 +441,7 @@ export const DUNGEONS_DATA: DungeonInfo[] = [
     monsterSummary: '블러드 로드 전사, 공성 투석기 악마, 쉔크 더 오버시어',
     bestClearTime: '06분 50초',
     maxChainRecord: 30,
-    dropItems: GAME_ITEMS_POOL.slice(24, 36),
+    dropItems: getActDropPool(5),
     rooms: create6RoomGraph({
       start: '하로가스 공성 성벽',
       wave: '피의 언덕 참호',
@@ -461,7 +461,7 @@ export const DUNGEONS_DATA: DungeonInfo[] = [
     monsterSummary: '탈릭(휠윈드), 코릭(도약), 마다크(투척)',
     bestClearTime: '07분 15초',
     maxChainRecord: 30,
-    dropItems: GAME_ITEMS_POOL.slice(26, 38),
+    dropItems: getActDropPool(5),
     rooms: create6RoomGraph({
       start: '정상 성문 광장',
       wave: '고대인의 얼어붙은 제단',
@@ -481,7 +481,7 @@ export const DUNGEONS_DATA: DungeonInfo[] = [
     monsterSummary: '오블리비언 로드, 서큐버스, 블랙 소울 군단',
     bestClearTime: '07분 40초',
     maxChainRecord: 30,
-    dropItems: GAME_ITEMS_POOL.slice(28, 40),
+    dropItems: getActDropPool(5),
     rooms: create6RoomGraph({
       start: '세계석 성채 3층',
       wave: '성채 심연 회랑',
@@ -501,7 +501,7 @@ export const DUNGEONS_DATA: DungeonInfo[] = [
     monsterSummary: '콜렌조, 아크멜, 바르툭, 벤타르, 리스터 더 토멘터, 파멸의 군주 바알',
     bestClearTime: '08분 15초',
     maxChainRecord: 30,
-    dropItems: GAME_ITEMS_POOL.slice(30, 42),
+    dropItems: getActDropPool(5),
     rooms: create6RoomGraph({
       start: '파멸의 옥좌 진입로',
       wave: '바알의 5대 미니언 군단',

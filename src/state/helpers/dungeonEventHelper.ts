@@ -1,3 +1,8 @@
+import { DungeonInfo, DungeonBuff, GameItem, DungeonRoom, RoomType } from '../../types/game';
+import { DUNGEONS_DATA } from '../../data/dungeons';
+import { GAME_ITEMS_POOL, getActDropPool } from '../../data/items';
+import { identifyItemHelper } from './itemGenerator';
+
 function getSlotBaseName(slot: string, baseItemName?: string): string {
   if (baseItemName) {
     const cleaned = baseItemName.replace(/\s*\(.*?\)/, '').trim();
@@ -13,11 +18,6 @@ function getSlotBaseName(slot: string, baseItemName?: string): string {
   if (slot === 'boots') return '신발';
   return '장비';
 }
-
-import { DungeonInfo, DungeonBuff, GameItem, DungeonRoom, RoomType } from '../../types/game';
-import { DUNGEONS_DATA } from '../../data/dungeons';
-import { GAME_ITEMS_POOL } from '../../data/items';
-import { identifyItemHelper } from './itemGenerator';
 
 export const DUNGEON_RUNE_TIERS: Record<string, string[]> = {
   act1: ['El', 'Eld', 'Tir', 'Nef', 'Eth', 'Ith', 'Tal', 'Ral', 'Ort'],
@@ -106,6 +106,10 @@ interface DropContext {
   dungeonIdx: number;
 }
 
+/**
+ * 9대 모든 장비 슬롯(무기, 갑옷, 투구, 방패, 장갑, 신발, 반지, 목걸이)이
+ * 골고루 드랍되도록 1차 슬롯 추첨 후 아이템을 생성합니다.
+ */
 function makeDungeonDrop(
   pool: GameItem[],
   ctx: DropContext,
@@ -115,9 +119,20 @@ function makeDungeonDrop(
   const { difficultyLevel, playerFortune, dungeonIdx } = ctx;
   const wantSpecial = rollSpecialDrop(playerFortune, dungeonIdx);
 
-  const specialPool = pool.filter(p => p.rarity === 'unique' || p.rarity === 'set' || p.rarity === 'legendary');
-  const normalPool = pool.filter(p => p.rarity !== 'unique' && p.rarity !== 'set' && p.rarity !== 'legendary');
-  const effectiveNormalPool = normalPool.length > 0 ? normalPool : pool;
+  // 9대 장비 슬롯 목록
+  const ALL_SLOTS = ['weapon', 'armor', 'helm', 'shield', 'gloves', 'boots', 'ring', 'amulet'];
+  const targetSlot = ALL_SLOTS[Math.floor(Math.random() * ALL_SLOTS.length)];
+
+  // 슬롯별 필터링 (반지의 경우 ring, ring1, ring2 모두 매칭)
+  const slotPool = pool.filter(p => {
+    if (targetSlot === 'ring') return p.slot === 'ring' || p.slot === 'ring1' || p.slot === 'ring2';
+    return p.slot === targetSlot;
+  });
+
+  const effectivePool = slotPool.length > 0 ? slotPool : pool;
+  const specialPool = effectivePool.filter(p => p.rarity === 'unique' || p.rarity === 'set' || p.rarity === 'legendary');
+  const normalPool = effectivePool.filter(p => p.rarity !== 'unique' && p.rarity !== 'set' && p.rarity !== 'legendary');
+  const effectiveNormalPool = normalPool.length > 0 ? normalPool : effectivePool;
 
   let droppedBase: GameItem;
   if (wantSpecial && specialPool.length > 0) {
@@ -179,13 +194,14 @@ export function claimTreasureHelper(
   playerFortune: number = 0
 ): TreasureReward {
   const dungeonIdx = Math.max(0, DUNGEONS_DATA.findIndex(d => d.id === currentDungeon.id));
+  const actIndex = Math.min(4, Math.floor(dungeonIdx / 4));
   const mult = (dungeonIdx + 1) * (1 + (difficultyLevel - 1) * 0.40);
   const goldReward = Math.floor((500 + Math.random() * 400) * mult);
   const shardReward = Math.floor(3 * (dungeonIdx + 1) * (1 + (difficultyLevel - 1) * 0.15));
 
   const pool = currentDungeon.dropItems && currentDungeon.dropItems.length > 0
     ? currentDungeon.dropItems
-    : GAME_ITEMS_POOL.slice(0, 8);
+    : getActDropPool(actIndex + 1);
 
   const dropCount = Math.min(3, Math.floor(1 + Math.random() * (difficultyLevel >= 5 ? 2 : 1)));
   const droppedItems: GameItem[] = [];
@@ -282,7 +298,7 @@ export function generateVictoryLoot(
 
   const pool = currentDungeon.dropItems && currentDungeon.dropItems.length > 0
     ? currentDungeon.dropItems
-    : GAME_ITEMS_POOL.slice(0, 8);
+    : getActDropPool(actIndex + 1);
 
   const itemDropCount = Math.min(4, Math.floor(1 + Math.random() * 2 + (difficultyLevel >= 5 ? 1 : 0)));
   const droppedItems: GameItem[] = [];
@@ -329,14 +345,8 @@ function shuffleInPlace<T>(arr: T[]): T[] {
   return arr;
 }
 
-const ENCOUNTER_LABEL: Record<string, string> = {
-  normal: '적 무리',
-  elite: '강적',
-  treasure: '보물'
-};
-
 export function prepareDungeonRun(dungeon: DungeonInfo): DungeonRoom[] {
-  const rooms: DungeonRoom[] = dungeon.rooms.map(r => ({
+  const rooms = dungeon.rooms.map(r => ({
     ...r,
     revealed: r.type === 'start',
     cleared: r.type === 'start',
@@ -353,9 +363,10 @@ export function generateRoomClearLoot(
   roomType: RoomType
 ): { gold: number; items: GameItem[]; runeName?: string } {
   const dungeonIdx = Math.max(0, DUNGEONS_DATA.findIndex(d => d.id === currentDungeon.id));
+  const actIndex = Math.min(4, Math.floor(dungeonIdx / 4));
   const pool = currentDungeon.dropItems && currentDungeon.dropItems.length > 0
     ? currentDungeon.dropItems
-    : GAME_ITEMS_POOL.slice(0, 8);
+    : getActDropPool(actIndex + 1);
   const ctx = { difficultyLevel, playerFortune, dungeonIdx };
   const items: GameItem[] = [];
   let gold = 0;
@@ -414,4 +425,3 @@ export function makeFirstClearSteelBase(): GameItem {
     description: '[첫 원정 보상] 빈 소켓 2개. 룬 보관함의 Tir + El 순서로 박으면 강철(Steel) 룬워드가 됩니다.'
   };
 }
-

@@ -1,4 +1,4 @@
-﻿import { GameItem, ConsumableItem } from '../types/game';
+import { GameItem, ConsumableItem } from '../types/game';
 
 export const GAME_ITEMS_POOL: GameItem[] = [
   // ==================== WEAPONS ====================
@@ -887,8 +887,376 @@ export const GAME_ITEMS_POOL: GameItem[] = [
     value: 7500,
     icon: 'Sparkles',
     description: '적의 물리 면역을 파괴하는 앰플리파이 저주를 품은 고대 스카라베 펜던트.'
+  },
+  // ==================== SHIELDS (ADDITIONAL BASES) ====================
+  {
+    id: 'e_buckler_1s',
+    name: '버클러 (1 소켓)',
+    baseItemName: '버클러',
+    rarity: 'normal',
+    tier: 'normal',
+    slot: 'shield',
+    sockets: 1,
+    socketedRunes: [],
+    isIdentified: true,
+    stats: { defense: 10, evasion: 5 },
+    value: 80,
+    icon: 'Shield',
+    description: '[노말 방패] 작고 가벼운 버클러 방패. 1개의 빈 소켓.'
+  },
+  {
+    id: 'e_small_shield_2s',
+    name: '스몰 실드 (2 소켓)',
+    baseItemName: '스몰 실드',
+    rarity: 'normal',
+    tier: 'normal',
+    slot: 'shield',
+    sockets: 2,
+    socketedRunes: [],
+    isIdentified: true,
+    stats: { defense: 16, evasion: 7 },
+    value: 140,
+    icon: 'Shield',
+    description: '[노말 방패] 2개의 빈 소켓. 초반 방어와 룬 각인에 유용합니다.'
+  },
+  {
+    id: 'e_gothic_shield_3s',
+    name: '고딕 실드 (3 소켓)',
+    baseItemName: '고딕 실드',
+    rarity: 'normal',
+    tier: 'exceptional',
+    slot: 'shield',
+    sockets: 3,
+    socketedRunes: [],
+    isIdentified: true,
+    stats: { defense: 60, evasion: 10 },
+    value: 500,
+    icon: 'Shield',
+    description: '[익셉셔널 방패] 3개의 소켓. [Ral + Ort + Tal]로 고대인의 서약 제작 가능.'
+  },
+
+  // ==================== GLOVES (ADDITIONAL BASES) ====================
+  {
+    id: 'e_leather_gloves',
+    name: '가죽 장갑',
+    baseItemName: '가죽 장갑',
+    rarity: 'normal',
+    tier: 'normal',
+    slot: 'gloves',
+    isIdentified: true,
+    stats: { defense: 8, attackSpeed: 5 },
+    value: 60,
+    icon: 'Sparkles',
+    description: '[노말 장갑] 부드러운 가죽으로 만들어진 기본 장갑.'
+  },
+  {
+    id: 'e_heavy_gloves',
+    name: '헤비 글러브',
+    baseItemName: '헤비 글러브',
+    rarity: 'normal',
+    tier: 'normal',
+    slot: 'gloves',
+    isIdentified: true,
+    stats: { defense: 14, str: 3 },
+    value: 120,
+    icon: 'Sparkles',
+    description: '[노말 장갑] 두터운 가죽과 철심으로 보강된 튼튼한 장갑.'
+  },
+  {
+    id: 'e_chain_gloves',
+    name: '체인 글러브',
+    baseItemName: '체인 글러브',
+    rarity: 'normal',
+    tier: 'exceptional',
+    slot: 'gloves',
+    isIdentified: true,
+    stats: { defense: 28, attackSpeed: 10 },
+    value: 300,
+    icon: 'Sparkles',
+    description: '[익셉셔널 장갑] 사슬 갑옷 재질의 전투 장갑. 공격 속도 +10%.'
+  },
+  {
+    id: 'e_gauntlets',
+    name: '강철 건틀릿',
+    baseItemName: '건틀릿',
+    rarity: 'normal',
+    tier: 'exceptional',
+    slot: 'gloves',
+    isIdentified: true,
+    stats: { defense: 45, str: 8 },
+    value: 650,
+    icon: 'Sparkles',
+    description: '[익셉셔널 장갑] 묵직한 강철 장갑으로 강한 악력과 방어력을 부여합니다.'
+  },
+  {
+    id: 'e_crusader_gauntlets',
+    name: '크루세이더 건틀릿',
+    baseItemName: '크루세이더 건틀릿',
+    rarity: 'normal',
+    tier: 'elite',
+    slot: 'gloves',
+    isIdentified: true,
+    stats: { defense: 80, str: 15, attackSpeed: 15 },
+    value: 1400,
+    icon: 'Sparkles',
+    description: '[엘리트 장갑] 성전사의 강철 건틀릿. 힘 +15 및 공격 속도 +15%.'
+  },
+
+  // ==================== BOOTS (ADDITIONAL BASES) ====================
+  {
+    id: 'e_leather_boots',
+    name: '가죽 부츠',
+    baseItemName: '가죽 부츠',
+    rarity: 'normal',
+    tier: 'normal',
+    slot: 'boots',
+    isIdentified: true,
+    stats: { defense: 8, evasion: 4 },
+    value: 60,
+    icon: 'Sparkles',
+    description: '[노말 신발] 발을 가볍게 감싸주는 질긴 가죽 부츠.'
+  },
+  {
+    id: 'e_heavy_boots',
+    name: '헤비 부츠',
+    baseItemName: '헤비 부츠',
+    rarity: 'normal',
+    tier: 'normal',
+    slot: 'boots',
+    isIdentified: true,
+    stats: { defense: 15, con: 3 },
+    value: 120,
+    icon: 'Sparkles',
+    description: '[노말 신발] 두꺼운 밑창과 가죽으로 무장한 튼튼한 부츠.'
+  },
+  {
+    id: 'e_greaves',
+    name: '철제 그리브',
+    baseItemName: '그리브',
+    rarity: 'normal',
+    tier: 'normal',
+    slot: 'boots',
+    isIdentified: true,
+    stats: { defense: 24, str: 4 },
+    value: 250,
+    icon: 'Sparkles',
+    description: '[노말 신발] 정강이를 든든하게 보호하는 철제 군화.'
+  },
+  {
+    id: 'e_sharkskin_boots',
+    name: '샤크스킨 부츠',
+    baseItemName: '샤크스킨 부츠',
+    rarity: 'normal',
+    tier: 'exceptional',
+    slot: 'boots',
+    isIdentified: true,
+    stats: { defense: 48, evasion: 8, hp: 25 },
+    value: 600,
+    icon: 'Sparkles',
+    description: '[익셉셔널 신발] 상어 가죽으로 제작되어 매우 질기고 회피율이 높습니다.'
+  },
+  {
+    id: 'e_war_boots',
+    name: '전쟁의 워 부츠',
+    baseItemName: '워 부츠',
+    rarity: 'normal',
+    tier: 'exceptional',
+    slot: 'boots',
+    isIdentified: true,
+    stats: { defense: 65, str: 6, critChance: 5 },
+    value: 900,
+    icon: 'Sparkles',
+    description: '[익셉셔널 신발] 전장에서 짓밟는 타격을 주는 육중한 전투화.'
+  },
+  {
+    id: 'e_mirrored_boots',
+    name: '미러드 부츠',
+    baseItemName: '미러드 부츠',
+    rarity: 'normal',
+    tier: 'elite',
+    slot: 'boots',
+    isIdentified: true,
+    stats: { defense: 95, evasion: 12, allResist: 10 },
+    value: 1800,
+    icon: 'Sparkles',
+    description: '[엘리트 신발] 마법과 물리 공격을 모두 튕겨내는 최고급 엘리트 부츠.'
+  },
+
+  // ==================== RINGS (ADDITIONAL BASES) ====================
+  {
+    id: 'e_silver_ring',
+    name: '은반지',
+    baseItemName: '반지',
+    rarity: 'normal',
+    tier: 'normal',
+    slot: 'ring1',
+    isIdentified: true,
+    stats: { fortune: 12, hp: 15 },
+    value: 100,
+    icon: 'CircleDot',
+    description: '[노말 장신구] 은은한 광채를 내뿜는 마법의 은반지.'
+  },
+  {
+    id: 'e_sapphire_ring',
+    name: '사파이어 반지',
+    baseItemName: '반지',
+    rarity: 'normal',
+    tier: 'normal',
+    slot: 'ring1',
+    isIdentified: true,
+    stats: { allResist: 8, mana: 25 },
+    value: 200,
+    icon: 'CircleDot',
+    description: '[노말 장신구] 푸른 사파이어가 박혀 원소 저항력을 높여줍니다.'
+  },
+  {
+    id: 'e_ruby_ring',
+    name: '루비 반지',
+    baseItemName: '반지',
+    rarity: 'normal',
+    tier: 'exceptional',
+    slot: 'ring1',
+    isIdentified: true,
+    stats: { hp: 40, str: 6 },
+    value: 450,
+    icon: 'CircleDot',
+    description: '[익셉셔널 장신구] 타오르는 루비의 힘으로 생명력과 힘을 부여합니다.'
+  },
+  {
+    id: 'e_diamond_ring',
+    name: '다이아몬드 반지',
+    baseItemName: '반지',
+    rarity: 'normal',
+    tier: 'elite',
+    slot: 'ring1',
+    isIdentified: true,
+    stats: { allResist: 15, critChance: 5, attackSpeed: 5 },
+    value: 1200,
+    icon: 'CircleDot',
+    description: '[엘리트 장신구] 영롱한 다이아몬드가 박힌 최고급 마법 반지.'
+  },
+
+  // ==================== AMULETS (ADDITIONAL BASES) ====================
+  {
+    id: 'e_bronze_amulet',
+    name: '청동 목걸이',
+    baseItemName: '목걸이',
+    rarity: 'normal',
+    tier: 'normal',
+    slot: 'amulet',
+    isIdentified: true,
+    stats: { defense: 12, hp: 20 },
+    value: 120,
+    icon: 'Sparkles',
+    description: '[노말 장신구] 고대 전사의 보호 부적이 달린 청동 펜던트.'
+  },
+  {
+    id: 'e_emerald_amulet',
+    name: '에메랄드 목걸이',
+    baseItemName: '목걸이',
+    rarity: 'normal',
+    tier: 'normal',
+    slot: 'amulet',
+    isIdentified: true,
+    stats: { dex: 6, evasion: 6, allResist: 10 },
+    value: 300,
+    icon: 'Sparkles',
+    description: '[노말 장신구] 녹색 에메랄드가 신속한 움직임과 저항력을 부여합니다.'
+  },
+  {
+    id: 'e_amethyst_amulet',
+    name: '자수정 목걸이',
+    baseItemName: '목걸이',
+    rarity: 'normal',
+    tier: 'exceptional',
+    slot: 'amulet',
+    isIdentified: true,
+    stats: { str: 10, critChance: 8, attackSpeed: 10 },
+    value: 700,
+    icon: 'Sparkles',
+    description: '[익셉셔널 장신구] 신비한 자수정이 치명타와 공격 속도를 증폭합니다.'
+  },
+  {
+    id: 'e_prismatic_amulet',
+    name: '무지개빛 프리즘 목걸이',
+    baseItemName: '목걸이',
+    rarity: 'normal',
+    tier: 'elite',
+    slot: 'amulet',
+    isIdentified: true,
+    stats: { allResist: 25, str: 12, con: 12, attackSpeed: 15 },
+    value: 2000,
+    icon: 'Sparkles',
+    description: '[엘리트 장신구] 모든 원소 저항과 올스탯을 비약적으로 끌어올리는 목걸이.'
   }
 ];
+
+/**
+ * 액트 번호(1~5)에 따라 9대 모든 슬롯(무기, 갑옷, 투구, 방패, 장갑, 신발, 반지, 목걸이)이
+ * 완벽하게 균형을 이루는 적정 레벨 드랍 풀을 생성/반환합니다.
+ */
+export function getActDropPool(actNum: number): GameItem[] {
+  const act = Math.max(1, Math.min(5, actNum));
+
+  if (act === 1) {
+    // Act 1 (Lv 1~12): Normal 전 부위 베이스 + Act 1 적정 유니크/세트
+    return GAME_ITEMS_POOL.filter(item => {
+      const isAct1Unique = [
+        'e_gull_dagger', 'e_bloodfist', 'u_hotspur', 'e_nagelring',
+        'e_sigon_shield', 'e_sigon_boots', 'u_tarnhelm'
+      ].includes(item.id);
+      const isNormalBase = item.rarity === 'normal' && (item.tier === 'normal' || !item.tier);
+      return isAct1Unique || isNormalBase;
+    });
+  }
+
+  if (act === 2) {
+    // Act 2 (Lv 14~28): Normal/Exceptional 전 부위 + Act 2 적정 유니크/세트
+    return GAME_ITEMS_POOL.filter(item => {
+      const isAct2Unique = [
+        'u_butchers_pupil', 'u_stealth_armor', 'u_chance_guards', 'u_magefist',
+        'm_waterwalk', 'u_manald_heal', 'u_cats_eye', 'e_sigon_shield', 'e_sigon_boots'
+      ].includes(item.id);
+      const isBase = item.rarity === 'normal' && (item.tier === 'normal' || item.tier === 'exceptional');
+      return isAct2Unique || isBase;
+    });
+  }
+
+  if (act === 3) {
+    // Act 3 (Lv 30~44): Exceptional 전 부위 + Act 3 적정 유니크/세트
+    return GAME_ITEMS_POOL.filter(item => {
+      const isAct3Unique = [
+        'u_ali_baba', 'u_vipermagi', 'u_shaftstop', 'u_guillaumes_face',
+        'u_herald_of_zakarum', 'u_wilhelms_pride', 'u_rite_of_passage',
+        'u_dwarf_star', 'u_highlords_wrath', 'm_waterwalk'
+      ].includes(item.id);
+      const isBase = item.rarity === 'normal';
+      return isAct3Unique || isBase;
+    });
+  }
+
+  if (act === 4) {
+    // Act 4 (Lv 46~60): Exceptional/Elite 전 부위 + Act 4 적정 유니크/세트
+    return GAME_ITEMS_POOL.filter(item => {
+      const isAct4Unique = [
+        'u_shako', 'u_tyraels_might', 'u_herald_of_zakarum', 'u_laying_of_hands',
+        'u_war_traveler', 'u_soj', 'u_raven_frost', 'u_maras', 'u_atmas_scarab', 'u_vipermagi'
+      ].includes(item.id);
+      const isBase = item.rarity === 'normal' && (item.tier === 'exceptional' || item.tier === 'elite');
+      return isAct4Unique || isBase;
+    });
+  }
+
+  // Act 5 (Lv 62~75): Elite 종결 전 부위 + Act 5 종결 유니크/세트
+  return GAME_ITEMS_POOL.filter(item => {
+    const isAct5Unique = [
+      'u_grandfather', 'u_windforce', 'u_andariel_visage', 'u_stormshield',
+      'u_draculs', 'u_gorerider', 'u_bul_kathos', 'u_maras', 'u_soj', 'u_laying_of_hands'
+    ].includes(item.id);
+    const isBase = item.rarity === 'normal';
+    return isAct5Unique || isBase;
+  });
+}
 
 export const INITIAL_CONSUMABLES: ConsumableItem[] = [
   {
