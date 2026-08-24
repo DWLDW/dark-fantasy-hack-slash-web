@@ -1,32 +1,37 @@
 # PROJECT_CONTEXT.md
 
 ## 프로젝트 개요
-Dark Fantasy Turn-Based Hack & Slash Loot RPG. React 18 + TypeScript + Vite + Tailwind CSS 기반 PC 웹 브라우저 게임.
-Dragon Quest 턴제 + Diablo 2 Overkill 체인 & 루팅.
+Dark Fantasy Turn-Based Hack & Slash Loot RPG. React 18 + TypeScript + Vite + Tailwind CSS 기반 모바일 & PC 크로스플랫폼 웹 게임.
+Dragon Quest 식 턴제 전투 기반 + Diablo II 식 오버킬 체인, 룬워드 크래프팅 및 파밍 루팅 시스템.
 
 ## 핵심 아키텍처
-- **전투 엔진**: `src/combat/combatEngine.ts` — resolveAttack(), createDungeonFormation()
-- **게임 상태**: `src/state/gameStore.tsx` — React Context + useState (2000+ 줄, 리팩토링 필요)
-- **게임 데이터**: `src/data/gameData.ts` — 룬, 스킬, 던전 정의
-- **오디오**: `src/utils/audio.ts` — Web Audio API 절차적 사운드 + BGM 드론
-- **업적**: `src/data/achievements.ts` — 16개 업적 정의
+- **전투 엔진**: [combatEngine.ts](file:///c:/GAMEGAME/src/combat/combatEngine.ts) — `resolveAttack()`, `createDungeonFormation()`, `resolveHordeCounterAttack()`
+- **전투 헬퍼**: [combatActionHelper.ts](file:///c:/GAMEGAME/src/state/helpers/combatActionHelper.ts) — 액션 경험치, 생명력 흡수, 분노/보호막 계산
+- **던전/루팅 헬퍼**: [dungeonEventHelper.ts](file:///c:/GAMEGAME/src/state/helpers/dungeonEventHelper.ts) — 던전 드롭 생성, 난이도별 스케일링, 승리 전리품
+- **게임 상태 관리**: [gameStore.tsx](file:///c:/GAMEGAME/src/state/gameStore.tsx) — 중앙 React Context + 안전한 persistence 타이머
+- **스탯 연산기**: [statCalculator.ts](file:///c:/GAMEGAME/src/state/helpers/statCalculator.ts) — 장비/세트/룬/스탯 총합 계산
+- **오디오 합성기**: [audio.ts](file:///c:/GAMEGAME/src/utils/audio.ts) — Web Audio API 절차적 음향 및 자동 언락 제스처
+- **업적 시스템**: [achievements.ts](file:///c:/GAMEGAME/src/data/achievements.ts) — 1막~5막 클리어 및 16개 업적 판정
 
-## 2026-08-23 개선 작업 완료 내역
-1. **Phase 1 (타격감 & 오디오)**: 대미지 팝업, 사망 애니메이션, 체인킬 배너(x10~x100), 화면 흔들림 3단계, 다크 판타지 멜로디 시퀀서 BGM, 마일스톤 사운드, 랭크별 사망음, Hit 변주
-2. **Phase 2.2 (포메이션 & 전리품)**: 던전별 고유 몬스터 구성, 보물/룬제단/성소방 수호 몬스터 소탕 후 전리품 획득 구조
-3. **Phase 3.2 (인벤토리 & 반지)**: 장비 비교, 카테고리 필터, 레어리티 정렬, 일괄 판매, 반지 1/반지 2 전용 장착 및 비교
-4. **Phase 4.2 (업적)**: 16개 업적 + 보상 + UI 모달 + 자동 추적
-5. **Phase 2.3 & Visuals (보스방 & 레인 큐)**: 보스방 핏빛 오라 테마 & 대형 엠블럼 바, 보스 몬스터 전용 왕관 카드, 레인별 몬스터 총수(`L1 • 4👹`) 및 후열 대기수(`+N 대기중` 스택 도트) & 관통 처치 예측 표시기
-6. **Phase 3.3 (시스템 밸런스 & 파밍 고도화)**:
-   - **휠윈드 거리 감쇠 및 스킬 상세 설명**: 휠윈드 시전자 중심(100%) 및 인접(90%), 외곽(75%) 거리 감쇠 페널티 복원 및 스킬 설명란에 명확한 메커니즘 표기
-   - **스킬 범위 시각화 & 타격 대상 표시**: 피격 대상 몬스터에 선명한 붉은색 타겟팅 테두리(`border-red-500`) 및 `🎯 피격 (-XX DMG)` 배지 표시
-   - **인벤토리 장비 상세 레이아웃 재구성**: 아이템 클릭 시 1순위 상단에 선택 장비의 기본 능력치(공격력/방어력) 및 모든 접사/옵션을 전면 표시하고, 2순위 하단에 현재 착용 장비와의 스탯 비교표 배치
-   - **기드 도박 전면 개편**: 플레이어 레벨 비례 베이스 장비(Normal/Exceptional/Elite) 풀에서 생성, 데커드 케인 식별 시 다채로운 접사 및 고유 유니크/레어 아이템명 생성
-   - **분노 생성 로직 밸런싱**: 과도한 킬당 분노 폭증 제거, 스킬 타격당 정밀 분노 충전으로 리소스 관리감 복원
-   - **룬워드 베이스 스케일링**: Enhanced Damage (+50%~350%) 및 Enhanced Defense (+50%~200%) 공식 적용으로 베이스 장비의 등급에 비례한 공격력/방어력 연산 구현
-   - **보스 배치 및 시각화 확정**: 보스방 진입 시 보스는 항상 중앙 레인(L3) 최후열에 고정 배치되며, L3 레인에 `👑 L3 BOSS` 전용 헤더 및 거대 불꽃 왕관 카드 강조
-- 몬스터 AI 행동 차별화, Boss Phase 패턴
-- 마을 강화 (대장간/상점/보관함), DungeonExplorationView
-- 밸런스 조정, 진행도 시각화
-- 코드 리팩토링 (gameStore 분리 → Zustand/Jotai)
-- Mage 클래스
+## 전반적 수정 및 검수 완료 내역 (2026-08-24)
+
+### 1. 치명적 버그 수정 (Core Logic & Data)
+- **던전 ID 및 룬 풀 매핑 수정**: `DUNGEON_RUNE_TIERS` 및 `getRunePoolForDungeon()`을 1~5막 20개 전 던전에 완벽 매핑하여 Act 2~5에서 상위 룬 정상 드롭 보장
+- **업적 ID 동기화**: `achievements.ts`의 막 클리어 조건을 실제 최종 던전 ID(`act1_4_catacombs`, `act2_4_tomb`, `act3_4_durance`, `act4_4_altar`, `act5_4_throne`)로 수정
+- **오버킬 방어력 이중 차감 제거**: `combatEngine.ts`의 `line`, `branch`, `radius` 경로에서 raw overkill payload 방식으로 방어력 이중 적용 방지
+- **Whirlwind / Berserk 타격 이월 정상화**: 휠윈드 오버킬 합산 버그 수정 및 버서크 3연타 도중 몬스터 사망 시 다음 타겟으로 잔여 타격 이월
+- **Life Steal (생명력 흡수) 연동**: `calculateAttackGains`에 `itemLifeSteal` 수식을 연동하여 타격 시 체력 회복 정상 작동
+- **물약 무한 스택 방지 및 귀환 리셋**: `buyPotions`에서 업그레이드 티어별 최대 용량 상한을 적용하고 마을 귀환 시 정량 자동 충전
+- **상태 선언 및 타이머 레이스 컨디션 방어**: `persistStateRef`의 렌더 뮤테이션을 `useEffect`로 감싸고, 몬스터 반격 타이머에 `viewMode` 가드 및 클린업 적용
+
+### 2. UI/UX 및 모바일/데스크탑 반응형 개선
+- **Z-Index 위계 확립**: 글로벌 모달(`z-[100]`), 던전 출격 모달(`z-[60]`), TopHUD(`z-40`), 전역 컨펌 모달(`z-[999999]`)
+- **키보드 이벤트 충돌 방지**: 상위 글로벌 모달 및 컨펌 창이 열려있을 때 하위 페이지 단축키(Space/Enter 등) 무시 처리
+- **스크롤 & Sticky 헤더**: `InventoryModal.tsx`, `DungeonSelectView.tsx` 내부 스크롤 시 탭 스위처와 닫기 버튼이 화면 상단에 고정
+- **모바일 터치 타겟 확보**: TopHUD 설정/업적/마을 버튼 및 모달 닫기 버튼의 최소 터치 타겟(36px+) 확보
+- **AudioContext Autoplay 정책 안전화**: 브라우저 첫 터치/클릭 제스처 시 Web Audio API가 자동 활성화되도록 리스너 보강
+
+## 향후 백로그 및 예정 작업
+- 몬스터 AI 행동 다양화 (특수 스킬, 상태이상 사용)
+- 보스전 다단계 페이즈 (Phase 2 광폭화 등)
+- 신규 직업(소서리스/팔라딘) 및 스킬트리 확장

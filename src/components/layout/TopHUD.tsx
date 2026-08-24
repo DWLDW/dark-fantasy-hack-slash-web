@@ -42,20 +42,20 @@ export const TopHUD: React.FC = React.memo(() => {
             {/* Achievements Button */}
             <button
               onClick={() => openModal('achievement')}
-              className="p-1 sm:p-1.5 bg-iron-900 hover:bg-iron-800 border border-amber-500/60 text-amber-300 hover:text-white rounded shadow transition flex items-center gap-1 text-[9px] sm:text-[10px] font-mono font-bold"
+              className="px-2 py-1 sm:px-2.5 sm:py-1.5 min-h-[32px] sm:min-h-[36px] bg-iron-900 hover:bg-iron-800 border border-amber-500/60 text-amber-300 hover:text-white rounded shadow transition flex items-center justify-center gap-1 text-[10px] sm:text-xs font-mono font-bold cursor-pointer active:scale-95"
               title="성역의 위업 (업적 및 보상)"
             >
-              <Trophy className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-400" />
+              <Trophy className="w-3.5 h-3.5 text-amber-400" />
               <span className="hidden sm:inline">업적</span>
             </button>
 
             {/* Settings Button */}
             <button
               onClick={() => openModal('settings')}
-              className="p-1 sm:p-1.5 bg-iron-900 hover:bg-iron-800 border border-brass-600/60 text-brass-300 hover:text-white rounded shadow transition flex items-center gap-1 text-[9px] sm:text-[10px] font-mono font-bold"
+              className="px-2 py-1 sm:px-2.5 sm:py-1.5 min-h-[32px] sm:min-h-[36px] bg-iron-900 hover:bg-iron-800 border border-brass-600/60 text-brass-300 hover:text-white rounded shadow transition flex items-center justify-center gap-1 text-[10px] sm:text-xs font-mono font-bold cursor-pointer active:scale-95"
               title="게임 설정 & 세이브 백업/복원"
             >
-              <Settings className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-brass-400" />
+              <Settings className="w-3.5 h-3.5 text-brass-400" />
               <span className="hidden sm:inline">설정</span>
             </button>
 
@@ -149,7 +149,7 @@ export const TopHUD: React.FC = React.memo(() => {
                   }
                   setViewMode('town');
                 }}
-                className="px-2.5 py-1 bg-iron-850 hover:bg-iron-750 border border-brass-600/60 rounded text-brass-200 text-xs flex items-center gap-1 transition shadow font-bold"
+                className="px-2.5 py-1 min-h-[32px] sm:min-h-[36px] bg-iron-850 hover:bg-iron-750 border border-brass-600/60 rounded text-brass-200 text-xs flex items-center justify-center gap-1 transition shadow font-bold cursor-pointer active:scale-95"
                 title="마을로 즉시 이동"
               >
                 <Home className="w-3.5 h-3.5 text-brass-400" />

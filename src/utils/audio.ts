@@ -29,13 +29,25 @@ function getAudioContext(): AudioContext | null {
     }
   }
   if (audioCtx && audioCtx.state === 'suspended') {
-    audioCtx.resume();
+    audioCtx.resume().catch(() => {});
   }
   return audioCtx;
 }
 
 export function initAudio(): void {
-  getAudioContext();
+  const ctx = getAudioContext();
+  if (ctx && ctx.state === 'suspended') {
+    const unlock = () => {
+      ctx.resume().then(() => {
+        window.removeEventListener('click', unlock);
+        window.removeEventListener('touchstart', unlock);
+        window.removeEventListener('keydown', unlock);
+      }).catch(() => {});
+    };
+    window.addEventListener('click', unlock, { passive: true });
+    window.addEventListener('touchstart', unlock, { passive: true });
+    window.addEventListener('keydown', unlock, { passive: true });
+  }
 }
 
 /**

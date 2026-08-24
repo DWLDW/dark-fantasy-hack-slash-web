@@ -36,7 +36,7 @@ export const GlobalModalHost: React.FC = React.memo(() => {
 
   return (
     <>
-      <Suspense fallback={<div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"><ModalLoadingFallback /></div>}>
+      <Suspense fallback={<div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4"><ModalLoadingFallback /></div>}>
         {/* Victory Loot Modal (Triggered on Dungeon Completion) */}
         {isVictoryModalOpen && <DungeonVictoryModal />}
 
@@ -46,7 +46,7 @@ export const GlobalModalHost: React.FC = React.memo(() => {
         {/* Standard Active Modals */}
         {activeModal && (
           <div
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
             onClick={(e) => {
               if (e.target === e.currentTarget) closeModal();
             }}

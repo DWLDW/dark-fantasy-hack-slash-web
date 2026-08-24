@@ -20,12 +20,21 @@ import { GAME_ITEMS_POOL } from '../../data/items';
 import { identifyItemHelper } from './itemGenerator';
 
 export const DUNGEON_RUNE_TIERS: Record<string, string[]> = {
-  act1_crypt: ['El', 'Eld', 'Tir', 'Nef', 'Eth', 'Ith', 'Tal', 'Ral', 'Ort'],
-  act2_tomb: ['Tal', 'Ral', 'Ort', 'Thul', 'Amn', 'Sol', 'Shael', 'Dol', 'Hel', 'Io'],
-  act3_jungle: ['Sol', 'Shael', 'Dol', 'Hel', 'Io', 'Lum', 'Ko', 'Fal', 'Lem', 'Pul', 'Um', 'Mal'],
-  act4_chaos: ['Lem', 'Pul', 'Um', 'Mal', 'Ist', 'Gul', 'Vex', 'Ohm', 'Lo', 'Sur'],
-  act5_worldstone: ['Gul', 'Vex', 'Ohm', 'Lo', 'Sur', 'Ber', 'Jah', 'Cham', 'Zod']
+  act1: ['El', 'Eld', 'Tir', 'Nef', 'Eth', 'Ith', 'Tal', 'Ral', 'Ort'],
+  act2: ['Tal', 'Ral', 'Ort', 'Thul', 'Amn', 'Sol', 'Shael', 'Dol', 'Hel', 'Io'],
+  act3: ['Sol', 'Shael', 'Dol', 'Hel', 'Io', 'Lum', 'Ko', 'Fal', 'Lem', 'Pul', 'Um', 'Mal'],
+  act4: ['Lem', 'Pul', 'Um', 'Mal', 'Ist', 'Gul', 'Vex', 'Ohm', 'Lo', 'Sur'],
+  act5: ['Gul', 'Vex', 'Ohm', 'Lo', 'Sur', 'Ber', 'Jah', 'Cham', 'Zod']
 };
+
+export function getRunePoolForDungeon(dungeonId: string): string[] {
+  if (DUNGEON_RUNE_TIERS[dungeonId]) return DUNGEON_RUNE_TIERS[dungeonId];
+  if (dungeonId.startsWith('act5')) return DUNGEON_RUNE_TIERS.act5;
+  if (dungeonId.startsWith('act4')) return DUNGEON_RUNE_TIERS.act4;
+  if (dungeonId.startsWith('act3')) return DUNGEON_RUNE_TIERS.act3;
+  if (dungeonId.startsWith('act2')) return DUNGEON_RUNE_TIERS.act2;
+  return DUNGEON_RUNE_TIERS.act1;
+}
 
 export interface TreasureReward {
   gold: number;
@@ -38,29 +47,30 @@ export function scaleItemForDifficulty(baseItem: GameItem, difficultyLevel: numb
   const scaledStats = { ...baseItem.stats };
   const statScale = 1 + (difficultyLevel - 1) * 0.10;
 
-  if (scaledStats.minDmg) scaledStats.minDmg = Math.floor(scaledStats.minDmg * mult);
-  if (scaledStats.maxDmg) scaledStats.maxDmg = Math.floor(scaledStats.maxDmg * mult);
-  if (scaledStats.defense) scaledStats.defense = Math.floor(scaledStats.defense * mult);
-  if (scaledStats.hp) scaledStats.hp = Math.floor(scaledStats.hp * mult);
-  if (scaledStats.mana) scaledStats.mana = Math.floor(scaledStats.mana * mult);
-  if (scaledStats.damageReduction) scaledStats.damageReduction = Math.min(60, scaledStats.damageReduction + Math.floor((difficultyLevel - 1) / 3));
-  if (scaledStats.allResist) scaledStats.allResist = scaledStats.allResist + (difficultyLevel - 1) * 2;
-  if (scaledStats.evasion) scaledStats.evasion = scaledStats.evasion + (difficultyLevel - 1);
-  if (scaledStats.fortune) scaledStats.fortune = scaledStats.fortune + Math.floor((difficultyLevel - 1) * 0.5);
-  if (scaledStats.critChance) scaledStats.critChance = scaledStats.critChance + Math.floor((difficultyLevel - 1) / 2);
-  if (scaledStats.overkillEfficiency) scaledStats.overkillEfficiency = scaledStats.overkillEfficiency + Math.floor((difficultyLevel - 1) / 2);
-  if (scaledStats.attackSpeed) scaledStats.attackSpeed = Math.min(75, scaledStats.attackSpeed + Math.floor((difficultyLevel - 1) / 4));
-  if (scaledStats.lifeSteal) scaledStats.lifeSteal = scaledStats.lifeSteal + Math.floor((difficultyLevel - 1) / 5);
-  if (scaledStats.str) scaledStats.str = Math.floor(scaledStats.str * statScale);
-  if (scaledStats.dex) scaledStats.dex = Math.floor(scaledStats.dex * statScale);
-  if (scaledStats.con) scaledStats.con = Math.floor(scaledStats.con * statScale);
-  if (scaledStats.int) scaledStats.int = Math.floor(scaledStats.int * statScale);
-  if (scaledStats.wis) scaledStats.wis = Math.floor(scaledStats.wis * statScale);
+  if (scaledStats.minDmg !== undefined) scaledStats.minDmg = Math.floor(scaledStats.minDmg * mult);
+  if (scaledStats.maxDmg !== undefined) scaledStats.maxDmg = Math.floor(scaledStats.maxDmg * mult);
+  if (scaledStats.defense !== undefined) scaledStats.defense = Math.floor(scaledStats.defense * mult);
+  if (scaledStats.hp !== undefined) scaledStats.hp = Math.floor(scaledStats.hp * mult);
+  if (scaledStats.mana !== undefined) scaledStats.mana = Math.floor(scaledStats.mana * mult);
+  if (scaledStats.damageReduction !== undefined) scaledStats.damageReduction = Math.min(60, scaledStats.damageReduction + Math.floor((difficultyLevel - 1) / 3));
+  if (scaledStats.allResist !== undefined) scaledStats.allResist = scaledStats.allResist + (difficultyLevel - 1) * 2;
+  if (scaledStats.evasion !== undefined) scaledStats.evasion = scaledStats.evasion + (difficultyLevel - 1);
+  if (scaledStats.fortune !== undefined) scaledStats.fortune = scaledStats.fortune + Math.floor((difficultyLevel - 1) * 0.5);
+  if (scaledStats.critChance !== undefined) scaledStats.critChance = scaledStats.critChance + Math.floor((difficultyLevel - 1) / 2);
+  if (scaledStats.overkillEfficiency !== undefined) scaledStats.overkillEfficiency = scaledStats.overkillEfficiency + Math.floor((difficultyLevel - 1) / 2);
+  if (scaledStats.attackSpeed !== undefined) scaledStats.attackSpeed = Math.min(75, scaledStats.attackSpeed + Math.floor((difficultyLevel - 1) / 4));
+  if (scaledStats.lifeSteal !== undefined) scaledStats.lifeSteal = scaledStats.lifeSteal + Math.floor((difficultyLevel - 1) / 5);
+  if (scaledStats.str !== undefined) scaledStats.str = Math.floor(scaledStats.str * statScale);
+  if (scaledStats.dex !== undefined) scaledStats.dex = Math.floor(scaledStats.dex * statScale);
+  if (scaledStats.con !== undefined) scaledStats.con = Math.floor(scaledStats.con * statScale);
+  if (scaledStats.int !== undefined) scaledStats.int = Math.floor(scaledStats.int * statScale);
+  if (scaledStats.wis !== undefined) scaledStats.wis = Math.floor(scaledStats.wis * statScale);
 
-  // High difficulties can add bonus sockets on socketed bases (cap 6).
+  // High difficulties can add bonus sockets (cap 6).
   const bonusSocketChance = difficultyLevel >= 5 ? Math.min(0.5, 0.05 * (difficultyLevel - 4)) : 0;
-  const scaledSockets = baseItem.sockets && baseItem.sockets > 0 && Math.random() < bonusSocketChance
-    ? Math.min(6, baseItem.sockets + 1)
+  const currentSockets = baseItem.sockets ?? 0;
+  const scaledSockets = (currentSockets > 0 || (baseItem.slot === 'weapon' || baseItem.slot === 'armor' || baseItem.slot === 'shield' || baseItem.slot === 'helm')) && Math.random() < bonusSocketChance
+    ? Math.min(6, Math.max(1, currentSockets + 1))
     : baseItem.sockets;
 
   const scaledAffixes = baseItem.subAffixes
@@ -103,12 +113,19 @@ function makeDungeonDrop(
   index: number
 ): GameItem {
   const { difficultyLevel, playerFortune, dungeonIdx } = ctx;
-  let droppedBase = pool[Math.floor(Math.random() * pool.length)];
   const wantSpecial = rollSpecialDrop(playerFortune, dungeonIdx);
-  if (wantSpecial) {
-    const specialPool = pool.filter(p => p.rarity === 'unique' || p.rarity === 'set' || p.rarity === 'legendary');
-    if (specialPool.length > 0) droppedBase = specialPool[Math.floor(Math.random() * specialPool.length)];
+
+  const specialPool = pool.filter(p => p.rarity === 'unique' || p.rarity === 'set' || p.rarity === 'legendary');
+  const normalPool = pool.filter(p => p.rarity !== 'unique' && p.rarity !== 'set' && p.rarity !== 'legendary');
+  const effectiveNormalPool = normalPool.length > 0 ? normalPool : pool;
+
+  let droppedBase: GameItem;
+  if (wantSpecial && specialPool.length > 0) {
+    droppedBase = specialPool[Math.floor(Math.random() * specialPool.length)];
+  } else {
+    droppedBase = effectiveNormalPool[Math.floor(Math.random() * effectiveNormalPool.length)];
   }
+
   const scaled = scaleItemForDifficulty(droppedBase, difficultyLevel);
   const isSpecialDrop = droppedBase.rarity === 'unique' || droppedBase.rarity === 'set' || droppedBase.rarity === 'legendary';
 
@@ -185,7 +202,7 @@ export function claimTreasureHelper(
 }
 
 export function claimRuneAltarHelper(dungeonId: string): { runeName: string; count: number } {
-  const runes = DUNGEON_RUNE_TIERS[dungeonId] || DUNGEON_RUNE_TIERS['act1_crypt'];
+  const runes = getRunePoolForDungeon(dungeonId);
   const pickedRune = runes[Math.floor(Math.random() * runes.length)];
   return { runeName: pickedRune, count: 1 };
 }
@@ -240,21 +257,21 @@ export function generateVictoryLoot(
   playerHpPercent: number = 100
 ): VictoryLootResult {
   const dungeonIndex = Math.max(0, DUNGEONS_DATA.findIndex(d => d.id === currentDungeon.id));
+  const actIndex = Math.min(4, Math.floor(dungeonIndex / 4));
   const actMultiplier = dungeonIndex + 1;
   const diffMultiplier = 1 + (difficultyLevel - 1) * 0.45;
 
   const victoryGold = Math.floor((3000 * actMultiplier + Math.random() * 1000) * diffMultiplier);
   const victoryShards = Math.floor(10 * actMultiplier * (1 + (difficultyLevel - 1) * 0.15));
 
-  const baseExp = currentDungeon.id === 'act1_crypt' ? 100
-    : currentDungeon.id === 'act2_tomb' ? 600
-    : currentDungeon.id === 'act3_jungle' ? 3000
-    : currentDungeon.id === 'act4_chaos' ? 14000
-    : 70000;
+  // Progressive base exp scale per Act: Act 1 (~100-300), Act 2 (~800-1500), Act 3 (~3500-6000), Act 4 (~15000-25000), Act 5 (~60000-100000)
+  const actBaseExps = [150, 900, 4000, 18000, 75000];
+  const dungeonWithinAct = dungeonIndex % 4;
+  const baseExp = Math.floor(actBaseExps[actIndex] * (1 + dungeonWithinAct * 0.35));
 
   const victoryExp = Math.floor(baseExp * (1 + (difficultyLevel - 1) * 0.40));
 
-  const availableRunes = DUNGEON_RUNE_TIERS[currentDungeon.id] || DUNGEON_RUNE_TIERS['act1_crypt'];
+  const availableRunes = getRunePoolForDungeon(currentDungeon.id);
   const droppedRunes: Record<string, number> = {};
   const runeDropCount = Math.min(5, Math.floor(1 + Math.random() * 2 + (playerFortune > 30 ? 1 : 0) + (difficultyLevel >= 10 ? 1 : 0)));
 

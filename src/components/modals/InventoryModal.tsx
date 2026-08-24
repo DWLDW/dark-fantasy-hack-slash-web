@@ -246,8 +246,8 @@ export const InventoryModal: React.FC = () => {
 
   return (
     <div className="bg-iron-950 border-2 border-brass-500 rounded-lg p-3 md:p-5 w-full max-w-5xl max-h-[92vh] overflow-y-auto shadow-2xl text-xs md:text-sm select-none">
-      {/* Top Header & Tab Switcher */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-iron-750 mb-3 gap-2">
+      {/* Top Header & Tab Switcher (Sticky so tabs & close button remain accessible while scrolling) */}
+      <div className="sticky -top-3 md:-top-5 bg-iron-950/95 backdrop-blur z-20 pt-1 pb-3 -mx-3 md:-mx-5 px-3 md:px-5 border-b border-iron-750 mb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-sm">
         <div className="flex items-center gap-3">
           <h2 className="text-base md:text-lg font-cinzel font-black text-brass-200 tracking-wider flex items-center gap-2">
             <span>⚔️ 소지품 & 룬 보관함</span>
@@ -291,7 +291,7 @@ export const InventoryModal: React.FC = () => {
           )}
           <button
             onClick={closeModal}
-            className="text-gray-300 hover:text-white p-1 rounded hover:bg-iron-800 transition cursor-pointer"
+            className="text-gray-300 hover:text-white p-1 rounded hover:bg-iron-800 transition cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center"
             aria-label="닫기"
           >
             <X className="w-5 h-5" />

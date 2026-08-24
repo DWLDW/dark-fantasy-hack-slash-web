@@ -128,7 +128,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     name: '1막: 지하묘지 정복',
     description: '1막: 핏빛 황야와 지하묘지를 1회 이상 클리어하세요.',
     icon: 'Award',
-    condition: (stats) => (stats.dungeonClears['act1_crypt'] || 0) >= 1,
+    condition: (stats) => (stats.dungeonClears['act1_4_catacombs'] || stats.dungeonClears['act1_2_crypt'] || stats.dungeonClears['act1_1_den'] || 0) >= 1,
     reward: { gold: 300 }
   },
   {
@@ -136,31 +136,31 @@ export const ACHIEVEMENTS: Achievement[] = [
     name: '2막: 사막 묘실 정복',
     description: '2막: 메마른 사막의 고대 묘실을 1회 이상 클리어하세요.',
     icon: 'Award',
-    condition: (stats) => (stats.dungeonClears['act2_tomb'] || 0) >= 1,
+    condition: (stats) => (stats.dungeonClears['act2_4_tomb'] || stats.dungeonClears['act2_1_sewers'] || 0) >= 1,
     reward: { gold: 300 }
   },
   {
     id: 'clear_act3',
-    name: '3막: 쿠라스트 밀림 정복',
-    description: '3막: 쿠라스트 부패 밀림을 1회 이상 클리어하세요.',
+    name: '3막: 증오의 사원 정복',
+    description: '3막: 쿠라스트와 증오의 억류지를 1회 이상 클리어하세요.',
     icon: 'Award',
-    condition: (stats) => (stats.dungeonClears['act3_jungle'] || 0) >= 1,
+    condition: (stats) => (stats.dungeonClears['act3_4_durance'] || stats.dungeonClears['act3_2_jungle'] || 0) >= 1,
     reward: { gold: 300 }
   },
   {
     id: 'clear_act4',
     name: '4막: 혼돈의 성역 정복',
-    description: '4막: 혼돈의 성역을 1회 이상 클리어하세요.',
+    description: '4막: 불길의 강과 혼돈의 제단을 1회 이상 클리어하세요.',
     icon: 'Award',
-    condition: (stats) => (stats.dungeonClears['act4_chaos'] || 0) >= 1,
+    condition: (stats) => (stats.dungeonClears['act4_4_altar'] || stats.dungeonClears['act4_3_sanctuary'] || 0) >= 1,
     reward: { gold: 300 }
   },
   {
     id: 'clear_act5',
     name: '5막: 세계석 성채 정복',
-    description: '5막: 세계석 성채를 1회 이상 클리어하세요.',
+    description: '5막: 아리앗 정상과 파괴의 옥좌를 1회 이상 클리어하세요.',
     icon: 'Award',
-    condition: (stats) => (stats.dungeonClears['act5_worldstone'] || 0) >= 1,
+    condition: (stats) => (stats.dungeonClears['act5_4_throne'] || stats.dungeonClears['act5_3_keep'] || 0) >= 1,
     reward: { gold: 300 }
   },
   {

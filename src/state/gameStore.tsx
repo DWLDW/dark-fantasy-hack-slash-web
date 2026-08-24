@@ -327,23 +327,40 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [playerStats.level]);
   
   const persistStateRef = useRef<SaveDataPayload | null>(null);
-  persistStateRef.current = {
-    playerStats,
-    equipment,
-    inventory,
-    runesVault,
-    consumables,
-    currentDungeonId: currentDungeon.id,
-    currentRoomId,
-    currentDifficulty,
-    maxUnlockedDifficulty,
-    skillRunes,
-    skillLevels,
-    achievementStats,
-    claimedAchievements,
-    hasSeenTutorial,
-    townUpgrades
-  };
+  const counterAttackTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (counterAttackTimerRef.current !== null) {
+        window.clearTimeout(counterAttackTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    persistStateRef.current = {
+      playerStats,
+      equipment,
+      inventory,
+      runesVault,
+      consumables,
+      currentDungeonId: currentDungeon.id,
+      currentRoomId,
+      currentDifficulty,
+      maxUnlockedDifficulty,
+      skillRunes,
+      skillLevels,
+      achievementStats,
+      claimedAchievements,
+      hasSeenTutorial,
+      townUpgrades
+    };
+  }, [
+    playerStats, equipment, inventory, runesVault, consumables,
+    currentDungeon.id, currentRoomId, currentDifficulty, maxUnlockedDifficulty,
+    skillRunes, skillLevels, achievementStats, claimedAchievements,
+    hasSeenTutorial, townUpgrades
+  ]);
 
   // Debounced autosave — HP/rage change every hit; writing JSON every frame stalls 1-core clients.
   useEffect(() => {
@@ -925,7 +942,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setMaxChainThisRoom(result.chainCount);
       }
 
-      const gains = calculateAttackGains(result, effectiveSkill, monsters, playerStats.maxHp, totalStats.defense);
+      const gains = calculateAttackGains(result, effectiveSkill, monsters, playerStats.maxHp, totalStats.defense, totalStats.lifeSteal);
 
       if (gains.actionExp > 0) {
         addPlayerExp(gains.actionExp);
@@ -935,7 +952,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setPlayerStats(prev => ({
         ...prev,
         gold: prev.gold + gains.gainedGold,
-        rage: Math.min(prev.maxRage, prev.rage + gains.totalRageGained + turnRage),
+        rage: Math.min(prev.maxRage || 100, prev.rage + gains.totalRageGained + turnRage),
         hp: Math.min(prev.maxHp, prev.hp + gains.totalHpHealed),
         shield: Math.min(prev.maxHp, (prev.shield || 0) + (gains.shieldGained || 0))
       }));
@@ -999,7 +1016,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setTimeout(() => {
             const hpPercent = Math.max(1, Math.round((playerStats.hp / Math.max(1, playerStats.maxHp)) * 100));
             const victory = generateVictoryLoot(currentDungeon, runFortuneRef.current, currentDifficulty, hpPercent);
-            const isFirstAct1 = currentDungeon.id === 'act1_crypt' && !(achievementStats.dungeonClears['act1_crypt']);
+            const isFirstAct1 = (currentDungeon.id === 'act1_1_den' || currentDungeon.id === 'act1_2_crypt') && !(achievementStats.dungeonClears[currentDungeon.id]);
             if (isFirstAct1) {
               const need = Math.max(1, calculateMaxExp(playerStats.level) - playerStats.exp);
               victory.exp = Math.max(victory.exp, need);
@@ -1097,14 +1114,16 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsEnemyTurn(true);
       setHordeTimelinePercent(100);
 
-      setTimeout(() => {
+      counterAttackTimerRef.current = window.setTimeout(() => {
+        if (viewMode !== 'battle') return;
+
         const hordeResult = resolveHordeCounterAttack(
           survivors,
           playerStats.level,
           playerStats.hp,
           playerStats.maxHp,
           playerStats.rage,
-          playerStats.maxRage,
+          playerStats.maxRage || 100,
           totalStats.evasion,
           totalStats.defense,
           totalStats.damageReduction,
@@ -1145,7 +1164,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setPlayerStats(prev => ({
               ...prev,
               hp: hordeResult.nextHp,
-              rage: Math.min(prev.maxRage, prev.rage + hordeResult.rageGainOnHit)
+              rage: Math.min(prev.maxRage || 100, prev.rage + hordeResult.rageGainOnHit)
             }));
           }
 
@@ -1436,17 +1455,30 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 
   const returnToTown = () => {
+    if (counterAttackTimerRef.current !== null) {
+      window.clearTimeout(counterAttackTimerRef.current);
+      counterAttackTimerRef.current = null;
+    }
+    setIsEnemyTurn(false);
+    setIsAttacking(false);
     setViewMode('town');
-    setMonsters(createDungeonFormation('act1_crypt', 'normal', playerStats.level));
+    setMonsters(createDungeonFormation('act1_1_den', 'normal', playerStats.level));
     setTempBuffs({ defenseBonus: 0, overkillBonus: 0 });
     setDungeonSnapshot(null);
     setPendingExitRoomId(null);
-    setConsumables(curr => curr.map(c => c.id === 'c_hp' ? { ...c, count: Math.max(POTION_CAPACITY_TIERS[townUpgrades.potionCapacityLevel] || 3, c.count) } : c));
+    const maxPots = POTION_CAPACITY_TIERS[townUpgrades.potionCapacityLevel] || 3;
+    setConsumables(curr => curr.map(c => c.id === 'c_hp' ? { ...c, count: maxPots } : c));
     startBGM('town');
-    addLog('마을로 귀환했습니다. (생명력 물약 5개 무료 자동 충전 완료)', 'system');
+    addLog(`마을로 귀환했습니다. (생명력 물약 ${maxPots}개 무료 자동 충전 완료)`, 'system');
   };
 
   const abandonDungeon = () => {
+    if (counterAttackTimerRef.current !== null) {
+      window.clearTimeout(counterAttackTimerRef.current);
+      counterAttackTimerRef.current = null;
+    }
+    setIsEnemyTurn(false);
+    setIsAttacking(false);
     if (dungeonSnapshot) {
       setInventory(dungeonSnapshot.inventory);
       setRunesVault(dungeonSnapshot.runesVault);
@@ -1468,14 +1500,21 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setPendingExitRoomId(null);
     setDungeonSnapshot(null);
     setTempBuffs({ defenseBonus: 0, overkillBonus: 0 });
-    setConsumables(curr => curr.map(c => c.id === 'c_hp' ? { ...c, count: Math.max(POTION_CAPACITY_TIERS[townUpgrades.potionCapacityLevel] || 3, c.count) } : c));
+    const maxPots = POTION_CAPACITY_TIERS[townUpgrades.potionCapacityLevel] || 3;
+    setConsumables(curr => curr.map(c => c.id === 'c_hp' ? { ...c, count: maxPots } : c));
     setViewMode('town');
     startBGM('town');
     addLog('원정을 포기했습니다. 이번 런에서 얻은 전리품은 모두 사라집니다.', 'system');
   };
 
   const confirmDeathAndReturnToTown = () => {
+    if (counterAttackTimerRef.current !== null) {
+      window.clearTimeout(counterAttackTimerRef.current);
+      counterAttackTimerRef.current = null;
+    }
     setIsDeathModalOpen(false);
+    setIsEnemyTurn(false);
+    setIsAttacking(false);
     if (dungeonSnapshot) {
       setInventory(dungeonSnapshot.inventory);
       setRunesVault(dungeonSnapshot.runesVault);
@@ -1495,7 +1534,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         rage: 0
       }));
     }
-    setConsumables(curr => curr.map(c => c.id === 'c_hp' ? { ...c, count: Math.max(POTION_CAPACITY_TIERS[townUpgrades.potionCapacityLevel] || 3, c.count) } : c));
+    const maxPots = POTION_CAPACITY_TIERS[townUpgrades.potionCapacityLevel] || 3;
+    setConsumables(curr => curr.map(c => c.id === 'c_hp' ? { ...c, count: maxPots } : c));
     setViewMode('town');
     setTempBuffs({ defenseBonus: 0, overkillBonus: 0 });
     setDungeonSnapshot(null);
@@ -1711,15 +1751,22 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
     const buyPotions = () => {
+      const maxPots = POTION_CAPACITY_TIERS[townUpgrades.potionCapacityLevel] || 3;
+      const curPot = consumables.find(c => c.id === 'c_hp')?.count || 0;
+      if (curPot >= maxPots) {
+        addLog(`물약 가방이 이미 가득 찼습니다! (최대: ${maxPots}개, 마을 시설에서 물약 벨트를 업그레이드하세요)`, 'system');
+        return;
+      }
       const cost = 200;
       if (playerStats.gold < cost) {
         addLog('골드가 부족합니다! (필요: 200G)', 'system');
         return;
       }
+      const newCount = Math.min(maxPots, curPot + 5);
       setPlayerStats(p => ({ ...p, gold: p.gold - cost }));
-      setConsumables(curr => curr.map(c => c.id === 'c_hp' ? { ...c, count: c.count + 5 } : c));
+      setConsumables(curr => curr.map(c => c.id === 'c_hp' ? { ...c, count: newCount } : c));
       playRuneWordSound();
-      addLog('🧪 상인에게서 생명력 물약 5개를 구매했습니다! (-200G)', 'loot');
+      addLog(`🧪 상인에게서 생명력 물약을 구매했습니다! (${curPot} ➔ ${newCount}개, -200G)`, 'loot');
     };
 
     const upgradeTownFacility = (facility: 'potionCapacity' | 'potionHealing' | 'consumablePower' | 'gambleLevel'): boolean => {

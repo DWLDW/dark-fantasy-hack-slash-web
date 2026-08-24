@@ -30,7 +30,9 @@ export const DungeonSelectView: React.FC = React.memo(() => {
     currentDifficulty,
     maxUnlockedDifficulty,
     setCurrentDifficulty,
-    achievementStats
+    achievementStats,
+    activeModal,
+    confirmDialogState
   } = useGame();
 
   const [selectedAct, setSelectedAct] = useState<number>(1);
@@ -74,20 +76,23 @@ export const DungeonSelectView: React.FC = React.memo(() => {
     enterDungeon(selectedDungeon.id, selectedDifficulty);
   };
 
-  // Keyboard shortcut listener for modal: Space/Enter = Deploy, Esc = Close
+  // Keyboard shortcut listener for modal: Space/Enter = Deploy, Esc = Close (ignore if global modal or confirm modal is open)
   useEffect(() => {
     if (!isDeployModalOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (activeModal || confirmDialogState?.isOpen) return;
       if (e.key === 'Escape') {
+        e.stopPropagation();
         setIsDeployModalOpen(false);
       } else if (e.code === 'Space' || e.code === 'Enter') {
         e.preventDefault();
+        e.stopPropagation();
         handleDeploy();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isDeployModalOpen, selectedDungeon.id, selectedDifficulty, isCurrentDungeonUnlocked]);
+  }, [isDeployModalOpen, selectedDungeon.id, selectedDifficulty, isCurrentDungeonUnlocked, activeModal, confirmDialogState?.isOpen]);
 
   // Multipliers preview
   const hpMult = (1 + (selectedDifficulty - 1) * 0.35).toFixed(2);
@@ -249,18 +254,18 @@ export const DungeonSelectView: React.FC = React.memo(() => {
         })}
       </div>
 
-      {/* POPUP MODAL: Focused Difficulty Selection & Dungeon Launch (High z-index, padded from bottom dock) */}
+      {/* POPUP MODAL: Focused Difficulty Selection & Dungeon Launch (z-[60], sits above HUD and below global modals) */}
       {isDeployModalOpen && (
         <div
           onClick={() => setIsDeployModalOpen(false)}
-          className="fixed inset-0 z-[80] bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-fade-in"
+          className="fixed inset-0 z-[60] bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-fade-in"
         >
           <div
             onClick={(e) => e.stopPropagation()}
             className="bg-iron-950 border-2 border-brass-500 rounded-xl p-4 sm:p-5 max-w-lg w-full max-h-[85dvh] sm:max-h-[90dvh] overflow-y-auto shadow-2xl space-y-3 relative animate-scale-in text-gray-200 select-none font-sans pb-6 sm:pb-5"
           >
-            {/* Modal Header */}
-            <div className="border-b border-iron-750 pb-2.5 flex items-center justify-between">
+            {/* Modal Header (Sticky top) */}
+            <div className="sticky -top-4 -mx-4 px-4 pt-1 pb-2.5 bg-iron-950/95 backdrop-blur border-b border-iron-750 flex items-center justify-between z-10">
               <div className="flex items-center gap-2">
                 <Skull className="w-5 h-5 text-blood-400" />
                 <div>
@@ -275,7 +280,7 @@ export const DungeonSelectView: React.FC = React.memo(() => {
 
               <button
                 onClick={() => setIsDeployModalOpen(false)}
-                className="p-1 rounded text-gray-400 hover:text-white hover:bg-iron-800 transition cursor-pointer"
+                className="p-1.5 rounded text-gray-400 hover:text-white hover:bg-iron-800 transition cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center"
               >
                 <X className="w-5 h-5" />
               </button>

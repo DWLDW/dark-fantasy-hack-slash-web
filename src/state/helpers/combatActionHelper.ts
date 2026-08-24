@@ -20,7 +20,8 @@ export function calculateAttackGains(
   effectiveSkill: Skill,
   monsters: Monster[],
   playerMaxHp: number = 120,
-  totalDefense: number = 0
+  totalDefense: number = 0,
+  itemLifeSteal: number = 0
 ): AttackGainsResult {
   const primaryTargets = result.targetsHit.filter(t => !t.isOverkillHit);
   const hitRage = primaryTargets.length * (effectiveSkill.rageGainPerHit || 0);
@@ -34,10 +35,13 @@ export function calculateAttackGains(
   const skillHeal = effectiveSkill.lifeStealPercent
     ? Math.floor(result.totalDamage * (effectiveSkill.lifeStealPercent / 100))
     : 0;
+  const itemHeal = itemLifeSteal > 0
+    ? Math.floor(result.totalDamage * (itemLifeSteal / 100))
+    : 0;
   const voidHeal = effectiveSkill.activeRuneId === 'rune_void' ? result.chainCount * 25 : 0;
-  const totalHpHealed = skillHeal + voidHeal;
+  const totalHpHealed = skillHeal + itemHeal + voidHeal;
 
-  // Shield Bash generated shield
+  // Shield Bash generated shield (25% max HP + 60% defense)
   const shieldGained = effectiveSkill.id === 'shield_bash'
     ? Math.floor(playerMaxHp * 0.25 + totalDefense * 0.6)
     : 0;

@@ -1,4 +1,4 @@
-import { PlayerStats, GameItem, DungeonBuff, ItemStats } from '../../types/game';
+import { PlayerStats, GameItem, DungeonBuff } from '../../types/game';
 import { D2_RUNES } from '../../data/runes';
 import { SET_DEFINITIONS } from '../../data/setItems';
 
@@ -61,6 +61,8 @@ export function calculateTotalStats(
   let baseAtbPercent = 50;
   let allResist = 0;
 
+  const equippedSetCounts: Record<string, number> = {};
+
   Object.values(equipment).forEach(item => {
     if (!item) return;
     if (item.stats.str) str += item.stats.str;
@@ -117,23 +119,7 @@ export function calculateTotalStats(
       });
     }
 
-    if (item.subAffixes) {
-      item.subAffixes.forEach(affix => {
-        if (affix.id.includes('crit')) critChance += affix.value;
-        if (affix.id.includes('overkill')) overkillEfficiency += affix.value;
-        if (affix.id.includes('str')) str += affix.value;
-        if (affix.id.includes('dex')) dex += affix.value;
-        if (affix.id.includes('life')) lifeSteal += affix.value;
-        if (affix.id.includes('fortune')) fortune += affix.value;
-        if (affix.id.includes('atk_spd') || affix.id.includes('speed')) attackSpeed += affix.value;
-        if (affix.id.includes('allResist') || affix.id.includes('resist')) allResist += affix.value;
-      });
-    }
-  });
-
-  const equippedSetCounts: Record<string, number> = {};
-  Object.values(equipment).forEach(item => {
-    if (item && item.setName) {
+    if (item.setName) {
       equippedSetCounts[item.setName] = (equippedSetCounts[item.setName] || 0) + 1;
     }
   });
