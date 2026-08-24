@@ -3,6 +3,7 @@ import { useGame } from '../../state/gameStore';
 import { playHeartbeatSound } from '../../utils/audio';
 import { BattleHeader } from './battle/BattleHeader';
 import { BattleTacticalPreview } from './battle/BattleTacticalPreview';
+import { BossHUD } from './battle/BossHUD';
 import { BattleFieldLanes } from './battle/BattleFieldLanes';
 import { BattleSkillsBar } from './battle/BattleSkillsBar';
 import { BattleStatusDock } from './battle/BattleStatusDock';
@@ -102,6 +103,9 @@ export const BattleView: React.FC = React.memo(() => {
 
       {/* Layer 1.5: Real-time Tactical Attack Preview Banner */}
       <BattleTacticalPreview />
+
+      {/* Layer 1.7: Boss Dedicated HUD (boss rooms only) */}
+      <BossHUD />
 
       {/* Layer 2: Main 5-Lane Battlefield Area */}
       <BattleFieldLanes dyingMonsterIds={dyingMonsterIds} />

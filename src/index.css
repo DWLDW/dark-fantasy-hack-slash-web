@@ -227,3 +227,72 @@
 .animate-level-up {
   animation: levelUpShine 2s ease-out forwards;
 }
+
+/* ===== Boss Dedicated Visual Effects ===== */
+
+/* Boss Entrance Slam - dramatic entrance */
+@keyframes bossEntrance {
+  0% { opacity: 0; transform: scale(1.8) translateY(-20px); filter: brightness(3) saturate(0); }
+  30% { opacity: 1; transform: scale(0.95) translateY(2px); filter: brightness(1.5) saturate(1); }
+  50% { transform: scale(1.03) translateY(-1px); }
+  70% { transform: scale(0.99); }
+  100% { opacity: 1; transform: scale(1) translateY(0); filter: brightness(1) saturate(1); }
+}
+.animate-boss-entrance {
+  animation: bossEntrance 0.8s ease-out forwards;
+}
+
+/* Boss Enrage Pulse (HP ≤ 30%) - menacing red-gold throb */
+@keyframes bossEnrage {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(220, 38, 38, 0.6), inset 0 0 15px rgba(220, 38, 38, 0.3);
+    border-color: rgba(239, 68, 68, 0.9);
+    filter: brightness(1);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(239, 68, 68, 1), 0 0 60px rgba(251, 191, 36, 0.5), inset 0 0 30px rgba(185, 28, 28, 0.6);
+    border-color: rgba(251, 191, 36, 1);
+    filter: brightness(1.15);
+  }
+}
+.animate-boss-enrage {
+  animation: bossEnrage 1.2s ease-in-out infinite;
+}
+
+/* Gimmick Warning Flash */
+@keyframes gimmickWarning {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.05); }
+}
+.animate-gimmick-warning {
+  animation: gimmickWarning 0.4s ease-in-out 3;
+}
+
+/* Boss HP Bar Shimmer */
+@keyframes bossHpShimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.animate-boss-hp-shimmer {
+  background-size: 200% 100%;
+  animation: bossHpShimmer 3s linear infinite;
+}
+
+/* Boss Guard Shield Effect */
+@keyframes bossGuardShield {
+  0%, 100% { box-shadow: 0 0 10px rgba(59, 130, 246, 0.4); }
+  50% { box-shadow: 0 0 25px rgba(59, 130, 246, 0.8), 0 0 40px rgba(147, 197, 253, 0.3); }
+}
+.animate-boss-guard {
+  animation: bossGuardShield 1s ease-in-out infinite;
+}
+
+/* Boss Roar Shockwave */
+@keyframes bossRoarWave {
+  0% { transform: scale(0.8); opacity: 0.8; }
+  50% { transform: scale(1.15); opacity: 0.4; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.animate-boss-roar {
+  animation: bossRoarWave 0.5s ease-out;
+}

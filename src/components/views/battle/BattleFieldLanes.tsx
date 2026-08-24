@@ -47,8 +47,24 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
     return map;
   }, [monsters]);
 
+  const isBossRoom = currentRoom?.type === 'boss';
+  const bossMonster = isBossRoom ? monsters.find(m => m.rank === 'boss' && m.hp > 0) : null;
+  const bossIsDying = isBossRoom ? monsters.find(m => m.rank === 'boss' && dyingMonsterIds.has(m.id)) : null;
+
+  // For boss rooms, filter boss out of lane grid
+  const gridLaneMonsters = useMemo(() => {
+    if (!isBossRoom) return laneMonsters;
+    const filtered: Record<number, Monster[]> = { 0: [], 1: [], 2: [], 3: [], 4: [] };
+    Object.entries(laneMonsters).forEach(([k, list]) => {
+      filtered[parseInt(k)] = list.filter(m => m.rank !== 'boss');
+    });
+    return filtered;
+  }, [laneMonsters, isBossRoom]);
+
   return (
-    <div className="bg-iron-900/90 border-2 border-iron-750 rounded-xl p-1.5 sm:p-2 shadow-2xl relative select-none font-sans h-[260px] sm:h-[290px] max-h-[260px] sm:max-h-[290px] flex flex-col justify-between overflow-hidden flex-shrink-0">
+    <div className={`bg-iron-900/90 border-2 border-iron-750 rounded-xl p-1.5 sm:p-2 shadow-2xl relative select-none font-sans flex flex-col justify-between overflow-hidden flex-shrink-0 ${
+      isBossRoom ? 'h-[320px] sm:h-[360px] max-h-[320px] sm:max-h-[360px]' : 'h-[260px] sm:h-[290px] max-h-[260px] sm:max-h-[290px]'
+    }`}>
       {isCleared ? (
         <div className="w-full h-full flex flex-col justify-center items-center relative z-20 py-1">
           {latestRoomLootEvent ? (
@@ -275,11 +291,145 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
           )}
         </div>
       ) : (
-        /* 5-LANE BATTLEFIELD (Supports 4 Full Monster Depth Rows visible D1~D4) */
-        <div className="grid grid-cols-5 gap-1 sm:gap-1.5 h-full items-stretch">
+        /* 5-LANE BATTLEFIELD */
+        <div className="flex flex-col h-full gap-1">
+          {/* ═══ BOSS DEDICATED PANEL (full-width, above grid) ═══ */}
+          {(bossMonster || bossIsDying) && (() => {
+            const boss = bossMonster || bossIsDying!;
+            const hitInfo = preview.targetsHit.find(t => t.monsterId === boss.id);
+            const isTargeted = !!hitInfo;
+            const isPredictedKill = hitInfo?.isFatal;
+            const isDying = dyingMonsterIds.has(boss.id);
+            const bossDmgPopups = floatingDamages.filter(d => d.id.includes(boss.id));
+            const isEnraged = boss.maxHp > 0 && boss.hp / boss.maxHp <= 0.3;
+            const hpPercent = Math.max(0, Math.min(100, (boss.hp / boss.maxHp) * 100));
+            const isFrozen = Boolean(boss.isFrozen);
+            const chargePercent = boss.intent?.chargePercent || 0;
+            const bossName = boss.name.replace(/^👑\s*/, '').replace(/^우두머리:\s*/, '');
+            const isOverkillResidual = hitInfo?.isOverkillHit;
+
+            return (
+              <div
+                onClick={() => setPlayerLane(boss.lane)}
+                className={`relative w-full rounded-xl p-2 sm:p-3 border-2 transition-all cursor-pointer overflow-visible flex-shrink-0 ${
+                  isDying
+                    ? 'animate-death-shrink'
+                    : isPredictedKill
+                    ? 'bg-gradient-to-r from-orange-900 via-rose-900 to-amber-900 border-amber-400 ring-2 ring-amber-400 shadow-[0_0_25px_rgba(249,115,22,0.8)] animate-pulse'
+                    : isTargeted
+                    ? 'bg-gradient-to-r from-red-950 via-red-900 to-red-950 border-red-500 ring-2 ring-red-500/80'
+                    : isEnraged
+                    ? 'animate-boss-enrage bg-gradient-to-r from-red-950 via-iron-950 to-red-950 border-red-500'
+                    : isFrozen
+                    ? 'bg-gradient-to-r from-sky-950 via-iron-950 to-sky-950 border-sky-400 ring-2 ring-sky-400/60'
+                    : 'animate-boss-pulse bg-gradient-to-r from-red-950/80 via-iron-950 to-red-950/80 border-amber-500'
+                } ${isOverkillResidual && !isDying ? 'animate-overkill-glow' : ''}`}
+              >
+                {/* Floating Damage Popups */}
+                {bossDmgPopups.map(dp => (
+                  <div
+                    key={dp.id}
+                    className={`absolute -top-3 left-1/2 -translate-x-1/2 z-30 font-mono font-black whitespace-nowrap ${
+                      dp.isCrit
+                        ? 'text-amber-300 text-sm sm:text-lg animate-crit-dmg drop-shadow-[0_0_12px_rgba(251,191,36,0.9)]'
+                        : dp.isOverkill
+                        ? 'text-orange-400 text-xs sm:text-sm animate-float-dmg drop-shadow-[0_0_8px_rgba(249,115,22,0.8)]'
+                        : 'text-white text-xs sm:text-sm animate-float-dmg drop-shadow-[0_0_6px_rgba(0,0,0,0.9)]'
+                    }`}
+                  >
+                    {dp.isCrit && <span className="text-[9px] text-yellow-200 block text-center">💥 CRIT!</span>}
+                    {dp.isOverkill && <span className="text-[9px] text-orange-200 block text-center">OVERKILL</span>}
+                    -{dp.damage}
+                    {dp.isFatal && <span className="text-blood-300 ml-1">💀</span>}
+                  </div>
+                ))}
+
+                {/* Charge Gauge */}
+                {chargePercent >= 75 && !isFrozen && boss.hp > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 z-20 px-1.5 py-0.5 rounded-full bg-red-600 text-white text-[10px] font-black border-2 border-red-300 animate-pulse shadow-lg">
+                    ⚡{chargePercent}%
+                  </span>
+                )}
+
+                {/* Boss Content: Icon + Name + Stats + HP Bar */}
+                <div className="flex items-center gap-3 relative z-10">
+                  {/* Large Boss Icon */}
+                  <div className={`flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center text-3xl sm:text-4xl border-2 shadow-xl ${
+                    isEnraged
+                      ? 'bg-red-900/80 border-red-400 shadow-[0_0_20px_rgba(239,68,68,0.6)]'
+                      : isFrozen
+                      ? 'bg-sky-900/80 border-sky-400'
+                      : 'bg-iron-900/80 border-amber-500/80 shadow-[0_0_12px_rgba(251,191,36,0.3)]'
+                  }`}>
+                    <span>{boss.icon || '👑'}</span>
+                  </div>
+
+                  {/* Boss Info + HP */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`font-cinzel font-black text-xs sm:text-sm truncate ${
+                        isEnraged ? 'text-red-300' : isFrozen ? 'text-sky-200' : 'text-amber-200'
+                      }`}>
+                        👑 {bossName}
+                      </span>
+                      {isEnraged && (
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-red-600 text-white border border-red-300 animate-pulse flex-shrink-0">
+                          ⚡광란
+                        </span>
+                      )}
+                      {isFrozen && (
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-sky-600 text-white border border-sky-300 flex-shrink-0">
+                          ❄️동결
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Boss HP Bar (thick) */}
+                    <div className="w-full bg-iron-950 rounded-full overflow-hidden border-2 border-iron-700 h-3 sm:h-3.5 relative shadow-inner">
+                      <div
+                        className={`h-full transition-all duration-300 ${
+                          isEnraged
+                            ? 'bg-gradient-to-r from-red-500 via-amber-500 to-red-500 animate-boss-hp-shimmer'
+                            : 'bg-gradient-to-r from-red-600 via-rose-500 to-amber-400'
+                        }`}
+                        style={{ width: `${hpPercent}%` }}
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="font-mono font-black text-[9px] sm:text-[10px] text-white drop-shadow-[0_1px_3px_rgba(0,0,0,1)]">
+                          {boss.hp} / {boss.maxHp}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Stats Row */}
+                    <div className="flex items-center gap-3 mt-1 text-[9px] sm:text-[10px] font-mono">
+                      <span className="text-rose-300 font-bold">⚔️ {boss.intent.damage || 0}</span>
+                      <span className="text-blue-300 font-bold">🛡️ {boss.defense}</span>
+                      <span className="text-gray-400">HP {Math.round(hpPercent)}%</span>
+                    </div>
+                  </div>
+
+                  {/* Targeting indicator */}
+                  {isPredictedKill && (
+                    <div className="flex-shrink-0 px-2 py-1 rounded-lg bg-red-600 text-white font-black text-[10px] sm:text-xs animate-pulse border border-red-300 shadow-lg">
+                      💀 처치 예상
+                    </div>
+                  )}
+                  {isTargeted && !isPredictedKill && (
+                    <div className="flex-shrink-0 px-2 py-1 rounded-lg bg-red-900 text-red-200 font-black text-[10px] sm:text-xs animate-pulse border border-red-500">
+                      🎯 -{hitInfo.damage}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* ═══ 5-LANE MINION GRID (boss excluded) ═══ */}
+          <div className={`grid grid-cols-5 gap-1 sm:gap-1.5 flex-1 items-stretch ${isBossRoom ? 'min-h-0' : 'h-full'}`}>
           {[0, 1, 2, 3, 4].map(laneIdx => {
             const isPlayerInLane = playerLane === laneIdx;
-            const laneList = laneMonsters[laneIdx] || [];
+            const laneList = gridLaneMonsters[laneIdx] || [];
             const hasBoss = laneList.some(m => m.rank === 'boss');
             const isWhirlwind = selectedSkill.route === 'radius';
             const isCleave = selectedSkill.route === 'branch' && Math.abs(laneIdx - playerLane) <= 1;
@@ -376,11 +526,14 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                     const isBoss = m.rank === 'boss';
                     const isElite = m.rank === 'elite';
                     const isFrozen = Boolean(m.isFrozen);
+                    const isEnraged = isBoss && m.maxHp > 0 && m.hp / m.maxHp <= 0.3;
 
                     return (
                       <div
                         key={m.id}
-                        className={`w-full rounded p-0.5 sm:p-1 border transition-all relative overflow-visible shadow flex-shrink-0 ${
+                        className={`w-full rounded transition-all relative overflow-visible shadow flex-shrink-0 ${
+                          isBoss ? 'p-1 sm:p-1.5 border-2' : 'p-0.5 sm:p-1 border'
+                        } ${
                           isDying
                             ? 'animate-death-shrink'
                             : isPredictedKill
@@ -388,7 +541,9 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                             : isTargeted
                             ? 'bg-red-950/85 border-2 border-red-500 ring-2 ring-red-500/80 text-red-100'
                             : isBoss
-                            ? 'ring-2 ring-amber-400 bg-gradient-to-b from-red-950 via-iron-950 to-red-950 text-amber-200 border-2 border-red-500'
+                            ? isEnraged
+                              ? 'animate-boss-enrage bg-gradient-to-b from-red-900 via-red-950 to-amber-950 text-amber-100 border-red-400 ring-2 ring-red-500/80 shadow-[0_0_25px_rgba(239,68,68,0.7)]'
+                              : 'animate-boss-pulse bg-gradient-to-b from-red-950 via-iron-950 to-red-950 text-amber-200 border-amber-400 ring-2 ring-amber-400 shadow-[0_0_18px_rgba(251,191,36,0.4)]'
                             : isStopper
                             ? 'bg-yellow-950 border-yellow-400 text-yellow-300 ring-1 ring-yellow-300'
                             : isFrozen
@@ -424,18 +579,34 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                           </div>
                         ))}
 
-                        {/* Monster Header: Name + Depth Indicator */}
-                        <div className="flex items-center justify-between text-[9px] sm:text-[10px] font-black leading-tight">
-                          <span className="truncate text-white font-bold">{m.name.split(' ')[0]}</span>
-                          <span className="font-mono text-[8px] text-gray-400 flex-shrink-0">D{dIdx + 1}</span>
+                        {/* Monster Header: Boss gets icon + full name, normal gets truncated */}
+                        <div className={`flex items-center justify-between leading-tight ${
+                          isBoss ? 'text-[10px] sm:text-[11px]' : 'text-[9px] sm:text-[10px]'
+                        }`}>
+                          <span className={`truncate font-bold ${isBoss ? 'text-amber-200' : 'text-white'}`}>
+                            {isBoss ? `👑 ${m.name.split(' ').slice(-1)[0]}` : m.name.split(' ')[0]}
+                          </span>
+                          {isBoss ? (
+                            <span className={`font-mono text-[8px] font-black px-1 rounded ${
+                              isEnraged ? 'bg-red-600 text-white' : 'bg-amber-600/80 text-iron-950'
+                            }`}>
+                              {isEnraged ? '⚡광란' : 'BOSS'}
+                            </span>
+                          ) : (
+                            <span className="font-mono text-[8px] text-gray-400 flex-shrink-0">D{dIdx + 1}</span>
+                          )}
                         </div>
 
-                        {/* Slim HP Bar */}
-                        <div className="w-full bg-iron-950 rounded-full overflow-hidden border border-iron-800 my-0.2 h-1">
+                        {/* HP Bar — Boss gets thicker bar */}
+                        <div className={`w-full bg-iron-950 rounded-full overflow-hidden border border-iron-800 my-0.2 ${
+                          isBoss ? 'h-2 sm:h-2.5' : 'h-1'
+                        }`}>
                           <div
                             className={`h-full transition-all duration-200 ${
                               isBoss
-                                ? 'bg-gradient-to-r from-red-600 via-rose-500 to-amber-400'
+                                ? isEnraged
+                                  ? 'bg-gradient-to-r from-red-500 via-amber-500 to-red-500 animate-boss-hp-shimmer'
+                                  : 'bg-gradient-to-r from-red-600 via-rose-500 to-amber-400'
                                 : m.hp / m.maxHp < 0.25
                                 ? 'bg-red-500'
                                 : m.hp / m.maxHp < 0.5
@@ -446,8 +617,10 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                           />
                         </div>
 
-                        {/* Monster Stats Row */}
-                        <div className="flex justify-between items-center text-[8px] sm:text-[9px] font-mono text-gray-300 leading-none">
+                        {/* Monster Stats Row — Boss shows more info */}
+                        <div className={`flex justify-between items-center font-mono text-gray-300 leading-none ${
+                          isBoss ? 'text-[9px] sm:text-[10px]' : 'text-[8px] sm:text-[9px]'
+                        }`}>
                           <span className="font-black text-rose-300">{m.hp}</span>
                           <span className="font-bold text-amber-300">⚔️{m.intent.damage || 6}</span>
                         </div>
@@ -486,6 +659,7 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
               </div>
             );
           })}
+        </div>
         </div>
       )}
     </div>

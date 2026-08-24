@@ -58,3 +58,9 @@ Dragon Quest 식 턴제 전투 기반 + Diablo II 식 오버킬 체인, 룬워�
 - 신규 직업(소서리스/팔라딘) 및 직업별 고유 스킬트리 확장
 - 엔드게임 무한의 탑 / 지옥불 균열 레이드 콘텐츠
 - 전설 장비 세트 효과 다양화 및 룬워드 밸런스 조정
+
+## 🚧 진행 중 작업: 보스 전용 UI 오버홀 (2026-08-25)
+- **유저 디렉션**: "보스가 굳이 한칸만 차지해야 한다는 편견을 버리자. 다양한 종류 보스도 만들 수 있자나"
+- **완료**: gameStore bossTurnCount/bossGuardActive 상태 노출, CSS 보스 애니메이션 6종, BossHUD.tsx 신규 컴포넌트, BattleFieldLanes 보스카드 강화
+- **미완료 핵심**: BattleFieldLanes에서 보스를 5레인 그리드 밖으로 분리하여 풀와이드 전용 패널 렌더링, BattleView에 BossHUD JSX 배치, 빌드 검증 및 배포
+- **상세 핸드오프**: `task.md` 참조

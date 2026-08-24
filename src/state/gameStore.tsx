@@ -109,6 +109,8 @@ interface GameContextType {
   isAttacking: boolean;
   isEnemyTurn: boolean;
   hordeTimelinePercent: number;
+  bossTurnCount: number;
+  bossGuardActive: boolean;
   floatingDamages: FloatingDamageText[];
   
   // Computed stats
@@ -330,6 +332,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const counterAttackTimerRef = useRef<number | null>(null);
   const bossTurnCountRef = useRef<number>(0);
   const bossSummonedRef = useRef<Record<string, boolean>>({});
+  const [bossTurnCount, setBossTurnCount] = useState(0);
+  const [bossGuardActive, setBossGuardActive] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -899,10 +903,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const activeRoomType = currentDungeon.rooms.find(r => r.id === currentRoomId)?.type;
     if (activeRoomType === 'boss' && monsters.some(m => m.rank === 'boss')) {
       bossTurnCountRef.current += 1;
+      setBossTurnCount(bossTurnCountRef.current);
       if (bossTurnCountRef.current % 4 === 0) {
         attackMonsters = monsters.map(m => m.rank === 'boss'
           ? { ...m, defense: Math.floor(m.defense * 3.34) }
           : m);
+        setBossGuardActive(true);
+        setTimeout(() => setBossGuardActive(false), 1500);
         addLog('🛡️ [보스 기믹: 방어 태세] 보스가 방어 태세를 취해 받는 피해가 70% 감소합니다!', 'system');
       }
     }
@@ -1207,6 +1214,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const currentRoomType = currentDungeon.rooms.find(r => r.id === currentRoomId)?.type;
         if (currentRoomType === 'boss' && hordeResult.totalEnemyDamage > 0) {
           bossTurnCountRef.current += 1;
+          setBossTurnCount(bossTurnCountRef.current);
           const boss = survivors.find(m => m.rank === 'boss');
           if (boss && bossTurnCountRef.current % 3 === 0) {
             const roarDamage = Math.max(10, Math.floor((boss.intent.damage || 20) * 1.5));
@@ -1509,6 +1517,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setMaxChainThisRoom(0);
     bossTurnCountRef.current = 0;
     bossSummonedRef.current = {};
+    setBossTurnCount(0);
+    setBossGuardActive(false);
     setViewMode('battle');
     startBGM('dungeon');
     addLog("⚔️ [" + dungeon.name + "] (난이도 Lv." + diffToUse + ") 진입. [Q] 가르기 · [Space] 공격 · [←/→] 레인", "system");
@@ -1536,6 +1546,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setMaxChainThisRoom(0);
     bossTurnCountRef.current = 0;
     bossSummonedRef.current = {};
+    setBossTurnCount(0);
+    setBossGuardActive(false);
 
     if (room?.type === 'boss') {
       startBGM('boss');
@@ -1975,6 +1987,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isAttacking,
     isEnemyTurn,
     hordeTimelinePercent,
+    bossTurnCount,
+    bossGuardActive,
     floatingDamages,
     totalStats,
     preview,
@@ -2083,6 +2097,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isAttacking,
     isEnemyTurn,
     hordeTimelinePercent,
+    bossTurnCount,
+    bossGuardActive,
     floatingDamages,
     totalStats,
     preview,
