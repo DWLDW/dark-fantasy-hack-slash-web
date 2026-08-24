@@ -296,3 +296,83 @@
 .animate-boss-roar {
   animation: bossRoarWave 0.5s ease-out;
 }
+
+/* Boss Signature Skill Cut-in Slam Banner */
+@keyframes bossCutinSlam {
+  0% {
+    opacity: 0;
+    transform: scale(2.2) translateY(-40px);
+    filter: brightness(3) saturate(0.5);
+  }
+  25% {
+    opacity: 1;
+    transform: scale(0.96) translateY(2px);
+    filter: brightness(1.6) saturate(1.4);
+  }
+  45% {
+    transform: scale(1.02) translateY(-1px);
+    filter: brightness(1.2) saturate(1.2);
+  }
+  80% {
+    opacity: 1;
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+    filter: brightness(0.8);
+  }
+}
+.animate-boss-cutin {
+  animation: bossCutinSlam 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Elemental Screen Flash */
+@keyframes screenFlashPoison {
+  0% { opacity: 0; }
+  20% { opacity: 0.85; }
+  100% { opacity: 0; }
+}
+.animate-flash-poison {
+  animation: screenFlashPoison 1.2s ease-out forwards;
+}
+
+@keyframes screenFlashLightning {
+  0% { opacity: 0; }
+  10% { opacity: 1; }
+  25% { opacity: 0.3; }
+  40% { opacity: 0.9; }
+  100% { opacity: 0; }
+}
+.animate-flash-lightning {
+  animation: screenFlashLightning 1.2s ease-out forwards;
+}
+
+@keyframes screenFlashFire {
+  0% { opacity: 0; transform: scale(1.1); }
+  20% { opacity: 0.9; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1); }
+}
+.animate-flash-fire {
+  animation: screenFlashFire 1.2s ease-out forwards;
+}
+
+@keyframes screenFlashCold {
+  0% { opacity: 0; }
+  25% { opacity: 0.85; }
+  100% { opacity: 0; }
+}
+.animate-flash-cold {
+  animation: screenFlashCold 1.2s ease-out forwards;
+}
+
+@keyframes screenFlashVoid {
+  0% { opacity: 0; }
+  20% { opacity: 0.9; filter: invert(0.2); }
+  100% { opacity: 0; filter: none; }
+}
+.animate-flash-void {
+  animation: screenFlashVoid 1.2s ease-out forwards;
+}
+

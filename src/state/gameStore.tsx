@@ -16,7 +16,8 @@ import {
   RoomLootEvent,
   TownUpgrades,
   DEFAULT_TOWN_UPGRADES,
-  ConfirmDialogState
+  ConfirmDialogState,
+  ElementType
 } from '../types/game';
 import {
   INITIAL_EQUIPMENT,
@@ -111,6 +112,13 @@ interface GameContextType {
   hordeTimelinePercent: number;
   bossTurnCount: number;
   bossGuardActive: boolean;
+  activeBossSkill: {
+    name: string;
+    icon: string;
+    title: string;
+    desc: string;
+    element: ElementType;
+  } | null;
   floatingDamages: FloatingDamageText[];
   
   // Computed stats
@@ -334,6 +342,24 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const bossSummonedRef = useRef<Record<string, boolean>>({});
   const [bossTurnCount, setBossTurnCount] = useState(0);
   const [bossGuardActive, setBossGuardActive] = useState(false);
+  const [activeBossSkill, setActiveBossSkill] = useState<{
+    name: string;
+    icon: string;
+    title: string;
+    desc: string;
+    element: ElementType;
+  } | null>(null);
+
+  const bossSkillTimerRef = useRef<number | null>(null);
+  const triggerBossSkill = useCallback((skill: { name: string; icon: string; title: string; desc: string; element: ElementType }) => {
+    if (bossSkillTimerRef.current !== null) {
+      window.clearTimeout(bossSkillTimerRef.current);
+    }
+    setActiveBossSkill(skill);
+    bossSkillTimerRef.current = window.setTimeout(() => {
+      setActiveBossSkill(null);
+    }, 1800);
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -916,15 +942,24 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setBossGuardActive(true);
         setTimeout(() => setBossGuardActive(false), 1500);
 
+        const bName = activeBoss.name.replace(/^👑\s*/, '');
+        const bIcon = activeBoss.icon || '👑';
+        const bElem = activeBoss.element || 'physical';
+
         if (sigKey === 'charged_shield') {
+          triggerBossSkill({ name: bName, icon: bIcon, title: '태양의 충전 방패 (Solar Aegis)', desc: '방어력 +70% 증가 & 공격자에게 전격 반사 결계', element: 'lightning' });
           addLog(`⚡ [${activeBoss.name} 시그니처: 태양의 충전 방패] 방어력 70% 증가! 공격 시 전류가 역류합니다!`, 'system');
         } else if (sigKey === 'lightning_pylon') {
+          triggerBossSkill({ name: bName, icon: bIcon, title: '증오의 뇌격 방패 (Lightning Barrier)', desc: '증오의 번개 결계로 받는 피해 70% 차단', element: 'lightning' });
           addLog(`💀 [${activeBoss.name} 시그니처: 증오의 뇌격 방패] 증오의 번개 결계로 받는 피해가 70% 감소합니다!`, 'system');
         } else if (sigKey === 'void_gaze') {
+          triggerBossSkill({ name: bName, icon: bIcon, title: '5대 봉인의 결계 (Chaos Seal)', desc: '혼돈의 5대 봉인 결계 가동으로 받는 피해 70% 차단', element: 'void' });
           addLog(`👁️ [${activeBoss.name} 시그니처: 5대 봉인의 결계] 혼돈의 결계가 활성화되어 피해가 70% 차단됩니다!`, 'system');
         } else if (sigKey === 'ancients_whirlwind') {
+          triggerBossSkill({ name: bName, icon: bIcon, title: '3인의 강철 방진 (Ancients Phalanx)', desc: '탈릭·코릭·마다크 결속으로 받는 피해 70% 감소', element: 'physical' });
           addLog(`⚔️ [${activeBoss.name} 시그니처: 3인의 강철 방진] 고대 야만용사들의 결속으로 피해가 70% 감소합니다!`, 'system');
         } else {
+          triggerBossSkill({ name: bName, icon: bIcon, title: '강철 방어 태세 (Iron Guard)', desc: '1턴간 받는 모든 피해를 70% 감소시킵니다', element: bElem });
           addLog(`🛡️ [${activeBoss.name} 기믹: 방어 태세] 보스가 방어 태세를 취해 받는 피해가 70% 감소합니다!`, 'system');
         }
       }
@@ -1236,32 +1271,43 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const sigKey = boss.bossSignatureKey || '';
             const baseDmg = boss.intent.damage || 20;
 
+            const bName = boss.name.replace(/^👑\s*/, '');
+            const bIcon = boss.icon || '👑';
+            const bElem = boss.element || 'fire';
+
             if (sigKey === 'poison_nova') {
               const poisonDmg = Math.max(15, Math.floor(baseDmg * 1.6));
+              triggerBossSkill({ name: bName, icon: bIcon, title: '맹독 분사 (Poison Nova)', desc: '전장 보호막 즉시 부식 & 맹독 DoT 살포', element: 'poison' });
               setPlayerStats(prev => ({ ...prev, hp: Math.max(1, prev.hp - poisonDmg), shield: 0, shieldLayers: [] }));
               addLog(`🦂 [고뇌의 여왕 안다리엘 시그니처: 맹독 분사] 사방으로 퍼진 맹독이 보호막을 녹이고 ${poisonDmg}의 독 피해를 입힙니다!`, 'damage');
             } else if (sigKey === 'holy_freeze_charge') {
               const chargeDmg = Math.max(20, Math.floor(baseDmg * 2.2));
+              triggerBossSkill({ name: bName, icon: bIcon, title: '흉포한 결빙 돌진 (Freeze Charge)', desc: '결빙 오라 회피 불가 2.2배 관통 파괴타', element: 'cold' });
               setPlayerStats(prev => ({ ...prev, hp: Math.max(1, prev.hp - chargeDmg) }));
               addLog(`🪲 [고통의 대공 두리엘 시그니처: 흉포한 결빙 돌진] 결빙의 폭풍과 함께 전열을 들이받아 ${chargeDmg}의 파괴적 돌진 피해!`, 'damage');
             } else if (sigKey === 'red_lightning_hose') {
               const diabloDmg = Math.max(30, Math.floor(baseDmg * 2.5));
+              triggerBossSkill({ name: bName, icon: bIcon, title: '붉은 번개 숨결 (Red Lightning Hose)', desc: '보호막 즉시 소각 & 2.5배 파멸의 지옥불 피해', element: 'fire' });
               setPlayerStats(prev => ({ ...prev, hp: Math.max(1, prev.hp - diabloDmg), shield: 0, shieldLayers: [] }));
               addLog(`👹 [공포의 군주 디아블로 시그니처: 붉은 번개 숨결] 전장을 뒤덮는 붉은 번개로 보호막 소각 및 ${diabloDmg}의 지옥불 피해!`, 'damage');
             } else if (sigKey === 'frozen_blade') {
               const bladeDmg = Math.max(18, Math.floor(baseDmg * 1.7));
+              triggerBossSkill({ name: bName, icon: bIcon, title: '얼어붙은 성검의 참격 (Frozen Blade)', desc: '혹한의 성검 보호막 파괴 및 냉기 참격', element: 'cold' });
               setPlayerStats(prev => ({ ...prev, hp: Math.max(1, prev.hp - bladeDmg), shield: 0, shieldLayers: [] }));
               addLog(`🪽 [타락한 대천사 이주얼 시그니처: 얼어붙은 성검] 혹한의 검격이 보호막을 가르고 ${bladeDmg} 피해를 입힙니다!`, 'damage');
             } else if (sigKey === 'inferno_breath') {
               const breathDmg = Math.max(15, Math.floor(baseDmg * 1.8));
+              triggerBossSkill({ name: bName, icon: bIcon, title: '원주민 지옥불 숨결 (Inferno Breath)', desc: '전방 3개 레인 관통 지옥불 화염 피해', element: 'fire' });
               setPlayerStats(prev => ({ ...prev, hp: Math.max(1, prev.hp - breathDmg) }));
               addLog(`👺 [약탈자 대주술사 시그니처: 지옥불 숨결] 맹렬한 원주민 화염 숨결이 ${breathDmg}의 관통 피해를 입힙니다!`, 'damage');
             } else if (sigKey === 'vile_clone_burn') {
               const baalDmg = Math.max(25, Math.floor(baseDmg * 1.9));
+              triggerBossSkill({ name: bName, icon: bIcon, title: '파멸의 분노 소각 (Rage Burn)', desc: '플레이어 분노 50% 강제 소각 및 파멸의 촉수 강타', element: 'void' });
               setPlayerStats(prev => ({ ...prev, hp: Math.max(1, prev.hp - baalDmg), rage: Math.floor(prev.rage * 0.5) }));
               addLog(`🐙 [파멸의 군주 바알 시그니처: 파멸의 분노 소각] 플레이어의 분노 50% 소각 및 파멸의 촉수로 ${baalDmg} 피해!`, 'damage');
             } else {
               const roarDamage = Math.max(10, Math.floor(baseDmg * 1.5));
+              triggerBossSkill({ name: bName, icon: bIcon, title: '광역 포효 (Boss Roar)', desc: '전 레인 충격파 + 보호막 파괴', element: bElem });
               setPlayerStats(prev => ({ ...prev, hp: Math.max(1, prev.hp - roarDamage), shield: 0, shieldLayers: [] }));
               addLog(`🔥 [${boss.name} 기믹: 광역 포효] 전장을 뒤흔드는 포효로 ${roarDamage} 피해! 보호막이 파괴됩니다!`, 'damage');
             }
@@ -2034,6 +2080,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     hordeTimelinePercent,
     bossTurnCount,
     bossGuardActive,
+    activeBossSkill,
     floatingDamages,
     totalStats,
     preview,
@@ -2144,6 +2191,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     hordeTimelinePercent,
     bossTurnCount,
     bossGuardActive,
+    activeBossSkill,
     floatingDamages,
     totalStats,
     preview,

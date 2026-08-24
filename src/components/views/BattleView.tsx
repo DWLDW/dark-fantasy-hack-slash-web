@@ -5,6 +5,7 @@ import { getActTheme } from '../../utils/actThemes';
 import { BattleHeader } from './battle/BattleHeader';
 import { BattleTacticalPreview } from './battle/BattleTacticalPreview';
 import { BossHUD } from './battle/BossHUD';
+import { BossSkillCutin } from './battle/BossSkillCutin';
 import { BattleFieldLanes } from './battle/BattleFieldLanes';
 import { BattleSkillsBar } from './battle/BattleSkillsBar';
 import { BattleStatusDock } from './battle/BattleStatusDock';
@@ -103,8 +104,11 @@ export const BattleView: React.FC = React.memo(() => {
           <div className="fixed inset-0 pointer-events-none border-4 sm:border-8 border-blood-600/50 shadow-[inset_0_0_60px_rgba(239,68,68,0.5)] z-30 animate-pulse" />
         )}
 
-      {/* Layer 1: Top Header Navigation & Status */}
-      <BattleHeader />
+        {/* Boss Signature Skill Cinematic Cut-in & Fullscreen Flash */}
+        <BossSkillCutin />
+
+        {/* Layer 1: Top Header Navigation & Status */}
+        <BattleHeader />
 
       {/* Layer 1.5: Real-time Tactical Attack Preview Banner */}
       <BattleTacticalPreview />
