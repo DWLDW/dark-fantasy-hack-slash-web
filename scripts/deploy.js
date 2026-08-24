@@ -63,6 +63,7 @@ async function testSSH() {
       const child = spawn('ssh', [
         ...extraArgs,
         '-i', keyPath,
+        '-o', 'BatchMode=yes',
         '-o', 'StrictHostKeyChecking=no',
         '-o', 'PubkeyAcceptedAlgorithms=+ssh-rsa',
         '-o', 'HostKeyAlgorithms=+ssh-rsa',
@@ -142,6 +143,7 @@ async function main() {
   const sshProcess = spawn('ssh', [
     ...sshBindArgs,
     '-i', keyPath,
+    '-o', 'BatchMode=yes',
     '-o', 'StrictHostKeyChecking=no',
     `${SERVER_USER}@${SERVER_HOST}`,
     remoteCommand
