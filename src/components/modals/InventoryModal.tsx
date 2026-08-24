@@ -44,6 +44,7 @@ export const InventoryModal: React.FC = () => {
     craftRuneWordWithTransmute,
     transmuteRunesInVault,
     equipItem,
+    autoEquipBestItems,
     unequipItem,
     viewMode,
     monsters,
@@ -317,6 +318,7 @@ export const InventoryModal: React.FC = () => {
             }}
             onToggleSortOrder={(order) => setSortOrder(order)}
             onBulkSell={handleBulkSell}
+            onAutoEquip={autoEquipBestItems}
           />
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-4">

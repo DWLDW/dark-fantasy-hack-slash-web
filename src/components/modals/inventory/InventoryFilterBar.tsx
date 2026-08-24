@@ -1,6 +1,6 @@
 import React from 'react';
 import { EquipSlot } from '../../../types/game';
-import { Sparkles, ArrowDown, ArrowUp, Trash2 } from 'lucide-react';
+import { Sparkles, ArrowDown, ArrowUp, Trash2, Zap, Swords } from 'lucide-react';
 
 export type CategoryFilter = 'all' | 'weapon' | 'armor' | 'accessory' | 'runeword';
 export type SortOrder = 'desc' | 'asc';
@@ -23,6 +23,7 @@ export interface InventoryFilterBarProps {
   onSelectCategory: (cat: CategoryFilter) => void;
   onToggleSortOrder: (order: SortOrder) => void;
   onBulkSell: () => void;
+  onAutoEquip?: () => void;
 }
 
 export const InventoryFilterBar: React.FC<InventoryFilterBarProps> = React.memo(({
@@ -34,7 +35,8 @@ export const InventoryFilterBar: React.FC<InventoryFilterBarProps> = React.memo(
   totalSellGold,
   onSelectCategory,
   onToggleSortOrder,
-  onBulkSell
+  onBulkSell,
+  onAutoEquip
 }) => {
   return (
     <div className="bg-iron-900/90 p-2.5 rounded-lg border border-iron-750 flex flex-wrap items-center justify-between gap-2 shadow">
@@ -103,8 +105,20 @@ export const InventoryFilterBar: React.FC<InventoryFilterBarProps> = React.memo(
         </button>
       </div>
 
-      {/* Sorting & Batch Sell Controls */}
+      {/* Auto-Equip, Sorting & Batch Sell Controls */}
       <div className="flex items-center gap-2 flex-wrap">
+        {/* Recommended Auto-Equip Action Button */}
+        {onAutoEquip && (
+          <button
+            onClick={onAutoEquip}
+            className="px-3 py-1 rounded text-xs font-black transition flex items-center gap-1.5 border shadow bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-iron-950 border-amber-300 ring-1 ring-amber-300/80 cursor-pointer transform active:scale-95 animate-pulse"
+            title="공격력+체력 가중치 기반으로 소지품에서 가장 우수한 상위 장비를 자동 일괄 장착합니다. (미미한 차이는 기존 장비 유지)"
+          >
+            <Zap className="w-3.5 h-3.5 fill-iron-950" />
+            <span>추천 일괄 장착</span>
+          </button>
+        )}
+
         {/* Rarity Sort Buttons */}
         <div className="flex items-center bg-iron-950 rounded border border-iron-800 p-0.5">
           <button
@@ -139,7 +153,7 @@ export const InventoryFilterBar: React.FC<InventoryFilterBarProps> = React.memo(
           disabled={sellableCount === 0}
           className={`px-3 py-1 rounded text-xs font-black transition flex items-center gap-1.5 border shadow ${
             sellableCount > 0
-              ? 'bg-gradient-to-r from-red-950 to-red-900 hover:from-red-900 hover:to-red-800 text-red-200 border-red-700/80 hover:text-white ring-1 ring-red-500/40'
+              ? 'bg-gradient-to-r from-red-950 to-red-900 hover:from-red-900 hover:to-red-800 text-red-200 border-red-700/80 hover:text-white ring-1 ring-red-500/40 cursor-pointer'
               : 'bg-iron-900 text-gray-600 border-iron-800 cursor-not-allowed opacity-50'
           }`}
           title="인벤토리의 모든 일반(Normal: 5G) 및 마법(Magic: 15G) 등급 장비를 일괄 판매합니다."
@@ -156,6 +170,5 @@ export const InventoryFilterBar: React.FC<InventoryFilterBarProps> = React.memo(
     </div>
   );
 });
+
 InventoryFilterBar.displayName = 'InventoryFilterBar';
-
-

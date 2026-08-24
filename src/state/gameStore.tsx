@@ -36,6 +36,7 @@ import { upgradeSkillHelper, resetSkillPointsHelper, getEffectiveSkill } from '.
 import { getItemSellPrice, bulkSellHelper, socketRuneHelper, cubeTransmuteHelper, POTION_CAPACITY_TIERS, getPotionCapacityUpgradeCost, getPotionHealingUpgradeCost, getConsumablePowerUpgradeCost, getGambleLevelUpgradeCost } from './helpers/cubeCraftingHelper';
 import { claimTreasureHelper, claimRuneAltarHelper, createShrineBuff, generateVictoryLoot, prepareDungeonRun, makeFirstClearSteelBase, generateRoomClearLoot } from './helpers/dungeonEventHelper';
 import { isActUnlocked } from '../data/dungeons';
+import { findBestEquipmentPlan } from '../utils/itemScoring';
 import { WARRIOR_SKILLS, ALL_AVAILABLE_SKILLS, DEFAULT_EQUIPPED_SLOTS, getSkillById, isSkillUnlocked } from '../data/skills';
 import { calculateAttackGains, compressLaneSurvivors, resolveHordeCounterAttack } from './helpers/combatActionHelper';
 import {
@@ -125,6 +126,7 @@ interface GameContextType {
   openConfirmModal: (options: Omit<ConfirmDialogState, 'isOpen'>) => void;
   closeConfirmModal: () => void;
   equipItem: (item: GameItem, targetSlot?: EquipSlot) => void;
+  autoEquipBestItems: () => { hasUpgrades: boolean; equippedCount: number; replacedSlots: any[] };
   unequipItem: (slot: EquipSlot) => void;
   upgradeStat: (stat: 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha', amount?: number) => void;
   resetStatPoints: () => void;
@@ -1265,6 +1267,43 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
 
+
+  const autoEquipBestItems = () => {
+    if (viewMode === 'battle' && monsters.length > 0) {
+      addLog('전투 중에는 장비를 교체할 수 없습니다!', 'system');
+      return { hasUpgrades: false, equippedCount: 0, replacedSlots: [] };
+    }
+
+    const plan = findBestEquipmentPlan(inventory, equipment, playerStats.level);
+    if (!plan.hasUpgrades) {
+      addLog('현재 이미 최적의 추천 장비를 착용 중입니다. (교체할 상위 장비 없음)', 'system');
+      return plan;
+    }
+
+    setEquipment(plan.newEquipment);
+    setInventory(plan.remainingInventory);
+
+    const slotNames: Record<string, string> = {
+      weapon: '무기',
+      shield: '방패',
+      helm: '투구',
+      armor: '갑옷',
+      gloves: '장갑',
+      boots: '신발',
+      amulet: '목걸이',
+      ring1: '반지 1',
+      ring2: '반지 2'
+    };
+
+    plan.replacedSlots.forEach(s => {
+      const slotKor = slotNames[s.slot] || s.slot;
+      addLog(`[⚡ 추천 장착] ${slotKor}: [${s.newItem.name}] 장착 (전투력 점수 +${s.scoreDiff}점 향상)`, 'loot');
+    });
+
+    addLog(`✨ [일괄 장착 완료] 총 ${plan.equippedCount}개 부위의 상위 장비가 자동 교체 장착되었습니다!`, 'system');
+    return plan;
+  };
+
   const unequipItem = (slot: EquipSlot) => {
     if (viewMode === 'battle' && monsters.length > 0) {
       addLog('전투 중에는 장비를 해제할 수 없습니다!', 'system');
@@ -1785,6 +1824,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     openConfirmModal,
     closeConfirmModal,
     equipItem,
+    autoEquipBestItems,
     unequipItem,
     upgradeStat,
     resetStatPoints,

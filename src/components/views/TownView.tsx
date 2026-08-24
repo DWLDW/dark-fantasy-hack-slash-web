@@ -5,7 +5,7 @@ import { simulateRuneWordCrafting } from '../../utils/runeCrafting';
 import { POTION_CAPACITY_TIERS, getPotionCapacityUpgradeCost, getPotionHealingUpgradeCost, getConsumablePowerUpgradeCost, getGambleLevelUpgradeCost } from '../../state/helpers/cubeCraftingHelper';
 import { GameItem } from '../../types/game';
 import { ACHIEVEMENTS } from '../../data/achievements';
-import { Box, Sparkles, Dices, BookOpen, ArrowRight, Shield, Compass, Hammer, Trophy } from 'lucide-react';
+import { Box, Sparkles, Dices, BookOpen, ArrowRight, Shield, Compass, Hammer, Trophy, Zap } from 'lucide-react';
 
 export const TownView: React.FC = React.memo(() => {
   const {
@@ -20,6 +20,7 @@ export const TownView: React.FC = React.memo(() => {
     craftRuneWordWithTransmute,
     transmuteRunesInVault,
     enterDungeon,
+    autoEquipBestItems,
     setViewMode,
     openModal,
     transmuteInCube,
@@ -145,12 +146,22 @@ export const TownView: React.FC = React.memo(() => {
                 <Shield className="w-4 h-4 text-brass-400" />
                 장착 장비 & 세트 효과
               </h2>
-              <button
-                onClick={() => openModal('inventory')}
-                className="text-xs text-brass-300 font-bold hover:underline font-mono bg-iron-950 px-2 py-0.5 rounded border border-iron-700 cursor-pointer"
-              >
-                [I] 가방
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={autoEquipBestItems}
+                  className="text-[10px] text-amber-300 font-bold font-mono bg-iron-950 px-1.5 py-0.5 rounded border border-amber-500/70 hover:border-amber-400 hover:text-white cursor-pointer flex items-center gap-0.5"
+                  title="공격력+체력 기준 최적 장비 자동 일괄 장착"
+                >
+                  <Zap className="w-3 h-3 fill-amber-300" />
+                  <span>일괄 장착</span>
+                </button>
+                <button
+                  onClick={() => openModal('inventory')}
+                  className="text-xs text-brass-300 font-bold hover:underline font-mono bg-iron-950 px-2 py-0.5 rounded border border-iron-700 cursor-pointer"
+                >
+                  [I] 가방
+                </button>
+              </div>
             </div>
 
             {/* Quick Equipment List */}
