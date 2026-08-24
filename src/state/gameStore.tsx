@@ -35,7 +35,7 @@ import { calculateRuneWordItem, craftRuneWordHelper, craftRuneWordWithTransmuteH
 import { upgradeSkillHelper, resetSkillPointsHelper, getEffectiveSkill } from './helpers/skillManager';
 import { getItemSellPrice, bulkSellHelper, socketRuneHelper, cubeTransmuteHelper, POTION_CAPACITY_TIERS, getPotionCapacityUpgradeCost, getPotionHealingUpgradeCost, getConsumablePowerUpgradeCost, getGambleLevelUpgradeCost } from './helpers/cubeCraftingHelper';
 import { claimTreasureHelper, claimRuneAltarHelper, createShrineBuff, generateVictoryLoot, prepareDungeonRun, makeFirstClearSteelBase, generateRoomClearLoot } from './helpers/dungeonEventHelper';
-import { isActUnlocked } from '../data/dungeons';
+import { isActUnlocked, getNextStoryDungeon } from '../data/dungeons';
 import { findBestEquipmentPlan } from '../utils/itemScoring';
 import { WARRIOR_SKILLS, ALL_AVAILABLE_SKILLS, DEFAULT_EQUIPPED_SLOTS, getSkillById, isSkillUnlocked } from '../data/skills';
 import { calculateAttackGains, compressLaneSurvivors, resolveHordeCounterAttack } from './helpers/combatActionHelper';
@@ -1064,6 +1064,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
               nextDifficulty: victory.nextDifficulty,
               performanceGrade: victory.performanceGrade
             });
+
+            const nextStoryDungeon = getNextStoryDungeon(currentDungeon.id);
+            if (nextStoryDungeon) {
+              setCurrentDungeon(nextStoryDungeon);
+            }
 
             setIsVictoryModalOpen(true);
             playLegendaryDropSound();

@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useGame } from '../../state/gameStore';
 import { AlertTriangle, Skull, Check, X } from 'lucide-react';
 
@@ -24,11 +25,11 @@ export const ConfirmModal: React.FC = React.memo(() => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [confirmDialogState, closeConfirmModal]);
 
-  if (!confirmDialogState?.isOpen) return null;
+  if (!confirmDialogState?.isOpen || typeof document === 'undefined') return null;
 
   const isDanger = confirmDialogState.type === 'danger';
 
-  return (
+  return createPortal(
     <div
       style={{ zIndex: 999999 }}
       onClick={closeConfirmModal}
@@ -96,7 +97,8 @@ export const ConfirmModal: React.FC = React.memo(() => {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 });
 

@@ -74,6 +74,15 @@ export function isActUnlocked(actOrDungeon: number | string, dungeonClears: Reco
   return prevActDungeons.every(dId => (dungeonClears[dId] || 0) >= 1);
 }
 
+export function getNextStoryDungeon(currentDungeonId: string): DungeonInfo | null {
+  const currentIndex = ALL_DUNGEON_IDS.indexOf(currentDungeonId);
+  if (currentIndex === -1 || currentIndex >= ALL_DUNGEON_IDS.length - 1) {
+    return null; // All story chapters completed or not found
+  }
+  const nextId = ALL_DUNGEON_IDS[currentIndex + 1];
+  return DUNGEONS_DATA.find(d => d.id === nextId) || null;
+}
+
 function create6RoomGraph(themeTitles: {
   start: string;
   wave: string;

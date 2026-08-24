@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
 import { useGame } from '../../state/gameStore';
-import { Trophy, Sparkles, BookOpen, Coins, Gem, ArrowRight, Flame, HelpCircle, Zap, ShieldCheck, Package, Lock } from 'lucide-react';
+import { Trophy, Sparkles, BookOpen, Coins, Gem, ArrowRight, Flame, HelpCircle, Zap, ShieldCheck, Package, Lock, Swords, Crown } from 'lucide-react';
 import { D2_RUNES } from '../../data/gameData';
+import { getNextStoryDungeon } from '../../data/dungeons';
 import { isItemBetterWithThreshold, calculateItemScore } from '../../utils/itemScoring';
 import type { GameItem, EquipSlot } from '../../types/game';
 
@@ -30,12 +31,21 @@ export const DungeonVictoryModal: React.FC = () => {
     i => i.isIdentified && (i.rarity === 'unique' || i.rarity === 'legendary' || i.rarity === 'set')
   ).length;
 
-  const nextDiff = dungeonVictoryLoot.nextDifficulty || (currentDifficulty + (dungeonVictoryLoot.advanceLevels || 1));
-  const targetLabel = `${currentDungeon.name.split(':')[0].trim()} Lv.${nextDiff}`;
+  const nextStoryDungeon = getNextStoryDungeon(currentDungeon.id);
+  const isStoryProgression = nextStoryDungeon !== null;
+
+  const targetDungeon = isStoryProgression ? nextStoryDungeon : currentDungeon;
+  const targetDiff = isStoryProgression 
+    ? currentDifficulty 
+    : (dungeonVictoryLoot.nextDifficulty || (currentDifficulty + (dungeonVictoryLoot.advanceLevels || 1)));
+
+  const targetLabel = isStoryProgression
+    ? `다음 장 진격: [${nextStoryDungeon.name.split(':')[0]}]`
+    : `전 막 정복! 상위 난이도: [${currentDungeon.name.split(':')[0]}] Lv.${targetDiff}`;
 
   const handleReDeploy = () => {
     closeVictoryModal();
-    enterDungeon(currentDungeon.id, nextDiff);
+    enterDungeon(targetDungeon.id, targetDiff);
   };
 
   const isUpgrade = (item: GameItem): boolean => {
@@ -98,7 +108,11 @@ export const DungeonVictoryModal: React.FC = () => {
                 <span>{dungeonVictoryLoot.performanceGrade}</span>
               </div>
               <div className="text-[10px] sm:text-[11px] text-gray-300 mt-0.5">
-                남은 체력 및 클리어 성적에 따라 다음 난이도 <strong className="text-amber-300 font-black">Lv.{nextDiff}</strong>가 즉시 해금되었습니다!
+                {isStoryProgression ? (
+                  <span>남은 체력 및 클리어 성적에 따라 다음 스토리 <strong className="text-amber-300 font-black">[{nextStoryDungeon.name.split(':')[0]}]</strong> 관문이 개방되었습니다!</span>
+                ) : (
+                  <span>남은 체력 및 클리어 성적에 따라 다음 난이도 <strong className="text-amber-300 font-black">Lv.{dungeonVictoryLoot.nextDifficulty || targetDiff}</strong>가 즉시 해금되었습니다!</span>
+                )}
               </div>
             </div>
           )}
@@ -299,7 +313,7 @@ export const DungeonVictoryModal: React.FC = () => {
               <Package className="w-4 h-4 text-yellow-400" />
               <div>
                 <div className="text-xs font-bold text-yellow-200">가방 {inventory.length}/40 — 정리 필요</div>
-                <div className="text-[10px] text-gray-400 font-mono">일반 장비 {normalCount}개 판매 가능 ��� 예상 {normalGoldPreview.toLocaleString()} G</div>
+                <div className="text-[10px] text-gray-400 font-mono">일반 장비 {normalCount}개 판매 가능 ��� 예상 {normalGoldPreview.toLocaleString()} G</div>
               </div>
             </div>
             <button
@@ -313,15 +327,19 @@ export const DungeonVictoryModal: React.FC = () => {
           </div>
         )}
 
-        {/* Bottom Dual Action Buttons: Re-deploy vs Return Town */}
+        {/* Bottom Dual Action Buttons: Next Story / Re-deploy vs Return Town */}
         <div className="pt-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
           <button
             onClick={handleReDeploy}
-            className="w-full py-3 bg-gradient-to-r from-blood-600 via-amber-600 to-yellow-500 hover:from-blood-500 hover:to-yellow-400 text-iron-950 font-black rounded-lg text-xs md:text-sm transition shadow-xl ring-2 ring-amber-300 transform active:scale-95 flex items-center justify-center gap-2 animate-pulse cursor-pointer"
+            className={`w-full py-3 text-white font-black rounded-lg text-xs md:text-sm transition shadow-xl transform active:scale-95 flex items-center justify-center gap-2 animate-pulse cursor-pointer ${
+              isStoryProgression
+                ? 'bg-gradient-to-r from-blood-700 via-blood-600 to-amber-600 hover:from-blood-600 hover:to-amber-500 ring-2 ring-amber-400/80 shadow-[0_0_20px_rgba(251,191,36,0.4)]'
+                : 'bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-400 hover:from-amber-500 hover:to-yellow-300 text-iron-950 ring-2 ring-amber-300 shadow-xl'
+            }`}
           >
-            <Flame className="w-4 h-4 text-iron-950" />
-            <span>재출격: {targetLabel}</span>
-            <ArrowRight className="w-4 h-4 text-iron-950" />
+            {isStoryProgression ? <Swords className="w-4 h-4 text-white" /> : <Crown className="w-4 h-4 text-iron-950" />}
+            <span className={isStoryProgression ? 'text-white' : 'text-iron-950'}>{targetLabel}</span>
+            <ArrowRight className={`w-4 h-4 ${isStoryProgression ? 'text-white' : 'text-iron-950'}`} />
           </button>
 
           <button
