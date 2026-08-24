@@ -33,7 +33,7 @@ import { resolveAttack, createGoblin30Formation, findBestLaneForSkill, AttackRes
 import { calculateTotalStats, CalculatedTotalStats } from './helpers/statCalculator';
 import { generateGambleItem, identifyItemHelper } from './helpers/itemGenerator';
 import { calculateRuneWordItem, craftRuneWordHelper, craftRuneWordWithTransmuteHelper, transmuteRuneInVaultHelper } from './helpers/runeWordCalculator';
-import { upgradeSkillHelper, resetSkillPointsHelper, getEffectiveSkill } from './helpers/skillManager';
+import { upgradeSkillHelper, upgradePassiveHelper, resetSkillPointsHelper, getEffectiveSkill } from './helpers/skillManager';
 import { getItemSellPrice, bulkSellHelper, socketRuneHelper, cubeTransmuteHelper, POTION_CAPACITY_TIERS, getPotionCapacityUpgradeCost, getPotionHealingUpgradeCost, getConsumablePowerUpgradeCost, getGambleLevelUpgradeCost } from './helpers/cubeCraftingHelper';
 import { claimTreasureHelper, claimRuneAltarHelper, createShrineBuff, generateVictoryLoot, prepareDungeonRun, makeFirstClearSteelBase, generateRoomClearLoot } from './helpers/dungeonEventHelper';
 import { isActUnlocked, getNextStoryDungeon } from '../data/dungeons';
@@ -163,6 +163,8 @@ interface GameContextType {
   setSkillRune: (skillId: string, runeId: string | null) => void;
   skillLevels: Record<string, number>;
   upgradeSkill: (skillId: string, amount?: number) => void;
+  passiveLevels: Record<string, number>;
+  upgradePassive: (passiveId: string, amount?: number) => void;
   resetSkillPoints: () => void;
 
   // Horadric Permanent Upgrades
@@ -312,6 +314,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     cleave: 1,
     whirlwind: 1
   });
+  const [passiveLevels, setPassiveLevels] = useState<Record<string, number>>(() => savedData?.passiveLevels || {});
 
   // Achievement System States
   const [achievementStats, setAchievementStats] = useState<AchievementStats>(() => {
@@ -382,6 +385,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       maxUnlockedDifficulty,
       skillRunes,
       skillLevels,
+      passiveLevels,
       achievementStats,
       claimedAchievements,
       hasSeenTutorial,
@@ -390,7 +394,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [
     playerStats, equipment, inventory, runesVault, consumables,
     currentDungeon.id, currentRoomId, currentDifficulty, maxUnlockedDifficulty,
-    skillRunes, skillLevels, achievementStats, claimedAchievements,
+    skillRunes, skillLevels, passiveLevels, achievementStats, claimedAchievements,
     hasSeenTutorial, townUpgrades
   ]);
 
@@ -406,7 +410,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }, 450);
     return () => window.clearTimeout(timer);
-  }, [playerStats, equipment, inventory, runesVault, consumables, currentDungeon.id, currentRoomId, currentDifficulty, maxUnlockedDifficulty, equippedSkillSlots, skillRunes, skillLevels, achievementStats, claimedAchievements]);
+  }, [playerStats, equipment, inventory, runesVault, consumables, currentDungeon.id, currentRoomId, currentDifficulty, maxUnlockedDifficulty, equippedSkillSlots, skillRunes, skillLevels, passiveLevels, achievementStats, claimedAchievements]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -494,11 +498,30 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const upgradePassive = (passiveId: string, amount: number = 1) => {
+    const res = upgradePassiveHelper(passiveId, passiveLevels, playerStats.skillPoints, playerStats.level, amount);
+    if (!res.success) {
+      addLog(res.message, 'system');
+      return;
+    }
+    if (res.newLevels && res.newSkillPoints !== undefined) {
+      setPassiveLevels(res.newLevels);
+      setPlayerStats(prev => ({ ...prev, skillPoints: res.newSkillPoints! }));
+      playRuneWordSound();
+      addLog(res.message, 'system');
+    }
+  };
+
   const resetSkillPoints = () => {
-    const { newLevels, newSkillPoints, refundedPoints } = resetSkillPointsHelper(skillLevels, playerStats.skillPoints);
-    setSkillLevels(newLevels);
+    const { newSkillLevels, newPassiveLevels, newSkillPoints, refundedPoints } = resetSkillPointsHelper(
+      skillLevels,
+      passiveLevels,
+      playerStats.skillPoints
+    );
+    setSkillLevels(newSkillLevels);
+    setPassiveLevels(newPassiveLevels);
     setPlayerStats(prev => ({ ...prev, skillPoints: newSkillPoints }));
-    addLog(`🔄 모든 스킬 포인트(${refundedPoints}P)를 초기화하여 반환했습니다.`, "system");
+    addLog(`🔄 모든 액티브 및 패시브 스킬 포인트(${refundedPoints}P)를 전액 회수하여 반환했습니다.`, "system");
   };
 
   const addRuneToVault = (runeKey: string, count = 1) => {
@@ -867,8 +890,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Compute Total Character Stats
   const totalStats = useMemo(() => {
-    return calculateTotalStats(playerStats, equipment, tempBuffs, dungeonBuffs);
-  }, [playerStats, equipment, tempBuffs, dungeonBuffs]);
+    return calculateTotalStats(playerStats, equipment, tempBuffs, dungeonBuffs, passiveLevels);
+  }, [playerStats, equipment, tempBuffs, dungeonBuffs, passiveLevels]);
 
   // Socketed rune HP bonuses (e.g. Tir armor +15 HP) feed into maxHp
   useEffect(() => {
@@ -2182,6 +2205,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setSkillRune,
     skillLevels,
     upgradeSkill,
+    passiveLevels,
+    upgradePassive,
     resetSkillPoints,
     runesVault,
     addRuneToVault,
@@ -2278,7 +2303,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     equippedSkillSlots,
     equippedSkills,
     skillRunes,
-    skillLevels
+    skillLevels,
+    passiveLevels
   ]);
 
   return (

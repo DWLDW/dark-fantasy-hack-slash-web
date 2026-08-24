@@ -38,6 +38,7 @@ export interface SaveDataPayload {
   inventory: GameItem[];
   runesVault: Record<string, number>;
   skillLevels?: Record<string, number>;
+  passiveLevels?: Record<string, number>;
   skillRunes?: Record<string, string>;
   equippedSkillSlots?: Record<string, string>;
   consumables?: ConsumableItem[];
@@ -84,4 +85,3 @@ export const decodeSaveData = (encodedData: string): SaveDataPayload | null => {
     return null;
   }
 };
-

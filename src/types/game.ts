@@ -228,6 +228,7 @@ export interface CombatLogEntry {
   type: 'damage' | 'kill' | 'chain' | 'system' | 'loot';
 }
 
+export type { PassiveSkill } from '../data/passiveSkills';
 export type { Achievement, AchievementStats } from '../data/achievements';
 
 export interface RoomLootEvent {

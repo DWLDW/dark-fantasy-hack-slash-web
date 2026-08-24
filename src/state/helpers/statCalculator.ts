@@ -37,7 +37,8 @@ export function calculateTotalStats(
   playerStats: PlayerStats,
   equipment: Record<string, GameItem>,
   tempBuffs: TempBuffs,
-  dungeonBuffs: DungeonBuff[]
+  dungeonBuffs: DungeonBuff[],
+  passiveLevels: Record<string, number> = {}
 ): CalculatedTotalStats {
   let str = playerStats.str;
   let dex = playerStats.dex;
@@ -175,6 +176,54 @@ export function calculateTotalStats(
   minDmg += Math.floor(str * 1.5);
   maxDmg += Math.floor(str * 2.0);
 
+  // 🧬 WARRIOR PASSIVE SKILLS BONUSES
+  const wmLevel = passiveLevels['weapon_mastery'] || 0;
+  if (wmLevel > 0) {
+    const wmMult = 1 + wmLevel * 0.04;
+    minDmg = Math.floor(minDmg * wmMult);
+    maxDmg = Math.floor(maxDmg * wmMult);
+  }
+
+  const isLevel = passiveLevels['iron_skin'] || 0;
+  if (isLevel > 0) {
+    defense = Math.floor(defense * (1 + isLevel * 0.05));
+    damageReduction = Math.min(50, damageReduction + isLevel * 1);
+  }
+
+  const dsLevel = passiveLevels['deadly_strike'] || 0;
+  if (dsLevel > 0) {
+    critChance += dsLevel * 1.5;
+    critDamage += dsLevel * 5;
+  }
+
+  const btLevel = passiveLevels['bloodthirst'] || 0;
+  if (btLevel > 0) {
+    lifeSteal += btLevel * 1;
+  }
+
+  const brLevel = passiveLevels['berserker_rage'] || 0;
+  if (brLevel > 0) {
+    turnRageRegen += brLevel * 2;
+  }
+
+  const ocLevel = passiveLevels['overkill_crusher'] || 0;
+  if (ocLevel > 0) {
+    overkillEfficiency += ocLevel * 4;
+    const ocMult = 1 + ocLevel * 0.03;
+    minDmg = Math.floor(minDmg * ocMult);
+    maxDmg = Math.floor(maxDmg * ocMult);
+  }
+
+  const eaLevel = passiveLevels['elemental_attunement'] || 0;
+  if (eaLevel > 0) {
+    allResist += eaLevel * 2;
+  }
+
+  const tjLevel = passiveLevels['titan_juggernaut'] || 0;
+  if (tjLevel > 0) {
+    runeBonusHp += Math.floor((playerStats.maxHp || 100) * (tjLevel * 0.05));
+  }
+
   const speedAtbBonus = Math.floor(attackSpeed * 0.25);
   const finalAtb = Math.min(85, Math.max(baseAtbPercent, baseAtbPercent + speedAtbBonus));
 
@@ -190,17 +239,17 @@ export function calculateTotalStats(
     defense: Math.floor(defense),
     evasion,
     damageReduction,
-    critChance: Math.min(100, Math.floor(critChance)),
+    critChance: Number(critChance.toFixed(1)),
     critDamage: Math.floor(critDamage),
     overkillEfficiency: Math.floor(overkillEfficiency),
     fortune: Math.floor(fortune),
-    allResist: Math.min(75, Math.floor(allResist)),
+    allResist: Math.floor(allResist),
     lifeSteal: Math.floor(lifeSteal),
     attackSpeed: Math.floor(attackSpeed),
-    turnRageRegen,
-    rageCostReduction,
+    turnRageRegen: Math.floor(turnRageRegen),
+    rageCostReduction: Math.floor(rageCostReduction),
     baseAtbPercent: finalAtb,
-    runeBonusHp,
+    runeBonusHp: Math.floor(runeBonusHp),
     activeSetBonuses
   };
 }
