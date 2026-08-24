@@ -44,7 +44,7 @@ const StatUpgradeButtons: React.FC<{
               e.stopPropagation();
               onUpgrade(statKey, Math.min(10, availablePoints));
             }}
-            className="w-full h-full bg-amber-600 hover:bg-amber-500 text-white rounded flex items-center justify-center font-mono font-black text-xs shadow transition transform active:scale-95 cursor-pointer select-none border border-amber-400"
+            className="w-full h-full bg-iron-800 hover:bg-iron-750 text-amber-300 rounded flex items-center justify-center font-mono font-black text-xs shadow-inner transition transform active:scale-95 cursor-pointer select-none border border-amber-500/80"
             title={`한 번에 +${Math.min(10, availablePoints)}P 즉시 투자`}
           >
             +{Math.min(10, availablePoints)}
@@ -64,7 +64,7 @@ const StatUpgradeButtons: React.FC<{
               e.stopPropagation();
               onUpgrade(statKey, availablePoints);
             }}
-            className="w-full h-full bg-blood-600 hover:bg-blood-500 text-white rounded flex items-center justify-center font-mono font-black text-[10px] shadow transition transform active:scale-95 cursor-pointer select-none border border-blood-400"
+            className="w-full h-full bg-iron-900 hover:bg-iron-800 text-brass-200 rounded flex items-center justify-center font-mono font-black text-[10px] shadow-inner transition transform active:scale-95 cursor-pointer select-none border border-brass-500 hover:border-brass-400"
             title={`잔여 ${availablePoints}P 올인 투자`}
           >
             MAX
@@ -113,6 +113,7 @@ export const CharacterModal: React.FC = React.memo(() => {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Tier 5: Warning Reset Button */}
           <button
             onClick={() => openConfirmModal({
               title: "캐릭터 스탯 초기화",
@@ -121,7 +122,7 @@ export const CharacterModal: React.FC = React.memo(() => {
               type: "warning",
               onConfirm: resetStatPoints
             })}
-            className="px-2.5 py-1 rounded bg-iron-900 hover:bg-iron-800 border border-iron-700 hover:border-iron-500 text-gray-300 hover:text-white text-xs font-mono font-bold flex items-center gap-1 transition shadow cursor-pointer"
+            className="px-2.5 py-1 rounded bg-iron-900 hover:bg-amber-950/40 border border-iron-700 hover:border-amber-500/80 text-gray-300 hover:text-amber-200 text-xs font-mono font-bold flex items-center gap-1 transition shadow cursor-pointer"
             title="투자한 모든 스탯 포인트를 회수하여 다시 분배합니다"
           >
             🔄 <span>스탯 초기화</span>

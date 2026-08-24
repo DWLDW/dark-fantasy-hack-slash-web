@@ -110,9 +110,10 @@ export const SkillRuneModal: React.FC = React.memo(() => {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Tier 5: Warning Reset Button */}
           <button
             onClick={handleResetSkills}
-            className="px-2.5 py-1 rounded bg-iron-900 hover:bg-iron-800 border border-iron-700 hover:border-iron-500 text-gray-300 hover:text-white text-xs font-mono font-bold flex items-center gap-1 transition shadow cursor-pointer"
+            className="px-2.5 py-1 rounded bg-iron-900 hover:bg-amber-950/40 border border-iron-700 hover:border-amber-500/80 text-gray-300 hover:text-amber-200 text-xs font-mono font-bold flex items-center gap-1 transition shadow cursor-pointer"
             title="투자한 모든 스킬 포인트를 전액 회수합니다"
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -160,7 +161,7 @@ export const SkillRuneModal: React.FC = React.memo(() => {
                 onClick={() => handleSlotClick(slot)}
                 className={`p-1.5 sm:p-2 rounded-lg border text-left flex flex-col justify-between transition cursor-pointer relative shadow ${
                   isSlotActive
-                    ? 'bg-blood-950/90 border-brass-400 ring-2 ring-brass-400 shadow-[0_0_15px_rgba(251,191,36,0.4)]'
+                    ? 'bg-iron-900 border-2 border-brass-400 ring-2 ring-brass-400/80 shadow-[0_0_15px_rgba(251,191,36,0.35)]'
                     : isSkillActive
                     ? 'bg-iron-900 border-brass-500/60'
                     : 'bg-iron-950 border-iron-800 hover:border-iron-600 hover:bg-iron-900'
@@ -331,19 +332,21 @@ export const SkillRuneModal: React.FC = React.memo(() => {
           {isSelectedUnlocked ? (
             <div className="flex items-center gap-2">
               <button
-                {...handleLevelUpHold}
+                onClick={() => upgradeSkill(selectedSkill.id, 1)}
                 disabled={!canUpgrade}
-                className={`flex-1 py-2.5 px-3 rounded-lg font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow-lg select-none cursor-pointer transform active:scale-95 ${
+                className={`flex-1 py-2 sm:py-2.5 px-3 rounded-lg font-cinzel font-black text-xs md:text-sm flex items-center justify-center gap-1.5 transition shadow-lg select-none ${
                   canUpgrade
-                    ? 'bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-iron-950 ring-2 ring-amber-300 animate-pulse'
+                    ? 'bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-iron-950 ring-2 ring-amber-300/80 shadow-[0_0_15px_rgba(251,191,36,0.5)] animate-pulse cursor-pointer transform active:scale-95'
                     : currentSkillLv >= 10
                     ? 'bg-iron-900 border border-iron-750 text-emerald-400 cursor-default opacity-80'
                     : 'bg-iron-900 border border-iron-800 text-gray-500 cursor-not-allowed opacity-60'
                 }`}
-                title="클릭: +1Lv / Shift+클릭: MAX / 꾹 누르면 연속 레벨업"
               >
                 {currentSkillLv >= 10 ? (
-                  <span>✨ MAX LEVEL (최대 레벨 10 달성)</span>
+                  <>
+                    <Sparkles className="w-4 h-4 text-emerald-400" />
+                    <span>✨ 최고 레벨 도달 (MAX LEVEL)</span>
+                  </>
                 ) : canUpgrade ? (
                   <>
                     <Plus className="w-4 h-4 font-black" />
@@ -357,7 +360,7 @@ export const SkillRuneModal: React.FC = React.memo(() => {
               {canUpgrade && maxPossible >= 2 && (
                 <button
                   onClick={() => upgradeSkill(selectedSkill.id, maxPossible)}
-                  className="px-3.5 py-2.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-mono font-black text-xs shadow-md border border-amber-400 cursor-pointer transform active:scale-95 select-none flex-shrink-0"
+                  className="px-3.5 py-2.5 rounded-lg bg-iron-800 hover:bg-iron-750 text-amber-300 font-mono font-black text-xs shadow-inner border border-amber-500/80 cursor-pointer transform active:scale-95 select-none flex-shrink-0"
                   title={`잔여 SP로 +${maxPossible}Lv 즉시 마스터`}
                 >
                   +{maxPossible} MAX

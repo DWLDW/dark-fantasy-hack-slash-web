@@ -257,16 +257,16 @@ export const TownView: React.FC = React.memo(() => {
         {/* Center Column (5 Cols Desktop / Full Width on Mobile): Four Core Town Facilities */}
         <div className="w-full lg:col-span-5 bg-iron-900/90 p-3 sm:p-4 rounded-xl border-2 border-iron-750 flex flex-col shadow-md min-h-[420px]">
           
-          {/* Facility Navigation Tabs (Rock-solid layout) */}
+          {/* Facility Navigation Tabs (Tier 3: Dark Inset Active Tabs) */}
           <div className="grid grid-cols-4 gap-1 sm:gap-1.5 pb-2.5 border-b border-iron-750">
             {/* 1. DECKARD CAIN */}
             <button
               data-tutorial="cain"
               onClick={() => setActiveFacility('cain')}
-              className={`py-2 px-1 rounded-lg text-xs font-black flex items-center justify-center gap-1 transition relative cursor-pointer ${
+              className={`py-2 px-1 rounded-lg text-xs flex items-center justify-center gap-1 transition relative cursor-pointer ${
                 activeFacility === 'cain'
-                  ? 'bg-blood-950 text-brass-200 border-2 border-brass-400 shadow-md ring-1 ring-brass-400/50'
-                  : 'bg-iron-950 text-gray-300 hover:bg-iron-850 hover:text-white border border-iron-700'
+                  ? 'bg-iron-850 text-brass-200 border-2 border-brass-400 shadow-inner font-black'
+                  : 'bg-iron-950 text-gray-400 hover:bg-iron-900 hover:text-white border border-iron-800 font-medium'
               }`}
             >
               <BookOpen className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
@@ -282,10 +282,10 @@ export const TownView: React.FC = React.memo(() => {
             <button
               data-tutorial="gheed"
               onClick={() => setActiveFacility('gamble')}
-              className={`py-2 px-1 rounded-lg text-xs font-black flex items-center justify-center gap-1 transition cursor-pointer ${
+              className={`py-2 px-1 rounded-lg text-xs flex items-center justify-center gap-1 transition cursor-pointer ${
                 activeFacility === 'gamble'
-                  ? 'bg-blood-950 text-brass-200 border-2 border-brass-400 shadow-md ring-1 ring-brass-400/50'
-                  : 'bg-iron-950 text-gray-300 hover:bg-iron-850 hover:text-white border border-iron-700'
+                  ? 'bg-iron-850 text-brass-200 border-2 border-brass-400 shadow-inner font-black'
+                  : 'bg-iron-950 text-gray-400 hover:bg-iron-900 hover:text-white border border-iron-800 font-medium'
               }`}
             >
               <Dices className="w-3.5 h-3.5 text-yellow-400 flex-shrink-0" />
@@ -296,10 +296,10 @@ export const TownView: React.FC = React.memo(() => {
             <button
               data-tutorial="runewords"
               onClick={() => setActiveFacility('runewords')}
-              className={`py-2 px-1 rounded-lg text-xs font-black flex items-center justify-center gap-1 transition cursor-pointer ${
+              className={`py-2 px-1 rounded-lg text-xs flex items-center justify-center gap-1 transition cursor-pointer ${
                 activeFacility === 'runewords'
-                  ? 'bg-blood-950 text-brass-200 border-2 border-brass-400 shadow-md ring-1 ring-brass-400/50'
-                  : 'bg-iron-950 text-gray-300 hover:bg-iron-850 hover:text-white border border-iron-700'
+                  ? 'bg-iron-850 text-brass-200 border-2 border-brass-400 shadow-inner font-black'
+                  : 'bg-iron-950 text-gray-400 hover:bg-iron-900 hover:text-white border border-iron-800 font-medium'
               }`}
             >
               <Sparkles className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
@@ -309,10 +309,10 @@ export const TownView: React.FC = React.memo(() => {
             {/* 4. HORADRIC CUBE & LAB */}
             <button
               onClick={() => setActiveFacility('cube')}
-              className={`py-2 px-1 rounded-lg text-xs font-black flex items-center justify-center gap-1 transition cursor-pointer ${
+              className={`py-2 px-1 rounded-lg text-xs flex items-center justify-center gap-1 transition cursor-pointer ${
                 activeFacility === 'cube'
-                  ? 'bg-blood-950 text-brass-200 border-2 border-brass-400 shadow-md ring-1 ring-brass-400/50'
-                  : 'bg-iron-950 text-gray-300 hover:bg-iron-850 hover:text-white border border-iron-700'
+                  ? 'bg-iron-850 text-brass-200 border-2 border-brass-400 shadow-inner font-black'
+                  : 'bg-iron-950 text-gray-400 hover:bg-iron-900 hover:text-white border border-iron-800 font-medium'
               }`}
             >
               <Box className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
@@ -346,12 +346,13 @@ export const TownView: React.FC = React.memo(() => {
                     </span>
                   </div>
 
+                  {/* Tier 2-A: Arcane Identify All Button */}
                   <button
                     onClick={handleIdentifyAll}
                     disabled={unidentifiedCount === 0}
-                    className="w-full py-3 bg-gradient-to-r from-brass-600 via-brass-500 to-brass-400 hover:from-brass-500 hover:to-brass-300 disabled:opacity-40 text-iron-950 font-black rounded-lg transition shadow text-xs md:text-sm flex items-center justify-center gap-2 cursor-pointer animate-pulse"
+                    className="w-full py-3 bg-gradient-to-r from-blue-700 via-indigo-600 to-blue-600 hover:from-blue-600 hover:to-indigo-500 disabled:opacity-40 text-white font-black rounded-lg transition shadow-lg text-xs md:text-sm flex items-center justify-center gap-2 cursor-pointer border border-blue-400 ring-2 ring-blue-400/50 shadow-[0_0_15px_rgba(96,165,250,0.4)] animate-pulse"
                   >
-                    <BookOpen className="w-4 h-4" />
+                    <BookOpen className="w-4 h-4 text-blue-200" />
                     <span>소지품 일괄 무료 감정 (Identify All)</span>
                   </button>
 

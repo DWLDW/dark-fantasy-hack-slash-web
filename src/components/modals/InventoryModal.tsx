@@ -253,14 +253,14 @@ export const InventoryModal: React.FC = () => {
             <span>⚔️ 소지품 & 룬 보관함</span>
           </h2>
 
-          {/* Mode Switch Tabs */}
-          <div className="flex bg-iron-900 p-1 rounded-lg border border-iron-750">
+          {/* Mode Switch Tabs (Tier 3: Dark Inset Active Tabs) */}
+          <div className="flex bg-iron-900 p-0.5 rounded-lg border border-iron-750">
             <button
               onClick={() => setActiveTab('inventory')}
-              className={`px-3 py-1 rounded text-xs font-bold transition flex items-center gap-1.5 ${
+              className={`px-3 py-1 rounded-md text-xs transition flex items-center gap-1.5 cursor-pointer ${
                 activeTab === 'inventory'
-                  ? 'bg-brass-500 text-iron-950 shadow'
-                  : 'text-gray-300 hover:text-white cursor-pointer'
+                  ? 'bg-iron-800 text-brass-200 border-2 border-brass-400 shadow-inner font-black'
+                  : 'text-gray-400 hover:text-white font-medium'
               }`}
             >
               <Layers className="w-3.5 h-3.5" />
@@ -268,10 +268,10 @@ export const InventoryModal: React.FC = () => {
             </button>
             <button
               onClick={() => setActiveTab('runes')}
-              className={`px-3 py-1 rounded text-xs font-bold transition flex items-center gap-1.5 ${
+              className={`px-3 py-1 rounded-md text-xs transition flex items-center gap-1.5 cursor-pointer ${
                 activeTab === 'runes'
-                  ? 'bg-brass-500 text-iron-950 shadow'
-                  : 'text-gray-300 hover:text-white cursor-pointer'
+                  ? 'bg-iron-800 text-brass-200 border-2 border-brass-400 shadow-inner font-black'
+                  : 'text-gray-400 hover:text-white font-medium'
               }`}
             >
               <Sparkles className="w-3.5 h-3.5 text-purple-400" />
@@ -367,16 +367,16 @@ export const InventoryModal: React.FC = () => {
                         <div className="flex bg-iron-900 p-0.5 rounded border border-iron-750 ml-2">
                           <button
                             onClick={() => setDetailSubTab('compare')}
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold transition ${
-                              detailSubTab === 'compare' ? 'bg-brass-500 text-iron-950' : 'text-gray-400 hover:text-white'
+                            className={`px-2 py-0.5 rounded text-[10px] transition cursor-pointer ${
+                              detailSubTab === 'compare' ? 'bg-iron-800 text-brass-300 border border-brass-400 font-black shadow-inner' : 'text-gray-400 hover:text-white font-medium'
                             }`}
                           >
                             비교표
                           </button>
                           <button
                             onClick={() => setDetailSubTab('craft')}
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold transition flex items-center gap-1 ${
-                              detailSubTab === 'craft' ? 'bg-amber-500 text-iron-950' : 'text-amber-400 hover:text-amber-200'
+                            className={`px-2 py-0.5 rounded text-[10px] transition flex items-center gap-1 cursor-pointer ${
+                              detailSubTab === 'craft' ? 'bg-iron-800 text-amber-300 border border-amber-400 font-black shadow-inner' : 'text-amber-400/80 hover:text-amber-200 font-medium'
                             }`}
                           >
                             <Hammer className="w-3 h-3" />
@@ -389,8 +389,8 @@ export const InventoryModal: React.FC = () => {
                         <div className="flex bg-iron-900 p-0.5 rounded border border-iron-750 ml-1 sm:ml-2">
                           <button
                             onClick={() => setRingTargetSlot('ring1')}
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold transition ${
-                              ringTargetSlot === 'ring1' ? 'bg-brass-500 text-iron-950' : 'text-gray-400 hover:text-white'
+                            className={`px-2 py-0.5 rounded text-[10px] transition cursor-pointer ${
+                              ringTargetSlot === 'ring1' ? 'bg-iron-800 text-brass-300 border border-brass-400 font-black shadow-inner' : 'text-gray-400 hover:text-white font-medium'
                             }`}
                             title="반지 1 슬롯의 현재 장비와 비교합니다"
                           >
@@ -398,8 +398,8 @@ export const InventoryModal: React.FC = () => {
                           </button>
                           <button
                             onClick={() => setRingTargetSlot('ring2')}
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold transition ${
-                              ringTargetSlot === 'ring2' ? 'bg-brass-500 text-iron-950' : 'text-gray-400 hover:text-white'
+                            className={`px-2 py-0.5 rounded text-[10px] transition cursor-pointer ${
+                              ringTargetSlot === 'ring2' ? 'bg-iron-800 text-brass-300 border border-brass-400 font-black shadow-inner' : 'text-gray-400 hover:text-white font-medium'
                             }`}
                             title="반지 2 슬롯의 현재 장비와 비교합니다"
                           >
@@ -434,30 +434,32 @@ export const InventoryModal: React.FC = () => {
                         ) : (
                           <button
                             onClick={() => handleEquip(selectedItem)}
-                            className="px-3 py-1 bg-gradient-to-r from-brass-500 to-amber-500 hover:from-brass-400 hover:to-amber-400 text-iron-950 font-black rounded text-xs transition shadow flex items-center gap-1 animate-pulse cursor-pointer"
+                            className="px-3.5 py-1 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-iron-950 font-black rounded text-xs transition shadow flex items-center gap-1.5 ring-2 ring-amber-300/80 shadow-[0_0_12px_rgba(251,191,36,0.5)] animate-pulse cursor-pointer"
                           >
-                            <Sword className="w-3 h-3" />
+                            <Sword className="w-3.5 h-3.5 fill-iron-950" />
                             <span>장착하기</span>
                           </button>
                         )
                       )}
 
+                      {/* Tier 2-A: Arcane Identify Action */}
                       {selectedItem.isIdentified === false && (
                         <button
                           onClick={() => identifyItem(selectedItem.id)}
-                          className="px-2.5 py-1 bg-blood-600 hover:bg-blood-500 text-white font-black rounded text-xs transition shadow flex items-center gap-1 cursor-pointer"
+                          className="px-3 py-1 bg-gradient-to-r from-blue-700 via-indigo-600 to-blue-600 hover:from-blue-600 hover:to-indigo-500 text-white font-black rounded text-xs transition border border-blue-400 shadow-[0_0_10px_rgba(96,165,250,0.4)] flex items-center gap-1.5 animate-pulse cursor-pointer"
                         >
-                          <BookOpen className="w-3.5 h-3.5" />
-                          <span>식별</span>
+                          <BookOpen className="w-3.5 h-3.5 text-blue-200" />
+                          <span>식별하기</span>
                         </button>
                       )}
 
+                      {/* Tier 2-B: Mercantile Single Sell */}
                       <button
                         onClick={() => handleSingleSell(selectedItem)}
-                        className="px-2 py-1 bg-iron-900 hover:bg-red-950 text-gray-300 hover:text-red-300 border border-iron-750 hover:border-red-600 rounded text-xs font-bold transition shadow flex items-center gap-1 cursor-pointer"
+                        className="px-2.5 py-1 bg-iron-900 hover:bg-amber-950/50 text-gray-300 hover:text-amber-200 border border-iron-750 hover:border-amber-600/60 rounded text-xs font-bold transition shadow flex items-center gap-1 cursor-pointer"
                         title="해당 아이템을 판매하여 골드를 획득합니다."
                       >
-                        <Coins className="w-3 h-3 text-yellow-400" />
+                        <Coins className="w-3 h-3 text-amber-400" />
                         <span>판매 ({getItemSellPrice ? getItemSellPrice(selectedItem) : 5}G)</span>
                       </button>
 
