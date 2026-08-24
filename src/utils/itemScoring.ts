@@ -132,6 +132,11 @@ export function findBestEquipmentPlan(
 
   for (const slot of singleSlots) {
     const currentItem = resultEquipment[slot];
+    // If currently equipped item is locked by player, NEVER auto-replace it!
+    if (currentItem && currentItem.isLocked) {
+      continue;
+    }
+
     const candidates = currentInvPool.filter(
       i => (i.slot === slot || (slot === 'weapon' && i.slot === 'weapon')) && isEquippableCandidate(i)
     );
@@ -172,6 +177,11 @@ export function findBestEquipmentPlan(
   const ringSlots: EquipSlot[] = ['ring1', 'ring2'];
   for (const rSlot of ringSlots) {
     const currentRing = resultEquipment[rSlot];
+    // If currently equipped ring is locked by player, NEVER auto-replace it!
+    if (currentRing && currentRing.isLocked) {
+      continue;
+    }
+
     if (ringCandidates.length === 0) continue;
 
     ringCandidates.sort((a, b) => calculateItemScore(b) - calculateItemScore(a));

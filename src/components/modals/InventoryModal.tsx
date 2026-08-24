@@ -485,19 +485,26 @@ export const InventoryModal: React.FC = () => {
                         </div>
                       )}
 
-                      {/* Stat Comparison Table if replacing equipped item */}
-                      {currentEquippedItem && currentEquippedItem.id !== selectedItem.id ? (
-                        <ItemCompareTable
-                          equippedItem={currentEquippedItem}
-                          selectedItem={selectedItem}
-                        />
-                      ) : (
-                        <ItemDetailCard
-                          item={selectedItem}
-                          onToggleLock={toggleItemLock}
-                          onDeposit={depositToStash}
-                          isInStash={false}
-                        />
+                      {/* 1. Selected Item Full Detail Card (Always shown on top) */}
+                      <ItemDetailCard
+                        item={selectedItem}
+                        onToggleLock={toggleItemLock}
+                        onDeposit={depositToStash}
+                        isInStash={false}
+                      />
+
+                      {/* 2. Stat Comparison Table (Shown below when comparing with currently equipped item) */}
+                      {currentEquippedItem && currentEquippedItem.id !== selectedItem.id && (
+                        <div className="space-y-1 pt-1">
+                          <div className="text-[11px] font-cinzel font-bold text-gray-300 flex items-center gap-1.5 px-0.5">
+                            <Scale className="w-3.5 h-3.5 text-amber-400" />
+                            <span>현재 장착 중인 [{currentEquippedItem.name}]과의 스탯 비교:</span>
+                          </div>
+                          <ItemCompareTable
+                            equippedItem={currentEquippedItem}
+                            selectedItem={selectedItem}
+                          />
+                        </div>
                       )}
                     </>
                   )}
