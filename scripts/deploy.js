@@ -134,7 +134,7 @@ async function main() {
     sudo rm -rf ${REMOTE_DEST}/* && \
     sudo tar -xzf - -C ${REMOTE_DEST} && \
     sudo chown -R www-data:www-data ${REMOTE_DEST} && \
-    sudo chmod -R 755 ${REMOTE_DEST} && \
+    sudo chmod -R a+rX ${REMOTE_DEST} && \
     sudo systemctl reload nginx && \
     echo "DEPLOY_COMPLETE_SUCCESS"
   `;

@@ -1,20 +1,15 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useGame } from '../../state/gameStore';
 import { DUNGEONS_DATA, ACT_DUNGEON_GROUPS, isDungeonUnlocked, isActUnlocked } from '../../data/dungeons';
-import { DungeonInfo } from '../../types/game';
 import {
   Compass,
   Flame,
-  Shield,
-  Sparkles,
-  Trophy,
   ArrowRight,
   Skull,
   Plus,
   Minus,
   Lock,
   CheckCircle2,
-  AlertTriangle,
   ArrowLeft,
   X,
   Swords
@@ -32,7 +27,6 @@ export const DungeonSelectView: React.FC = React.memo(() => {
   const {
     enterDungeon,
     setViewMode,
-    playerStats,
     currentDifficulty,
     maxUnlockedDifficulty,
     setCurrentDifficulty,
@@ -76,6 +70,7 @@ export const DungeonSelectView: React.FC = React.memo(() => {
 
   const handleDeploy = () => {
     if (!isCurrentDungeonUnlocked) return;
+    setIsDeployModalOpen(false);
     enterDungeon(selectedDungeon.id, selectedDifficulty);
   };
 
@@ -100,7 +95,7 @@ export const DungeonSelectView: React.FC = React.memo(() => {
   const mfBonus = (selectedDifficulty - 1) * 3;
 
   return (
-    <div className="w-full max-w-5xl mx-auto p-2 sm:p-4 pb-20 sm:pb-24 text-gray-200 select-none font-sans space-y-3">
+    <div className="w-full max-w-5xl mx-auto p-2 sm:p-4 pb-28 sm:pb-32 text-gray-200 select-none font-sans space-y-3">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-iron-750 pb-2.5">
         <div className="flex items-center gap-2.5">
@@ -254,15 +249,15 @@ export const DungeonSelectView: React.FC = React.memo(() => {
         })}
       </div>
 
-      {/* POPUP MODAL: Focused Difficulty Selection & Dungeon Launch (No Scrolling Required!) */}
+      {/* POPUP MODAL: Focused Difficulty Selection & Dungeon Launch (High z-index, padded from bottom dock) */}
       {isDeployModalOpen && (
         <div
           onClick={() => setIsDeployModalOpen(false)}
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-fade-in"
+          className="fixed inset-0 z-[80] bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-fade-in"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-iron-950 border-2 border-brass-500 rounded-xl p-4 sm:p-6 max-w-lg w-full shadow-2xl space-y-3.5 relative animate-scale-in text-gray-200 select-none font-sans"
+            className="bg-iron-950 border-2 border-brass-500 rounded-xl p-4 sm:p-5 max-w-lg w-full max-h-[85dvh] sm:max-h-[90dvh] overflow-y-auto shadow-2xl space-y-3 relative animate-scale-in text-gray-200 select-none font-sans pb-6 sm:pb-5"
           >
             {/* Modal Header */}
             <div className="border-b border-iron-750 pb-2.5 flex items-center justify-between">
@@ -365,7 +360,7 @@ export const DungeonSelectView: React.FC = React.memo(() => {
               </div>
             </div>
 
-            {/* Launch Action Button */}
+            {/* Launch Action Button (Clearly visible above bottom nav) */}
             <div className="pt-2 border-t border-iron-750">
               <button
                 onClick={handleDeploy}
