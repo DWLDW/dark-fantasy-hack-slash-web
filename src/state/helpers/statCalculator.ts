@@ -29,6 +29,7 @@ export interface CalculatedTotalStats {
   turnRageRegen: number;
   rageCostReduction: number;
   baseAtbPercent: number;
+  runeBonusHp: number;
   activeSetBonuses: { setName: string; count: number; description: string }[];
 }
 
@@ -60,6 +61,7 @@ export function calculateTotalStats(
   let rageCostReduction = 0;
   let baseAtbPercent = 50;
   let allResist = 0;
+  let runeBonusHp = 0;
 
   const equippedSetCounts: Record<string, number> = {};
 
@@ -114,7 +116,13 @@ export function calculateTotalStats(
           if (bonus.str) str += bonus.str;
           if (bonus.con) con += bonus.con;
           if (bonus.int) int += bonus.int;
+          if (bonus.wis) wis += bonus.wis;
+          if (bonus.hp) runeBonusHp += bonus.hp;
           if (bonus.fortune) fortune += bonus.fortune;
+          if (bonus.allResist) allResist += bonus.allResist;
+          if (bonus.critChance) critChance += bonus.critChance;
+          if (bonus.critDamage) critDamage += bonus.critDamage;
+          if (bonus.evasion) evasion = Math.min(75, evasion + bonus.evasion);
         }
       });
     }
@@ -192,6 +200,7 @@ export function calculateTotalStats(
     turnRageRegen,
     rageCostReduction,
     baseAtbPercent: finalAtb,
+    runeBonusHp,
     activeSetBonuses
   };
 }

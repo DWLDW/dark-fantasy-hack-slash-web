@@ -120,7 +120,12 @@ export function cubeTransmuteHelper(selectedItems: GameItem[]): CubeTransmuteRes
       runeName.includes(k) || runeName.includes(D2_RUNES[k].name.split(' ')[0])
     );
 
-    const runeOrder = ['El', 'Eld', 'Tir', 'Nef', 'Eth', 'Ith', 'Tal', 'Ral', 'Ort', 'Sol', 'Shael', 'Amn', 'Ber', 'Jah'];
+    const runeOrder = [
+      'El', 'Eld', 'Tir', 'Nef', 'Eth', 'Ith', 'Tal', 'Ral', 'Ort', 'Thul',
+      'Amn', 'Sol', 'Shael', 'Dol', 'Hel', 'Io', 'Lum', 'Ko', 'Fal', 'Lem',
+      'Pul', 'Um', 'Mal', 'Ist', 'Gul', 'Vex', 'Ohm', 'Lo', 'Sur', 'Ber',
+      'Jah', 'Cham', 'Zod'
+    ];
     const curIdx = rKey ? runeOrder.indexOf(rKey) : -1;
 
     if (curIdx >= 0 && curIdx < runeOrder.length - 1) {

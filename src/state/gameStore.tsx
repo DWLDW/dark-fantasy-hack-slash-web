@@ -832,6 +832,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return calculateTotalStats(playerStats, equipment, tempBuffs, dungeonBuffs);
   }, [playerStats, equipment, tempBuffs, dungeonBuffs]);
 
+  // Socketed rune HP bonuses (e.g. Tir armor +15 HP) feed into maxHp
+  useEffect(() => {
+    setPlayerStats(prev => {
+      const targetMaxHp = 120 + (prev.level - 1) * 25 + prev.con * 5 + totalStats.runeBonusHp;
+      if (Math.abs((prev.maxHp || 0) - targetMaxHp) < 1) return prev;
+      return { ...prev, maxHp: Math.max(prev.hp, targetMaxHp), hp: Math.min(prev.hp, targetMaxHp) };
+    });
+  }, [totalStats.runeBonusHp]);
+
   // Active Skill with equipped Skill Rune and invested Skill Level
   const effectiveSkill: Skill = useMemo(() => {
     const baseSkill = WARRIOR_SKILLS.find(s => s.id === selectedSkill.id) || selectedSkill;
@@ -1228,20 +1237,27 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setConsumables(prev => prev.map(c => c.id === item.id ? { ...c, count: c.count - 1 } : c));
     playPotionSound();
 
+    const healBonus = townUpgrades.potionHealingLevel * 15;
+    const powerBonus = townUpgrades.consumablePowerLevel * 10;
     if (item.type === 'hp') {
-      setPlayerStats(prev => ({ ...prev, hp: Math.min(prev.maxHp, prev.hp + item.effectValue) }));
-      addLog(`🧪 [${item.name}] 복용! HP가 ${item.effectValue} 회복되었습니다.`, 'loot');
+      const totalHeal = item.effectValue + healBonus;
+      setPlayerStats(prev => ({ ...prev, hp: Math.min(prev.maxHp, prev.hp + totalHeal) }));
+      addLog(totalHeal !== item.effectValue
+        ? `🧪 [${item.name}] 복용! HP가 ${totalHeal} 회복되었습니다. (강화 보너스 +${healBonus})`
+        : `🧪 [${item.name}] 복용! HP가 ${totalHeal} 회복되었습니다.`, 'loot');
     } else if (item.type === 'rage') {
-      setPlayerStats(prev => ({ ...prev, rage: Math.min(prev.maxRage, prev.rage + item.effectValue) }));
-      addLog(`🧪 [${item.name}] 복용! 분노가 ${item.effectValue} 충전되었습니다.`, 'loot');
+      const totalRage = item.effectValue + powerBonus;
+      setPlayerStats(prev => ({ ...prev, rage: Math.min(prev.maxRage || 100, prev.rage + totalRage) }));
+      addLog(`🧪 [${item.name}] 복용! 분노가 ${totalRage} 충전되었습니다.`, 'loot');
     } else if (item.type === 'defense') {
-      setTempBuffs(prev => ({ ...prev, defenseBonus: prev.defenseBonus + item.effectValue }));
-      addLog(`🛡️ [${item.name}] 복용! 방어력이 +${item.effectValue} 증가했습니다.`, 'loot');
+      const totalDef = item.effectValue + powerBonus;
+      setTempBuffs(prev => ({ ...prev, defenseBonus: prev.defenseBonus + totalDef }));
+      addLog(`🛡️ [${item.name}] 복용! 방어력이 +${totalDef} 증가했습니다.`, 'loot');
     } else if (item.type === 'overkill') {
       setTempBuffs(prev => ({ ...prev, overkillBonus: prev.overkillBonus + item.effectValue }));
       addLog(`⚡ [${item.name}] 복용! 오버킬 효율이 +${item.effectValue}% 증가했습니다.`, 'loot');
     }
-  }, [consumables, addLog]);
+  }, [consumables, townUpgrades.potionHealingLevel, townUpgrades.consumablePowerLevel, addLog]);
 
   const resetBattleFormation = useCallback(() => {
     setMonsters(createDungeonFormation(currentDungeon.id, currentDungeon.rooms.find(r => r.id === currentRoomId)?.type || 'normal', playerStats.level));

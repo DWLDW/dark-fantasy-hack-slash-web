@@ -120,12 +120,16 @@ export function craftRuneWordWithTransmuteHelper(
   }
 
   const updatedItem = calculateRuneWordItem(targetItem, recipe);
+  const newVault: Record<string, number> = { ...runesVault };
+  Object.entries(sim.transmutedRunesCost).forEach(([rKey, count]) => {
+    newVault[rKey] = Math.max(0, (newVault[rKey] || 0) - count);
+  });
 
   return {
     success: true,
     message: `🔮 하위 룬 연쇄 합성 및 [${recipe.name}] 룬워드 완성! (공격력 ${updatedItem.stats.minDmg || 0}~${updatedItem.stats.maxDmg || 0}, 방어 ${updatedItem.stats.defense || 0})`,
     updatedItem,
-    newVault: sim.transmutedRunesCost
+    newVault
   };
 }
 
