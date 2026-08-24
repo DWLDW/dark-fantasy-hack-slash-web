@@ -25,6 +25,10 @@ const MainLayout: React.FC = () => {
   const {
     viewMode,
     activeModal,
+    isVictoryModalOpen,
+    isDeathModalOpen,
+    isTutorialOpen,
+    confirmDialogState,
     executeAttack,
     isAttacking,
     isEnemyTurn,
@@ -53,6 +57,10 @@ const MainLayout: React.FC = () => {
   const keysRef = useRef({
     viewMode,
     activeModal,
+    isVictoryModalOpen,
+    isDeathModalOpen,
+    isTutorialOpen,
+    confirmDialogState,
     executeAttack,
     isAttacking,
     isEnemyTurn,
@@ -80,6 +88,10 @@ const MainLayout: React.FC = () => {
   keysRef.current = {
     viewMode,
     activeModal,
+    isVictoryModalOpen,
+    isDeathModalOpen,
+    isTutorialOpen,
+    confirmDialogState,
     executeAttack,
     isAttacking,
     isEnemyTurn,
@@ -110,12 +122,15 @@ const MainLayout: React.FC = () => {
       initAudio();
       window.removeEventListener('click', onFirst);
       window.removeEventListener('keydown', onFirst);
+      window.removeEventListener('touchstart', onFirst);
     };
     window.addEventListener('click', onFirst);
     window.addEventListener('keydown', onFirst);
+    window.addEventListener('touchstart', onFirst, { passive: true });
     return () => {
       window.removeEventListener('click', onFirst);
       window.removeEventListener('keydown', onFirst);
+      window.removeEventListener('touchstart', onFirst);
     };
   }, []);
 
@@ -170,7 +185,14 @@ const MainLayout: React.FC = () => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       const g = keysRef.current;
 
-      if (g.activeModal) return;
+      const isAnyOverlayActive = Boolean(
+        g.activeModal ||
+        g.isVictoryModalOpen ||
+        g.isDeathModalOpen ||
+        g.isTutorialOpen ||
+        g.confirmDialogState?.isOpen
+      );
+      if (isAnyOverlayActive) return;
 
       if (Date.now() < dangerLockUntilRef.current) {
         if (!['1', '2', '3', '4'].includes(e.key)) {

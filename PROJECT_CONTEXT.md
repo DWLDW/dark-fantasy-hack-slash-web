@@ -10,68 +10,46 @@ Dragon Quest 식 턴제 전투 기반 + Diablo II 식 오버킬 체인, 룬워�
 - **던전/루팅 헬퍼**: [dungeonEventHelper.ts](file:///c:/GAMEGAME/src/state/helpers/dungeonEventHelper.ts) — 던전 드롭 생성, 난이도별 스케일링, 승리 전리품
 - **게임 상태 관리**: [gameStore.tsx](file:///c:/GAMEGAME/src/state/gameStore.tsx) — 중앙 React Context + 안전한 persistence 타이머
 - **스탯 연산기**: [statCalculator.ts](file:///c:/GAMEGAME/src/state/helpers/statCalculator.ts) — 장비/세트/룬/스탯 총합 계산
+- **큐브/경제 헬퍼**: [cubeCraftingHelper.ts](file:///c:/GAMEGAME/src/state/helpers/cubeCraftingHelper.ts) — 룬/큐브 합성, 판매 가격 계산, 시설 강화
+- **아이템 생성기**: [itemGenerator.ts](file:///c:/GAMEGAME/src/state/helpers/itemGenerator.ts) — 도박 및 장비 감정 스탯 복원
+- **룬워드 계산기**: [runeWordCalculator.ts](file:///c:/GAMEGAME/src/state/helpers/runeWordCalculator.ts) — 스마트 룬워드 제작 및 소켓 검증
 - **오디오 합성기**: [audio.ts](file:///c:/GAMEGAME/src/utils/audio.ts) — Web Audio API 절차적 음향 및 자동 언락 제스처
 - **업적 시스템**: [achievements.ts](file:///c:/GAMEGAME/src/data/achievements.ts) — 1막~5막 클리어 및 16개 업적 판정
 
 ## 배포 및 Git 운영 원칙
-- **서버 배포 프로세스**: 서버 업로드 시 반드시 **로컬 빌드 검증 ➔ Git 커밋 ➔ `origin/main` 푸시 ➔ `npm run deploy`** 순서로 자동 연계하여 로컬과 원격, 실서버가 완벽하게 일치하도록 관리.
-
-## 전반적 수정 및 검수 완료 내역 (2026-08-24)
-
-### 1. 치명적 버그 수정 (Core Logic & Data)
-- **던전 ID 및 룬 풀 매핑 수정**: `DUNGEON_RUNE_TIERS` 및 `getRunePoolForDungeon()`을 1~5막 20개 전 던전에 완벽 매핑하여 Act 2~5에서 상위 룬 정상 드롭 보장
-- **업적 ID 동기화**: `achievements.ts`의 막 클리어 조건을 실제 최종 던전 ID(`act1_4_catacombs`, `act2_4_tomb`, `act3_4_durance`, `act4_4_altar`, `act5_4_throne`)로 수정
-- **오버킬 방어력 이중 차감 제거**: `combatEngine.ts`의 `line`, `branch`, `radius` 경로에서 raw overkill payload 방식으로 방어력 이중 적용 방지
-- **Whirlwind / Berserk 타격 이월 정상화**: 휠윈드 오버킬 합산 버그 수정 및 버서크 3연타 도중 몬스터 사망 시 다음 타겟으로 잔여 타격 이월
-- **Life Steal (생명력 흡수) 연동**: `calculateAttackGains`에 `itemLifeSteal` 수식을 연동하여 타격 시 체력 회복 정상 작동
-- **물약 무한 스택 방지 및 귀환 리셋**: `buyPotions`에서 업그레이드 티어별 최대 용량 상한을 적용하고 마을 귀환 시 정량 자동 충전
-- **상태 선언 및 타이머 레이스 컨디션 방어**: `persistStateRef`의 렌더 뮤테이션을 `useEffect`로 감싸고, 몬스터 반격 타이머에 `viewMode` 가드 및 클린업 적용
-
-### 2. UI/UX 및 모바일/데스크탑 반응형 개선
-- **Z-Index 위계 확립**: 글로벌 모달(`z-[100]`), 던전 출격 모달(`z-[60]`), TopHUD(`z-40`), 전역 컨펌 모달(`z-[999999]`)
-- **키보드 이벤트 충돌 방지**: 상위 글로벌 모달 및 컨펌 창이 열려있을 때 하위 페이지 단축키(Space/Enter 등) 무시 처리
-- **스크롤 & Sticky 헤더**: `InventoryModal.tsx`, `DungeonSelectView.tsx` 내부 스크롤 시 탭 스위처와 닫기 버튼이 화면 상단에 고정
-- **모바일 터치 타겟 확보**: TopHUD 설정/업적/마을 버튼 및 모달 닫기 버튼의 최소 터치 타겟(36px+) 확보
-- **AudioContext Autoplay 정책 안전화**: 브라우저 첫 터치/클릭 제스처 시 Web Audio API가 자동 활성화되도록 리스너 보강
-
-### 3. 추가 버그 패치 및 스토리 진행 UX (2026-08-24 최신)
-- **ConfirmModal createPortal 최상위 렌더링**: 스킬창/캐릭터창 등 상위 모달이 열려 있어도 `createPortal(..., document.body)`를 통해 확인 팝업(`z-[999999]`)이 모달 창 위로 즉시 노출되도록 개선
-- **스토리 순차 진행 연계 (Act 1~5)**: 던전 클리어 시 같은 던전 난이도 강제 상승 대신 다음 스토리 장(`getNextStoryDungeon`)으로 자동 포커스 및 진격 버튼 연계 (Act 5 최종장 클리어 시 상위 난이도 무한 파밍 모드 진입)
-
-### 4. 전투 오버홀 & 시스템 전수 수리 (2026-08-25 최신 기준 커밋: `31d72d5`)
-- **Git Commit**: `31d72d5` (Vite 번들: `index-DBZzjM4e`, main ➔ origin/main 푸시 및 실서버 배포 완료)
-- **품질 검증 완료**:
-  - `npm run build` (tsc) 에러 0건 통과
-  - 브라우저 스모크 테스트: 던전 진입 ➔ 공격 ➔ 반격 흐름 콘솔 에러 0건 정상 검증
-- **전투 오버홀 (Combat Overhaul)**:
-  - **2턴 중첩 보호막 시스템**: 방패 강타 보호막의 턴 수명 및 중첩 로직 확립
-  - **차지 텔레그래프 시스템 (Charge Telegraph)**: 강력한 몬스터 차징 공격에 대한 사전 시각적 경고 표시
-  - **보스 기믹 고도화**: 포효(Roar), 소환(Summon), 가드(Guard) 패턴 탑재
-  - **처형(Execute) 보너스 정밀 스코핑 & 서리(Frost) 프리뷰 정직성**: 데미지 예측 수치와 실제 데미지 일치화
-  - **동결 시각적 인디케이터 & 전장의 함성(War Cry) 분노 소모 체계화**
-- **시스템 결함 전수 수리**:
-  - 큐브 합성 시 보관함 소모 및 룬 조합 순서 갭 해결
-  - 소켓 장착 룬 스탯(HP, 지혜, 저항, 치명타, 회피) 누락분 완벽 반영
-  - 물약 및 소비 아이템 시설 강화 효과 활성화
-
-## 향후 백로그 및 예정 작업
-- 신규 직업(소서리스/팔라딘) 및 직업별 고유 스킬트리 확장
-- 엔드게임 무한의 탑 / 지옥불 균열 레이드 콘텐츠
-- 전설 장비 세트 효과 다양화 및 룬워드 밸런스 조정
+- **서버 배포 프로세스**: 서버 업로드 시 반드시 **로컬 빌드 검증 ➔ Git 커밋 ➔ `origin/main` 푸시 ➔ `node scripts/deploy.js`** 순서로 자동 연계하여 로컬과 원격, 실서버가 완벽하게 일치하도록 관리.
 
 ## 🌟 최근 완료된 핵심 작업 (2026-08-25)
-- **UI 버튼/아이콘 5단계 시각 위계(5-Tier Hierarchy) 전면 리파인**:
-  - 추천 일괄장착/장착하기(Primary CTA)에 최상위 황금빛 앰버 펄스 부여
-  - 카테고리 필터 탭/정렬 버튼에서 솔리드 황금색을 제거하고 다크 메탈릭 인셋 활성 탭(`bg-iron-800 border-2 border-brass-400`)으로 분리
-  - 데커드 케인/단일 장비 식별 액션을 신비로운 비전 블루(`Arcane Blue`)로 통일
-  - 일괄 판매 버튼을 위험(Trash) 톤에서 경제적 환전 톤(`Amber Metallic` + `<Coins />`)으로 개선
-  - 스탯 투자 `MAX` 버튼의 위험색(적색) 제거 및 스탯/스킬 초기화 버튼 스타일 정돈
-- **보스 시그니처 컷인 슬램 배너 & 5대 속성 풀스크린 플래시 시스템**: 보스 궁극기 시전 시 화면 진동 및 속성별 컷인 연출
-- **보스 전용 풀와이드 배틀 패널 & BossHUD 구축**: 5레인 그리드에서 보스를 분리하여 상단 대형 와이드 패널로 렌더링.
-- **액트별 5대 동적 환경 테마 배경 시스템 (`actThemes.ts`)**
-- **20종 보스 전수 고유 아이콘 및 6대 대악마 시그니처 전략 기믹 구현**
+
+### 1. 프로젝트 전수 정밀 감사 및 치명적 결함 전면 수리
+1. **전투 엔진 & 보스 기믹 (Combat & Boss)**:
+   - 🚨 **보스 시그니처 스킬 피해 무효화 버그 수정**: 보스 스킬 피해가 일반 반격 체력으로 덮어씌워지던 문제를 `calculatedHp`로 통합 차감 및 치명 시 즉시 사망 모달 연결.
+   - 🚨 **보스 50% 체력 하수인 소환 시 몬스터 2배 복제 버그 수정**: `[...prev, ...compressLaneSurvivors(...)]` 중복 스프레드를 제거하여 전장 몬스터 및 보스 복제 완벽 방지.
+   - 🚨 **방패 강타 보호막 클로저 Stale State 소멸 버그 수정**: 방패 강타 생성 쉴드를 최신 `currentShieldLayers`로 캡처하여 당일 턴 반격 피해 흡수 정상화.
+   - 🔴 **Single 루트(처형/방패강타) 오버킬 전이 이중 방어력 감면 결함 수정**: 미감면 원시 피해량(`requiredRawToKill`) 단위로 연쇄 전이되도록 공식 정상화.
+   - 🔴 **보스 결계 방어력 복리 영구 증폭 버그 수정**: 결계 발동 시 일시 계산용 배열로 분리하여 영구 누적 방지.
+   - 🟡 **라이프스틸 허수 데미지 흡혈 결함 수정**: `result.totalDamage` 대신 실제 유효 타격량인 `result.appliedDamage` 기반 흡혈 적용.
+
+2. **아이템, 룬워드 & 경제 시스템 (Economy & Items)**:
+   - 🚨 **`Eld(엘드)` 룬의 `El(엘)` 룬 오인식 문자열 충돌 버그 수정**: `extractRuneKey` 정규식 기반 룬 식별 도입으로 큐브 3:1 합성 및 룬워드 오인식 완벽 해결.
+   - 🚨 **도박 유니크/세트 및 미식별 장비 감정 시 고유 옵션 증발/매직 전락 버그 수정**: `identifyItemHelper`에서 `GAME_ITEMS_POOL`의 원본 고유 스탯, 특수 효과, 서브 접사를 100% 복원.
+   - 🚨 **아이템 상점 판매 가격 극단적 하드코딩(5G~500G) 정상화**: `getItemSellPrice`를 `item.value * 0.25` (최소 10G) 기반으로 현실화하여 파밍-경제 순환 체계 복원.
+   - 🔴 **룬워드 제작 소켓 수 불일치 허용 버그(`<` 버그) 수정**: `targetItem.sockets !== recipe.requiredSockets` 엄격 일치 검증 적용.
+   - 🔴 **큐브 소켓 뚫기 슬롯 미검증 버그 수정**: `['weapon', 'armor', 'helm', 'shield']`로 슬롯 제한.
+   - 🟡 **스피리트(Spirit) 방패 제작 지원**: 무기뿐만 아니라 모나크 등 4소켓 방패에도 스피리트 룬워드 발동 지원.
+
+3. **UI/UX, 키보드 단축키, 오디오 & 업적 (Frontend & Systems)**:
+   - 🔴 **모달/오버레이 활성화 시 백그라운드 단축키 누수 방지**: `App.tsx`에서 승리/사망/튜토리얼/컨펌 모달 시 Space, 1~4, Q~R 단축키 완전 차단.
+   - 🔴 **`AchievementModal` 던전 ID 불일치 수정 및 신규 6종 업적 진행도 계산 추가**: 액트 클리어 진척도 0/1 고정 버그 해결 및 T10/T50/T100, Lv.50, 10만골드, 룬워드 5개 게이지 구현.
+   - 🟡 **아이템 판매 수익 골드의 `totalGoldEarned` 누적 가산**.
+   - 🟡 **모바일 `touchstart` AudioContext unlock 리스너 추가 및 설정에서 음소거 해제 시 BGM 자동 재개**.
+
+4. **장비류 9대 슬롯 드랍 테이블 전수 점검 및 균형 드랍 개편 완료**:
+   - 누락되었던 방패, 장갑, 신발, 반지, 목걸이 18종 베이스 아이템 추가 및 `getActDropPool(1~5)` 전 던전 적용 완료.
+
+---
 
 ## 향후 백로그 및 예정 작업
 - 신규 직업(소서리스/팔라딘) 및 직업별 고유 스킬트리 확장
 - 엔드게임 무한의 탑 / 지옥불 균열 레이드 콘텐츠
-- 전설 장비 세트 효과 다양화 및 룬워드 밸런스 조정
+- 대장간(Blacksmith) 전용 UI 모달 및 룬 추출/강화 기능 구현

@@ -53,9 +53,10 @@ export function craftRuneWordHelper(
   }
 
   const isSlotMatch = targetItem.slot === recipe.allowedSlot ||
+    (recipe.id === 'rw_spirit' && targetItem.slot === 'shield') ||
     ((targetItem.slot === 'ring1' || targetItem.slot === 'ring2') && (recipe.allowedSlot === 'ring1' || recipe.allowedSlot === 'ring2'));
 
-  if (targetItem.rarity !== 'normal' || !isSlotMatch || (targetItem.sockets || 0) < recipe.requiredSockets) {
+  if (targetItem.rarity !== 'normal' || !isSlotMatch || (targetItem.sockets || 0) !== recipe.requiredSockets) {
     return {
       success: false,
       message: `[${targetItem.name}]은(는) [${recipe.name}]의 제작 조건(노말 ${recipe.requiredSockets}소켓 ${recipe.allowedSlot})에 맞지 않습니다.`
@@ -102,9 +103,10 @@ export function craftRuneWordWithTransmuteHelper(
   }
 
   const isSlotMatch = targetItem.slot === recipe.allowedSlot ||
+    (recipe.id === 'rw_spirit' && targetItem.slot === 'shield') ||
     ((targetItem.slot === 'ring1' || targetItem.slot === 'ring2') && (recipe.allowedSlot === 'ring1' || recipe.allowedSlot === 'ring2'));
 
-  if (targetItem.rarity !== 'normal' || !isSlotMatch || (targetItem.sockets || 0) < recipe.requiredSockets) {
+  if (targetItem.rarity !== 'normal' || !isSlotMatch || (targetItem.sockets || 0) !== recipe.requiredSockets) {
     return {
       success: false,
       message: `[${targetItem.name}]은(는) [${recipe.name}]의 제작 조건(노말 ${recipe.requiredSockets}소켓 ${recipe.allowedSlot})에 맞지 않습니다.`
@@ -133,45 +135,35 @@ export function craftRuneWordWithTransmuteHelper(
   };
 }
 
-export interface TransmuteVaultResult {
-  success: boolean;
-  message: string;
-  newVault?: Record<string, number>;
-}
-
 export function transmuteRuneInVaultHelper(
   runeKey: string,
   runesVault: Record<string, number>
-): TransmuteVaultResult {
+): { success: boolean; message: string; newVault?: Record<string, number>; createdRuneKey?: string } {
   const runeOrder = [
     'El', 'Eld', 'Tir', 'Nef', 'Eth', 'Ith', 'Tal', 'Ral', 'Ort', 'Thul',
     'Amn', 'Sol', 'Shael', 'Dol', 'Hel', 'Io', 'Lum', 'Ko', 'Fal', 'Lem',
     'Pul', 'Um', 'Mal', 'Ist', 'Gul', 'Vex', 'Ohm', 'Lo', 'Sur', 'Ber',
     'Jah', 'Cham', 'Zod'
   ];
-  const idx = runeOrder.indexOf(runeKey);
-  if (idx < 0 || idx >= runeOrder.length - 1) {
+  const curIdx = runeOrder.indexOf(runeKey);
+  if (curIdx < 0 || curIdx >= runeOrder.length - 1) {
     return { success: false, message: '더 이상 상위 룬으로 합성할 수 없습니다.' };
   }
 
   const currentCount = runesVault[runeKey] || 0;
   if (currentCount < 3) {
-    return {
-      success: false,
-      message: `합성에는 동일한 [${runeKey} 룬] 3개가 필요합니다. (현재 보유: ${currentCount}개)`
-    };
+    return { success: false, message: `합성에 필요한 [${runeKey} 룬]이 부족합니다. (3개 필요, 보유: ${currentCount}개)` };
   }
 
-  const nextKey = runeOrder[idx + 1];
-  const newVault = {
-    ...runesVault,
-    [runeKey]: runesVault[runeKey] - 3,
-    [nextKey]: (runesVault[nextKey] || 0) + 1
-  };
+  const nextKey = runeOrder[curIdx + 1];
+  const newVault = { ...runesVault };
+  newVault[runeKey] = currentCount - 3;
+  newVault[nextKey] = (newVault[nextKey] || 0) + 1;
 
   return {
     success: true,
-    message: `🔮 룬 합성 성공! [${runeKey} 룬] 3개 ➔ [${nextKey} 룬] 1개 연성 완료!`,
-    newVault
+    message: `🔮 [${runeKey} 룬] 3개를 결합하여 상위 룬 [${nextKey} 룬] 1개를 연성했습니다!`,
+    newVault,
+    createdRuneKey: nextKey
   };
 }

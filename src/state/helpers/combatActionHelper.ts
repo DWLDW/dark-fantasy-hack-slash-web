@@ -33,11 +33,12 @@ export function calculateAttackGains(
     ? Math.ceil(rawRageGained * 1.20)
     : rawRageGained;
 
+  const effectiveDamageForHeal = Math.max(result.appliedDamage, Math.min(result.totalDamage, result.appliedDamage * 1.5));
   const skillHeal = effectiveSkill.lifeStealPercent
-    ? Math.floor(result.totalDamage * (effectiveSkill.lifeStealPercent / 100))
+    ? Math.floor(effectiveDamageForHeal * (effectiveSkill.lifeStealPercent / 100))
     : 0;
   const itemHeal = itemLifeSteal > 0
-    ? Math.floor(result.totalDamage * (itemLifeSteal / 100))
+    ? Math.floor(effectiveDamageForHeal * (itemLifeSteal / 100))
     : 0;
   const voidHeal = effectiveSkill.activeRuneId === 'rune_void' ? result.chainCount * 25 : 0;
   const totalHpHealed = skillHeal + itemHeal + voidHeal;

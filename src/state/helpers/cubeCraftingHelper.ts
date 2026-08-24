@@ -1,17 +1,32 @@
-import { GameItem, ItemRarity, RuneWordRecipe } from '../../types/game';
+import { GameItem, ItemRarity, RuneWordRecipe, EquipSlot } from '../../types/game';
 import { D2_RUNES } from '../../data/runes';
 import { RUNEWORD_RECIPES } from '../../data/runeWords';
 import { calculateRuneWordItem } from './runeWordCalculator';
 
+export function extractRuneKey(itemOrName: GameItem | string): string {
+  const name = typeof itemOrName === 'string' ? itemOrName : itemOrName.name;
+  const match = name.match(/\(([A-Za-z]+)\)/);
+  if (match && D2_RUNES[match[1]]) return match[1];
+
+  const directMatch = Object.entries(D2_RUNES).find(([_, def]) => def.name === name);
+  if (directMatch) return directMatch[0];
+
+  if (typeof itemOrName !== 'string' && itemOrName.id && itemOrName.id.startsWith('rune_')) {
+    const keyCandidate = itemOrName.id.replace('rune_', '');
+    if (D2_RUNES[keyCandidate]) return keyCandidate;
+  }
+
+  return 'El';
+}
+
 export function getItemSellPrice(item: GameItem): number {
-  if (item.rarity === 'normal') return 5;
-  if (item.rarity === 'magic') return 15;
-  if (item.rarity === 'rare') return 50;
-  if (item.rarity === 'set') return 150;
-  if (item.rarity === 'unique') return 300;
-  if (item.rarity === 'legendary') return 500;
-  if (item.rarity === 'runeword') return 250;
-  return item.value || 5;
+  const fallback = item.rarity === 'legendary' ? 8000
+    : item.rarity === 'unique' ? 4000
+    : item.rarity === 'set' ? 2000
+    : item.rarity === 'rare' ? 600
+    : item.rarity === 'magic' ? 150 : 40;
+  const val = item.value || fallback;
+  return Math.max(10, Math.floor(val * 0.25));
 }
 
 export function bulkSellHelper(
@@ -58,10 +73,7 @@ export function socketRuneHelper(
     return { success: false, message: '더 이상 룬을 박을 빈 소켓이 없습니다!' };
   }
 
-  const runeKey = Object.keys(D2_RUNES).find(k =>
-    runeItem.name.includes(k) || runeItem.name.includes(D2_RUNES[k].name.split(' ')[0])
-  ) || 'El';
-
+  const runeKey = extractRuneKey(runeItem);
   const newSocketed = [...(target.socketedRunes || []), runeKey];
 
   let isRuneWord = false;
@@ -69,7 +81,8 @@ export function socketRuneHelper(
 
   if (target.rarity === 'normal' && newSocketed.length === target.sockets) {
     runeWordMatch = RUNEWORD_RECIPES.find(rw => {
-      if (rw.allowedSlot !== target.slot || rw.requiredSockets !== target.sockets) return false;
+      const isSlotMatching = rw.allowedSlot === target.slot || (rw.allowedSlot === 'weapon' && (target.slot === 'weapon' || target.slot === 'shield'));
+      if (!isSlotMatching || rw.requiredSockets !== target.sockets) return false;
       return rw.requiredRunes.every((r, idx) => r === newSocketed[idx]);
     });
 
@@ -115,10 +128,7 @@ export function cubeTransmuteHelper(selectedItems: GameItem[]): CubeTransmuteRes
 
   // Recipe 1: 3 of same Runes -> 1 higher Rune
   if (selectedItems.length === 3 && selectedItems.every(i => i.slot === 'rune' && i.name === selectedItems[0].name)) {
-    const runeName = selectedItems[0].name;
-    const rKey = Object.keys(D2_RUNES).find(k =>
-      runeName.includes(k) || runeName.includes(D2_RUNES[k].name.split(' ')[0])
-    );
+    const rKey = extractRuneKey(selectedItems[0]);
 
     const runeOrder = [
       'El', 'Eld', 'Tir', 'Nef', 'Eth', 'Ith', 'Tal', 'Ral', 'Ort', 'Thul',
@@ -132,7 +142,7 @@ export function cubeTransmuteHelper(selectedItems: GameItem[]): CubeTransmuteRes
       const nextKey = runeOrder[curIdx + 1];
       const nextDef = D2_RUNES[nextKey];
       const newRune: GameItem = {
-        id: `cube_rune_${Math.random()}`,
+        id: `cube_rune_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
         name: nextDef.name,
         rarity: nextDef.number >= 20 ? 'legendary' : 'rare',
         slot: 'rune',
@@ -151,12 +161,14 @@ export function cubeTransmuteHelper(selectedItems: GameItem[]): CubeTransmuteRes
     }
   }
 
-  // Recipe 2: Normal Item + 1 Rune -> Add Sockets
-  const normalItem = selectedItems.find(i => i.rarity === 'normal' && (!i.sockets || i.sockets === 0));
+  // Recipe 2: Normal Item (weapon, armor, helm, shield) + 1 Rune -> Add Sockets
+  const socketableSlots: EquipSlot[] = ['weapon', 'armor', 'helm', 'shield'];
+  const normalItem = selectedItems.find(i => i.rarity === 'normal' && socketableSlots.includes(i.slot as EquipSlot) && (!i.sockets || i.sockets === 0));
   const hasRune = selectedItems.find(i => i.slot === 'rune');
 
   if (selectedItems.length === 2 && normalItem && hasRune) {
-    const socketCount = Math.floor(Math.random() * 2) + 2; // 2 or 3 sockets
+    const maxSocketsForSlot = normalItem.slot === 'helm' ? 3 : normalItem.slot === 'shield' ? 4 : 4;
+    const socketCount = Math.min(maxSocketsForSlot, Math.floor(Math.random() * 2) + 2); // 2 or 3 sockets
     const updated: GameItem = {
       ...normalItem,
       sockets: socketCount,
@@ -175,7 +187,6 @@ export function cubeTransmuteHelper(selectedItems: GameItem[]): CubeTransmuteRes
 
   return { success: false, message: '일치하는 호라드릭 큐브 레시피가 없습니다.' };
 }
-
 
 export const POTION_CAPACITY_TIERS = [3, 4, 5, 6, 8, 10];
 export const POTION_CAPACITY_COSTS = [1500, 4000, 10000, 25000, 60000];

@@ -1,4 +1,4 @@
-import { GameItem, ItemStats } from '../../types/game';
+import { GameItem, ItemStats, EquipSlot } from '../../types/game';
 import { GAME_ITEMS_POOL } from '../../data/items';
 
 export interface GambleResult {
@@ -29,77 +29,79 @@ export function generateGambleItem(
 
   if (gambleType === 'weapon') {
     icon = 'Sword';
-    const effLevel = gambleLevel >= 4 ? 35 : gambleLevel === 3 ? 26 : gambleLevel === 2 ? 15 : 1;
-    if (effLevel >= 26) {
+    const effLvl = gambleLevel >= 4 ? 35 : gambleLevel === 3 ? 26 : gambleLevel === 2 ? 15 : 1;
+    if (effLvl >= 26) {
       const pool = [
         { name: '페이즈 블레이드', min: 35, max: 55, atb: 85, spd: 'very_fast' as const },
         { name: '츠바이핸더', min: 25, max: 48, atb: 60, spd: 'fast' as const },
         { name: '콜로서스 블레이드', min: 60, max: 115, atb: 65, spd: 'fast' as const },
-        { name: '쓰레셔', min: 25, max: 65, atb: 75, spd: 'very_fast' as const }
+        { name: '쓰레셔', min: 25, max: 80, atb: 70, spd: 'fast' as const }
       ];
-      const choice = pool[Math.floor(Math.random() * pool.length)];
-      baseItemName = choice.name;
-      baseMinDmg = choice.min;
-      baseMaxDmg = choice.max;
-      baseAtbPercent = choice.atb;
-      speedCategory = choice.spd;
-    } else if (effLevel >= 11) {
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      baseItemName = pick.name;
+      baseMinDmg = pick.min;
+      baseMaxDmg = pick.max;
+      baseAtbPercent = pick.atb;
+      speedCategory = pick.spd;
+    } else if (effLvl >= 15) {
       const pool = [
-        { name: '롱소드', min: 12, max: 22, atb: 55, spd: 'normal' as const },
-        { name: '크리스탈 소드', min: 15, max: 28, atb: 60, spd: 'fast' as const },
-        { name: '프레일', min: 10, max: 24, atb: 70, spd: 'very_fast' as const }
+        { name: '크리스탈 소드', min: 15, max: 28, atb: 70, spd: 'fast' as const },
+        { name: '배틀 소드', min: 18, max: 35, atb: 55, spd: 'normal' as const },
+        { name: '에인션트 소드', min: 20, max: 40, atb: 50, spd: 'normal' as const }
       ];
-      const choice = pool[Math.floor(Math.random() * pool.length)];
-      baseItemName = choice.name;
-      baseMinDmg = choice.min;
-      baseMaxDmg = choice.max;
-      baseAtbPercent = choice.atb;
-      speedCategory = choice.spd;
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      baseItemName = pick.name;
+      baseMinDmg = pick.min;
+      baseMaxDmg = pick.max;
+      baseAtbPercent = pick.atb;
+      speedCategory = pick.spd;
     } else {
       const pool = [
         { name: '숏소드', min: 4, max: 8, atb: 65, spd: 'fast' as const },
         { name: '시미터', min: 3, max: 7, atb: 75, spd: 'very_fast' as const },
-        { name: '브로드소드', min: 6, max: 13, atb: 55, spd: 'normal' as const }
+        { name: '롱소드', min: 6, max: 15, atb: 45, spd: 'slow' as const },
+        { name: '브로드소드', min: 8, max: 14, atb: 55, spd: 'normal' as const }
       ];
-      const choice = pool[Math.floor(Math.random() * pool.length)];
-      baseItemName = choice.name;
-      baseMinDmg = choice.min;
-      baseMaxDmg = choice.max;
-      baseAtbPercent = choice.atb;
-      speedCategory = choice.spd;
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      baseItemName = pick.name;
+      baseMinDmg = pick.min;
+      baseMaxDmg = pick.max;
+      baseAtbPercent = pick.atb;
+      speedCategory = pick.spd;
     }
   } else if (gambleType === 'armor') {
     icon = 'Shield';
-    if (effLevel >= 26) {
+    const effLvl = gambleLevel >= 4 ? 35 : gambleLevel === 3 ? 26 : gambleLevel === 2 ? 15 : 1;
+    if (effLvl >= 26) {
       const pool = [
-        { name: '아칸 플레이트', def: 180, slot: 'armor' as const },
-        { name: '샤코', def: 90, slot: 'helm' as const, icon: 'HardHat' },
-        { name: '모나크', def: 120, slot: 'shield' as const, icon: 'Shield' }
+        { name: '아콘 플레이트', def: 120 },
+        { name: '더스크 슈라우드', def: 105 },
+        { name: '샤코', def: 85 },
+        { name: '모나크', def: 95 }
       ];
-      const choice = pool[Math.floor(Math.random() * pool.length)];
-      baseItemName = choice.name;
-      baseDefense = choice.def;
-      icon = choice.icon || 'Shield';
-    } else if (effLevel >= 11) {
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      baseItemName = pick.name;
+      baseDefense = pick.def;
+    } else if (effLvl >= 15) {
       const pool = [
-        { name: '메이지 플레이트', def: 95, slot: 'armor' as const },
-        { name: '본 헬름', def: 40, slot: 'helm' as const, icon: 'HardHat' },
-        { name: '타워 실드', def: 45, slot: 'shield' as const, icon: 'Shield' }
+        { name: '메이지 플레이트', def: 55 },
+        { name: '고스트 아머', def: 45 },
+        { name: '본헬름', def: 35 },
+        { name: '타워 실드', def: 40 }
       ];
-      const choice = pool[Math.floor(Math.random() * pool.length)];
-      baseItemName = choice.name;
-      baseDefense = choice.def;
-      icon = choice.icon || 'Shield';
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      baseItemName = pick.name;
+      baseDefense = pick.def;
     } else {
       const pool = [
-        { name: '가죽 갑옷', def: 25, slot: 'armor' as const },
-        { name: '캡', def: 12, slot: 'helm' as const, icon: 'HardHat' },
-        { name: '카이트 실드', def: 20, slot: 'shield' as const, icon: 'Shield' }
+        { name: '가죽 갑옷', def: 12 },
+        { name: '체인 메일', def: 20 },
+        { name: '캡', def: 8 },
+        { name: '버클러', def: 10 }
       ];
-      const choice = pool[Math.floor(Math.random() * pool.length)];
-      baseItemName = choice.name;
-      baseDefense = choice.def;
-      icon = choice.icon || 'Shield';
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      baseItemName = pick.name;
+      baseDefense = pick.def;
     }
   } else if (gambleType === 'ring') {
     icon = 'CircleDot';
@@ -109,75 +111,64 @@ export function generateGambleItem(
     baseItemName = '목걸이';
   }
 
-  let realUniqueName: string | undefined = undefined;
-  let targetSetName: string | undefined = undefined;
-  let assignedSlot: GameItem['slot'] = gambleType === 'ring' ? 'ring1' : gambleType;
-
-  if (rarity === 'unique' || rarity === 'legendary' || rarity === 'set') {
-    const matchingPool = GAME_ITEMS_POOL.filter(p => {
-      if (p.rarity !== 'unique' && p.rarity !== 'set' && p.rarity !== 'legendary') return false;
-      if (gambleType === 'weapon') return p.slot === 'weapon';
-      if (gambleType === 'armor') return p.slot === 'armor' || p.slot === 'shield' || p.slot === 'helm';
-      if (gambleType === 'ring') return p.slot === 'ring1' || p.slot === 'ring2' || p.slot === 'ring';
-      return p.slot === 'amulet';
-    });
-
-    if (matchingPool.length > 0) {
-      const picked = matchingPool[Math.floor(Math.random() * matchingPool.length)];
-      realUniqueName = picked.name;
-      baseItemName = picked.baseItemName || baseItemName;
-      targetSetName = picked.setName;
-      assignedSlot = picked.slot;
-      if (picked.icon) icon = picked.icon;
-      if (picked.speedCategory) speedCategory = picked.speedCategory;
-      if (picked.baseAtbPercent) baseAtbPercent = picked.baseAtbPercent;
-    }
+  let slot: EquipSlot = 'weapon';
+  if (gambleType === 'armor') {
+    if (baseItemName.includes('샤코') || baseItemName.includes('본헬름') || baseItemName.includes('캡')) slot = 'helm';
+    else if (baseItemName.includes('모나크') || baseItemName.includes('타워 실드') || baseItemName.includes('버클러')) slot = 'shield';
+    else slot = 'armor';
+  } else if (gambleType === 'ring') {
+    slot = 'ring1';
+  } else if (gambleType === 'amulet') {
+    slot = 'amulet';
   }
 
-  const newItem: GameItem = {
-    id: `gamble_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+  const isHighRarity = rarity === 'unique' || rarity === 'legendary' || rarity === 'set';
+
+  const item: GameItem = {
+    id: `gamble_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
     name: `미확인 [${baseItemName}]`,
     baseItemName,
     rarity,
-    slot: assignedSlot,
-    isIdentified: false,
+    tier: effLevel >= 38 ? 'elite' : effLevel >= 15 ? 'exceptional' : 'normal',
+    slot,
     speedCategory,
     baseAtbPercent,
-    realUniqueName,
-    setName: targetSetName,
     stats: {
-      ...(gambleType === 'weapon' ? { minDmg: baseMinDmg, maxDmg: baseMaxDmg, attackSpeed: speedCategory === 'very_fast' ? 20 : speedCategory === 'fast' ? 10 : 0 } : {}),
+      ...(gambleType === 'weapon' ? { minDmg: baseMinDmg, maxDmg: baseMaxDmg } : {}),
       ...(gambleType === 'armor' ? { defense: baseDefense } : {})
     },
-    value: cost,
+    value: Math.floor(cost * 0.4),
     icon,
-    description: `기드의 상점에서 도박으로 획득한 미확인 [${baseItemName}]. 데커드 케인의 식별을 통해 숨겨진 잠재력을 개방하세요!`
+    isIdentified: false,
+    description: `기드의 도박으로 뽑은 신비로운 미확인 [${baseItemName}]입니다. 데커드 케인에게 감정받아 숨겨진 스탯과 옵션을 확인하세요.`
   };
 
-  const isHighRarity = rarity === 'unique' || rarity === 'legendary' || rarity === 'set';
-  return { item: newItem, isHighRarity };
+  return { item, isHighRarity };
 }
 
 export function identifyItemHelper(item: GameItem, effLevel: number): GameItem {
   if (item.isIdentified) return item;
 
-  // 0. Predefined drop with a locked unique name (treasure/victory loot): reveal the REAL item, never re-roll.
-  if (item.realUniqueName) {
-    const poolItem = GAME_ITEMS_POOL.find(p => p.name === item.realUniqueName || p.id === item.id);
-    const revealed: GameItem = {
-      ...item,
-      name: item.realUniqueName,
-      baseItemName: poolItem?.baseItemName || item.baseItemName || '장비',
-      specialEffect: poolItem?.specialEffect || item.specialEffect,
-      isIdentified: true
-    };
-    if (poolItem && Object.keys(item.stats || {}).length === 0) {
-      revealed.stats = { ...poolItem.stats };
-      revealed.subAffixes = poolItem.subAffixes ? [...poolItem.subAffixes] : [];
-      revealed.icon = poolItem.icon;
+  // 1. 고유 유니크 / 세트 / 레전더리 아이템 식별: GAME_ITEMS_POOL에서 원본 고유 스탯 완벽 복원
+  if (item.realUniqueName || item.rarity === 'set' || item.rarity === 'unique' || item.rarity === 'legendary') {
+    const targetName = item.realUniqueName || item.name;
+    const poolItem = GAME_ITEMS_POOL.find(p => p.name === targetName || p.id === item.id || (item.setName && p.setName === item.setName));
+
+    if (poolItem) {
+      return {
+        ...item,
+        name: poolItem.name,
+        baseItemName: poolItem.baseItemName || item.baseItemName || '장비',
+        rarity: poolItem.rarity,
+        setName: poolItem.setName || item.setName,
+        stats: { ...poolItem.stats },
+        subAffixes: poolItem.subAffixes ? [...poolItem.subAffixes] : [],
+        specialEffect: poolItem.specialEffect || item.specialEffect,
+        icon: poolItem.icon || item.icon,
+        isIdentified: true,
+        description: `데커드 케인이 감정한 [${poolItem.name}] 장비입니다.`
+      };
     }
-    revealed.description = `데커드 케인이 감정한 [${revealed.name}] 장비입니다.`;
-    return revealed;
   }
 
   const baseName = item.baseItemName || (item.slot === 'ring1' || item.slot === 'ring2' || item.slot === 'ring' ? '반지' : item.slot === 'amulet' ? '목걸이' : item.slot === 'weapon' ? '도검' : '갑옷');
@@ -292,4 +283,3 @@ export function identifyItemHelper(item: GameItem, effLevel: number): GameItem {
     description: `데커드 케인이 감정한 신비로운 [${finalName}] 장비입니다.`
   };
 }
-

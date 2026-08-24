@@ -698,6 +698,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (typeof window !== 'undefined') {
       localStorage.setItem('DARK_FANTASY_MUTE', muted ? 'true' : 'false');
     }
+    if (!muted) {
+      const currentBgMode = viewMode === 'battle'
+        ? currentDungeon?.rooms?.find(r => r.id === currentRoomId)?.type === 'boss' ? 'boss' : 'dungeon'
+        : 'town';
+      startBGM(currentBgMode);
+    }
   };
 
   const exportSaveData = (): string => {
@@ -924,10 +930,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setPlayerStats(prev => ({ ...prev, rage: Math.max(0, prev.rage - actualRageCost) }));
     }
 
-    // Boss signature gimmick processing: player attack turn
     let attackMonsters = monsters;
     const activeRoomType = currentDungeon.rooms.find(r => r.id === currentRoomId)?.type;
     const activeBoss = monsters.find(m => m.rank === 'boss');
+    let bossGuardTriggered = false;
+
     if (activeRoomType === 'boss' && activeBoss) {
       bossTurnCountRef.current += 1;
       setBossTurnCount(bossTurnCountRef.current);
@@ -936,15 +943,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const isGuardGimmick = ['blood_drain', 'charged_shield', 'fire_web', 'lightning_pylon', 'void_gaze', 'ancients_whirlwind', 'guard'].some(k => sigKey.includes(k) || (activeBoss.bossGimmick && activeBoss.bossGimmick.includes('방어')));
 
       if (isGuardGimmick && bossTurnCountRef.current % 4 === 0) {
-        attackMonsters = monsters.map(m => m.rank === 'boss'
-          ? { ...m, defense: Math.floor(m.defense * 3.34) }
-          : m);
+        bossGuardTriggered = true;
         setBossGuardActive(true);
         setTimeout(() => setBossGuardActive(false), 1500);
 
         const bName = activeBoss.name.replace(/^👑\s*/, '');
         const bIcon = activeBoss.icon || '👑';
-        const bElem = activeBoss.element || 'physical';
 
         if (sigKey === 'charged_shield') {
           triggerBossSkill({ name: bName, icon: bIcon, title: '태양의 충전 방패 (Solar Aegis)', desc: '방어력 +70% 증가 & 공격자에게 전격 반사 결계', element: 'lightning' });
@@ -959,10 +963,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           triggerBossSkill({ name: bName, icon: bIcon, title: '3인의 강철 방진 (Ancients Phalanx)', desc: '탈릭·코릭·마다크 결속으로 받는 피해 70% 감소', element: 'physical' });
           addLog(`⚔️ [${activeBoss.name} 시그니처: 3인의 강철 방진] 고대 야만용사들의 결속으로 피해가 70% 감소합니다!`, 'system');
         } else {
-          triggerBossSkill({ name: bName, icon: bIcon, title: '강철 방어 태세 (Iron Guard)', desc: '1턴간 받는 모든 피해를 70% 감소시킵니다', element: bElem });
-          addLog(`🛡️ [${activeBoss.name} 기믹: 방어 태세] 보스가 방어 태세를 취해 받는 피해가 70% 감소합니다!`, 'system');
+          triggerBossSkill({ name: bName, icon: bIcon, title: '강철의 수호 결계 (Iron Ward)', desc: '받는 모든 피해 70% 차단', element: 'physical' });
+          addLog(`🛡️ [${activeBoss.name} 기믹: 강철의 수호 결계] 받는 피해가 70% 감소합니다!`, 'system');
         }
       }
+    }
+
+    if (bossGuardTriggered) {
+      attackMonsters = monsters.map(m => m.rank === 'boss' ? { ...m, defense: Math.floor((m.defense || 10) * 3.34) } : m);
     }
 
     const result = resolveAttack(
@@ -1045,16 +1053,16 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         hp: Math.min(prev.maxHp, prev.hp + gains.totalHpHealed)
       }));
 
+      let currentShieldLayers = playerStats.shieldLayers || [];
       if (gains.shieldGained && gains.shieldGained > 0) {
-        setPlayerStats(prev => {
-          const newLayer = { amount: Math.min(prev.maxHp, gains.shieldGained!), turns: 2 };
-          const layers = [...(prev.shieldLayers || []), newLayer];
-          const totalShield = layers.reduce((sum, l) => sum + l.amount, 0);
-          return { ...prev, shieldLayers: layers, shield: totalShield };
-        });
-      }
-
-      if (gains.shieldGained && gains.shieldGained > 0) {
+        const newLayer = { amount: Math.min(playerStats.maxHp, gains.shieldGained), turns: 2 };
+        currentShieldLayers = [...currentShieldLayers, newLayer];
+        const totalShield = currentShieldLayers.reduce((sum, l) => sum + l.amount, 0);
+        setPlayerStats(prev => ({
+          ...prev,
+          shieldLayers: currentShieldLayers,
+          shield: totalShield
+        }));
         addLog(`🛡️ [방패 강타] 생명력 보호막 +${gains.shieldGained} 생성! (2턴 지속)`, "system");
       }
       if (turnRage > 0) {
@@ -1231,7 +1239,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           totalStats.damageReduction,
           totalStats.allResist,
           consumables,
-          playerStats.shieldLayers || []
+          currentShieldLayers
         );
 
         if (hordeResult.frozenCount > 0) {
@@ -1250,17 +1258,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           addLog(`🛡️ 보호막이 적 피해 ${hordeResult.absorbedDamage}을(를) 흡수했습니다! (남은 쉴드: ${hordeResult.nextShield})`, "system");
         }
 
-        // Expired shield layers notice
-        const expiredAmount = (playerStats.shield || 0) - hordeResult.nextShield - hordeResult.absorbedDamage;
-        if (expiredAmount > 0) {
-          addLog(`⏳ 지속시간이 끝난 보호막 ${expiredAmount}이(가) 사라졌습니다.`, "system");
-        }
-
-        setPlayerStats(prev => ({
-          ...prev,
-          shield: hordeResult.nextShield,
-          shieldLayers: hordeResult.nextShieldLayers || []
-        }));
+        let calculatedHp = hordeResult.nextHp;
+        let calculatedShield = hordeResult.nextShield;
+        let calculatedShieldLayers = hordeResult.nextShieldLayers || [];
 
         const currentRoomType = currentDungeon.rooms.find(r => r.id === currentRoomId)?.type;
         if (currentRoomType === 'boss' && hordeResult.totalEnemyDamage > 0) {
@@ -1275,42 +1275,48 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const bIcon = boss.icon || '👑';
             const bElem = boss.element || 'fire';
 
+            let bossSkillDmg = 0;
+            let wipeShield = false;
+
             if (sigKey === 'poison_nova') {
-              const poisonDmg = Math.max(15, Math.floor(baseDmg * 1.6));
+              bossSkillDmg = Math.max(15, Math.floor(baseDmg * 1.6));
+              wipeShield = true;
               triggerBossSkill({ name: bName, icon: bIcon, title: '맹독 분사 (Poison Nova)', desc: '전장 보호막 즉시 부식 & 맹독 DoT 살포', element: 'poison' });
-              setPlayerStats(prev => ({ ...prev, hp: Math.max(1, prev.hp - poisonDmg), shield: 0, shieldLayers: [] }));
-              addLog(`🦂 [고뇌의 여왕 안다리엘 시그니처: 맹독 분사] 사방으로 퍼진 맹독이 보호막을 녹이고 ${poisonDmg}의 독 피해를 입힙니다!`, 'damage');
+              addLog(`🦂 [고뇌의 여왕 안다리엘 시그니처: 맹독 분사] 사방으로 퍼진 맹독이 보호막을 녹이고 ${bossSkillDmg}의 독 피해를 입힙니다!`, 'damage');
             } else if (sigKey === 'holy_freeze_charge') {
-              const chargeDmg = Math.max(20, Math.floor(baseDmg * 2.2));
+              bossSkillDmg = Math.max(20, Math.floor(baseDmg * 2.2));
               triggerBossSkill({ name: bName, icon: bIcon, title: '흉포한 결빙 돌진 (Freeze Charge)', desc: '결빙 오라 회피 불가 2.2배 관통 파괴타', element: 'cold' });
-              setPlayerStats(prev => ({ ...prev, hp: Math.max(1, prev.hp - chargeDmg) }));
-              addLog(`🪲 [고통의 대공 두리엘 시그니처: 흉포한 결빙 돌진] 결빙의 폭풍과 함께 전열을 들이받아 ${chargeDmg}의 파괴적 돌진 피해!`, 'damage');
+              addLog(`🪲 [고통의 대공 두리엘 시그니처: 흉포한 결빙 돌진] 결빙의 폭풍과 함께 전열을 들이받아 ${bossSkillDmg}의 파괴적 돌진 피해!`, 'damage');
             } else if (sigKey === 'red_lightning_hose') {
-              const diabloDmg = Math.max(30, Math.floor(baseDmg * 2.5));
+              bossSkillDmg = Math.max(30, Math.floor(baseDmg * 2.5));
+              wipeShield = true;
               triggerBossSkill({ name: bName, icon: bIcon, title: '붉은 번개 숨결 (Red Lightning Hose)', desc: '보호막 즉시 소각 & 2.5배 파멸의 지옥불 피해', element: 'fire' });
-              setPlayerStats(prev => ({ ...prev, hp: Math.max(1, prev.hp - diabloDmg), shield: 0, shieldLayers: [] }));
-              addLog(`👹 [공포의 군주 디아블로 시그니처: 붉은 번개 숨결] 전장을 뒤덮는 붉은 번개로 보호막 소각 및 ${diabloDmg}의 지옥불 피해!`, 'damage');
+              addLog(`👹 [공포의 군주 디아블로 시그니처: 붉은 번개 숨결] 전장을 뒤덮는 붉은 번개로 보호막 소각 및 ${bossSkillDmg}의 지옥불 피해!`, 'damage');
             } else if (sigKey === 'frozen_blade') {
-              const bladeDmg = Math.max(18, Math.floor(baseDmg * 1.7));
+              bossSkillDmg = Math.max(18, Math.floor(baseDmg * 1.7));
+              wipeShield = true;
               triggerBossSkill({ name: bName, icon: bIcon, title: '얼어붙은 성검의 참격 (Frozen Blade)', desc: '혹한의 성검 보호막 파괴 및 냉기 참격', element: 'cold' });
-              setPlayerStats(prev => ({ ...prev, hp: Math.max(1, prev.hp - bladeDmg), shield: 0, shieldLayers: [] }));
-              addLog(`🪽 [타락한 대천사 이주얼 시그니처: 얼어붙은 성검] 혹한의 검격이 보호막을 가르고 ${bladeDmg} 피해를 입힙니다!`, 'damage');
+              addLog(`🪽 [타락한 대천사 이주얼 시그니처: 얼어붙은 성검] 혹한의 검격이 보호막을 가르고 ${bossSkillDmg} 피해를 입힙니다!`, 'damage');
             } else if (sigKey === 'inferno_breath') {
-              const breathDmg = Math.max(15, Math.floor(baseDmg * 1.8));
+              bossSkillDmg = Math.max(15, Math.floor(baseDmg * 1.8));
               triggerBossSkill({ name: bName, icon: bIcon, title: '원주민 지옥불 숨결 (Inferno Breath)', desc: '전방 3개 레인 관통 지옥불 화염 피해', element: 'fire' });
-              setPlayerStats(prev => ({ ...prev, hp: Math.max(1, prev.hp - breathDmg) }));
-              addLog(`👺 [약탈자 대주술사 시그니처: 지옥불 숨결] 맹렬한 원주민 화염 숨결이 ${breathDmg}의 관통 피해를 입힙니다!`, 'damage');
+              addLog(`👺 [약탈자 대주술사 시그니처: 지옥불 숨결] 맹렬한 원주민 화염 숨결이 ${bossSkillDmg}의 관통 피해를 입힙니다!`, 'damage');
             } else if (sigKey === 'vile_clone_burn') {
-              const baalDmg = Math.max(25, Math.floor(baseDmg * 1.9));
+              bossSkillDmg = Math.max(25, Math.floor(baseDmg * 1.9));
               triggerBossSkill({ name: bName, icon: bIcon, title: '파멸의 분노 소각 (Rage Burn)', desc: '플레이어 분노 50% 강제 소각 및 파멸의 촉수 강타', element: 'void' });
-              setPlayerStats(prev => ({ ...prev, hp: Math.max(1, prev.hp - baalDmg), rage: Math.floor(prev.rage * 0.5) }));
-              addLog(`🐙 [파멸의 군주 바알 시그니처: 파멸의 분노 소각] 플레이어의 분노 50% 소각 및 파멸의 촉수로 ${baalDmg} 피해!`, 'damage');
+              addLog(`🐙 [파멸의 군주 바알 시그니처: 파멸의 분노 소각] 플레이어의 분노 50% 소각 및 파멸의 촉수로 ${bossSkillDmg} 피해!`, 'damage');
             } else {
-              const roarDamage = Math.max(10, Math.floor(baseDmg * 1.5));
+              bossSkillDmg = Math.max(10, Math.floor(baseDmg * 1.5));
+              wipeShield = true;
               triggerBossSkill({ name: bName, icon: bIcon, title: '광역 포효 (Boss Roar)', desc: '전 레인 충격파 + 보호막 파괴', element: bElem });
-              setPlayerStats(prev => ({ ...prev, hp: Math.max(1, prev.hp - roarDamage), shield: 0, shieldLayers: [] }));
-              addLog(`🔥 [${boss.name} 기믹: 광역 포효] 전장을 뒤흔드는 포효로 ${roarDamage} 피해! 보호막이 파괴됩니다!`, 'damage');
+              addLog(`🔥 [${boss.name} 기믹: 광역 포효] 전장을 뒤흔드는 포효로 ${bossSkillDmg} 피해! 보호막이 파괴됩니다!`, 'damage');
             }
+
+            if (wipeShield) {
+              calculatedShield = 0;
+              calculatedShieldLayers = [];
+            }
+            calculatedHp = Math.max(0, calculatedHp - bossSkillDmg);
           }
         }
 
@@ -1321,19 +1327,21 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setConsumables(hordeResult.newConsumables);
             playPotionSound();
             if (hordeResult.autoResurrected) {
-              addLog(`✨ [자동 물약 기사회생] 치명타로 쓰러질 뻔했으나 생명력 물약을 자동으로 즉시 마셔 생존했습니다! (+${hordeResult.nextHp} HP)`, "system");
+              addLog(`✨ [자동 물약 기사회생] 치명타로 쓰러질 뻔했으나 생명력 물약을 자동으로 즉시 마셔 생존했습니다! (+${calculatedHp} HP)`, "system");
             }
           }
 
-          if (hordeResult.isDead) {
+          if (hordeResult.isDead || calculatedHp <= 0) {
             setIsEnemyTurn(false);
             setIsAttacking(false);
             setIsDeathModalOpen(true);
-            setPlayerStats(prev => ({ ...prev, hp: 0, rage: 0 }));
+            setPlayerStats(prev => ({ ...prev, hp: 0, rage: 0, shield: 0, shieldLayers: [] }));
           } else {
             setPlayerStats(prev => ({
               ...prev,
-              hp: hordeResult.nextHp,
+              hp: calculatedHp,
+              shield: calculatedShield,
+              shieldLayers: calculatedShieldLayers,
               rage: Math.min(prev.maxRage || 100, prev.rage + hordeResult.rageGainOnHit)
             }));
           }
@@ -1342,28 +1350,41 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             `⚔️ 몬스터 전열의 반격! ${hordeResult.activeAttackerCount - hordeResult.dodgedCount}마리 공격 적중 ➔ ${hordeResult.totalEnemyDamage} 피해 (분노 충전 +${hordeResult.rageGainOnHit})`,
             'damage'
           );
+        } else {
+          setPlayerStats(prev => ({
+            ...prev,
+            hp: calculatedHp,
+            shield: calculatedShield,
+            shieldLayers: calculatedShieldLayers
+          }));
         }
 
         setMonsters(compressLaneSurvivors(hordeResult.chargedSurvivors).map(m => ({ ...m, isFrozen: false })));
+
         // Boss gimmick: summon at <=50% hp (once)
         if (currentRoomType === 'boss') {
           const bossNow = hordeResult.chargedSurvivors.find(m => m.rank === 'boss');
           const key = currentDungeon.id + '_' + currentRoomId;
           if (bossNow && !bossSummonedRef.current[key] && bossNow.hp > 0 && bossNow.hp <= bossNow.maxHp * 0.5) {
             bossSummonedRef.current[key] = true;
-            const minionBase = hordeResult.chargedSurvivors.find(m => m.rank === 'normal');
             const baseMonster = hordeResult.chargedSurvivors.find(m => m.rank === 'normal') || hordeResult.chargedSurvivors[0];
+            const minionHp = Math.max(30, Math.floor(bossNow.maxHp * 0.15));
+            const bossDmg = bossNow.intent?.damage || 20;
             const minions: Monster[] = [0, 1].map(i => ({
               ...baseMonster,
               id: `summon_${Date.now()}_${i}`,
-              name: '소환된 경병',
+              name: '소환된 어둠의 경병',
+              rank: 'normal' as const,
+              hp: minionHp,
+              maxHp: minionHp,
+              defense: Math.floor((bossNow.defense || 10) * 0.3),
               lane: i === 0 ? 1 : 3,
               depth: 0,
               isFrozen: false,
-              intent: { ...baseMonster.intent, chargePercent: 40 }
+              intent: { type: 'attack' as const, damage: Math.floor(bossDmg * 0.4), targetLane: i === 0 ? 1 : 3, chargePercent: 40 }
             }));
             setTimeout(() => {
-              setMonsters(prev => [...prev, ...compressLaneSurvivors([...prev, ...minions])]);
+              setMonsters(prev => compressLaneSurvivors([...prev, ...minions]));
               addLog('💀 [보스 기믹: 소환] 보스가 하수인 2마리를 소환했습니다!', 'damage');
             }, 100);
           }
@@ -1799,6 +1820,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const price = getItemSellPrice(item);
     setInventory(prev => prev.filter(i => i.id !== itemId));
     setPlayerStats(prev => ({ ...prev, gold: prev.gold + price }));
+    setAchievementStats(prev => ({ ...prev, totalGoldEarned: (prev.totalGoldEarned || 0) + price }));
     playRuneWordSound();
     addLog(`💰 [${item.name}]을(를) 상점에 판매하여 ${price} Gold를 획득했습니다.`, "loot");
     return price;
@@ -1810,6 +1832,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setInventory(remainingInventory);
     setPlayerStats(prev => ({ ...prev, gold: prev.gold + totalGold }));
+    setAchievementStats(prev => ({ ...prev, totalGoldEarned: (prev.totalGoldEarned || 0) + totalGold }));
     playRuneWordSound();
     addLog(`💰 일반/마법 장비 ${soldCount}개를 일괄 판매하여 총 ${totalGold} Gold를 획득했습니다!`, "loot");
     return { count: soldCount, gold: totalGold };

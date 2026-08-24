@@ -400,7 +400,8 @@ export function resolveAttack(
         kills.push(frontTarget.id);
         updatedM.hp = 0;
 
-        const rawOverkill = Math.max(0, actualDmg - frontTarget.hp);
+        const requiredRawToKill = Math.ceil(frontTarget.hp / Math.max(0.01, defMultiplier));
+        const rawOverkill = Math.max(0, (initialRawPayload * executeBonus) - requiredRawToKill);
         let currentPayload = Math.floor(rawOverkill * effectiveOverkillEff);
 
         for (let idx = 1; idx < laneMonsters.length; idx++) {
@@ -427,7 +428,8 @@ export function resolveAttack(
           if (isSmFatal) {
             kills.push(sm.id);
             smUpdated.hp = 0;
-            const smRawOverkill = Math.max(0, smDmg - sm.hp);
+            const smRequiredRaw = Math.ceil(sm.hp / Math.max(0.01, smDefMult));
+            const smRawOverkill = Math.max(0, currentPayload - smRequiredRaw);
             currentPayload = Math.floor(smRawOverkill * effectiveOverkillEff);
           } else {
             smUpdated.hp = Math.max(1, smUpdated.hp - smDmg);

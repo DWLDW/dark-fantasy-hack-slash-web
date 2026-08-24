@@ -79,16 +79,38 @@ export const AchievementModal: React.FC = () => {
         return { current: Math.min(1000, achievementStats.totalKills), max: 1000, label: `${achievementStats.totalKills.toLocaleString()} / 1,000` };
       case 'phoenix_5':
         return { current: Math.min(5, achievementStats.totalDeaths), max: 5, label: `${achievementStats.totalDeaths} / 5` };
-      case 'clear_act1':
-        return { current: Math.min(1, achievementStats.dungeonClears['act1_crypt'] || 0), max: 1, label: `${achievementStats.dungeonClears['act1_crypt'] || 0} / 1` };
-      case 'clear_act2':
-        return { current: Math.min(1, achievementStats.dungeonClears['act2_tomb'] || 0), max: 1, label: `${achievementStats.dungeonClears['act2_tomb'] || 0} / 1` };
-      case 'clear_act3':
-        return { current: Math.min(1, achievementStats.dungeonClears['act3_jungle'] || 0), max: 1, label: `${achievementStats.dungeonClears['act3_jungle'] || 0} / 1` };
-      case 'clear_act4':
-        return { current: Math.min(1, achievementStats.dungeonClears['act4_chaos'] || 0), max: 1, label: `${achievementStats.dungeonClears['act4_chaos'] || 0} / 1` };
-      case 'clear_act5':
-        return { current: Math.min(1, achievementStats.dungeonClears['act5_worldstone'] || 0), max: 1, label: `${achievementStats.dungeonClears['act5_worldstone'] || 0} / 1` };
+      case 'clear_act1': {
+        const c1 = (achievementStats.dungeonClears['act1_4_catacombs'] || achievementStats.dungeonClears['act1_crypt'] || 0);
+        return { current: Math.min(1, c1), max: 1, label: `${c1} / 1` };
+      }
+      case 'clear_act2': {
+        const c2 = (achievementStats.dungeonClears['act2_4_tomb'] || achievementStats.dungeonClears['act2_tomb'] || 0);
+        return { current: Math.min(1, c2), max: 1, label: `${c2} / 1` };
+      }
+      case 'clear_act3': {
+        const c3 = (achievementStats.dungeonClears['act3_4_durance'] || achievementStats.dungeonClears['act3_jungle'] || 0);
+        return { current: Math.min(1, c3), max: 1, label: `${c3} / 1` };
+      }
+      case 'clear_act4': {
+        const c4 = (achievementStats.dungeonClears['act4_4_altar'] || achievementStats.dungeonClears['act4_chaos'] || 0);
+        return { current: Math.min(1, c4), max: 1, label: `${c4} / 1` };
+      }
+      case 'clear_act5': {
+        const c5 = (achievementStats.dungeonClears['act5_4_throne'] || achievementStats.dungeonClears['act5_worldstone'] || 0);
+        return { current: Math.min(1, c5), max: 1, label: `${c5} / 1` };
+      }
+      case 'level_50':
+        return { current: Math.min(50, achievementStats.playerLevel), max: 50, label: `Lv.${achievementStats.playerLevel} / 50` };
+      case 'gold_100k':
+        return { current: Math.min(100000, achievementStats.totalGoldEarned || 0), max: 100000, label: `${(achievementStats.totalGoldEarned || 0).toLocaleString()} / 100,000 G` };
+      case 'master_runewords':
+        return { current: Math.min(5, achievementStats.runeWordsCreated), max: 5, label: `${achievementStats.runeWordsCreated} / 5` };
+      case 'torment_10':
+        return { current: Math.min(10, achievementStats.maxDifficultyEver || 1), max: 10, label: `T${achievementStats.maxDifficultyEver || 1} / T10` };
+      case 'torment_50':
+        return { current: Math.min(50, achievementStats.maxDifficultyEver || 1), max: 50, label: `T${achievementStats.maxDifficultyEver || 1} / T50` };
+      case 'torment_100':
+        return { current: Math.min(100, achievementStats.maxDifficultyEver || 1), max: 100, label: `T${achievementStats.maxDifficultyEver || 1} / T100` };
       default:
         return { current: ach.condition(achievementStats) ? 1 : 0, max: 1, label: ach.condition(achievementStats) ? '완료' : '미완료' };
     }
