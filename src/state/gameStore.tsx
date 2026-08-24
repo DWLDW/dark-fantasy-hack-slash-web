@@ -1088,6 +1088,16 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         addLog(`🩸 생명력 +${gains.totalHpHealed} 흡수 회복! ${skillHealText} ${voidHealText}`.trim(), "loot");
       }
 
+      if (result.isBossBreak) {
+        playExplosionSound();
+        addLog('💥 [BREAK! 보스 멸망기 저지 성공!] 보스의 차징을 파괴하여 [💫 그로기(1턴간 기절 & 받는 피해 1.5배)] 상태로 만들었습니다!', 'loot');
+      }
+
+      if (result.isWeakSpotHit) {
+        playRuneWordSound();
+        addLog('🎯 [WEAK SPOT CRITICAL!] 보스의 약점 코어를 직격하여 2.5배 치명타를 가하고 결계를 분쇄했습니다!', 'chain');
+      }
+
       if (result.chainCount > 0) {
         addLog(`💥 [Chain x${result.chainCount}] ${result.chainCount}마리 몬스터 연쇄 처치! (+${gains.gainedGold}G)`, "chain");
         if (result.chainCount >= 100) playMilestoneSound(100);
@@ -1263,60 +1273,92 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         let calculatedShieldLayers = hordeResult.nextShieldLayers || [];
 
         const currentRoomType = currentDungeon.rooms.find(r => r.id === currentRoomId)?.type;
-        if (currentRoomType === 'boss' && hordeResult.totalEnemyDamage > 0) {
+        if (currentRoomType === 'boss') {
           bossTurnCountRef.current += 1;
           setBossTurnCount(bossTurnCountRef.current);
           const boss = survivors.find(m => m.rank === 'boss');
-          if (boss && bossTurnCountRef.current % 3 === 0) {
-            const sigKey = boss.bossSignatureKey || '';
-            const baseDmg = boss.intent.damage || 20;
 
-            const bName = boss.name.replace(/^👑\s*/, '');
-            const bIcon = boss.icon || '👑';
-            const bElem = boss.element || 'fire';
+          if (boss) {
+            if (boss.isGroggy) {
+              addLog(`💫 [보스 그로기 무력화] 보스가 기절 상태로 아무런 행동도 취하지 못했습니다! (다음 턴 회복)`, 'loot');
+              boss.isGroggy = false;
+            } else if (boss.isChargingUltimate) {
+              // Boss was charging and player FAILED to break in time -> Release devastating ultimate!
+              boss.isChargingUltimate = false;
+              boss.bossStaggerHp = 0;
+              const sigKey = boss.bossSignatureKey || '';
+              const baseDmg = boss.intent.damage || 20;
 
-            let bossSkillDmg = 0;
-            let wipeShield = false;
+              const bName = boss.name.replace(/^👑\s*/, '');
+              const bIcon = boss.icon || '👑';
+              const bElem = boss.element || 'fire';
 
-            if (sigKey === 'poison_nova') {
-              bossSkillDmg = Math.max(15, Math.floor(baseDmg * 1.6));
-              wipeShield = true;
-              triggerBossSkill({ name: bName, icon: bIcon, title: '맹독 분사 (Poison Nova)', desc: '전장 보호막 즉시 부식 & 맹독 DoT 살포', element: 'poison' });
-              addLog(`🦂 [고뇌의 여왕 안다리엘 시그니처: 맹독 분사] 사방으로 퍼진 맹독이 보호막을 녹이고 ${bossSkillDmg}의 독 피해를 입힙니다!`, 'damage');
-            } else if (sigKey === 'holy_freeze_charge') {
-              bossSkillDmg = Math.max(20, Math.floor(baseDmg * 2.2));
-              triggerBossSkill({ name: bName, icon: bIcon, title: '흉포한 결빙 돌진 (Freeze Charge)', desc: '결빙 오라 회피 불가 2.2배 관통 파괴타', element: 'cold' });
-              addLog(`🪲 [고통의 대공 두리엘 시그니처: 흉포한 결빙 돌진] 결빙의 폭풍과 함께 전열을 들이받아 ${bossSkillDmg}의 파괴적 돌진 피해!`, 'damage');
-            } else if (sigKey === 'red_lightning_hose') {
-              bossSkillDmg = Math.max(30, Math.floor(baseDmg * 2.5));
-              wipeShield = true;
-              triggerBossSkill({ name: bName, icon: bIcon, title: '붉은 번개 숨결 (Red Lightning Hose)', desc: '보호막 즉시 소각 & 2.5배 파멸의 지옥불 피해', element: 'fire' });
-              addLog(`👹 [공포의 군주 디아블로 시그니처: 붉은 번개 숨결] 전장을 뒤덮는 붉은 번개로 보호막 소각 및 ${bossSkillDmg}의 지옥불 피해!`, 'damage');
-            } else if (sigKey === 'frozen_blade') {
-              bossSkillDmg = Math.max(18, Math.floor(baseDmg * 1.7));
-              wipeShield = true;
-              triggerBossSkill({ name: bName, icon: bIcon, title: '얼어붙은 성검의 참격 (Frozen Blade)', desc: '혹한의 성검 보호막 파괴 및 냉기 참격', element: 'cold' });
-              addLog(`🪽 [타락한 대천사 이주얼 시그니처: 얼어붙은 성검] 혹한의 검격이 보호막을 가르고 ${bossSkillDmg} 피해를 입힙니다!`, 'damage');
-            } else if (sigKey === 'inferno_breath') {
-              bossSkillDmg = Math.max(15, Math.floor(baseDmg * 1.8));
-              triggerBossSkill({ name: bName, icon: bIcon, title: '원주민 지옥불 숨결 (Inferno Breath)', desc: '전방 3개 레인 관통 지옥불 화염 피해', element: 'fire' });
-              addLog(`👺 [약탈자 대주술사 시그니처: 지옥불 숨결] 맹렬한 원주민 화염 숨결이 ${bossSkillDmg}의 관통 피해를 입힙니다!`, 'damage');
-            } else if (sigKey === 'vile_clone_burn') {
-              bossSkillDmg = Math.max(25, Math.floor(baseDmg * 1.9));
-              triggerBossSkill({ name: bName, icon: bIcon, title: '파멸의 분노 소각 (Rage Burn)', desc: '플레이어 분노 50% 강제 소각 및 파멸의 촉수 강타', element: 'void' });
-              addLog(`🐙 [파멸의 군주 바알 시그니처: 파멸의 분노 소각] 플레이어의 분노 50% 소각 및 파멸의 촉수로 ${bossSkillDmg} 피해!`, 'damage');
+              let bossSkillDmg = 0;
+              let wipeShield = false;
+
+              if (sigKey === 'poison_nova') {
+                bossSkillDmg = Math.max(25, Math.floor(baseDmg * 2.0));
+                wipeShield = true;
+                triggerBossSkill({ name: bName, icon: bIcon, title: '맹독 분사 (Poison Nova)', desc: '전장 보호막 즉시 소멸 & 치명적 맹독 살포', element: 'poison' });
+                addLog(`🦂 [고뇌의 여왕 안다리엘: 멸망기 발동!] 사방으로 퍼진 맹독이 보호막을 녹이고 ${bossSkillDmg}의 치명적 독 피해!`, 'damage');
+              } else if (sigKey === 'holy_freeze_charge') {
+                bossSkillDmg = Math.max(30, Math.floor(baseDmg * 2.6));
+                triggerBossSkill({ name: bName, icon: bIcon, title: '흉포한 결빙 돌진 (Freeze Charge)', desc: '결빙 오라 2.6배 관통 파괴타', element: 'cold' });
+                addLog(`🪲 [고통의 대공 두리엘: 멸망기 발동!] 전열을 산산조각 내며 ${bossSkillDmg}의 파괴적 돌진 피해!`, 'damage');
+              } else if (sigKey === 'red_lightning_hose') {
+                bossSkillDmg = Math.max(40, Math.floor(baseDmg * 3.0));
+                wipeShield = true;
+                triggerBossSkill({ name: bName, icon: bIcon, title: '붉은 번개 숨결 (Red Lightning Hose)', desc: '보호막 즉시 소각 & 3.0배 지옥불 피해', element: 'fire' });
+                addLog(`👹 [공포의 군주 디아블로: 멸망기 발동!] 전장을 뒤덮는 붉은 번개로 ${bossSkillDmg}의 지옥불 피해!`, 'damage');
+              } else if (sigKey === 'frozen_blade') {
+                bossSkillDmg = Math.max(25, Math.floor(baseDmg * 2.2));
+                wipeShield = true;
+                triggerBossSkill({ name: bName, icon: bIcon, title: '얼어붙은 성검의 참격 (Frozen Blade)', desc: '혹한의 성검 보호막 파괴 및 냉기 참격', element: 'cold' });
+                addLog(`🪽 [타락한 대천사 이주얼: 멸망기 발동!] 혹한의 검격이 보호막을 가르고 ${bossSkillDmg} 피해!`, 'damage');
+              } else if (sigKey === 'vile_clone_burn') {
+                bossSkillDmg = Math.max(35, Math.floor(baseDmg * 2.4));
+                triggerBossSkill({ name: bName, icon: bIcon, title: '파멸의 분노 소각 (Rage Burn)', desc: '플레이어 분노 50% 강제 소각 및 파멸의 촉수 강타', element: 'void' });
+                addLog(`🐙 [파멸의 군주 바알: 멸망기 발동!] 분노 소각 및 파멸의 촉수로 ${bossSkillDmg} 피해!`, 'damage');
+              } else {
+                bossSkillDmg = Math.max(18, Math.floor(baseDmg * 1.8));
+                wipeShield = true;
+                triggerBossSkill({ name: bName, icon: bIcon, title: '광역 포효 (Boss Roar)', desc: '전 레인 충격파 + 보호막 파괴', element: bElem });
+                addLog(`🔥 [${boss.name}: 멸망기 발동!] 전장을 뒤흔드는 포효로 ${bossSkillDmg} 피해!`, 'damage');
+              }
+
+              if (wipeShield) {
+                calculatedShield = 0;
+                calculatedShieldLayers = [];
+              }
+              calculatedHp = Math.max(0, calculatedHp - bossSkillDmg);
+            } else if (bossTurnCountRef.current % 3 === 0) {
+              // Enter Charging State -> Gives player 1 turn to BREAK it!
+              const staggerMax = Math.max(120, Math.floor(boss.maxHp * 0.18));
+              boss.isChargingUltimate = true;
+              boss.bossStaggerHp = staggerMax;
+              boss.bossStaggerMaxHp = staggerMax;
+
+              const bName = boss.name.replace(/^👑\s*/, '');
+              const bIcon = boss.icon || '👑';
+              const bElem = boss.element || 'fire';
+
+              triggerBossSkill({
+                name: bName,
+                icon: bIcon,
+                title: '⚠️ [멸망기 차징 돌입!]',
+                desc: '1턴 후 치명적 멸망기 발동! 방패 강타(저지력 2.5배) 또는 공격으로 저지(Break)하세요!',
+                element: bElem
+              });
+              addLog(`⚠️ [${boss.name} 멸망기 차징 개시!] 1턴 후 파멸의 스킬이 발동합니다! 저지 게이지(${staggerMax})를 깎아 Break 시키세요!`, 'damage');
+            }
+
+            // Guard weak lane cycle
+            if (bossTurnCountRef.current % 4 === 0) {
+              boss.bossWeakLane = Math.floor(Math.random() * 5);
+              addLog(`🎯 [약점 노출] 보스의 방어 결계 중 [${boss.bossWeakLane + 1}번 레인]에 약점 코어가 노출되었습니다! (적중 시 2.5배 치명타)`, 'system');
             } else {
-              bossSkillDmg = Math.max(10, Math.floor(baseDmg * 1.5));
-              wipeShield = true;
-              triggerBossSkill({ name: bName, icon: bIcon, title: '광역 포효 (Boss Roar)', desc: '전 레인 충격파 + 보호막 파괴', element: bElem });
-              addLog(`🔥 [${boss.name} 기믹: 광역 포효] 전장을 뒤흔드는 포효로 ${bossSkillDmg} 피해! 보호막이 파괴됩니다!`, 'damage');
+              boss.bossWeakLane = undefined;
             }
-
-            if (wipeShield) {
-              calculatedShield = 0;
-              calculatedShieldLayers = [];
-            }
-            calculatedHp = Math.max(0, calculatedHp - bossSkillDmg);
           }
         }
 

@@ -295,144 +295,13 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
       ) : (
         /* 5-LANE BATTLEFIELD */
         <div className="flex flex-col h-full gap-1">
-          {/* ═══ BOSS DEDICATED PANEL (full-width, above grid) ═══ */}
-          {(bossMonster || bossIsDying) && (() => {
-            const boss = bossMonster || bossIsDying!;
-            const hitInfo = preview.targetsHit.find(t => t.monsterId === boss.id);
-            const isTargeted = !!hitInfo;
-            const isPredictedKill = hitInfo?.isFatal;
-            const isDying = dyingMonsterIds.has(boss.id);
-            const bossDmgPopups = floatingDamages.filter(d => d.id.includes(boss.id));
-            const isEnraged = boss.maxHp > 0 && boss.hp / boss.maxHp <= 0.3;
-            const hpPercent = Math.max(0, Math.min(100, (boss.hp / boss.maxHp) * 100));
-            const isFrozen = Boolean(boss.isFrozen);
-            const chargePercent = boss.intent?.chargePercent || 0;
-            const bossName = boss.name.replace(/^👑\s*/, '').replace(/^우두머리:\s*/, '');
-            const isOverkillResidual = hitInfo?.isOverkillHit;
-
-            return (
-              <div
-                onClick={() => setPlayerLane(boss.lane)}
-                className={`relative w-full rounded-xl p-2 sm:p-3 border-2 transition-all cursor-pointer overflow-visible flex-shrink-0 ${
-                  isDying
-                    ? 'animate-death-shrink'
-                    : isPredictedKill
-                    ? 'bg-gradient-to-r from-orange-900 via-rose-900 to-amber-900 border-amber-400 ring-2 ring-amber-400 shadow-[0_0_25px_rgba(249,115,22,0.8)] animate-pulse'
-                    : isTargeted
-                    ? 'bg-gradient-to-r from-red-950 via-red-900 to-red-950 border-red-500 ring-2 ring-red-500/80'
-                    : isEnraged
-                    ? 'animate-boss-enrage bg-gradient-to-r from-red-950 via-iron-950 to-red-950 border-red-500'
-                    : isFrozen
-                    ? 'bg-gradient-to-r from-sky-950 via-iron-950 to-sky-950 border-sky-400 ring-2 ring-sky-400/60'
-                    : 'animate-boss-pulse bg-gradient-to-r from-red-950/80 via-iron-950 to-red-950/80 border-amber-500'
-                } ${isOverkillResidual && !isDying ? 'animate-overkill-glow' : ''}`}
-              >
-                {/* Floating Damage Popups */}
-                {bossDmgPopups.map(dp => (
-                  <div
-                    key={dp.id}
-                    className={`absolute -top-3 left-1/2 -translate-x-1/2 z-30 font-mono font-black whitespace-nowrap ${
-                      dp.isCrit
-                        ? 'text-amber-300 text-sm sm:text-lg animate-crit-dmg drop-shadow-[0_0_12px_rgba(251,191,36,0.9)]'
-                        : dp.isOverkill
-                        ? 'text-orange-400 text-xs sm:text-sm animate-float-dmg drop-shadow-[0_0_8px_rgba(249,115,22,0.8)]'
-                        : 'text-white text-xs sm:text-sm animate-float-dmg drop-shadow-[0_0_6px_rgba(0,0,0,0.9)]'
-                    }`}
-                  >
-                    {dp.isCrit && <span className="text-[9px] text-yellow-200 block text-center">💥 CRIT!</span>}
-                    {dp.isOverkill && <span className="text-[9px] text-orange-200 block text-center">OVERKILL</span>}
-                    -{dp.damage}
-                    {dp.isFatal && <span className="text-blood-300 ml-1">💀</span>}
-                  </div>
-                ))}
-
-                {/* Charge Gauge */}
-                {chargePercent >= 75 && !isFrozen && boss.hp > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 z-20 px-1.5 py-0.5 rounded-full bg-red-600 text-white text-[10px] font-black border-2 border-red-300 animate-pulse shadow-lg">
-                    ⚡{chargePercent}%
-                  </span>
-                )}
-
-                {/* Boss Content: Icon + Name + Stats + HP Bar */}
-                <div className="flex items-center gap-3 relative z-10">
-                  {/* Large Boss Icon */}
-                  <div className={`flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center text-3xl sm:text-4xl border-2 shadow-xl ${
-                    isEnraged
-                      ? 'bg-red-900/80 border-red-400 shadow-[0_0_20px_rgba(239,68,68,0.6)]'
-                      : isFrozen
-                      ? 'bg-sky-900/80 border-sky-400'
-                      : 'bg-iron-900/80 border-amber-500/80 shadow-[0_0_12px_rgba(251,191,36,0.3)]'
-                  }`}>
-                    <span>{boss.icon || '👑'}</span>
-                  </div>
-
-                  {/* Boss Info + HP */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={`font-cinzel font-black text-xs sm:text-sm truncate ${
-                        isEnraged ? 'text-red-300' : isFrozen ? 'text-sky-200' : 'text-amber-200'
-                      }`}>
-                        👑 {bossName}
-                      </span>
-                      {isEnraged && (
-                        <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-red-600 text-white border border-red-300 animate-pulse flex-shrink-0">
-                          ⚡광란
-                        </span>
-                      )}
-                      {isFrozen && (
-                        <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-sky-600 text-white border border-sky-300 flex-shrink-0">
-                          ❄️동결
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Boss HP Bar (thick) */}
-                    <div className="w-full bg-iron-950 rounded-full overflow-hidden border-2 border-iron-700 h-3 sm:h-3.5 relative shadow-inner">
-                      <div
-                        className={`h-full transition-all duration-300 ${
-                          isEnraged
-                            ? 'bg-gradient-to-r from-red-500 via-amber-500 to-red-500 animate-boss-hp-shimmer'
-                            : 'bg-gradient-to-r from-red-600 via-rose-500 to-amber-400'
-                        }`}
-                        style={{ width: `${hpPercent}%` }}
-                      />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="font-mono font-black text-[9px] sm:text-[10px] text-white drop-shadow-[0_1px_3px_rgba(0,0,0,1)]">
-                          {boss.hp} / {boss.maxHp}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Stats Row */}
-                    <div className="flex items-center gap-3 mt-1 text-[9px] sm:text-[10px] font-mono">
-                      <span className="text-rose-300 font-bold">⚔️ {boss.intent.damage || 0}</span>
-                      <span className="text-blue-300 font-bold">🛡️ {boss.defense}</span>
-                      <span className="text-gray-400">HP {Math.round(hpPercent)}%</span>
-                    </div>
-                  </div>
-
-                  {/* Targeting indicator */}
-                  {isPredictedKill && (
-                    <div className="flex-shrink-0 px-2 py-1 rounded-lg bg-red-600 text-white font-black text-[10px] sm:text-xs animate-pulse border border-red-300 shadow-lg">
-                      💀 처치 예상
-                    </div>
-                  )}
-                  {isTargeted && !isPredictedKill && (
-                    <div className="flex-shrink-0 px-2 py-1 rounded-lg bg-red-900 text-red-200 font-black text-[10px] sm:text-xs animate-pulse border border-red-500">
-                      🎯 -{hitInfo.damage}
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })()}
-
-          {/* ═══ 5-LANE MINION GRID (boss excluded) ═══ */}
-          <div className={`grid grid-cols-5 gap-1 sm:gap-1.5 flex-1 items-stretch ${isBossRoom ? 'min-h-0' : 'h-full'}`}>
+          {/* ═══ 5-LANE MINION & BATTLEFIELD GRID ═══ */}
+          <div className="grid grid-cols-5 gap-1 sm:gap-1.5 flex-1 items-stretch h-full">
           {[0, 1, 2, 3, 4].map(laneIdx => {
             const isPlayerInLane = playerLane === laneIdx;
             const laneList = gridLaneMonsters[laneIdx] || [];
-            const hasBoss = laneList.some(m => m.rank === 'boss');
+            const hasBoss = isBossRoom && bossMonster?.lane === laneIdx;
+            const isBossWeakLane = isBossRoom && bossMonster?.bossWeakLane === laneIdx;
             const isWhirlwind = selectedSkill.route === 'radius';
             const isCleave = selectedSkill.route === 'branch' && Math.abs(laneIdx - playerLane) <= 1;
             const isLineOrSingle = (selectedSkill.route === 'line' || selectedSkill.route === 'single') && isPlayerInLane;
@@ -484,6 +353,12 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                   </div>
 
                   {/* Lane Hit Prediction Summary */}
+                  {isBossWeakLane && (
+                    <div className="w-full py-0.5 px-1 bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-600 text-white text-[9px] font-mono font-black rounded border border-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.8)] animate-pulse flex items-center justify-center gap-0.5 truncate">
+                      <span>🎯 약점 (2.5x)</span>
+                    </div>
+                  )}
+
                   {hasHitsInLane && (
                     <div className={`w-full text-center py-0.2 px-0.5 rounded text-[8px] sm:text-[9px] font-mono font-black border transition truncate ${
                       laneFatalHits === laneList.length

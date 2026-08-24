@@ -1,11 +1,11 @@
 import React, { useMemo } from 'react';
 import { useGame } from '../../../state/gameStore';
 import { getActTheme } from '../../../utils/actThemes';
-import { Crown, Shield, Flame, Skull, Swords, AlertTriangle, Zap, Sparkles } from 'lucide-react';
+import { Crown, Shield, Flame, Skull, Swords, AlertTriangle, Zap, Sparkles, Target, ShieldAlert } from 'lucide-react';
 
 /**
- * BossHUD — Dedicated boss status panel rendered above the 5-lane battlefield
- * Displays rich boss signature skills, phase markers, act theme styles, and tactical countdowns.
+ * BossHUD — Dedicated high-impact boss battle HUD.
+ * Features distinct abyssal crimson/purple health bar, stagger break gauge, weak lane targeting, and enrage state.
  */
 export const BossHUD: React.FC = React.memo(() => {
   const {
@@ -13,178 +13,15 @@ export const BossHUD: React.FC = React.memo(() => {
     currentDungeon,
     currentRoomId,
     bossTurnCount,
-    bossGuardActive
+    bossGuardActive,
+    playerLane,
+    setPlayerLane
   } = useGame();
 
   const currentRoom = currentDungeon.rooms.find(r => r.id === currentRoomId);
   const isBossRoom = currentRoom?.type === 'boss';
   const boss = monsters.find(m => m.rank === 'boss' && m.hp > 0);
   const actTheme = useMemo(() => getActTheme(currentDungeon.id), [currentDungeon.id]);
-
-  // Determine boss gimmick & signature details
-  const gimmickInfo = useMemo(() => {
-    if (!boss) return null;
-    const sigKey = boss.bossSignatureKey || '';
-    const gText = boss.bossGimmick || '';
-
-    // Signature 1: Poison Nova (Andariel)
-    if (sigKey === 'poison_nova') {
-      const interval = 3;
-      const turnsUntil = interval - (bossTurnCount % interval);
-      const progress = ((bossTurnCount % interval) / interval) * 100;
-      return {
-        icon: '🦂',
-        label: '맹독 분사 (Poison Nova)',
-        countdown: turnsUntil === interval ? `${interval}턴 후` : `${turnsUntil}턴 후`,
-        progress,
-        description: '보호막 즉시 부식 + 전장 맹독 DoT 살포',
-        color: 'from-emerald-600 via-teal-500 to-green-400',
-        bgColor: 'bg-emerald-950/85',
-        borderColor: 'border-emerald-500',
-        isImminent: turnsUntil <= 1
-      };
-    }
-
-    // Signature 2: Holy Freeze Charge (Duriel)
-    if (sigKey === 'holy_freeze_charge') {
-      const interval = 3;
-      const turnsUntil = interval - (bossTurnCount % interval);
-      const progress = ((bossTurnCount % interval) / interval) * 100;
-      return {
-        icon: '🪲',
-        label: '결빙 오라 & 흉포한 돌진',
-        countdown: turnsUntil === interval ? `${interval}턴 후` : `${turnsUntil}턴 후`,
-        progress,
-        description: '회피율 0% 억제 + 2.2배 관통 돌진타',
-        color: 'from-cyan-600 via-blue-500 to-sky-400',
-        bgColor: 'bg-cyan-950/85',
-        borderColor: 'border-cyan-500',
-        isImminent: turnsUntil <= 1
-      };
-    }
-
-    // Signature 3: Lightning Pylon (Mephisto)
-    if (sigKey === 'lightning_pylon') {
-      const interval = 4;
-      const turnsUntil = interval - (bossTurnCount % interval);
-      const progress = ((bossTurnCount % interval) / interval) * 100;
-      return {
-        icon: '💀',
-        label: '증오의 뇌격 방패',
-        countdown: turnsUntil === interval ? `${interval}턴 후` : `${turnsUntil}턴 후`,
-        progress,
-        description: '받는 피해 70% 감소 결계 + 전격 방출',
-        color: 'from-amber-500 via-yellow-400 to-blue-500',
-        bgColor: 'bg-blue-950/85',
-        borderColor: 'border-yellow-400',
-        isImminent: turnsUntil <= 1
-      };
-    }
-
-    // Signature 4: Red Lightning Hose (Diablo)
-    if (sigKey === 'red_lightning_hose') {
-      const interval = 3;
-      const turnsUntil = interval - (bossTurnCount % interval);
-      const progress = ((bossTurnCount % interval) / interval) * 100;
-      return {
-        icon: '👹',
-        label: '붉은 번개 숨결 (Red Lightning)',
-        countdown: turnsUntil === interval ? `${interval}턴 후` : `${turnsUntil}턴 후`,
-        progress,
-        description: '보호막 소각 + 2.5배 파멸의 지옥불 피해',
-        color: 'from-red-600 via-orange-500 to-yellow-400',
-        bgColor: 'bg-red-950/90',
-        borderColor: 'border-red-500',
-        isImminent: turnsUntil <= 1
-      };
-    }
-
-    // Signature 5: Ancients Whirlwind (3 Ancients)
-    if (sigKey === 'ancients_whirlwind') {
-      const interval = 4;
-      const turnsUntil = interval - (bossTurnCount % interval);
-      const progress = ((bossTurnCount % interval) / interval) * 100;
-      return {
-        icon: '⚔️',
-        label: '3인의 강철 방진 태세',
-        countdown: turnsUntil === interval ? `${interval}턴 후` : `${turnsUntil}턴 후`,
-        progress,
-        description: '탈릭·코릭·마다크 강철 결속 피해 70% 차단',
-        color: 'from-amber-600 via-zinc-400 to-yellow-500',
-        bgColor: 'bg-stone-900/90',
-        borderColor: 'border-amber-400',
-        isImminent: turnsUntil <= 1
-      };
-    }
-
-    // Signature 6: Vile Clone & Rage Burn (Baal)
-    if (sigKey === 'vile_clone_burn') {
-      const interval = 3;
-      const turnsUntil = interval - (bossTurnCount % interval);
-      const progress = ((bossTurnCount % interval) / interval) * 100;
-      return {
-        icon: '🐙',
-        label: '파멸의 분노 소각 & 촉수',
-        countdown: turnsUntil === interval ? `${interval}턴 후` : `${turnsUntil}턴 후`,
-        progress,
-        description: '플레이어 분노 50% 소각 + 촉수 타격',
-        color: 'from-purple-600 via-indigo-500 to-blue-400',
-        bgColor: 'bg-purple-950/90',
-        borderColor: 'border-purple-500',
-        isImminent: turnsUntil <= 1
-      };
-    }
-
-    // Summon based bosses (HP <= 50%)
-    if (gText.includes('소환') || sigKey.includes('summon') || sigKey.includes('raise') || sigKey.includes('barrage')) {
-      const bossHpPercent = (boss.hp / boss.maxHp) * 100;
-      return {
-        icon: '💀',
-        label: '하수인 증원 의식',
-        countdown: bossHpPercent > 50 ? `HP ≤50% 시` : '발동 완료!',
-        progress: Math.max(0, 100 - (bossHpPercent / 50) * 100),
-        description: 'HP 50% 이하 도달 시 전열에 정예 호위병 2마리 소환',
-        color: 'from-purple-600 to-violet-400',
-        bgColor: 'bg-purple-950/80',
-        borderColor: 'border-purple-500',
-        isImminent: bossHpPercent <= 55 && bossHpPercent > 50
-      };
-    }
-
-    // Guard based bosses (Every 4 turns)
-    if (gText.includes('방어') || sigKey.includes('shield') || sigKey.includes('drain') || sigKey.includes('web') || sigKey.includes('gaze')) {
-      const interval = 4;
-      const turnsUntil = interval - (bossTurnCount % interval);
-      const progress = ((bossTurnCount % interval) / interval) * 100;
-      return {
-        icon: '🛡️',
-        label: '방어 태세',
-        countdown: turnsUntil === interval ? `${interval}턴 후` : `${turnsUntil}턴 후`,
-        progress,
-        description: '받는 피해 70% 감소 (1턴)',
-        color: 'from-blue-600 to-cyan-400',
-        bgColor: 'bg-blue-950/80',
-        borderColor: 'border-blue-500',
-        isImminent: turnsUntil <= 1
-      };
-    }
-
-    // Default: Roar attack (Every 3 turns)
-    const interval = 3;
-    const turnsUntil = interval - (bossTurnCount % interval);
-    const progress = ((bossTurnCount % interval) / interval) * 100;
-    return {
-      icon: '🔥',
-      label: '광역 포효',
-      countdown: turnsUntil === interval ? `${interval}턴 후` : `${turnsUntil}턴 후`,
-      progress,
-      description: '전 레인 광역 피해 + 보호막 파괴',
-      color: 'from-orange-600 to-red-600',
-      bgColor: 'bg-orange-950/80',
-      borderColor: 'border-orange-500',
-      isImminent: turnsUntil <= 1
-    };
-  }, [boss, bossTurnCount]);
 
   if (!isBossRoom || !boss) return null;
 
@@ -194,22 +31,72 @@ export const BossHUD: React.FC = React.memo(() => {
   const bossDisplayName = boss.name.replace(/^👑\s*/, '').replace(/^우두머리:\s*/, '');
   const chargePercent = boss.intent?.chargePercent || 0;
 
-  // Element badge styling
+  // Stagger break gauge
+  const isCharging = Boolean(boss.isChargingUltimate && (boss.bossStaggerHp || 0) > 0);
+  const staggerPercent = isCharging && boss.bossStaggerMaxHp
+    ? Math.max(0, Math.min(100, ((boss.bossStaggerHp || 0) / boss.bossStaggerMaxHp) * 100))
+    : 0;
+
+  const isGroggy = Boolean(boss.isGroggy);
+  const hasWeakLane = boss.bossWeakLane !== undefined;
+  const isPlayerOnWeakLane = hasWeakLane && boss.bossWeakLane === playerLane;
+
+  // Element badge styling & aura
   const elementBadge = (() => {
     switch (boss.element) {
-      case 'fire': return { text: '🔥 화염', color: 'bg-red-950/80 border-red-500 text-red-300' };
-      case 'cold': return { text: '❄️ 냉기', color: 'bg-cyan-950/80 border-cyan-400 text-cyan-200' };
-      case 'lightning': return { text: '⚡ 번개', color: 'bg-amber-950/80 border-amber-400 text-amber-200' };
-      case 'poison': return { text: '🧪 맹독', color: 'bg-emerald-950/80 border-emerald-400 text-emerald-200' };
-      case 'void': return { text: '🔮 공허', color: 'bg-purple-950/80 border-purple-400 text-purple-200' };
-      default: return { text: '⚔️ 물리', color: 'bg-stone-900/80 border-stone-500 text-stone-300' };
+      case 'fire':
+        return {
+          text: '🔥 지옥불',
+          badge: 'bg-red-950/90 border-red-500 text-red-300 shadow-[0_0_8px_rgba(239,68,68,0.5)]',
+          hpGradient: 'from-amber-600 via-rose-600 to-red-700',
+          auraColor: 'shadow-[0_0_25px_rgba(239,68,68,0.4)]'
+        };
+      case 'cold':
+        return {
+          text: '❄️ 혹한',
+          badge: 'bg-cyan-950/90 border-cyan-400 text-cyan-200 shadow-[0_0_8px_rgba(6,182,212,0.5)]',
+          hpGradient: 'from-cyan-400 via-sky-600 to-blue-800',
+          auraColor: 'shadow-[0_0_25px_rgba(6,182,212,0.4)]'
+        };
+      case 'lightning':
+        return {
+          text: '⚡ 뇌전',
+          badge: 'bg-amber-950/90 border-amber-400 text-amber-200 shadow-[0_0_8px_rgba(251,191,36,0.5)]',
+          hpGradient: 'from-yellow-300 via-amber-500 to-yellow-700',
+          auraColor: 'shadow-[0_0_25px_rgba(251,191,36,0.4)]'
+        };
+      case 'poison':
+        return {
+          text: '🧪 맹독',
+          badge: 'bg-emerald-950/90 border-emerald-400 text-emerald-200 shadow-[0_0_8px_rgba(16,185,129,0.5)]',
+          hpGradient: 'from-emerald-400 via-teal-600 to-emerald-800',
+          auraColor: 'shadow-[0_0_25px_rgba(16,185,129,0.4)]'
+        };
+      case 'void':
+        return {
+          text: '🔮 공허',
+          badge: 'bg-purple-950/90 border-purple-400 text-purple-200 shadow-[0_0_8px_rgba(168,85,247,0.5)]',
+          hpGradient: 'from-purple-400 via-fuchsia-600 to-indigo-900',
+          auraColor: 'shadow-[0_0_25px_rgba(168,85,247,0.4)]'
+        };
+      default:
+        return {
+          text: '⚔️ 물리',
+          badge: 'bg-stone-900/90 border-stone-500 text-stone-300 shadow-[0_0_8px_rgba(168,162,158,0.5)]',
+          hpGradient: 'from-orange-400 via-red-600 to-stone-800',
+          auraColor: 'shadow-[0_0_25px_rgba(239,68,68,0.3)]'
+        };
     }
   })();
 
   return (
     <div
-      className={`relative rounded-xl border-2 p-2.5 sm:p-3 shadow-2xl transition-all duration-300 overflow-hidden ${
-        isEnraged
+      className={`relative rounded-xl border-2 p-2 sm:p-3 shadow-2xl transition-all duration-300 overflow-hidden ${elementBadge.auraColor} ${
+        isGroggy
+          ? 'bg-gradient-to-r from-yellow-950/90 via-iron-950 to-yellow-950/90 border-yellow-400 ring-2 ring-yellow-400/80 animate-pulse'
+          : isCharging
+          ? 'bg-gradient-to-r from-red-950 via-blood-950 to-red-950 border-red-500 ring-2 ring-red-500/90 animate-boss-enrage'
+          : isEnraged
           ? 'animate-boss-enrage bg-gradient-to-r from-red-950 via-iron-950 to-red-950 border-red-500'
           : bossGuardActive
           ? 'animate-boss-guard bg-gradient-to-r from-blue-950/90 via-iron-950 to-blue-950/90 border-blue-400'
@@ -217,72 +104,123 @@ export const BossHUD: React.FC = React.memo(() => {
       }`}
     >
       {/* Ambient Act Atmospheric Glow */}
-      <div className={`absolute inset-0 pointer-events-none opacity-30 ${
-        isEnraged ? 'bg-gradient-to-t from-red-600/40 via-transparent to-transparent' : actTheme.ambientGlow
+      <div className={`absolute inset-0 pointer-events-none opacity-35 ${
+        isCharging ? 'bg-gradient-to-t from-red-600/40 via-transparent to-transparent' : actTheme.ambientGlow
       }`} />
 
-      {/* Row 1: Boss Icon + Name + Element + Enrage Tags */}
+      {/* Row 1: Boss Icon + Name + Badges + Action Indicators */}
       <div className="relative z-10 flex items-center gap-2 sm:gap-3 mb-2">
-        {/* Boss High-Quality Icon Box */}
-        <div className={`relative flex-shrink-0 w-11 h-11 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center text-2xl sm:text-3xl border-2 shadow-xl ${
-          isEnraged
-            ? 'bg-red-900 border-red-400 shadow-[0_0_20px_rgba(239,68,68,0.7)]'
-            : 'bg-iron-900/90 border-amber-500/80 shadow-[0_0_15px_rgba(251,191,36,0.35)]'
-        }`}>
-          <span>{boss.icon || '👑'}</span>
-          {isEnraged && (
+        {/* Boss Emblem Icon Box */}
+        <div
+          onClick={() => setPlayerLane(boss.lane)}
+          className={`relative flex-shrink-0 w-12 h-12 sm:w-15 sm:h-15 rounded-xl flex items-center justify-center text-2xl sm:text-3xl border-2 shadow-2xl transition transform hover:scale-105 cursor-pointer ${
+            isGroggy
+              ? 'bg-yellow-900 border-yellow-400 shadow-[0_0_25px_rgba(251,191,36,0.9)] animate-bounce'
+              : isCharging
+              ? 'bg-red-900 border-red-400 shadow-[0_0_30px_rgba(239,68,68,0.9)] animate-pulse'
+              : isEnraged
+              ? 'bg-red-900 border-red-400 shadow-[0_0_20px_rgba(239,68,68,0.7)]'
+              : 'bg-iron-900/95 border-amber-500 shadow-[0_0_18px_rgba(251,191,36,0.4)]'
+          }`}
+          title="클릭 시 보스 전면 레인으로 이동"
+        >
+          <span>{isGroggy ? '💫' : boss.icon || '👑'}</span>
+          {isEnraged && !isGroggy && (
             <span className="absolute -top-1 -right-1 text-[11px] animate-pulse">⚡</span>
+          )}
+          {isCharging && (
+            <span className="absolute -bottom-1 -right-1 text-[10px] bg-red-600 text-white font-black px-1 rounded border border-white animate-pulse">
+              CAST
+            </span>
           )}
         </div>
 
-        {/* Boss Name & Dynamic Badges */}
+        {/* Boss Name & Tactical Badges */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
             <Crown className="w-4 h-4 text-amber-400 flex-shrink-0" />
-            <h3 className={`font-cinzel font-black text-sm sm:text-base truncate ${
-              isEnraged ? 'text-red-300 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]' : 'text-amber-200'
+            <h3 className={`font-cinzel font-black text-sm sm:text-base tracking-wide truncate ${
+              isGroggy
+                ? 'text-yellow-300 drop-shadow-[0_0_10px_rgba(251,191,36,0.9)]'
+                : isCharging
+                ? 'text-red-300 drop-shadow-[0_0_10px_rgba(239,68,68,0.9)]'
+                : isEnraged
+                ? 'text-red-300 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]'
+                : 'text-amber-200'
             }`}>
               {bossDisplayName}
             </h3>
-            <span className="text-[10px] text-gray-400 font-mono">Act {actTheme.act}</span>
+            <span className="text-[10px] text-gray-400 font-mono font-bold">Act {actTheme.act}</span>
           </div>
 
+          {/* Interactive Badges */}
           <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-            {/* Element Attribute Badge */}
-            <span className={`px-1.5 py-0.2 rounded text-[8px] sm:text-[9px] font-bold border font-mono ${elementBadge.color}`}>
+            {/* Element Attribute */}
+            <span className={`px-1.5 py-0.2 rounded text-[8px] sm:text-[9px] font-bold border font-mono ${elementBadge.badge}`}>
               {elementBadge.text}
             </span>
 
+            {/* Groggy Status Badge */}
+            {isGroggy && (
+              <span className="px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-black bg-yellow-500 text-iron-950 border border-yellow-200 shadow-[0_0_12px_rgba(251,191,36,0.8)] animate-pulse flex items-center gap-0.5">
+                <span>💫 그로기 (받는 피해 +50%)</span>
+              </span>
+            )}
+
+            {/* Ultimate Charging Status Badge */}
+            {isCharging && (
+              <span className="px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-black bg-red-600 text-white border border-red-300 shadow-[0_0_12px_rgba(239,68,68,0.8)] animate-pulse flex items-center gap-0.5">
+                <AlertTriangle className="w-3 h-3 text-yellow-300" />
+                <span>멸망기 차징 중! (저지 필요)</span>
+              </span>
+            )}
+
+            {/* Weak Lane Badge */}
+            {hasWeakLane && (
+              <button
+                onClick={() => setPlayerLane(boss.bossWeakLane!)}
+                className={`px-2 py-0.5 rounded text-[8px] sm:text-[9px] font-black border transition cursor-pointer flex items-center gap-1 ${
+                  isPlayerOnWeakLane
+                    ? 'bg-emerald-600 text-white border-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.8)] animate-pulse'
+                    : 'bg-rose-950 text-rose-300 border-rose-500 hover:bg-rose-900'
+                }`}
+                title="클릭 시 약점 레인으로 즉시 이동"
+              >
+                <Target className="w-3 h-3" />
+                <span>약점: {boss.bossWeakLane! + 1}번 레인 {isPlayerOnWeakLane ? '✓ 조준됨' : '(클릭 이동)'}</span>
+              </button>
+            )}
+
             {/* Enrage Tag */}
-            {isEnraged && (
+            {isEnraged && !isGroggy && (
               <span className="px-1.5 py-0.2 rounded text-[8px] sm:text-[9px] font-black bg-red-600 text-white border border-red-300 animate-pulse">
-                ⚡ 광란! ATK +50%
+                ⚡ 광란 (ATK +50%)
               </span>
             )}
 
             {/* Guard Active Notice */}
-            {bossGuardActive && (
+            {bossGuardActive && !isGroggy && (
               <span className="px-1.5 py-0.2 rounded text-[8px] sm:text-[9px] font-black bg-blue-600 text-white border border-blue-300 animate-pulse">
-                🛡️ 방어 태세 가동 (피해 -70%)
+                🛡️ 결계 가동 (피해 -70%)
               </span>
             )}
           </div>
         </div>
 
-        {/* Boss Stats Quick Readout */}
+        {/* Boss Stats Readout */}
         <div className="flex-shrink-0 flex flex-col items-end gap-0.5 text-[10px] sm:text-[11px] font-mono">
-          <span className="flex items-center gap-1 text-rose-300">
+          <span className="flex items-center gap-1 text-rose-300" title="공격력">
             <Swords className="w-3 h-3" />
             <span className="font-black">{boss.intent.damage || 0}</span>
           </span>
-          <span className="flex items-center gap-1 text-blue-300">
+          <span className="flex items-center gap-1 text-blue-300" title="방어력">
             <Shield className="w-3 h-3" />
             <span className="font-black">{boss.defense}</span>
           </span>
           {chargePercent > 0 && (
             <span className={`flex items-center gap-1 font-black ${
               chargePercent >= 75 ? 'text-red-400 animate-pulse' : 'text-yellow-400'
-            }`}>
+            }`} title="공격 충전 게이지">
               <Zap className="w-3 h-3" />
               <span>{chargePercent}%</span>
             </span>
@@ -290,84 +228,79 @@ export const BossHUD: React.FC = React.memo(() => {
         </div>
       </div>
 
-      {/* Row 2: Boss HP Bar with Phase Thresholds */}
+      {/* Row 2: Abyssal Boss Health Bar with Emblems */}
       <div className="relative z-10 mb-2">
-        <div className="relative w-full bg-iron-950 rounded-full overflow-hidden border-2 border-iron-700 h-4 sm:h-5 shadow-inner">
-          {/* Phase marker at 30% (Enrage) */}
-          <div
-            className="absolute top-0 bottom-0 w-0.5 bg-amber-400/80 z-10"
-            style={{ left: '30%' }}
-          />
-          {/* Phase marker at 50% (Summon/Phase 2) */}
-          <div
-            className="absolute top-0 bottom-0 w-0.5 bg-purple-400/60 z-10"
-            style={{ left: '50%' }}
-          />
+        <div className="relative w-full bg-iron-950 rounded-full overflow-hidden border-2 border-amber-500/80 h-5 sm:h-6 shadow-[inset_0_2px_8px_rgba(0,0,0,0.95)]">
+          {/* Phase Markers */}
+          <div className="absolute top-0 bottom-0 w-0.5 bg-purple-400/70 z-10" style={{ left: '50%' }} title="50% 하수인 소환" />
+          <div className="absolute top-0 bottom-0 w-0.5 bg-amber-400/90 z-10" style={{ left: '30%' }} title="30% 광란 페이즈" />
 
-          {/* HP Fill Gradient */}
+          {/* Abyssal Gradient Health Fill */}
           <div
-            className={`h-full transition-all duration-500 relative ${
-              isEnraged
-                ? 'bg-gradient-to-r from-red-700 via-red-500 to-amber-500 animate-boss-hp-shimmer'
-                : isLowHp
-                ? 'bg-gradient-to-r from-red-600 via-rose-500 to-orange-500'
-                : 'bg-gradient-to-r from-red-600 via-rose-500 to-amber-400'
+            className={`h-full transition-all duration-500 relative bg-gradient-to-r ${
+              isGroggy
+                ? 'from-yellow-400 via-amber-500 to-yellow-600 animate-pulse'
+                : isEnraged
+                ? 'from-red-600 via-rose-500 to-amber-500 animate-boss-hp-shimmer'
+                : elementBadge.hpGradient
             }`}
             style={{ width: `${hpPercent}%` }}
           >
-            <div className="absolute inset-0 bg-gradient-to-b from-white/15 via-transparent to-transparent" />
+            {/* Top Gloss Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-b from-white/20 via-transparent to-black/30" />
+            {/* Gothic Rune Shimmer Texture */}
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent animate-pulse" />
           </div>
 
-          {/* HP Number Overlay */}
+          {/* HP Value Label Overlay */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className={`font-mono font-black text-[10px] sm:text-xs drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)] ${
-              isEnraged ? 'text-amber-200' : 'text-white'
-            }`}>
-              {boss.hp.toLocaleString()} / {boss.maxHp.toLocaleString()}
-              <span className="text-[8px] sm:text-[9px] text-gray-300 ml-1.5 font-bold">
+            <span className="font-mono font-black text-xs sm:text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,1)] text-white flex items-center gap-1">
+              <span>{boss.hp.toLocaleString()} / {boss.maxHp.toLocaleString()}</span>
+              <span className="text-[9px] sm:text-[10px] text-amber-200 font-bold ml-1">
                 ({Math.round(hpPercent)}%)
               </span>
             </span>
           </div>
         </div>
 
-        {/* Phase Labels */}
-        <div className="flex justify-between mt-0.5 text-[8px] font-mono text-gray-500 px-1 relative">
+        {/* Phase Legend */}
+        <div className="flex justify-between mt-0.5 text-[8px] font-mono text-gray-400 px-1 relative">
           <span>HP 100%</span>
-          <span className="text-purple-400 font-bold" style={{ position: 'absolute', left: '47%' }}>50% 소환</span>
-          <span className="text-amber-400 font-bold" style={{ position: 'absolute', left: '26%' }}>30%⚡광란</span>
-          <span>0</span>
+          <span className="text-purple-400 font-bold" style={{ position: 'absolute', left: '46%' }}>50% 소환</span>
+          <span className="text-amber-400 font-bold" style={{ position: 'absolute', left: '26%' }}>30% ⚡광란</span>
+          <span>0%</span>
         </div>
       </div>
 
-      {/* Row 3: Signature Gimmick Tactical Countdown Bar */}
-      {gimmickInfo && (
-        <div className={`relative z-10 flex items-center gap-2 rounded-lg p-1.5 border ${gimmickInfo.bgColor} ${gimmickInfo.borderColor} ${
-          gimmickInfo.isImminent ? 'animate-gimmick-warning' : ''
-        }`}>
-          <span className="text-lg flex-shrink-0">{gimmickInfo.icon}</span>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between text-[9px] sm:text-[10px] font-mono mb-0.5">
-              <span className="font-black text-white truncate">{gimmickInfo.label}</span>
-              <span className={`font-bold flex-shrink-0 ${
-                gimmickInfo.isImminent ? 'text-red-300 animate-pulse font-black' : 'text-gray-300'
-              }`}>
-                {gimmickInfo.countdown}
-              </span>
-            </div>
-            <div className="w-full bg-iron-950 rounded-full overflow-hidden h-1.5 border border-iron-800">
-              <div
-                className={`h-full transition-all duration-300 bg-gradient-to-r ${gimmickInfo.color}`}
-                style={{ width: `${gimmickInfo.progress}%` }}
-              />
-            </div>
-            <div className="text-[8px] text-gray-300 mt-0.5 font-mono truncate">
-              {gimmickInfo.description}
-            </div>
+      {/* Row 3: Stagger BREAK Counter Bar (When Charging Ultimate) */}
+      {isCharging && (
+        <div className="relative z-10 mb-1.5 p-1.5 rounded-lg border-2 border-red-500 bg-red-950/90 shadow-[0_0_15px_rgba(239,68,68,0.7)] animate-pulse">
+          <div className="flex items-center justify-between text-[10px] sm:text-[11px] font-mono font-black text-yellow-200 mb-1">
+            <span className="flex items-center gap-1">
+              <ShieldAlert className="w-3.5 h-3.5 text-red-400" />
+              <span>[BREAK 저지 게이지] 방패 강타(250% 저지) 또는 공격으로 파괴하세요!</span>
+            </span>
+            <span className="text-amber-300">{boss.bossStaggerHp} / {boss.bossStaggerMaxHp}</span>
           </div>
-          {gimmickInfo.isImminent && (
-            <AlertTriangle className="w-4 h-4 text-red-400 animate-pulse flex-shrink-0" />
-          )}
+          <div className="w-full bg-iron-950 rounded-full h-2 border border-yellow-500/80 overflow-hidden shadow-inner">
+            <div
+              className="h-full bg-gradient-to-r from-yellow-500 via-amber-400 to-red-500 transition-all duration-300"
+              style={{ width: `${staggerPercent}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Row 4: Tactical Notice & Gimmick Countdown */}
+      {!isCharging && !isGroggy && (
+        <div className="relative z-10 flex items-center justify-between text-[9px] sm:text-[10px] font-mono bg-iron-950/85 px-2 py-1 rounded-lg border border-iron-800 text-gray-300">
+          <span className="flex items-center gap-1 text-amber-200 truncate">
+            <Sparkles className="w-3 h-3 text-amber-400" />
+            <span>3턴 멸망기 차징 · 4턴 결계 약점 노출 · 50% 하수인 의식</span>
+          </span>
+          <span className="text-gray-400 flex-shrink-0 font-bold ml-2">
+            턴 #{bossTurnCount}
+          </span>
         </div>
       )}
     </div>

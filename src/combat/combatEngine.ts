@@ -20,6 +20,8 @@ export interface AttackResolution {
   appliedDamage: number;
   isCritical: boolean;
   isExtraStrike?: boolean;
+  isBossBreak?: boolean;
+  isWeakSpotHit?: boolean;
   newMonsters: Monster[];
 }
 
@@ -55,6 +57,8 @@ export function resolveAttack(
       appliedDamage: 0,
       isCritical: false,
       isExtraStrike: false,
+      isBossBreak: false,
+      isWeakSpotHit: false,
       newMonsters: []
     };
   }
@@ -72,10 +76,10 @@ export function resolveAttack(
   if (!forceDeterministic) {
     isCritical = Math.random() * 100 < effectiveCritRate;
     isExtraStrike = Math.random() * 100 < flurryChance;
-    baseDamage = Math.floor(Math.random() * (totalStats.maxDmg - totalStats.minDmg + 1)) + totalStats.minDmg;
+    baseDamage = Math.floor(totalStats.minDmg + Math.random() * (totalStats.maxDmg - totalStats.minDmg + 1));
   } else {
-    isCritical = false;
-    isExtraStrike = false;
+    isCritical = effectiveCritRate >= 50;
+    isExtraStrike = flurryChance >= 50;
   }
 
   let runeDmgBonus = 1.0;
@@ -108,6 +112,8 @@ export function resolveAttack(
   let stopperId: string | null = null;
   let accumulatedDamage = 0;
   let accumulatedAppliedDamage = 0;
+  let bossBreakTriggered = false;
+  let weakSpotHitTriggered = false;
 
   const getEffectiveDefense = (def: number) => {
     return skill.activeRuneId === 'rune_poison' ? Math.floor(def * 0.5) : def;
@@ -124,6 +130,31 @@ export function resolveAttack(
   const monsterMap = new Map<string, Monster>(monsters.map(m => [m.id, { ...m }]));
   const effectiveOverkillEff = skill.overkillEfficiency * (totalStats.overkillEfficiency / 100) * runeOverkillBonus;
 
+  // Boss Interactive Mechanics: Stagger Break & Weak Spot
+  const applyBossMechanics = (m: Monster, rawDmg: number): number => {
+    let dmg = rawDmg;
+    if (m.rank === 'boss') {
+      if (m.isGroggy) {
+        dmg = Math.floor(dmg * 1.5);
+      }
+      if (m.bossWeakLane !== undefined && m.bossWeakLane === playerLane) {
+        dmg = Math.floor(dmg * 2.5);
+        weakSpotHitTriggered = true;
+      }
+      if (m.isChargingUltimate && (m.bossStaggerHp || 0) > 0) {
+        const staggerPower = skill.id === 'shield_bash' ? Math.floor(dmg * 2.5) : dmg;
+        m.bossStaggerHp = Math.max(0, (m.bossStaggerHp || 0) - staggerPower);
+        if (m.bossStaggerHp <= 0) {
+          m.isChargingUltimate = false;
+          m.isGroggy = true;
+          m.bossStaggerHp = 0;
+          bossBreakTriggered = true;
+        }
+      }
+    }
+    return Math.max(1, dmg);
+  };
+
   if (skill.route === 'line') {
     const laneMonsters = monsters
       .filter(m => m.lane === playerLane && m.hp > 0)
@@ -136,7 +167,8 @@ export function resolveAttack(
 
       const isOverkillHit = idx > 0;
       const defMultiplier = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(m.defense));
-      const actualDmg = Math.floor(currentPayload * defMultiplier);
+      const baseDmg = Math.floor(currentPayload * defMultiplier);
+      const actualDmg = applyBossMechanics(monsterMap.get(m.id)!, baseDmg);
       const isFatal = actualDmg >= m.hp;
 
       targetsHit.push({
@@ -183,7 +215,8 @@ export function resolveAttack(
 
         const isOverkillHit = idx > 0;
         const defMultiplier = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(m.defense));
-        const actualDmg = Math.floor(currentPayload * defMultiplier);
+        const baseDmg = Math.floor(currentPayload * defMultiplier);
+        const actualDmg = applyBossMechanics(monsterMap.get(m.id)!, baseDmg);
         const isFatal = actualDmg >= m.hp;
 
         targetsHit.push({
@@ -230,7 +263,8 @@ export function resolveAttack(
       if (laneMonsters.length > 0) {
         const m0 = laneMonsters[0];
         const defMultiplier = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(m0.defense));
-        const actualDmg = Math.floor(baseLanePayload * defMultiplier);
+        const baseDmg0 = Math.floor(baseLanePayload * defMultiplier);
+        const actualDmg = applyBossMechanics(monsterMap.get(m0.id)!, baseDmg0);
         const isFatal = actualDmg >= m0.hp;
 
         targetsHit.push({
@@ -262,7 +296,8 @@ export function resolveAttack(
         const m1 = laneMonsters[1];
         const defMultiplier = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(m1.defense));
         const payload1 = baseLanePayload + overkillCarryRaw;
-        const actualDmg = Math.floor(payload1 * defMultiplier);
+        const baseDmg1 = Math.floor(payload1 * defMultiplier);
+        const actualDmg = applyBossMechanics(monsterMap.get(m1.id)!, baseDmg1);
         const isFatal = actualDmg >= m1.hp;
 
         targetsHit.push({
@@ -297,7 +332,8 @@ export function resolveAttack(
 
           const mb = laneMonsters[idx];
           const defMultiplier = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(mb.defense));
-          const actualDmg = Math.floor(overkillCarryRaw * defMultiplier);
+          const baseDmgB = Math.floor(overkillCarryRaw * defMultiplier);
+          const actualDmg = applyBossMechanics(monsterMap.get(mb.id)!, baseDmgB);
           if (actualDmg <= 0) break;
 
           const isFatal = actualDmg >= mb.hp;
@@ -347,7 +383,8 @@ export function resolveAttack(
       const currentTarget = laneMonsters[targetIdx];
       const targetState = monsterMap.get(currentTarget.id)!;
       const defMultiplier = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(currentTarget.defense));
-      const actualDmg = Math.floor(initialRawPayload * defMultiplier);
+      const baseDmg = Math.floor(initialRawPayload * defMultiplier);
+      const actualDmg = applyBossMechanics(targetState, baseDmg);
       const isFatal = actualDmg >= targetState.hp;
 
       targetsHit.push({
@@ -380,7 +417,8 @@ export function resolveAttack(
       const frontTarget = laneMonsters[0];
       const executeBonus = skill.id === 'execute' && frontTarget.hp < frontTarget.maxHp * 0.5 ? 1.6 : 1.0;
       const defMultiplier = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(frontTarget.defense));
-      const actualDmg = Math.floor(initialRawPayload * executeBonus * defMultiplier);
+      const baseDmg = Math.floor(initialRawPayload * executeBonus * defMultiplier);
+      const actualDmg = applyBossMechanics(monsterMap.get(frontTarget.id)!, baseDmg);
       const isFatal = actualDmg >= frontTarget.hp;
 
       targetsHit.push({
@@ -409,7 +447,8 @@ export function resolveAttack(
 
           const sm = laneMonsters[idx];
           const smDefMult = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(sm.defense));
-          const smDmg = Math.floor(currentPayload * smDefMult);
+          const smBaseDmg = Math.floor(currentPayload * smDefMult);
+          const smDmg = applyBossMechanics(monsterMap.get(sm.id)!, smBaseDmg);
           if (smDmg <= 0) break;
 
           const isSmFatal = smDmg >= sm.hp;
@@ -461,6 +500,8 @@ export function resolveAttack(
     appliedDamage: accumulatedAppliedDamage,
     isCritical,
     isExtraStrike,
+    isBossBreak: bossBreakTriggered,
+    isWeakSpotHit: weakSpotHitTriggered,
     newMonsters: Array.from(monsterMap.values())
   };
 }

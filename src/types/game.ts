@@ -172,10 +172,16 @@ export interface Monster {
   isPredictedDead?: boolean;
   isFrozen?: boolean;
   isInvulnerable?: boolean;
-  incomingDamage?: number;
   bossGimmick?: string;
   bossSignatureKey?: string;
   element?: ElementType;
+  bossStaggerHp?: number;
+  bossStaggerMaxHp?: number;
+  bossWeakLane?: number;
+  isGroggy?: boolean;
+  bossTelegraphLanes?: number[];
+  isChargingUltimate?: boolean;
+  bossUltimateName?: string;
 }
 
 export type SkillRoute = 'line' | 'branch' | 'radius' | 'single';
