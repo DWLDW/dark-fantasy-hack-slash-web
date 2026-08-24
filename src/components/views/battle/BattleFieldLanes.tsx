@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
 import { useGame } from '../../../state/gameStore';
-import { Monster } from '../../../types/game';
-import { Crown, Crosshair, Sparkles } from 'lucide-react';
+import { Monster, GameItem } from '../../../types/game';
+import { Crown, Crosshair, Sparkles, Coins, Gem, ShieldCheck, ArrowRight } from 'lucide-react';
+import { calculateItemScore } from '../../../utils/itemScoring';
 
 interface BattleFieldLanesProps {
   dyingMonsterIds: Set<string>;
@@ -14,7 +15,6 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
     setPlayerLane,
     selectedSkill,
     preview,
-    bestLaneHint,
     floatingDamages,
     currentDungeon,
     currentRoomId,
@@ -24,7 +24,9 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
     claimShrine,
     selectedShrineType,
     setSelectedShrineType,
-    latestRoomLootEvent
+    latestRoomLootEvent,
+    equipItem,
+    equipment
   } = useGame();
 
   const totalMonsters = monsters.length;
@@ -46,24 +48,128 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
   }, [monsters]);
 
   return (
-    <div className="bg-iron-900/90 border-2 border-iron-750 rounded-xl p-1.5 sm:p-2.5 shadow-2xl relative select-none font-sans h-[220px] sm:h-[260px] max-h-[220px] sm:max-h-[260px] flex flex-col justify-between overflow-hidden flex-shrink-0">
+    <div className="bg-iron-900/90 border-2 border-iron-750 rounded-xl p-1.5 sm:p-2 shadow-2xl relative select-none font-sans h-[260px] sm:h-[290px] max-h-[260px] sm:max-h-[290px] flex flex-col justify-between overflow-hidden flex-shrink-0">
       {isCleared ? (
         <div className="w-full h-full flex flex-col justify-center items-center relative z-20 py-1">
           {latestRoomLootEvent ? (
-            /* 🔥 FULL HERO LOOT REVEAL OVERLAY */
-            <div className="w-full h-full p-3 bg-gradient-to-b from-iron-900/98 via-iron-950/98 to-amber-950/95 border-2 border-amber-400 rounded-xl shadow-[0_0_50px_rgba(251,191,36,0.35)] space-y-2 animate-fade-in text-center ring-1 ring-amber-300/60 flex flex-col justify-center items-center">
-              <div className="flex flex-col items-center justify-center space-y-1">
-                <div className="w-10 h-10 rounded-full bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center text-xl shadow-[0_0_20px_rgba(251,191,36,0.6)] animate-bounce">
-                  {latestRoomLootEvent.type === 'treasure' ? '🎁' : latestRoomLootEvent.type === 'rune' ? '🔮' : '☀️'}
+            /* 🔥 HERO LOOT REVEAL OVERLAY WITH DROPPED ITEM CARDS */
+            <div className="w-full h-full p-2 sm:p-2.5 bg-gradient-to-b from-iron-950 via-iron-900 to-iron-950 border-2 border-amber-400 rounded-xl shadow-[0_0_40px_rgba(251,191,36,0.35)] space-y-1.5 animate-fade-in flex flex-col justify-between items-center text-center">
+              
+              {/* Loot Header & Currency Banner */}
+              <div className="space-y-0.5 w-full">
+                <div className="flex items-center justify-center gap-1.5">
+                  <span className="text-base sm:text-lg">
+                    {latestRoomLootEvent.type === 'treasure' ? '🎁' : latestRoomLootEvent.type === 'rune' ? '🔮' : '⚔️'}
+                  </span>
+                  <h3 className="text-xs sm:text-sm font-cinzel font-black text-amber-200 tracking-wider flex items-center gap-1">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                    <span>[{latestRoomLootEvent.title}] 획득 전리품</span>
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                  </h3>
                 </div>
-                <h3 className="text-sm sm:text-base font-cinzel font-black text-amber-200 tracking-wider flex items-center justify-center gap-1.5">
-                  <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
-                  <span>[{latestRoomLootEvent.title}] 획득 완료!</span>
-                  <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
-                </h3>
+
+                {/* Currency Rewards Row */}
+                <div className="flex items-center justify-center gap-2 font-mono text-[10px] sm:text-[11px] flex-wrap">
+                  {latestRoomLootEvent.gold !== undefined && latestRoomLootEvent.gold > 0 && (
+                    <span className="px-2 py-0.5 rounded bg-yellow-950/80 border border-yellow-500 text-yellow-300 font-bold flex items-center gap-1">
+                      <Coins className="w-3 h-3" />
+                      <span>+{latestRoomLootEvent.gold.toLocaleString()} G</span>
+                    </span>
+                  )}
+                  {latestRoomLootEvent.shards !== undefined && latestRoomLootEvent.shards > 0 && (
+                    <span className="px-2 py-0.5 rounded bg-purple-950/80 border border-purple-500 text-purple-300 font-bold flex items-center gap-1">
+                      <Gem className="w-3 h-3" />
+                      <span>+{latestRoomLootEvent.shards} Shard</span>
+                    </span>
+                  )}
+                  {latestRoomLootEvent.runeName && (
+                    <span className="px-2 py-0.5 rounded bg-purple-950/80 border border-purple-400 text-purple-200 font-bold flex items-center gap-1">
+                      <span>🔮 {latestRoomLootEvent.runeName} 룬 x{latestRoomLootEvent.count || 1}</span>
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Dropped Items Grid (Clickable to Equip immediately) */}
+              {latestRoomLootEvent.items && latestRoomLootEvent.items.length > 0 ? (
+                <div className="w-full max-w-xl grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-32 overflow-y-auto px-1">
+                  {latestRoomLootEvent.items.map(item => {
+                    const isIdentified = item.isIdentified !== false;
+                    const score = isIdentified ? calculateItemScore(item) : null;
+                    const isEquipped = Object.values(equipment).some(eq => eq?.id === item.id);
+
+                    return (
+                      <div
+                        key={item.id}
+                        onClick={() => {
+                          if (isIdentified && !isEquipped) equipItem(item);
+                        }}
+                        className={`p-1.5 rounded-lg border flex items-center justify-between gap-1.5 transition text-left cursor-pointer shadow ${
+                          isEquipped
+                            ? 'bg-emerald-950/70 border-emerald-500 text-emerald-200 ring-1 ring-emerald-400'
+                            : item.rarity === 'unique' || item.rarity === 'legendary'
+                            ? 'bg-orange-950/50 border-orange-400 text-orange-200 hover:bg-orange-900/60'
+                            : item.rarity === 'rare'
+                            ? 'bg-yellow-950/40 border-yellow-400 text-yellow-200 hover:bg-yellow-900/60'
+                            : 'bg-iron-950 border-iron-750 text-gray-200 hover:bg-iron-900'
+                        }`}
+                        title={isIdentified ? "클릭 시 즉시 장착" : "데커드 케인 감정 후 장착 가능"}
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="font-black text-[11px] truncate flex items-center gap-1">
+                            <span>{item.name}</span>
+                            <span className="text-[8px] font-mono uppercase opacity-80 px-1 py-0.2 bg-iron-900 rounded border border-iron-800">
+                              {item.slot}
+                            </span>
+                          </div>
+                          {isIdentified && item.stats && (
+                            <div className="text-[9px] text-gray-300 font-mono flex items-center gap-1.5 mt-0.2 truncate">
+                              {item.stats.minDmg !== undefined && (
+                                <span className="text-brass-300 font-bold">공격 {item.stats.minDmg}~{item.stats.maxDmg}</span>
+                              )}
+                              {item.stats.defense !== undefined && (
+                                <span className="text-blue-300">방어 {item.stats.defense}</span>
+                              )}
+                              {score !== null && (
+                                <span className="text-amber-300 font-bold">전투력 {score}</span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Equip status button / badge */}
+                        <div className="flex-shrink-0">
+                          {isEquipped ? (
+                            <span className="text-[9px] font-mono font-bold text-emerald-300 bg-emerald-950 px-1.5 py-0.5 rounded border border-emerald-500 flex items-center gap-0.5">
+                              <ShieldCheck className="w-2.5 h-2.5" /> 장착됨
+                            </span>
+                          ) : isIdentified ? (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                equipItem(item);
+                              }}
+                              className="px-2 py-0.5 rounded bg-amber-500 hover:bg-amber-400 text-iron-950 font-black text-[10px] shadow transition cursor-pointer"
+                            >
+                              장착
+                            </button>
+                          ) : (
+                            <span className="text-[9px] text-blood-300 font-mono">미확인</span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
                 <p className="text-[11px] text-emerald-400 font-mono font-bold">
-                  ✓ 모든 전리품이 소지품 가방에 안전하게 수납되었습니다.
+                  ✓ 모든 보상이 안전하게 수령되었습니다.
                 </p>
+              )}
+
+              <div className="text-[10px] font-mono text-gray-400 flex items-center gap-1">
+                <span>[Space] 키를 눌러 다음 방으로 이동하세요</span>
+                <ArrowRight className="w-3 h-3 text-amber-400" />
               </div>
             </div>
           ) : !roomEventClaimed && (currentRoom?.type === 'treasure' || currentRoom?.type === 'rune' || currentRoom?.type === 'shrine') ? (
@@ -98,7 +204,7 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                 <div className="space-y-1">
                   <div className="text-sm sm:text-base font-black text-blue-200">{currentRoom.title}</div>
                   <p className="text-[10px] text-gray-300 font-mono">
-                    방향키 [← / →] 축복 선택 · [Space] 수령
+                    방향키 [← / →] 축복 선택 ��� [Space] 수령
                   </p>
                   <div className="grid grid-cols-3 gap-1 max-w-xl mx-auto font-mono text-left">
                     <button
@@ -169,7 +275,7 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
           )}
         </div>
       ) : (
-        /* 5-LANE FULL HIGH-FIDELITY BATTLEFIELD (Strictly Fixed Height h-full, Zero Jitter) */
+        /* 5-LANE BATTLEFIELD (Supports 4 Full Monster Depth Rows visible D1~D4) */
         <div className="grid grid-cols-5 gap-1 sm:gap-1.5 h-full items-stretch">
           {[0, 1, 2, 3, 4].map(laneIdx => {
             const isPlayerInLane = playerLane === laneIdx;
@@ -182,6 +288,10 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
             const laneHitTargets = laneList.filter(m => preview.targetsHit.some(t => t.monsterId === m.id));
             const laneFatalHits = laneList.filter(m => preview.targetsHit.find(t => t.monsterId === m.id)?.isFatal).length;
             const hasHitsInLane = laneHitTargets.length > 0;
+
+            // Render up to 4 monsters in the visible stack
+            const visibleMonsters = laneList.slice(0, 4);
+            const queuedCount = Math.max(0, laneList.length - 4);
 
             return (
               <div
@@ -238,14 +348,14 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                     </div>
                   )}
 
-                  {/* Rear Queue Stack Indicator */}
-                  {laneList.length >= 2 && (
+                  {/* Rear Queue Stack Indicator (if more than 4 monsters in queue) */}
+                  {queuedCount > 0 && (
                     <div className="w-full bg-iron-950/90 border border-iron-800 rounded px-1 py-0.2 text-[8px] font-mono text-gray-300 flex items-center justify-between">
                       <span className="text-amber-400 font-bold truncate">
-                        후열 {laneList.length - 1}
+                        후열 +{queuedCount}
                       </span>
                       <span className="flex items-center gap-0.5 text-amber-400 flex-shrink-0">
-                        {Array.from({ length: Math.min(3, laneList.length - 1) }).map((_, i) => (
+                        {Array.from({ length: Math.min(3, queuedCount) }).map((_, i) => (
                           <span key={i} className="text-[6px]">●</span>
                         ))}
                       </span>
@@ -253,9 +363,9 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                   )}
                 </div>
 
-                {/* Monster Queue in this Lane (Strictly Fits in flex-1, Bottom-Up) */}
-                <div className="w-full flex-1 flex flex-col-reverse justify-start gap-1 overflow-hidden my-0.5">
-                  {laneList.map((m, dIdx) => {
+                {/* 4 Visible Rows of Enemies in this Lane (Bottom-Up Stack: D1 frontline at bottom) */}
+                <div className="w-full flex-1 flex flex-col-reverse justify-start gap-0.5 overflow-hidden my-0.5">
+                  {visibleMonsters.map((m, dIdx) => {
                     const hitInfo = preview.targetsHit.find(t => t.monsterId === m.id);
                     const isTargeted = !!hitInfo;
                     const isPredictedKill = hitInfo?.isFatal;
@@ -269,11 +379,11 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                     return (
                       <div
                         key={m.id}
-                        className={`w-full rounded p-1 sm:p-1.5 border transition-all relative overflow-visible shadow flex-shrink-0 ${
+                        className={`w-full rounded p-0.5 sm:p-1 border transition-all relative overflow-visible shadow flex-shrink-0 ${
                           isDying
                             ? 'animate-death-shrink'
                             : isPredictedKill
-                            ? 'bg-gradient-to-r from-orange-600 via-rose-600 to-amber-500 border-amber-300 text-white ring-2 ring-amber-400 shadow-[0_0_12px_rgba(249,115,22,0.8)] animate-pulse'
+                            ? 'bg-gradient-to-r from-orange-600 via-rose-600 to-amber-500 border-amber-300 text-white ring-2 ring-amber-400 shadow-[0_0_10px_rgba(249,115,22,0.8)] animate-pulse'
                             : isTargeted
                             ? 'bg-red-950/85 border-2 border-red-500 ring-2 ring-red-500/80 text-red-100'
                             : isBoss
@@ -306,14 +416,14 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                           </div>
                         ))}
 
-                        {/* Monster Card Details (Larger, High-Contrast Fonts) */}
-                        <div className="flex items-center justify-between text-[10px] sm:text-[11px] font-black leading-tight">
+                        {/* Monster Header: Name + Depth Indicator */}
+                        <div className="flex items-center justify-between text-[9px] sm:text-[10px] font-black leading-tight">
                           <span className="truncate text-white font-bold">{m.name.split(' ')[0]}</span>
-                          <span className="font-mono text-[9px] text-gray-400">D{dIdx + 1}</span>
+                          <span className="font-mono text-[8px] text-gray-400 flex-shrink-0">D{dIdx + 1}</span>
                         </div>
 
-                        {/* HP Bar */}
-                        <div className="w-full bg-iron-950 rounded-full overflow-hidden border border-iron-800 mt-0.5 h-1.5">
+                        {/* Slim HP Bar */}
+                        <div className="w-full bg-iron-950 rounded-full overflow-hidden border border-iron-800 my-0.2 h-1">
                           <div
                             className={`h-full transition-all duration-200 ${
                               isBoss
@@ -328,20 +438,20 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                           />
                         </div>
 
-                        {/* HP & Attack Stats (Bold, High Readability) */}
-                        <div className="flex justify-between items-center text-[9px] sm:text-[10px] font-mono text-gray-300 mt-0.5 leading-none">
+                        {/* Monster Stats Row */}
+                        <div className="flex justify-between items-center text-[8px] sm:text-[9px] font-mono text-gray-300 leading-none">
                           <span className="font-black text-rose-300">{m.hp}</span>
                           <span className="font-bold text-amber-300">⚔️{m.intent.damage || 6}</span>
                         </div>
 
-                        {/* Prediction & Targeting Badges */}
+                        {/* Prediction / Targeting Tag */}
                         {isPredictedKill ? (
-                          <div className="text-[8px] sm:text-[9px] font-black text-blood-200 uppercase mt-0.5 bg-blood-950 px-0.5 rounded text-center border border-blood-700 truncate">
+                          <div className="text-[7px] sm:text-[8px] font-black text-blood-200 uppercase mt-0.2 bg-blood-950 px-0.5 rounded text-center border border-blood-700 truncate">
                             {isOverkillResidual ? '오버킬' : '처치 예상'}
                           </div>
                         ) : isTargeted ? (
-                          <div className="text-[8px] sm:text-[9px] font-black text-red-200 uppercase mt-0.5 bg-red-950 px-0.5 rounded text-center border border-red-500 animate-pulse truncate">
-                            🎯 피격 (-{hitInfo.damage})
+                          <div className="text-[7px] sm:text-[8px] font-black text-red-200 uppercase mt-0.2 bg-red-950 px-0.5 rounded text-center border border-red-500 animate-pulse truncate">
+                            🎯 -{hitInfo.damage}
                           </div>
                         ) : null}
                       </div>

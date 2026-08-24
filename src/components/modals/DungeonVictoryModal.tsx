@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useGame } from '../../state/gameStore';
-import { Trophy, Sparkles, BookOpen, Coins, Gem, ArrowRight, Flame, HelpCircle, Zap, ShieldCheck, Package, Check } from 'lucide-react';
+import { Trophy, Sparkles, BookOpen, Coins, Gem, ArrowRight, Flame, HelpCircle, Zap, ShieldCheck, Package, Lock } from 'lucide-react';
 import { D2_RUNES } from '../../data/gameData';
 import { isItemBetterWithThreshold, calculateItemScore } from '../../utils/itemScoring';
 import type { GameItem, EquipSlot } from '../../types/game';
@@ -175,17 +175,20 @@ export const DungeonVictoryModal: React.FC = () => {
               )}
             </div>
 
-            {/* Quick Auto-Equip Action Header Button */}
-            {allIdentified && (
-              <button
-                onClick={autoEquipBestItems}
-                className="px-3 py-1 rounded bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-iron-950 font-black text-xs shadow flex items-center gap-1 transition cursor-pointer transform active:scale-95 animate-pulse"
-                title="공격력+체력 가중치 기준 최적 장비 자동 일괄 장착"
-              >
-                <Zap className="w-3 h-3 fill-iron-950" />
-                <span>추천 일괄 장착</span>
-              </button>
-            )}
+            {/* Auto-Equip Button: Disabled when un-identified, enabled when all identified! */}
+            <button
+              onClick={autoEquipBestItems}
+              disabled={!allIdentified}
+              className={`px-3 py-1 rounded font-black text-xs shadow flex items-center gap-1 transition select-none ${
+                allIdentified
+                  ? 'bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-iron-950 ring-2 ring-amber-300 cursor-pointer transform active:scale-95 animate-pulse'
+                  : 'bg-iron-900 text-gray-500 border border-iron-800 cursor-not-allowed opacity-60'
+              }`}
+              title={allIdentified ? "공격력+체력 가중치 기준 최적 장비 자동 일괄 장착" : "📜 먼저 케인에게 장비를 감정한 후 일괄 장착할 수 있습니다"}
+            >
+              {allIdentified ? <Zap className="w-3 h-3 fill-iron-950" /> : <Lock className="w-3 h-3 text-gray-500" />}
+              <span>{allIdentified ? '⚡ 추천 일괄 장착' : '🔒 감정 후 일괄 장착 가능'}</span>
+            </button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-1">
@@ -246,8 +249,8 @@ export const DungeonVictoryModal: React.FC = () => {
                       )}
                     </div>
                   ) : (
-                    <div className="mt-1 text-[10px] text-blood-300 italic">
-                      데커드 케인의 감정을 받으면 강력한 능력치 옵션이 드러납니다.
+                    <div className="mt-1 text-[10px] text-blood-300 italic flex items-center justify-between">
+                      <span>미확인 상태입니다. 아래 케인에게 감정받으세요.</span>
                     </div>
                   )}
                 </div>
@@ -267,7 +270,9 @@ export const DungeonVictoryModal: React.FC = () => {
                 <span>현자 데커드 케인 (Deckard Cain)</span>
               </div>
               <p className="text-[10px] text-gray-300 font-medium italic">
-                "잠시 내 말에 귀 기울여보게나... 고대의 지혜로 전리품들의 잠재력을 밝혀주겠네."
+                {hasUnidentified
+                  ? '"잠시 내 말에 귀 기울여보게나... 고대의 지혜로 전리품들의 잠재력을 밝혀주겠네."'
+                  : '"모든 전리품의 숨겨진 힘이 밝혀졌네! 이제 최적의 장비로 무장하게나."'}
               </p>
             </div>
           </div>
@@ -283,7 +288,7 @@ export const DungeonVictoryModal: React.FC = () => {
               }`}
             >
               <BookOpen className="w-3.5 h-3.5" />
-              <span>{hasUnidentified ? '📜 전리품 일괄 무료 감정' : '✓ 감정 완료'}</span>
+              <span>{hasUnidentified ? '📜 전리품 일괄 무료 감정' : '✓ 모든 전리품 감정 완료'}</span>
             </button>
           </div>
         </div>
