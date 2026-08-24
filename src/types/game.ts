@@ -72,7 +72,6 @@ export interface RuneWordRecipe {
   description: string;
 }
 
-
 export interface ConsumableItem {
   id: string;
   name: string;
@@ -115,7 +114,6 @@ export interface PlayerStats {
 }
 
 export type RoomType = 'start' | 'normal' | 'elite' | 'treasure' | 'rune' | 'shrine' | 'boss';
-
 
 export interface DungeonBuff {
   id: string;
@@ -173,8 +171,11 @@ export interface Monster {
   isTargeted?: boolean;
   isPredictedDead?: boolean;
   isFrozen?: boolean;
+  isInvulnerable?: boolean;
   incomingDamage?: number;
   bossGimmick?: string;
+  bossSignatureKey?: string;
+  element?: ElementType;
 }
 
 export type SkillRoute = 'line' | 'branch' | 'radius' | 'single';
@@ -223,7 +224,6 @@ export interface CombatLogEntry {
 
 export type { Achievement, AchievementStats } from '../data/achievements';
 
-
 export interface RoomLootEvent {
   type: 'treasure' | 'rune' | 'shrine' | 'combat';
   title: string;
@@ -235,7 +235,6 @@ export interface RoomLootEvent {
   buffName?: string;
   buffDesc?: string;
 }
-
 
 export interface TownUpgrades {
   potionCapacityLevel: number; // 0..5 (3, 4, 5, 6, 8, 10)
@@ -250,7 +249,6 @@ export const DEFAULT_TOWN_UPGRADES: TownUpgrades = {
   consumablePowerLevel: 0,
   gambleLevel: 1
 };
-
 
 export interface ConfirmDialogState {
   isOpen: boolean;

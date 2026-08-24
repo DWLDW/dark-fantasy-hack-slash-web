@@ -513,6 +513,187 @@ export const DUNGEONS_DATA: DungeonInfo[] = [
   }
 ];
 
+export interface BossMetadata {
+  name: string;
+  icon: string;
+  element: 'physical' | 'fire' | 'cold' | 'lightning' | 'poison' | 'void';
+  signatureKey: string;
+  gimmickTitle: string;
+  gimmickDesc: string;
+}
+
+export const BOSS_METADATA_TABLE: Record<string, BossMetadata> = {
+  // Act 1
+  act1_1_den: {
+    name: '불타는 시체좀비',
+    icon: '🧟‍♂️',
+    element: 'fire',
+    signatureKey: 'corpse_explosion',
+    gimmickTitle: '시체 폭발',
+    gimmickDesc: '3턴마다 전장에 화염 파동을 방출하여 1.5배 피해를 입힙니다.'
+  },
+  act1_2_crypt: {
+    name: '핏빛 갈까마귀의 환영',
+    icon: '🦅',
+    element: 'void',
+    signatureKey: 'shadow_barrage',
+    gimmickTitle: '암흑 화살비 & 소환',
+    gimmickDesc: 'HP 50% 이하 시 언데드 하수인 2마리를 소환합니다.'
+  },
+  act1_3_tower: {
+    name: '핏빛 백작부인',
+    icon: '🧛‍♀️',
+    element: 'physical',
+    signatureKey: 'blood_drain',
+    gimmickTitle: '피의 장막 태세',
+    gimmickDesc: '4턴마다 방어 태세를 취해 받는 피해를 70% 감소시킵니다.'
+  },
+  act1_4_catacombs: {
+    name: '고뇌의 여왕 안다리엘',
+    icon: '🦂',
+    element: 'poison',
+    signatureKey: 'poison_nova',
+    gimmickTitle: '맹독 분사 & 독성 웅덩이',
+    gimmickDesc: '3턴마다 전장에 맹독을 살포하여 보호막을 파괴하고 맹독 피해를 입힙니다.'
+  },
+
+  // Act 2
+  act2_1_sewers: {
+    name: '시체약탈자 라다먼트',
+    icon: '🪦',
+    element: 'poison',
+    signatureKey: 'undead_raise',
+    gimmickTitle: '망자 부활 의식',
+    gimmickDesc: 'HP 50% 이하 시 부패 미이라 하수인 2마리를 부활시킵니다.'
+  },
+  act2_2_halls: {
+    name: '고대 미이라 수호장',
+    icon: '🏺',
+    element: 'lightning',
+    signatureKey: 'charged_shield',
+    gimmickTitle: '태양의 충전 방패',
+    gimmickDesc: '4턴마다 고대 방어 태세로 받는 피해를 70% 감소시킵니다.'
+  },
+  act2_3_maggot: {
+    name: '거대 산란 여왕 콜디웜',
+    icon: '🐛',
+    element: 'cold',
+    signatureKey: 'frost_burrow',
+    gimmickTitle: '혹한의 잠복 포효',
+    gimmickDesc: '3턴마다 동결 파동을 방출하여 플레이어의 보호막을 파괴합니다.'
+  },
+  act2_4_tomb: {
+    name: '고통의 대공 두리엘',
+    icon: '🪲',
+    element: 'cold',
+    signatureKey: 'holy_freeze_charge',
+    gimmickTitle: '결빙 오라 & 흉포한 돌진',
+    gimmickDesc: '결빙 오라로 플레이어 회피율을 억제하며 3턴마다 강력한 돌진 강타를 가합니다.'
+  },
+
+  // Act 3
+  act3_1_spider: {
+    name: '불꽃눈 거미',
+    icon: '🕷️',
+    element: 'fire',
+    signatureKey: 'fire_web',
+    gimmickTitle: '화염 거미줄 방어',
+    gimmickDesc: '4턴마다 단단한 화염 거미줄을 둘러 받는 피해를 70% 차단합니다.'
+  },
+  act3_2_jungle: {
+    name: '약탈자 대주술사',
+    icon: '👺',
+    element: 'fire',
+    signatureKey: 'inferno_breath',
+    gimmickTitle: '원주민 화염 숨결',
+    gimmickDesc: '3턴마다 맹렬한 지옥불 숨결로 전 레인 광역 화염 피해를 입힙니다.'
+  },
+  act3_3_travincal: {
+    name: '하이 카운실 이스마일',
+    icon: '🧝',
+    element: 'fire',
+    signatureKey: 'hydra_summon',
+    gimmickTitle: '타락 평의회 수호병 소환',
+    gimmickDesc: 'HP 50% 이하 시 평의회 정예 집행관 2마리를 소환합니다.'
+  },
+  act3_4_durance: {
+    name: '증오의 군주 메피스토',
+    icon: '💀',
+    element: 'lightning',
+    signatureKey: 'lightning_pylon',
+    gimmickTitle: '증오의 뇌격 & 번개 첨탑',
+    gimmickDesc: '4턴마다 뇌격 방어막을 전개하여 받는 피해를 70% 감소시키고 광역 피해를 가합니다.'
+  },
+
+  // Act 4
+  act4_1_plains: {
+    name: '타락한 대천사 이주얼',
+    icon: '🪽',
+    element: 'cold',
+    signatureKey: 'frozen_blade',
+    gimmickTitle: '얼어붙은 성검의 참격',
+    gimmickDesc: '3턴마다 혹한의 성검을 휘둘러 보호막을 일격에 파괴하고 냉기 피해를 입힙니다.'
+  },
+  act4_2_forge: {
+    name: '대장장이 헤파스토',
+    icon: '🔨',
+    element: 'fire',
+    signatureKey: 'forge_smash',
+    gimmickTitle: '지옥 모루 분쇄 & 증원',
+    gimmickDesc: 'HP 50% 이하 시 지옥 대장간 불길의 수호병 2마리를 소환합니다.'
+  },
+  act4_3_sanctuary: {
+    name: '봉인 파수관 영혼의 잠식자',
+    icon: '👁️',
+    element: 'void',
+    signatureKey: 'void_gaze',
+    gimmickTitle: '혼돈의 5대 봉인 방어',
+    gimmickDesc: '4턴마다 5대 봉인의 결계를 가동하여 받는 피해를 70% 차단합니다.'
+  },
+  act4_4_altar: {
+    name: '공포의 군주 디아블로',
+    icon: '👹',
+    element: 'fire',
+    signatureKey: 'red_lightning_hose',
+    gimmickTitle: '붉은 번개 숨결 & 지옥불 파동',
+    gimmickDesc: '3턴마다 전장을 휩쓰는 붉은 번개 숨결을 뿜어 보호막을 소각하고 파멸적 화염 피해를 입힙니다.'
+  },
+
+  // Act 5
+  act5_1_foothills: {
+    name: '감독관 쉔크',
+    icon: '🎪',
+    element: 'physical',
+    signatureKey: 'catapult_strike',
+    gimmickTitle: '공성 투석기 & 선봉대 소환',
+    gimmickDesc: 'HP 50% 이하 시 바알의 공성 선봉대 2마리를 증원 소환합니다.'
+  },
+  act5_2_summit: {
+    name: '3대 고대 바바리안 수호신',
+    icon: '⚔️',
+    element: 'physical',
+    signatureKey: 'ancients_whirlwind',
+    gimmickTitle: '3인 합동 휠윈드 태세',
+    gimmickDesc: '4턴마다 탈릭/코릭/마다크의 강철 방어 태세를 취해 피해를 70% 감소시킵니다.'
+  },
+  act5_3_keep: {
+    name: '바알의 선봉대 군단',
+    icon: '🛡️',
+    element: 'void',
+    signatureKey: 'vanguard_phalanx',
+    gimmickTitle: '세계석 파멸의 포효',
+    gimmickDesc: '3턴마다 전장을 뒤흔드는 심연의 포효로 보호막을 파괴하고 광역 피해를 가합니다.'
+  },
+  act5_4_throne: {
+    name: '파멸의 군주 바알',
+    icon: '🐙',
+    element: 'cold',
+    signatureKey: 'vile_clone_burn',
+    gimmickTitle: '환영 분신 & 파멸의 촉수',
+    gimmickDesc: 'HP 50% 이하 시 파멸의 환영 하수인 2마리를 소환하며 강력한 냉기 공격을 퍼붓습니다.'
+  }
+};
+
 export function createDungeonFormation(
   dungeonId: string,
   roomType: 'normal' | 'elite' | 'boss' | 'treasure' | 'rune' | 'shrine' | 'start' = 'normal',
@@ -532,19 +713,19 @@ export function createDungeonFormation(
   const dungeon = DUNGEONS_DATA.find(d => d.id === dungeonId) || DUNGEONS_DATA[0];
   const recLv = Math.max(1, dungeon.recommendedLevel || 1);
   const dungeonIdx = Math.max(0, DUNGEONS_DATA.findIndex(d => d.id === dungeonId));
-  const BOSS_GIMMICKS: Record<string, string> = {
-    roar: '3턴마다 전 레인 광역 포효',
-    summon: '체력 50% 이하로 처하면 잡몹 2마리 재소환',
-    guard: '4턴마다 1턴간 받는 피해 70% 감소'
-  };
-  const gimmickKeys = ['roar', 'summon', 'guard'];
-  const bossGimmickKey = gimmickKeys[dungeonIdx % 3];
-
   const monsterNames = (dungeon.monsterSummary || '').split(',').map(s => s.trim()).filter(Boolean);
   const baseName1 = monsterNames[0] || '어둠의 방랑자';
   const baseName2 = monsterNames[1] || '해골 궁수';
   const baseName3 = monsterNames[2] || '타락한 주술사';
-  const bossName = monsterNames[monsterNames.length - 1] || '지옥의 군주';
+  const bossMeta = BOSS_METADATA_TABLE[dungeonId] || {
+    name: monsterNames[monsterNames.length - 1] || '지옥의 군주',
+    icon: '👑',
+    element: 'physical' as const,
+    signatureKey: 'roar',
+    gimmickTitle: '광역 포효',
+    gimmickDesc: '3턴마다 전 레인 광역 포효'
+  };
+  const bossName = bossMeta.name;
   const eliteName = monsterNames.length > 2 ? monsterNames[monsterNames.length - 2] : '정예 집행관';
 
   // Smooth, satisfying Diablo 2 progression curve across all 20 dungeons
@@ -610,8 +791,10 @@ export function createDungeonFormation(
           targetLane: l,
           chargePercent: isBoss ? 25 : 40 + ((l * 7 + d * 13) % 30)
         },
-        bossGimmick: isBoss ? BOSS_GIMMICKS[bossGimmickKey] : undefined,
-        icon: isBoss ? 'BOSS' : isElite ? 'ELITE' : 'NORMAL'
+        bossGimmick: isBoss ? `${bossMeta.gimmickTitle}: ${bossMeta.gimmickDesc}` : undefined,
+        bossSignatureKey: isBoss ? bossMeta.signatureKey : undefined,
+        element: isBoss ? bossMeta.element : undefined,
+        icon: isBoss ? bossMeta.icon : isElite ? '⭐' : '👹'
       });
     }
   }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useGame } from '../../state/gameStore';
 import { playHeartbeatSound } from '../../utils/audio';
+import { getActTheme } from '../../utils/actThemes';
 import { BattleHeader } from './battle/BattleHeader';
 import { BattleTacticalPreview } from './battle/BattleTacticalPreview';
 import { BossHUD } from './battle/BossHUD';
@@ -14,8 +15,11 @@ export const BattleView: React.FC = React.memo(() => {
     floatingDamages,
     playerStats,
     totalStats,
-    isEnemyTurn
+    isEnemyTurn,
+    currentDungeon
   } = useGame();
+
+  const actTheme = useMemo(() => getActTheme(currentDungeon.id), [currentDungeon.id]);
 
   const [dyingMonsterIds, setDyingMonsterIds] = useState<Set<string>>(new Set());
 
@@ -92,11 +96,12 @@ export const BattleView: React.FC = React.memo(() => {
   }, [floatingDamages, monsters]);
 
   return (
-    <div className="max-w-7xl mx-auto px-1 sm:px-3 py-1 space-y-2 select-none pb-20 sm:pb-24 overflow-x-hidden relative font-sans">
-      {/* Low HP Red Vignette Screen Pulse */}
-      {isLowHp && (
-        <div className="fixed inset-0 pointer-events-none border-4 sm:border-8 border-blood-600/50 shadow-[inset_0_0_60px_rgba(239,68,68,0.5)] z-30 animate-pulse" />
-      )}
+    <div className={`w-full min-h-full transition-colors duration-500 rounded-xl p-1 sm:p-2 ${actTheme.bgGradient}`}>
+      <div className="max-w-7xl mx-auto px-1 sm:px-2 py-1 space-y-2 select-none pb-20 sm:pb-24 overflow-x-hidden relative font-sans">
+        {/* Low HP Red Vignette Screen Pulse */}
+        {isLowHp && (
+          <div className="fixed inset-0 pointer-events-none border-4 sm:border-8 border-blood-600/50 shadow-[inset_0_0_60px_rgba(239,68,68,0.5)] z-30 animate-pulse" />
+        )}
 
       {/* Layer 1: Top Header Navigation & Status */}
       <BattleHeader />
@@ -123,6 +128,7 @@ export const BattleView: React.FC = React.memo(() => {
           rageFloater={rageFloater}
         />
       </div>
+    </div>
     </div>
   );
 });

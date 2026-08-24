@@ -898,19 +898,35 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setPlayerStats(prev => ({ ...prev, rage: Math.max(0, prev.rage - actualRageCost) }));
     }
 
-    // Boss gimmick: guard every 4th player turn (70% damage reduction)
+    // Boss signature gimmick processing: player attack turn
     let attackMonsters = monsters;
     const activeRoomType = currentDungeon.rooms.find(r => r.id === currentRoomId)?.type;
-    if (activeRoomType === 'boss' && monsters.some(m => m.rank === 'boss')) {
+    const activeBoss = monsters.find(m => m.rank === 'boss');
+    if (activeRoomType === 'boss' && activeBoss) {
       bossTurnCountRef.current += 1;
       setBossTurnCount(bossTurnCountRef.current);
-      if (bossTurnCountRef.current % 4 === 0) {
+
+      const sigKey = activeBoss.bossSignatureKey || '';
+      const isGuardGimmick = ['blood_drain', 'charged_shield', 'fire_web', 'lightning_pylon', 'void_gaze', 'ancients_whirlwind', 'guard'].some(k => sigKey.includes(k) || (activeBoss.bossGimmick && activeBoss.bossGimmick.includes('방어')));
+
+      if (isGuardGimmick && bossTurnCountRef.current % 4 === 0) {
         attackMonsters = monsters.map(m => m.rank === 'boss'
           ? { ...m, defense: Math.floor(m.defense * 3.34) }
           : m);
         setBossGuardActive(true);
         setTimeout(() => setBossGuardActive(false), 1500);
-        addLog('🛡️ [보스 기믹: 방어 태세] 보스가 방어 태세를 취해 받는 피해가 70% 감소합니다!', 'system');
+
+        if (sigKey === 'charged_shield') {
+          addLog(`⚡ [${activeBoss.name} 시그니처: 태양의 충전 방패] 방어력 70% 증가! 공격 시 전류가 역류합니다!`, 'system');
+        } else if (sigKey === 'lightning_pylon') {
+          addLog(`💀 [${activeBoss.name} 시그니처: 증오의 뇌격 방패] 증오의 번개 결계로 받는 피해가 70% 감소합니다!`, 'system');
+        } else if (sigKey === 'void_gaze') {
+          addLog(`👁️ [${activeBoss.name} 시그니처: 5대 봉인의 결계] 혼돈의 결계가 활성화되어 피해가 70% 차단됩니다!`, 'system');
+        } else if (sigKey === 'ancients_whirlwind') {
+          addLog(`⚔️ [${activeBoss.name} 시그니처: 3인의 강철 방진] 고대 야만용사들의 결속으로 피해가 70% 감소합니다!`, 'system');
+        } else {
+          addLog(`🛡️ [${activeBoss.name} 기믹: 방어 태세] 보스가 방어 태세를 취해 받는 피해가 70% 감소합니다!`, 'system');
+        }
       }
     }
 
@@ -1210,16 +1226,45 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           shield: hordeResult.nextShield,
           shieldLayers: hordeResult.nextShieldLayers || []
         }));
-        // Boss gimmick: roar every 3rd enemy turn (AoE burst)
+
         const currentRoomType = currentDungeon.rooms.find(r => r.id === currentRoomId)?.type;
         if (currentRoomType === 'boss' && hordeResult.totalEnemyDamage > 0) {
           bossTurnCountRef.current += 1;
           setBossTurnCount(bossTurnCountRef.current);
           const boss = survivors.find(m => m.rank === 'boss');
           if (boss && bossTurnCountRef.current % 3 === 0) {
-            const roarDamage = Math.max(10, Math.floor((boss.intent.damage || 20) * 1.5));
-            setPlayerStats(prev => ({ ...prev, hp: Math.max(1, prev.hp - roarDamage), shield: 0, shieldLayers: [] }));
-            addLog(`🔥 [보스 기믹: 광역 포효] 전장을 뒤흔드는 포효로 ${roarDamage} 피해! 보호막이 모두 파괴됩니다!`, 'damage');
+            const sigKey = boss.bossSignatureKey || '';
+            const baseDmg = boss.intent.damage || 20;
+
+            if (sigKey === 'poison_nova') {
+              const poisonDmg = Math.max(15, Math.floor(baseDmg * 1.6));
+              setPlayerStats(prev => ({ ...prev, hp: Math.max(1, prev.hp - poisonDmg), shield: 0, shieldLayers: [] }));
+              addLog(`🦂 [고뇌의 여왕 안다리엘 시그니처: 맹독 분사] 사방으로 퍼진 맹독이 보호막을 녹이고 ${poisonDmg}의 독 피해를 입힙니다!`, 'damage');
+            } else if (sigKey === 'holy_freeze_charge') {
+              const chargeDmg = Math.max(20, Math.floor(baseDmg * 2.2));
+              setPlayerStats(prev => ({ ...prev, hp: Math.max(1, prev.hp - chargeDmg) }));
+              addLog(`🪲 [고통의 대공 두리엘 시그니처: 흉포한 결빙 돌진] 결빙의 폭풍과 함께 전열을 들이받아 ${chargeDmg}의 파괴적 돌진 피해!`, 'damage');
+            } else if (sigKey === 'red_lightning_hose') {
+              const diabloDmg = Math.max(30, Math.floor(baseDmg * 2.5));
+              setPlayerStats(prev => ({ ...prev, hp: Math.max(1, prev.hp - diabloDmg), shield: 0, shieldLayers: [] }));
+              addLog(`👹 [공포의 군주 디아블로 시그니처: 붉은 번개 숨결] 전장을 뒤덮는 붉은 번개로 보호막 소각 및 ${diabloDmg}의 지옥불 피해!`, 'damage');
+            } else if (sigKey === 'frozen_blade') {
+              const bladeDmg = Math.max(18, Math.floor(baseDmg * 1.7));
+              setPlayerStats(prev => ({ ...prev, hp: Math.max(1, prev.hp - bladeDmg), shield: 0, shieldLayers: [] }));
+              addLog(`🪽 [타락한 대천사 이주얼 시그니처: 얼어붙은 성검] 혹한의 검격이 보호막을 가르고 ${bladeDmg} 피해를 입힙니다!`, 'damage');
+            } else if (sigKey === 'inferno_breath') {
+              const breathDmg = Math.max(15, Math.floor(baseDmg * 1.8));
+              setPlayerStats(prev => ({ ...prev, hp: Math.max(1, prev.hp - breathDmg) }));
+              addLog(`👺 [약탈자 대주술사 시그니처: 지옥불 숨결] 맹렬한 원주민 화염 숨결이 ${breathDmg}의 관통 피해를 입힙니다!`, 'damage');
+            } else if (sigKey === 'vile_clone_burn') {
+              const baalDmg = Math.max(25, Math.floor(baseDmg * 1.9));
+              setPlayerStats(prev => ({ ...prev, hp: Math.max(1, prev.hp - baalDmg), rage: Math.floor(prev.rage * 0.5) }));
+              addLog(`🐙 [파멸의 군주 바알 시그니처: 파멸의 분노 소각] 플레이어의 분노 50% 소각 및 파멸의 촉수로 ${baalDmg} 피해!`, 'damage');
+            } else {
+              const roarDamage = Math.max(10, Math.floor(baseDmg * 1.5));
+              setPlayerStats(prev => ({ ...prev, hp: Math.max(1, prev.hp - roarDamage), shield: 0, shieldLayers: [] }));
+              addLog(`🔥 [${boss.name} 기믹: 광역 포효] 전장을 뒤흔드는 포효로 ${roarDamage} 피해! 보호막이 파괴됩니다!`, 'damage');
+            }
           }
         }
 

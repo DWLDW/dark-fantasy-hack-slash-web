@@ -3,6 +3,7 @@ import { useGame } from '../../../state/gameStore';
 import { Monster, GameItem } from '../../../types/game';
 import { Crown, Crosshair, Sparkles, Coins, Gem, ShieldCheck, ArrowRight } from 'lucide-react';
 import { calculateItemScore } from '../../../utils/itemScoring';
+import { getActTheme } from '../../../utils/actThemes';
 
 interface BattleFieldLanesProps {
   dyingMonsterIds: Set<string>;
@@ -32,6 +33,7 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
   const totalMonsters = monsters.length;
   const isCleared = totalMonsters === 0;
   const currentRoom = currentDungeon.rooms.find(r => r.id === currentRoomId);
+  const actTheme = useMemo(() => getActTheme(currentDungeon.id), [currentDungeon.id]);
 
   // Group monsters by 5 lanes (0, 1, 2, 3, 4)
   const laneMonsters = useMemo(() => {
@@ -62,7 +64,7 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
   }, [laneMonsters, isBossRoom]);
 
   return (
-    <div className={`bg-iron-900/90 border-2 border-iron-750 rounded-xl p-1.5 sm:p-2 shadow-2xl relative select-none font-sans flex flex-col justify-between overflow-hidden flex-shrink-0 ${
+    <div className={`${actTheme.containerBg} border-2 ${actTheme.borderColor} ${actTheme.glowShadow} rounded-xl p-1.5 sm:p-2 relative select-none font-sans flex flex-col justify-between overflow-hidden flex-shrink-0 transition-all duration-300 ${
       isBossRoom ? 'h-[320px] sm:h-[360px] max-h-[320px] sm:max-h-[360px]' : 'h-[260px] sm:h-[290px] max-h-[260px] sm:max-h-[290px]'
     }`}>
       {isCleared ? (
