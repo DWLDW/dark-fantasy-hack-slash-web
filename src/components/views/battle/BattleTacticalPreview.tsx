@@ -26,7 +26,10 @@ export const BattleTacticalPreview: React.FC = React.memo(() => {
         </span>
         <span className="text-gray-500">|</span>
         <span className="text-gray-200">
-          타격: <strong className="text-brass-200 font-black text-sm">{preview.totalDamage}</strong>
+          타격: <strong className="text-brass-200 font-black text-sm">{preview.appliedDamage}</strong>
+          {preview.totalDamage > preview.appliedDamage && (
+            <span className="text-purple-300/80 text-[10px] ml-1">+오버킬 {preview.totalDamage - preview.appliedDamage}</span>
+          )}
         </span>
       </div>
 

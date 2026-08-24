@@ -366,7 +366,7 @@ export function generateRoomClearLoot(
     items.push(makeDungeonDrop(pool, ctx, 'elite', 0));
     if (Math.random() < 0.4) items.push(makeDungeonDrop(pool, ctx, 'elite', 1));
     if (Math.random() < 0.35) {
-      const runes = DUNGEON_RUNE_TIERS[currentDungeon.id] || DUNGEON_RUNE_TIERS['act1_crypt'];
+      const runes = getRunePoolForDungeon(currentDungeon.id);
       runeName = runes[Math.floor(Math.random() * Math.min(runes.length, 6))];
     }
   } else if (roomType === 'normal') {

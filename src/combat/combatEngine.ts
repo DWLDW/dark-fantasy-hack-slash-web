@@ -17,6 +17,7 @@ export interface AttackResolution {
   chainCount: number;
   stopperId: string | null;
   totalDamage: number;
+  appliedDamage: number;
   isCritical: boolean;
   isExtraStrike?: boolean;
   newMonsters: Monster[];
@@ -51,6 +52,7 @@ export function resolveAttack(
       chainCount: 0,
       stopperId: null,
       totalDamage: 0,
+      appliedDamage: 0,
       isCritical: false,
       isExtraStrike: false,
       newMonsters: []
@@ -105,6 +107,7 @@ export function resolveAttack(
   const kills: string[] = [];
   let stopperId: string | null = null;
   let accumulatedDamage = 0;
+  let accumulatedAppliedDamage = 0;
 
   const getEffectiveDefense = (def: number) => {
     return skill.activeRuneId === 'rune_poison' ? Math.floor(def * 0.5) : def;
@@ -148,6 +151,7 @@ export function resolveAttack(
       });
 
       accumulatedDamage += actualDmg;
+      accumulatedAppliedDamage += Math.min(actualDmg, m.hp);
 
       const updatedM = monsterMap.get(m.id)!;
       if (isFatal) {
@@ -194,6 +198,7 @@ export function resolveAttack(
         });
 
         accumulatedDamage += actualDmg;
+        accumulatedAppliedDamage += Math.min(actualDmg, m.hp);
 
         const updatedM = monsterMap.get(m.id)!;
         if (isFatal) {
@@ -240,6 +245,7 @@ export function resolveAttack(
         });
 
         accumulatedDamage += actualDmg;
+        accumulatedAppliedDamage += Math.min(actualDmg, m0.hp);
         const updatedM0 = monsterMap.get(m0.id)!;
         if (isFatal) {
           kills.push(m0.id);
@@ -267,10 +273,11 @@ export function resolveAttack(
           isFatal,
           depth: m1.depth,
           lane: m1.lane,
-          isOverkillHit: overkillCarryRaw > 0
+          isOverkillHit: false
         });
 
         accumulatedDamage += actualDmg;
+        accumulatedAppliedDamage += Math.min(actualDmg, m1.hp);
         const updatedM1 = monsterMap.get(m1.id)!;
         if (isFatal) {
           kills.push(m1.id);
@@ -306,6 +313,7 @@ export function resolveAttack(
           });
 
           accumulatedDamage += actualDmg;
+          accumulatedAppliedDamage += Math.min(actualDmg, mb.hp);
           const updatedMb = monsterMap.get(mb.id)!;
           if (isFatal) {
             kills.push(mb.id);
@@ -350,10 +358,11 @@ export function resolveAttack(
         isFatal,
         depth: currentTarget.depth,
         lane: currentTarget.lane,
-        isOverkillHit: hit > 0
+        isOverkillHit: false
       });
 
       accumulatedDamage += actualDmg;
+      accumulatedAppliedDamage += Math.min(actualDmg, currentTarget.hp);
       if (isFatal) {
         kills.push(currentTarget.id);
         targetState.hp = 0;
@@ -386,6 +395,7 @@ export function resolveAttack(
       });
 
       accumulatedDamage += actualDmg;
+      accumulatedAppliedDamage += Math.min(actualDmg, frontTarget.hp);
 
       const updatedM = monsterMap.get(frontTarget.id)!;
       if (isFatal) {
@@ -414,6 +424,7 @@ export function resolveAttack(
           });
 
           accumulatedDamage += smDmg;
+          accumulatedAppliedDamage += Math.min(smDmg, sm.hp);
           const smUpdated = monsterMap.get(sm.id)!;
           if (isSmFatal) {
             kills.push(sm.id);
@@ -447,6 +458,7 @@ export function resolveAttack(
     chainCount: kills.length,
     stopperId,
     totalDamage: accumulatedDamage,
+    appliedDamage: accumulatedAppliedDamage,
     isCritical,
     isExtraStrike,
     newMonsters: Array.from(monsterMap.values())

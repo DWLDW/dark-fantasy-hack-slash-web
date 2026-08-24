@@ -817,7 +817,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       int: 5,
       wis: 5,
       cha: 5,
-      statPoints: totalEarnedPoints
+      statPoints: totalEarnedPoints,
+      maxHp: Math.max(prev.hp, 120 + (prev.level - 1) * 25 + 15 * 5),
+      hp: Math.min(prev.hp, 120 + (prev.level - 1) * 25 + 15 * 5),
+      maxMana: Math.max(prev.mana, 40 + (prev.level - 1) * 8 + 5 * 3),
+      mana: Math.min(prev.mana, 40 + (prev.level - 1) * 8 + 5 * 3)
     }));
     playRuneWordSound();
     addLog(`🔄 투자한 모든 스탯 포인트를 회수하여 ${totalEarnedPoints}P를 환급받았습니다.`, 'system');
@@ -891,8 +895,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     playSlashSound();
     const critText = result.isCritical ? " ★ 치명타 폭발!" : "";
     const flurryText = result.isExtraStrike ? " ⚡ [신속 연격 (+35%)]" : "";
+    const overkillText = result.totalDamage > result.appliedDamage
+      ? ` (실적 ${result.appliedDamage} + 오버킬 낭비 ${result.totalDamage - result.appliedDamage})`
+      : "";
     addLog(
-      `[${effectiveSkill.name} Lv.${effectiveSkill.level || 1}] 발동!${critText}${flurryText} (총 위력: ${result.totalDamage})`,
+      `[${effectiveSkill.name} Lv.${effectiveSkill.level || 1}] 발동!${critText}${flurryText} (총 위력: ${result.totalDamage}${overkillText})`,
       'damage'
     );
 
@@ -1132,6 +1139,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           totalStats.evasion,
           totalStats.defense,
           totalStats.damageReduction,
+          totalStats.allResist,
           consumables,
           playerStats.shield || 0
         );
@@ -1155,8 +1163,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             playPotionSound();
             if (hordeResult.autoResurrected) {
               addLog(`✨ [자동 물약 기사회생] 치명타로 쓰러질 뻔했으나 생명력 물약을 자동으로 즉시 마셔 생존했습니다! (+${hordeResult.nextHp} HP)`, "system");
-            } else {
-              addLog('🧪 [자동 물약] 체력이 50% 이하로 떨어져 생명력 물약을 자동으로 섭취했습니다! (+100 HP)', 'system');
             }
           }
 
@@ -1174,7 +1180,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
 
           addLog(
-            `⚔️ 몬스터 전열의 반격! ${hordeResult.activeAttackerCount - hordeResult.dodgedCount}마리 공격 적중 ➔ ${hordeResult.totalEnemyDamage} 피해 (분노 충전 +${Math.min(25, Math.max(6, Math.floor(hordeResult.totalEnemyDamage * 1.5)))})`,
+            `⚔️ 몬스터 전열의 반격! ${hordeResult.activeAttackerCount - hordeResult.dodgedCount}마리 공격 적중 ➔ ${hordeResult.totalEnemyDamage} 피해 (분노 충전 +${hordeResult.rageGainOnHit})`,
             'damage'
           );
         }
@@ -1351,10 +1357,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const ptsToUse = Math.max(1, Math.min(amount, prev.statPoints));
       if (ptsToUse <= 0) return prev;
       addLog(`${stat.toUpperCase()} 스탯이 +${ptsToUse} 상승했습니다. (현재: ${prev[stat] + ptsToUse})`, 'system');
+      const next = { ...prev, statPoints: prev.statPoints - ptsToUse, [stat]: prev[stat] + ptsToUse };
+      const nextMaxHp = 120 + (next.level - 1) * 25 + next.con * 5;
+      const nextMaxMana = 40 + (next.level - 1) * 8 + next.int * 3;
       return {
-        ...prev,
-        statPoints: prev.statPoints - ptsToUse,
-        [stat]: prev[stat] + ptsToUse
+        ...next,
+        maxHp: Math.max(next.hp, nextMaxHp),
+        hp: Math.min(next.hp, nextMaxHp),
+        maxMana: Math.max(next.mana, nextMaxMana),
+        mana: Math.min(next.mana, nextMaxMana)
       };
     });
   };
@@ -1740,6 +1751,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (buffType === "crit") {
       setPlayerStats(p => ({ ...p, hp: p.maxHp }));
     }
+    if (buffType === "fortune") {
+      runFortuneRef.current += newBuff.value;
+    }
 
     setDungeonBuffs(prev => [...prev.filter(b => b.type !== buffType), newBuff]);
     setLatestRoomLootEvent({
@@ -1762,16 +1776,17 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         addLog(`물약 가방이 이미 가득 찼습니다! (최대: ${maxPots}개, 마을 시설에서 물약 벨트를 업그레이드하세요)`, 'system');
         return;
       }
-      const cost = 200;
+      const fillCount = Math.min(5, maxPots - curPot);
+      const cost = 40 * fillCount;
       if (playerStats.gold < cost) {
-        addLog('골드가 부족합니다! (필요: 200G)', 'system');
+        addLog(`골드가 부족합니다! (필요: ${cost}G)`, 'system');
         return;
       }
-      const newCount = Math.min(maxPots, curPot + 5);
+      const newCount = curPot + fillCount;
       setPlayerStats(p => ({ ...p, gold: p.gold - cost }));
       setConsumables(curr => curr.map(c => c.id === 'c_hp' ? { ...c, count: newCount } : c));
       playRuneWordSound();
-      addLog(`🧪 상인에게서 생명력 물약을 구매했습니다! (${curPot} ➔ ${newCount}개, -200G)`, 'loot');
+      addLog(`🧪 상인에게서 생명력 물약 ${fillCount}개를 구매했습니다! (${curPot} ➔ ${newCount}개, -${cost}G)`, 'loot');
     };
 
     const upgradeTownFacility = (facility: 'potionCapacity' | 'potionHealing' | 'consumablePower' | 'gambleLevel'): boolean => {

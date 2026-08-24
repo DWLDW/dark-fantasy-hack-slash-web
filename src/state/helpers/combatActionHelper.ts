@@ -24,7 +24,8 @@ export function calculateAttackGains(
   itemLifeSteal: number = 0
 ): AttackGainsResult {
   const primaryTargets = result.targetsHit.filter(t => !t.isOverkillHit);
-  const hitRage = primaryTargets.length * (effectiveSkill.rageGainPerHit || 0);
+  const rageHitCap = effectiveSkill.id === 'war_cry' ? 3 : primaryTargets.length;
+  const hitRage = Math.min(primaryTargets.length, rageHitCap) * (effectiveSkill.rageGainPerHit || 0);
   const voidKillRage = effectiveSkill.activeRuneId === 'rune_void' ? result.chainCount * 2 : 0;
   const rawRageGained = hitRage + voidKillRage;
 
@@ -114,6 +115,7 @@ export function resolveHordeCounterAttack(
   evasion: number,
   defense: number,
   damageReduction: number,
+  allResist: number = 0,
   consumables: ConsumableItem[],
   playerShield: number = 0
 ): HordeAttackResult {
@@ -145,7 +147,8 @@ export function resolveHordeCounterAttack(
     }
     const k = 100 + playerLevel * 10;
     const defMult = k / (k + Math.max(0, defense));
-    const drMult = (100 - (damageReduction || 0)) / 100;
+    const resistMult = 1 - Math.min(75, Math.max(0, allResist || 0)) / 100;
+    const drMult = ((100 - (damageReduction || 0)) / 100) * resistMult;
     totalEnemyDamage += Math.max(1, Math.floor(rawDmg * defMult * drMult));
   });
 
