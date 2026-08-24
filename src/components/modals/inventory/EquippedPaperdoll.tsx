@@ -77,9 +77,14 @@ export const EquipSlotBox: React.FC<EquipSlotBoxProps> = ({
         <span className={`text-[10px] font-mono font-bold leading-none ${isSelected ? 'text-brass-300 underline' : 'text-gray-400'}`}>
           {label}
         </span>
-        {item?.isRuneWord && (
-          <span className="text-[8px] font-mono text-amber-300 font-black px-1 rounded bg-amber-950/80 border border-amber-500/50">RW</span>
-        )}
+        <div className="flex items-center gap-0.5">
+          {item?.isLocked && (
+            <span className="text-[9px]" title="잠금된 장비">🔒</span>
+          )}
+          {item?.isRuneWord && (
+            <span className="text-[8px] font-mono text-amber-300 font-black px-1 rounded bg-amber-950/80 border border-amber-500/50">RW</span>
+          )}
+        </div>
       </div>
 
       {item ? (

@@ -198,6 +198,13 @@ interface GameContextType {
   confirmDeathAndReturnToTown: () => void;
   isLevelUpAnimated: boolean;
 
+  // Stash / Vault & Item Lock & Sell All
+  itemStash: GameItem[];
+  depositToStash: (itemId: string) => boolean;
+  withdrawFromStash: (itemId: string) => boolean;
+  toggleItemLock: (itemId: string) => void;
+  sellAllUnlockedItems: () => { count: number; gold: number };
+
   // Diablo 2 Crafting & Features
   socketRuneIntoItem: (targetItemId: string, runeId: string) => void;
   transmuteInCube: (itemIds: string[]) => void;
@@ -284,6 +291,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     return SAMPLE_INVENTORY;
   });
+  const [itemStash, setItemStash] = useState<GameItem[]>(() => savedData?.itemStash || []);
   const [consumables, setConsumables] = useState<ConsumableItem[]>(() => savedData?.consumables || INITIAL_CONSUMABLES);
   const [currentDungeon, setCurrentDungeon] = useState<DungeonInfo>(() => {
     if (savedData?.currentDungeonId) {
@@ -377,6 +385,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       playerStats,
       equipment,
       inventory,
+      itemStash,
       runesVault,
       consumables,
       currentDungeonId: currentDungeon.id,
@@ -392,7 +401,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       townUpgrades
     };
   }, [
-    playerStats, equipment, inventory, runesVault, consumables,
+    playerStats, equipment, inventory, itemStash, runesVault, consumables,
     currentDungeon.id, currentRoomId, currentDifficulty, maxUnlockedDifficulty,
     skillRunes, skillLevels, passiveLevels, achievementStats, claimedAchievements,
     hasSeenTutorial, townUpgrades
@@ -410,7 +419,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }, 450);
     return () => window.clearTimeout(timer);
-  }, [playerStats, equipment, inventory, runesVault, consumables, currentDungeon.id, currentRoomId, currentDifficulty, maxUnlockedDifficulty, equippedSkillSlots, skillRunes, skillLevels, passiveLevels, achievementStats, claimedAchievements]);
+  }, [playerStats, equipment, inventory, itemStash, runesVault, consumables, currentDungeon.id, currentRoomId, currentDifficulty, maxUnlockedDifficulty, equippedSkillSlots, skillRunes, skillLevels, passiveLevels, achievementStats, claimedAchievements]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -1879,9 +1888,106 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     addLog(res.message, 'loot');
   };
 
+  // Item Lock Toggle (Inventory, Equipment, Stash)
+  const toggleItemLock = (itemId: string) => {
+    let targetName = '';
+    let newLockState = false;
+
+    // Check inventory
+    setInventory(prev => prev.map(i => {
+      if (i.id === itemId) {
+        targetName = i.name;
+        newLockState = !i.isLocked;
+        return { ...i, isLocked: newLockState };
+      }
+      return i;
+    }));
+
+    // Check equipment
+    setEquipment(prev => {
+      const updated = { ...prev };
+      Object.keys(updated).forEach(slot => {
+        const item = updated[slot as EquipSlot];
+        if (item && item.id === itemId) {
+          targetName = item.name;
+          newLockState = !item.isLocked;
+          updated[slot as EquipSlot] = { ...item, isLocked: newLockState };
+        }
+      });
+      return updated;
+    });
+
+    // Check stash
+    setItemStash(prev => prev.map(i => {
+      if (i.id === itemId) {
+        targetName = i.name;
+        newLockState = !i.isLocked;
+        return { ...i, isLocked: newLockState };
+      }
+      return i;
+    }));
+
+    playRuneWordSound();
+    if (newLockState) {
+      addLog(`🔒 [${targetName || '아이템'}]이(가) 안전하게 잠금되었습니다. (실수 판매/소실 방지)`, 'system');
+    } else {
+      addLog(`🔓 [${targetName || '아이템'}]의 잠금이 해제되었습니다.`, 'system');
+    }
+  };
+
+  // Deposit to Stash
+  const depositToStash = (itemId: string): boolean => {
+    const item = inventory.find(i => i.id === itemId);
+    if (!item) return false;
+
+    setInventory(prev => prev.filter(i => i.id !== itemId));
+    setItemStash(prev => [item, ...prev]);
+    playRuneWordSound();
+    addLog(`📦 [${item.name}]을(를) 모험가 보관함(Stash)에 안전하게 보관했습니다.`, 'loot');
+    return true;
+  };
+
+  // Withdraw from Stash
+  const withdrawFromStash = (itemId: string): boolean => {
+    const item = itemStash.find(i => i.id === itemId);
+    if (!item) return false;
+
+    setItemStash(prev => prev.filter(i => i.id !== itemId));
+    setInventory(prev => [item, ...prev]);
+    playRuneWordSound();
+    addLog(`🎒 [${item.name}]을(를) 보관함에서 인벤토리로 꺼냈습니다.`, 'loot');
+    return true;
+  };
+
+  // Sell All Unlocked Items (Guaranteed Protection for Locked Items)
+  const sellAllUnlockedItems = (): { count: number; gold: number } => {
+    const sellableItems = inventory.filter(i => !i.isLocked && i.slot !== 'rune' && i.slot !== 'consumable');
+    if (sellableItems.length === 0) {
+      addLog('판매할 수 있는 잠금 해제 장비가 없습니다. (잠금된 아이템은 보호됩니다)', 'system');
+      return { count: 0, gold: 0 };
+    }
+
+    let totalGold = 0;
+    sellableItems.forEach(i => {
+      totalGold += getItemSellPrice(i);
+    });
+
+    const sellableIds = new Set(sellableItems.map(i => i.id));
+    setInventory(prev => prev.filter(i => !sellableIds.has(i.id)));
+    setPlayerStats(prev => ({ ...prev, gold: prev.gold + totalGold }));
+    setAchievementStats(prev => ({ ...prev, totalGoldEarned: (prev.totalGoldEarned || 0) + totalGold }));
+    playRuneWordSound();
+    addLog(`💰 잠금 해제된 장비 ${sellableItems.length}개를 전부 판매하여 총 ${totalGold.toLocaleString()} Gold를 획득했습니다! (🔒 잠금 아이템 보호됨)`, 'loot');
+    return { count: sellableItems.length, gold: totalGold };
+  };
+
   const sellItem = (itemId: string): number => {
     const item = inventory.find(i => i.id === itemId);
     if (!item) return 0;
+    if (item.isLocked) {
+      addLog(`🔒 [${item.name}]은(는) 잠금 상태이므로 판매할 수 없습니다. 먼저 잠금을 해제하세요.`, 'system');
+      return 0;
+    }
     const price = getItemSellPrice(item);
     setInventory(prev => prev.filter(i => i.id !== itemId));
     setPlayerStats(prev => ({ ...prev, gold: prev.gold + price }));
@@ -1892,15 +1998,21 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const bulkSellItems = (rarities: ItemRarity[] = ["normal", "magic"]): { count: number; gold: number } => {
-    const { remainingInventory, soldCount, totalGold } = bulkSellHelper(inventory, rarities);
-    if (soldCount === 0) return { count: 0, gold: 0 };
+    const sellableItems = inventory.filter(i => !i.isLocked && rarities.includes(i.rarity) && i.slot !== 'rune' && i.slot !== 'consumable');
+    if (sellableItems.length === 0) return { count: 0, gold: 0 };
 
-    setInventory(remainingInventory);
+    let totalGold = 0;
+    sellableItems.forEach(i => {
+      totalGold += getItemSellPrice(i);
+    });
+
+    const sellableIds = new Set(sellableItems.map(i => i.id));
+    setInventory(prev => prev.filter(i => !sellableIds.has(i.id)));
     setPlayerStats(prev => ({ ...prev, gold: prev.gold + totalGold }));
     setAchievementStats(prev => ({ ...prev, totalGoldEarned: (prev.totalGoldEarned || 0) + totalGold }));
     playRuneWordSound();
-    addLog(`💰 일반/마법 장비 ${soldCount}개를 일괄 판매하여 총 ${totalGold} Gold를 획득했습니다!`, "loot");
-    return { count: soldCount, gold: totalGold };
+    addLog(`💰 일반/마법 장비 ${sellableItems.length}개를 일괄 판매하여 총 ${totalGold} Gold를 획득했습니다! (🔒 잠금 아이템 보호됨)`, "loot");
+    return { count: sellableItems.length, gold: totalGold };
   };
 
   const gambleItem = (gambleType: "weapon" | "armor" | "ring" | "amulet"): { item: GameItem; isHighRarity: boolean } | null => {
@@ -2220,6 +2332,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isDeathModalOpen,
     confirmDeathAndReturnToTown,
     isLevelUpAnimated,
+    itemStash,
+    depositToStash,
+    withdrawFromStash,
+    toggleItemLock,
+    sellAllUnlockedItems,
     socketRuneIntoItem,
     transmuteInCube,
     gambleItem,
@@ -2263,6 +2380,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     playerStats,
     equipment,
     inventory,
+    itemStash,
     consumables,
     currentDungeon,
     currentRoomId,

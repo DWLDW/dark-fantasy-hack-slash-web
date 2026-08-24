@@ -147,22 +147,22 @@ export const InventoryFilterBar: React.FC<InventoryFilterBarProps> = React.memo(
           </button>
         </div>
 
-        {/* Tier 2-B: Mercantile Batch Sell Button */}
+        {/* Tier 2-B: Sell All (Guaranteed Protection for Locked Items) */}
         <button
           onClick={onBulkSell}
           disabled={sellableCount === 0}
           className={`px-3 py-1.5 rounded-lg text-xs font-black transition flex items-center gap-1.5 border shadow ${
             sellableCount > 0
-              ? 'bg-gradient-to-r from-iron-900 via-amber-950/60 to-iron-900 text-amber-200 border-amber-600/70 hover:border-amber-400 hover:text-white ring-1 ring-amber-500/40 cursor-pointer shadow-md'
+              ? 'bg-gradient-to-r from-amber-950 via-blood-950 to-amber-950 text-amber-200 border-amber-500/80 hover:border-amber-400 hover:text-white ring-1 ring-amber-500/50 cursor-pointer shadow-md'
               : 'bg-iron-900 text-gray-600 border-iron-800 cursor-not-allowed opacity-50'
           }`}
-          title="인벤토리의 모든 일반(Normal: 5G) 및 마법(Magic: 15G) 등급 장비를 일괄 판매합니다."
+          title="소지품의 모든 잠금 해제 장비를 일괄 판매합니다. (🔒 잠금된 아이템과 장착 중인 장비는 안전하게 보호됩니다)"
         >
           <Coins className="w-3.5 h-3.5 text-amber-400" />
-          <span>일반/마법 일괄 판매</span>
+          <span>전부 팔기</span>
           {sellableCount > 0 && (
-            <span className="text-[10px] font-mono font-bold text-amber-300 bg-black/50 px-1.5 py-0.2 rounded border border-amber-500/30">
-              {sellableCount}개 (+{totalSellGold}G)
+            <span className="text-[10px] font-mono font-bold text-amber-300 bg-black/60 px-1.5 py-0.2 rounded border border-amber-500/40">
+              {sellableCount}개 (+{totalSellGold.toLocaleString()}G)
             </span>
           )}
         </button>

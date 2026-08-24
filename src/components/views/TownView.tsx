@@ -5,7 +5,7 @@ import { simulateRuneWordCrafting } from '../../utils/runeCrafting';
 import { POTION_CAPACITY_TIERS, getPotionCapacityUpgradeCost, getPotionHealingUpgradeCost, getConsumablePowerUpgradeCost, getGambleLevelUpgradeCost } from '../../state/helpers/cubeCraftingHelper';
 import { GameItem } from '../../types/game';
 import { ACHIEVEMENTS } from '../../data/achievements';
-import { Box, Sparkles, Dices, BookOpen, ArrowRight, Shield, Compass, Hammer, Trophy, Zap } from 'lucide-react';
+import { Box, Sparkles, Dices, BookOpen, ArrowRight, Shield, Compass, Hammer, Trophy, Zap, Package } from 'lucide-react';
 
 export const TownView: React.FC = React.memo(() => {
   const {
@@ -101,6 +101,15 @@ export const TownView: React.FC = React.memo(() => {
 
           {/* Quick Action Buttons */}
           <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap flex-shrink-0">
+            <button
+              onClick={() => openModal('inventory')}
+              className="px-3 py-1.5 bg-iron-900/90 hover:bg-iron-800 border border-indigo-500/70 hover:border-indigo-400 text-indigo-300 hover:text-indigo-100 rounded-lg text-xs font-bold flex items-center gap-1.5 transition shadow-md cursor-pointer"
+              title="모험가 개인 보관함 및 소지품 열기 [I]"
+            >
+              <Package className="w-3.5 h-3.5 text-indigo-400" />
+              <span>보관함·가방 [I]</span>
+            </button>
+
             <button
               onClick={() => openModal('achievement')}
               className="px-3 py-1.5 bg-iron-900/90 hover:bg-iron-800 border border-amber-500/70 hover:border-amber-400 text-amber-300 hover:text-amber-100 rounded-lg text-xs font-bold flex items-center gap-1.5 transition shadow-md relative cursor-pointer"

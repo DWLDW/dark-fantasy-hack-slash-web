@@ -104,7 +104,16 @@ export const InventoryItemsGrid: React.FC<InventoryItemsGridProps> = React.memo(
                 </div>
               )}
 
-              {!item.isIdentified && (
+              {item.isLocked && (
+                <div
+                  className="absolute -top-1.5 -right-1.5 text-[9px] font-black bg-amber-950 text-amber-300 border border-amber-400 p-0.5 rounded shadow z-10"
+                  title="잠금된 아이템 (판매/소실 방지)"
+                >
+                  🔒
+                </div>
+              )}
+
+              {!item.isIdentified && !item.isLocked && (
                 <div className="absolute -top-1 -right-1 text-[9px] font-black bg-blood-600 text-white px-1 rounded-full animate-pulse">
                   ?
                 </div>

@@ -36,6 +36,7 @@ export interface SaveDataPayload {
   playerStats: PlayerStats;
   equipment: Record<string, GameItem>;
   inventory: GameItem[];
+  itemStash?: GameItem[];
   runesVault: Record<string, number>;
   skillLevels?: Record<string, number>;
   passiveLevels?: Record<string, number>;

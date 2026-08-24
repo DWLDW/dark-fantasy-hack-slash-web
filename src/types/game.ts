@@ -46,6 +46,7 @@ export interface GameItem {
   isRuneWord?: boolean;
   runeWordName?: string;
   isIdentified?: boolean;
+  isLocked?: boolean;
   realUniqueName?: string;
   setName?: string;
   subAffixes?: { id: string; name: string; value: number; label: string }[];

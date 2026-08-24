@@ -6,12 +6,15 @@ Dragon Quest 식 턴제 전투 기반 + Diablo II 식 오버킬 체인, 룬워�
 
 ## 핵심 아키텍처
 - **전투 엔진**: [combatEngine.ts](file:///c:/GAMEGAME/src/combat/combatEngine.ts) — `resolveAttack()`, 보스 저지(Break)/그로기/약점 타격 연산, `createDungeonFormation()`, `resolveHordeCounterAttack()`
+- **스킬 및 패시브**: [skills.ts](file:///c:/GAMEGAME/src/data/skills.ts) & [passiveSkills.ts](file:///c:/GAMEGAME/src/data/passiveSkills.ts) — 7종 액티브 스킬(Lv.30 한도) + 8대 워리어 패시브 마스터리 트리
+- **스킬 관리 헬퍼**: [skillManager.ts](file:///c:/GAMEGAME/src/state/helpers/skillManager.ts) — 스킬 레벨업, 패시브 레벨업, 통합 SP 전액 초기화
+- **스킬 UI 모달**: [SkillRuneModal.tsx](file:///c:/GAMEGAME/src/components/modals/SkillRuneModal.tsx) — 액티브 스킬 & 룬 슬롯 탭 / 패시브 스킬 마스터리 트리 탭
 - **전투 헬퍼**: [combatActionHelper.ts](file:///c:/GAMEGAME/src/state/helpers/combatActionHelper.ts) — 액션 경험치, 생명력 흡수, 분노/보호막 계산
 - **던전/루팅 헬퍼**: [dungeonEventHelper.ts](file:///c:/GAMEGAME/src/state/helpers/dungeonEventHelper.ts) — 던전 드롭 생성, 난이도별 스케일링, 승리 전리품
 - **게임 상태 관리**: [gameStore.tsx](file:///c:/GAMEGAME/src/state/gameStore.tsx) — 중앙 React Context + 안전한 persistence 타이머 + 보스 인터랙티브 턴 제어
 - **보스 HUD & 비주얼**: [BossHUD.tsx](file:///c:/GAMEGAME/src/components/views/battle/BossHUD.tsx) — 심연의 진홍빛 체력바, BREAK 저지 게이지, 속성 오라, 페이즈 엠블럼
 - **전장 레인 뷰**: [BattleFieldLanes.tsx](file:///c:/GAMEGAME/src/components/views/battle/BattleFieldLanes.tsx) — 5개 레인 하수인 스택 & 보스 약점 코어 바닥 인디케이터
-- **스탯 연산기**: [statCalculator.ts](file:///c:/GAMEGAME/src/state/helpers/statCalculator.ts) — 장비/세트/룬/스탯 총합 계산
+- **스탯 연산기**: [statCalculator.ts](file:///c:/GAMEGAME/src/state/helpers/statCalculator.ts) — 장비/세트/룬/패시브/스탯 총합 계산
 - **큐브/경제 헬퍼**: [cubeCraftingHelper.ts](file:///c:/GAMEGAME/src/state/helpers/cubeCraftingHelper.ts) — 룬/큐브 합성, 판매 가격 계산, 시설 강화
 - **아이템 생성기**: [itemGenerator.ts](file:///c:/GAMEGAME/src/state/helpers/itemGenerator.ts) — 도박 및 장비 감정 스탯 복원
 - **룬워드 계산기**: [runeWordCalculator.ts](file:///c:/GAMEGAME/src/state/helpers/runeWordCalculator.ts) — 스마트 룬워드 제작 및 소켓 검증
@@ -23,20 +26,20 @@ Dragon Quest 식 턴제 전투 기반 + Diablo II 식 오버킬 체인, 룬워�
 
 ## 🌟 최근 완료된 핵심 작업 (2026-08-25)
 
-### 1. 보스 UI 2줄 중복 해결 & 보스 전용 비주얼 & 3대 파훼 기믹 시스템 구축
-- 🚨 **보스 이름/HP 바 2줄 중복 노출 버그 완벽 해결**:
-  - `BattleFieldLanes.tsx`의 중복 2번째 보스 패널을 제거하고, 상단 `<BossHUD />`로 일원화.
-- 🎨 **심연의 진홍 & 흑마법 퍼플-골드 전용 보스 체력바 및 속성 오라 구현**:
-  - 6대 속성별(지옥불/혹한/뇌전/맹독/공허/물리) 고유 엠블럼 및 75%(약점)/50%(소환)/30%(광란) 페이즈 마커 적용.
-- ⚔️ **플레이어 대응형 3대 보스 공략(파훼) 시스템 탑재**:
-  - 💥 **멸망기 차징 & 저지(Break / Stagger)**: 3턴마다 보스가 멸망기 차징에 돌입할 때, 방패 강타(250% 저지력)나 공격으로 BREAK 성공 시 1턴간 **[💫 그로기(기절 + 받는 피해 1.5배)]**로 무력화.
-  - 🎯 **약점 레인 노출 (Weak Spot Targeting)**: 결계 발동 시 무작위 1개 레인에 약점 핵 노출 ➔ 해당 레인 공격 시 **2.5배 치명타 + 결계 즉시 분쇄**.
-  - 💨 **광역기 회피 & 인터랙티브 레인 이동**: BossHUD 클릭 또는 단축키로 안전/약점 레인 즉각 전술 이동.
+### 1. 스킬 레벨 30 확장 & 8대 패시브 스킬 마스터리 트리 구축
+- ⚔️ **모든 액티브 스킬 레벨 한도 확장 (Lv.10 ➔ Lv.30)**:
+  - 가르기, 처형, 휩쓸기, 방패 강타, 광폭 공격, 휠윈드, 전장의 함성 최대 Lv.30 지원 (Lv.30 달성 시 535% 위력).
+- 🧬 **워리어 8대 패시브 스킬 마스터리 트리 신설 (`passiveSkills.ts`)**:
+  - 무기 숙련(공격 +80%), 강철 피부(방어 +100%, 뎀감 +20%), 치명적 타격(치명 +30%, 치피 +100%), 피의 갈증(흡혈 +20%), 광전사의 분노(타격 분노 +40, 턴 분노 +40), 오버킬 분쇄(오버킬 +80%, 공격 +60%), 원소 친화(저항 +40%, 속성뎀 +60%), 거인의 불굴(체력 +100%, 저지력 +200%).
+- 🎨 **스킬창 탭 분리 UI (`SkillRuneModal.tsx`)**:
+  - `[⚔️ 액티브 스킬 & 룬 각인]` vs `[🧬 패시브 스킬 마스터리]` 2개 탭 네비게이션.
+  - 패시브 레벨업 및 Shift+클릭 일괄 투자 지원, [스킬 초기화] 시 액티브 + 패시브 100% 통합 환급.
+- ⚙️ **스탯 계산기 & 세이브 영속화**: `statCalculator.ts`에 패시브 스탯 전수 합산 및 LocalStorage 영속 저장/복원.
 
-### 2. 프로젝트 전수 정밀 감사 및 12개 핵심 결함 전면 수리
-- 보스 시그니처 스킬 피해 정상화, 50% 하수인 소환 시 몬스터 2배 복제 차단, 방패강타 쉴드 Stale State 해결, Single 오버킬 2중 방어력 감면 수정, 보스 결계 복리 증폭 제거, 라이프스틸 유효 타격량 기반 흡혈 수정.
-- `Eld` vs `El` 룬 정규식 분리, 도박 유니크/세트 감정 100% 원본 스탯 복원, 상점 판매가 `0.25 * value` 현실화, 룬워드 소켓 엄격 일치, 스피리트 방패 지원.
-- 오버레이 단축키 가드, 액트 던전 ID 업적 정정, 모바일 `touchstart` 오디오 지원, 9대 장비 슬롯 드랍 테이블 전수 균형화.
+### 2. 보스 UI 2줄 중복 해결 & 보스 전용 비주얼 & 3대 파훼 기믹 시스템 구축
+- 🚨 보스 이름/HP 바 2줄 중복 노출 버그 완벽 해결 (`BattleFieldLanes.tsx` 중복 패널 제거 ➔ 상단 `BossHUD` 일원화).
+- 🎨 심연의 진홍 & 흑마법 퍼플-골드 전용 보스 체력바 및 6대 속성 오라 구현.
+- 💥 멸망기 차징 & 저지(Break / Stagger ➔ 1턴 그로기), 약점 레인 타격(2.5x 치명타 + 결계 분쇄), 광역기 회피 기믹.
 
 ---
 
