@@ -94,6 +94,7 @@ export interface HordeAttackResult {
   totalEnemyDamage: number;
   absorbedDamage: number;
   nextShield: number;
+  nextShieldLayers: { amount: number; turns: number }[];
   dodgedCount: number;
   frozenCount: number;
   activeAttackerCount: number;
@@ -103,6 +104,8 @@ export interface HordeAttackResult {
   autoResurrected: boolean;
   isDead: boolean;
   newConsumables: ConsumableItem[];
+  chargedSurvivors: Monster[];
+  chargedStrikes: number;
 }
 
 export function resolveHordeCounterAttack(
@@ -117,7 +120,7 @@ export function resolveHordeCounterAttack(
   damageReduction: number,
   allResist: number = 0,
   consumables: ConsumableItem[],
-  playerShield: number = 0
+  shieldLayers: { amount: number; turns: number }[] = []
 ): HordeAttackResult {
   const frontRowAttackers: Monster[] = [];
   for (let l = 0; l < 5; l++) {
@@ -132,6 +135,7 @@ export function resolveHordeCounterAttack(
 
   let totalEnemyDamage = 0;
   let dodgedCount = 0;
+  let chargedStrikes = 0;
 
   activeAttackers.forEach(m => {
     const isDodged = Math.random() * 100 < (evasion || 0);
@@ -142,26 +146,47 @@ export function resolveHordeCounterAttack(
 
     const isElite = m.rank === 'elite' || m.rank === 'boss';
     let rawDmg = m.intent.damage || (isElite ? 8 : 3);
+    // Fully charged monsters unleash a piercing strike
+    const isCharged = (m.intent.chargePercent || 0) >= 100;
     if (m.rank === 'boss' && m.maxHp > 0 && m.hp / m.maxHp <= 0.3) {
       rawDmg = Math.floor(rawDmg * 1.5);
     }
+    if (isCharged) {
+      rawDmg = Math.floor(rawDmg * 2);
+      chargedStrikes++;
+    }
+    const effectiveDefense = isCharged ? Math.floor(defense / 2) : defense;
     const k = 100 + playerLevel * 10;
-    const defMult = k / (k + Math.max(0, defense));
+    const defMult = k / (k + Math.max(0, effectiveDefense));
     const resistMult = 1 - Math.min(75, Math.max(0, allResist || 0)) / 100;
     const drMult = ((100 - (damageReduction || 0)) / 100) * resistMult;
     totalEnemyDamage += Math.max(1, Math.floor(rawDmg * defMult * drMult));
   });
 
-  // Shield damage absorption
+  // Shield damage absorption (layered, oldest layer absorbs first)
   let absorbedDamage = 0;
-  let nextShield = Math.max(0, playerShield || 0);
   let dmgToHp = totalEnemyDamage;
 
-  if (nextShield > 0 && totalEnemyDamage > 0) {
-    absorbedDamage = Math.min(nextShield, totalEnemyDamage);
-    nextShield -= absorbedDamage;
-    dmgToHp = totalEnemyDamage - absorbedDamage;
+  const layers = (shieldLayers || []).map(l => ({ ...l })).filter(l => l.amount > 0 && l.turns > 0);
+
+  if (layers.length > 0 && totalEnemyDamage > 0) {
+    let remaining = totalEnemyDamage;
+    while (remaining > 0 && layers.length > 0) {
+      const oldest = layers[0];
+      const used = Math.min(oldest.amount, remaining);
+      oldest.amount -= used;
+      remaining -= used;
+      if (oldest.amount <= 0) layers.shift();
+    }
+    absorbedDamage = totalEnemyDamage - remaining;
+    dmgToHp = remaining;
   }
+
+  // Duration ticks down AFTER this turn's absorption. A layer added during the player's turn
+  // arrives with its full duration and only starts ticking after it has served its first defense.
+  layers.forEach(l => { l.turns -= 1; });
+  const survivingLayers = layers.filter(l => l.amount > 0 && l.turns > 0);
+  const nextShield = survivingLayers.reduce((sum, l) => sum + l.amount, 0);
 
   let nextHp = playerHp - dmgToHp;
   const hpPotion = consumables.find(c => c.id === 'c_hp');
@@ -185,10 +210,20 @@ export function resolveHordeCounterAttack(
   const isDead = nextHp <= 0;
   const rageGainOnHit = isDead ? 0 : Math.min(15, Math.max(4, Math.floor(totalEnemyDamage * 0.8)));
 
+  // Charge tick: surviving front-row monsters build toward their next strike (+25 per turn).
+  const chargedSurvivors = survivors.map(m => {
+    if (m.hp <= 0 || m.isFrozen) return { ...m, intent: { ...m.intent, chargePercent: 0 } };
+    const laneAlive = survivors.filter(s => s.lane === m.lane && s.hp > 0).sort((a, b) => a.depth - b.depth);
+    if (laneAlive[0]?.id !== m.id) return { ...m }; // only front-row charges
+    const next = Math.min(100, (m.intent.chargePercent || 50) + 25);
+    return { ...m, intent: { ...m.intent, chargePercent: next } };
+  });
+
   return {
     totalEnemyDamage,
     absorbedDamage,
     nextShield,
+    nextShieldLayers: survivingLayers,
     dodgedCount,
     frozenCount,
     activeAttackerCount: activeAttackers.length,
@@ -197,6 +232,8 @@ export function resolveHordeCounterAttack(
     potionUsed,
     autoResurrected,
     isDead,
-    newConsumables
+    newConsumables,
+    chargedSurvivors,
+    chargedStrikes
   };
 }

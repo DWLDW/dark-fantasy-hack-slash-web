@@ -328,6 +328,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   const persistStateRef = useRef<SaveDataPayload | null>(null);
   const counterAttackTimerRef = useRef<number | null>(null);
+  const bossTurnCountRef = useRef<number>(0);
+  const bossSummonedRef = useRef<Record<string, boolean>>({});
 
   useEffect(() => {
     return () => {
@@ -892,12 +894,25 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setPlayerStats(prev => ({ ...prev, rage: Math.max(0, prev.rage - actualRageCost) }));
     }
 
+    // Boss gimmick: guard every 4th player turn (70% damage reduction)
+    let attackMonsters = monsters;
+    const activeRoomType = currentDungeon.rooms.find(r => r.id === currentRoomId)?.type;
+    if (activeRoomType === 'boss' && monsters.some(m => m.rank === 'boss')) {
+      bossTurnCountRef.current += 1;
+      if (bossTurnCountRef.current % 4 === 0) {
+        attackMonsters = monsters.map(m => m.rank === 'boss'
+          ? { ...m, defense: Math.floor(m.defense * 3.34) }
+          : m);
+        addLog('🛡️ [보스 기믹: 방어 태세] 보스가 방어 태세를 취해 받는 피해가 70% 감소합니다!', 'system');
+      }
+    }
+
     const result = resolveAttack(
       playerStats.level,
       totalStats,
       effectiveSkill,
       playerLane,
-      monsters,
+      attackMonsters,
       false
     );
 
@@ -969,12 +984,20 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         ...prev,
         gold: prev.gold + gains.gainedGold,
         rage: Math.min(prev.maxRage || 100, prev.rage + gains.totalRageGained + turnRage),
-        hp: Math.min(prev.maxHp, prev.hp + gains.totalHpHealed),
-        shield: Math.min(prev.maxHp, (prev.shield || 0) + (gains.shieldGained || 0))
+        hp: Math.min(prev.maxHp, prev.hp + gains.totalHpHealed)
       }));
 
       if (gains.shieldGained && gains.shieldGained > 0) {
-        addLog(`🛡️ [방패 강타] 생명력 보호막 +${gains.shieldGained} 생성! (현재 쉴드: ${Math.min(playerStats.maxHp, (playerStats.shield || 0) + gains.shieldGained)})`, "system");
+        setPlayerStats(prev => {
+          const newLayer = { amount: Math.min(prev.maxHp, gains.shieldGained!), turns: 2 };
+          const layers = [...(prev.shieldLayers || []), newLayer];
+          const totalShield = layers.reduce((sum, l) => sum + l.amount, 0);
+          return { ...prev, shieldLayers: layers, shield: totalShield };
+        });
+      }
+
+      if (gains.shieldGained && gains.shieldGained > 0) {
+        addLog(`🛡️ [방패 강타] 생명력 보호막 +${gains.shieldGained} 생성! (2턴 지속)`, "system");
       }
       if (turnRage > 0) {
         addLog(`🧘 [명상 오라] 매 턴 분노 +${turnRage} 자동 충전!`, "system");
@@ -1150,11 +1173,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           totalStats.damageReduction,
           totalStats.allResist,
           consumables,
-          playerStats.shield || 0
+          playerStats.shieldLayers || []
         );
 
         if (hordeResult.frozenCount > 0) {
           addLog(`❄️ 서리 분쇄에 얼어붙은 몬스터 ${hordeResult.frozenCount}마리가 행동불가(Freeze) 상태로 공격을 건너뜁니다!`, "system");
+        }
+
+        if (hordeResult.chargedStrikes > 0) {
+          addLog(`💥 충전이 완료된 몬스터 ${hordeResult.chargedStrikes}마리가 방어 관통 강타를 날렸습니다! (피해 2배)`, "damage");
         }
 
         if (hordeResult.dodgedCount > 0) {
@@ -1164,6 +1191,30 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (hordeResult.absorbedDamage > 0) {
           addLog(`🛡️ 보호막이 적 피해 ${hordeResult.absorbedDamage}을(를) 흡수했습니다! (남은 쉴드: ${hordeResult.nextShield})`, "system");
         }
+
+        // Expired shield layers notice
+        const expiredAmount = (playerStats.shield || 0) - hordeResult.nextShield - hordeResult.absorbedDamage;
+        if (expiredAmount > 0) {
+          addLog(`⏳ 지속시간이 끝난 보호막 ${expiredAmount}이(가) 사라졌습니다.`, "system");
+        }
+
+        setPlayerStats(prev => ({
+          ...prev,
+          shield: hordeResult.nextShield,
+          shieldLayers: hordeResult.nextShieldLayers || []
+        }));
+        // Boss gimmick: roar every 3rd enemy turn (AoE burst)
+        const currentRoomType = currentDungeon.rooms.find(r => r.id === currentRoomId)?.type;
+        if (currentRoomType === 'boss' && hordeResult.totalEnemyDamage > 0) {
+          bossTurnCountRef.current += 1;
+          const boss = survivors.find(m => m.rank === 'boss');
+          if (boss && bossTurnCountRef.current % 3 === 0) {
+            const roarDamage = Math.max(10, Math.floor((boss.intent.damage || 20) * 1.5));
+            setPlayerStats(prev => ({ ...prev, hp: Math.max(1, prev.hp - roarDamage), shield: 0, shieldLayers: [] }));
+            addLog(`🔥 [보스 기믹: 광역 포효] 전장을 뒤흔드는 포효로 ${roarDamage} 피해! 보호막이 모두 파괴됩니다!`, 'damage');
+          }
+        }
+
         if (hordeResult.totalEnemyDamage > 0) {
           playHordeAttackSound();
 
@@ -1194,7 +1245,30 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           );
         }
 
-        setMonsters(prev => prev.map(m => ({ ...m, isFrozen: false })));
+        setMonsters(compressLaneSurvivors(hordeResult.chargedSurvivors).map(m => ({ ...m, isFrozen: false })));
+        // Boss gimmick: summon at <=50% hp (once)
+        if (currentRoomType === 'boss') {
+          const bossNow = hordeResult.chargedSurvivors.find(m => m.rank === 'boss');
+          const key = currentDungeon.id + '_' + currentRoomId;
+          if (bossNow && !bossSummonedRef.current[key] && bossNow.hp > 0 && bossNow.hp <= bossNow.maxHp * 0.5) {
+            bossSummonedRef.current[key] = true;
+            const minionBase = hordeResult.chargedSurvivors.find(m => m.rank === 'normal');
+            const baseMonster = hordeResult.chargedSurvivors.find(m => m.rank === 'normal') || hordeResult.chargedSurvivors[0];
+            const minions: Monster[] = [0, 1].map(i => ({
+              ...baseMonster,
+              id: `summon_${Date.now()}_${i}`,
+              name: '소환된 경병',
+              lane: i === 0 ? 1 : 3,
+              depth: 0,
+              isFrozen: false,
+              intent: { ...baseMonster.intent, chargePercent: 40 }
+            }));
+            setTimeout(() => {
+              setMonsters(prev => [...prev, ...compressLaneSurvivors([...prev, ...minions])]);
+              addLog('💀 [보스 기믹: 소환] 보스가 하수인 2마리를 소환했습니다!', 'damage');
+            }, 100);
+          }
+        }
         setIsEnemyTurn(false);
         setHordeTimelinePercent(totalStats.baseAtbPercent || 50);
 
@@ -1433,6 +1507,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setMonsters(createDungeonFormation(dungeon.id, roomType, playerStats.level, diffToUse));
     setChainCount(0);
     setMaxChainThisRoom(0);
+    bossTurnCountRef.current = 0;
+    bossSummonedRef.current = {};
     setViewMode('battle');
     startBGM('dungeon');
     addLog("⚔️ [" + dungeon.name + "] (난이도 Lv." + diffToUse + ") 진입. [Q] 가르기 · [Space] 공격 · [←/→] 레인", "system");
@@ -1458,6 +1534,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setMonsters(spawned);
     setChainCount(0);
     setMaxChainThisRoom(0);
+    bossTurnCountRef.current = 0;
+    bossSummonedRef.current = {};
 
     if (room?.type === 'boss') {
       startBGM('boss');
@@ -1522,7 +1600,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         level: dungeonSnapshot.level,
         shards: dungeonSnapshot.shards,
         rage: 0,
-        shield: 0
+        shield: 0,
+        shieldLayers: []
       }));
     } else {
       setPlayerStats(p => ({ ...p, hp: p.maxHp, rage: 0 }));

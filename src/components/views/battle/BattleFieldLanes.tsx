@@ -204,7 +204,7 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                 <div className="space-y-1">
                   <div className="text-sm sm:text-base font-black text-blue-200">{currentRoom.title}</div>
                   <p className="text-[10px] text-gray-300 font-mono">
-                    방향키 [← / →] 축복 선택 ��� [Space] 수령
+                    방향키 [← / →] 축복 선택 ��� [Space] 수령
                   </p>
                   <div className="grid grid-cols-3 gap-1 max-w-xl mx-auto font-mono text-left">
                     <button
@@ -375,6 +375,7 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                     const monsterDmgPopups = floatingDamages.filter(d => d.id.includes(m.id));
                     const isBoss = m.rank === 'boss';
                     const isElite = m.rank === 'elite';
+                    const isFrozen = Boolean(m.isFrozen);
 
                     return (
                       <div
@@ -390,6 +391,8 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                             ? 'ring-2 ring-amber-400 bg-gradient-to-b from-red-950 via-iron-950 to-red-950 text-amber-200 border-2 border-red-500'
                             : isStopper
                             ? 'bg-yellow-950 border-yellow-400 text-yellow-300 ring-1 ring-yellow-300'
+                            : isFrozen
+                            ? 'bg-sky-950/80 border-2 border-sky-400 text-sky-100 ring-2 ring-sky-400/60'
                             : isElite
                             ? 'bg-blood-950 border-blood-500 text-yellow-200'
                             : dIdx === 0
@@ -397,6 +400,11 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                             : 'bg-iron-900 border-iron-800 text-gray-300'
                         } ${isOverkillResidual && !isDying ? 'animate-overkill-glow' : ''}`}
                       >
+                        {(() => {
+                          const chg = m.intent?.chargePercent || 0;
+                          if (chg < 75 || m.hp <= 0 || isFrozen) return null;
+                          return (<span className="chargeGauge absolute -top-1 -right-1 z-20 px-1 rounded bg-red-600 text-white text-[9px] font-black border border-red-300 animate-pulse">⚡{chg}%</span>);
+                        })()}
                         {/* Floating Damage Popups */}
                         {monsterDmgPopups.map(dp => (
                           <div

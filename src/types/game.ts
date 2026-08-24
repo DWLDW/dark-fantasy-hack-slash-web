@@ -110,6 +110,8 @@ export interface PlayerStats {
   evasion?: number;
   damageReduction?: number;
   shield?: number;
+  /** Layered shield charges: each layer has amount + remaining turns. Oldest expires first. */
+  shieldLayers?: { amount: number; turns: number }[];
 }
 
 export type RoomType = 'start' | 'normal' | 'elite' | 'treasure' | 'rune' | 'shrine' | 'boss';

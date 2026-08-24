@@ -117,8 +117,6 @@ export function resolveAttack(
     if (skill.activeRuneId === 'rune_frost') {
       if (!forceDeterministic) {
         if (Math.random() < 0.40) m.isFrozen = true;
-      } else {
-        m.isFrozen = true;
       }
     }
   };
@@ -380,7 +378,7 @@ export function resolveAttack(
 
     if (laneMonsters.length > 0) {
       const frontTarget = laneMonsters[0];
-      const executeBonus = frontTarget.hp < frontTarget.maxHp * 0.5 ? 1.6 : 1.0;
+      const executeBonus = skill.id === 'execute' && frontTarget.hp < frontTarget.maxHp * 0.5 ? 1.6 : 1.0;
       const defMultiplier = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(frontTarget.defense));
       const actualDmg = Math.floor(initialRawPayload * executeBonus * defMultiplier);
       const isFatal = actualDmg >= frontTarget.hp;

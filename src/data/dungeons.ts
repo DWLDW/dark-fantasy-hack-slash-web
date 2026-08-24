@@ -531,6 +531,14 @@ export function createDungeonFormation(
 
   const dungeon = DUNGEONS_DATA.find(d => d.id === dungeonId) || DUNGEONS_DATA[0];
   const recLv = Math.max(1, dungeon.recommendedLevel || 1);
+  const dungeonIdx = Math.max(0, DUNGEONS_DATA.findIndex(d => d.id === dungeonId));
+  const BOSS_GIMMICKS: Record<string, string> = {
+    roar: '3턴마다 전 레인 광역 포효',
+    summon: '체력 50% 이하로 처하면 잡몹 2마리 재소환',
+    guard: '4턴마다 1턴간 받는 피해 70% 감소'
+  };
+  const gimmickKeys = ['roar', 'summon', 'guard'];
+  const bossGimmickKey = gimmickKeys[dungeonIdx % 3];
 
   const monsterNames = (dungeon.monsterSummary || '').split(',').map(s => s.trim()).filter(Boolean);
   const baseName1 = monsterNames[0] || '어둠의 방랑자';
@@ -600,8 +608,9 @@ export function createDungeonFormation(
           type: 'attack',
           damage: Math.max(1, mDmg),
           targetLane: l,
-          chargePercent: 50
+          chargePercent: isBoss ? 25 : 40 + ((l * 7 + d * 13) % 30)
         },
+        bossGimmick: isBoss ? BOSS_GIMMICKS[bossGimmickKey] : undefined,
         icon: isBoss ? 'BOSS' : isElite ? 'ELITE' : 'NORMAL'
       });
     }
