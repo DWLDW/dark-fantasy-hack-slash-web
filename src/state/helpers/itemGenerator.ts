@@ -210,13 +210,33 @@ export function identifyItemHelper(item: GameItem, effLevel: number): GameItem {
     const poolItem = GAME_ITEMS_POOL.find(p => p.name === targetName || p.id === item.id || (item.setName && p.setName === item.setName));
 
     if (poolItem) {
+      // 난이도 스케일링 보존: 드랍 시 적용된 배율을 감정 후에도 유지한다.
+      // (기준: 풀 원본 대비 min/max/def/hp 비율, 최소 1배 — 하향 없음)
+      const ratioOf = (dropped: number | undefined, base: number | undefined): number => {
+        if (dropped === undefined || !base || base <= 0) return 1;
+        return Math.max(1, dropped / base);
+      };
+      const dmgRatio = Math.max(
+        ratioOf(item.stats.minDmg, poolItem.stats.minDmg),
+        ratioOf(item.stats.maxDmg, poolItem.stats.maxDmg)
+      );
+      const defRatio = ratioOf(item.stats.defense, poolItem.stats.defense);
+      const hpRatio = ratioOf(item.stats.hp, poolItem.stats.hp);
+      const scale = Math.min(4, Math.max(dmgRatio, defRatio, hpRatio, 1));
+
       return {
         ...item,
         name: poolItem.name,
         baseItemName: poolItem.baseItemName || item.baseItemName || '장비',
         rarity: poolItem.rarity,
         setName: poolItem.setName || item.setName,
-        stats: { ...poolItem.stats },
+        stats: {
+          ...poolItem.stats,
+          ...(poolItem.stats.minDmg !== undefined ? { minDmg: Math.floor(poolItem.stats.minDmg * scale) } : {}),
+          ...(poolItem.stats.maxDmg !== undefined ? { maxDmg: Math.floor(poolItem.stats.maxDmg * scale) } : {}),
+          ...(poolItem.stats.defense !== undefined ? { defense: Math.floor(poolItem.stats.defense * scale) } : {}),
+          ...(poolItem.stats.hp !== undefined ? { hp: Math.floor(poolItem.stats.hp * scale) } : {})
+        },
         subAffixes: poolItem.subAffixes ? [...poolItem.subAffixes] : [],
         specialEffect: poolItem.specialEffect || item.specialEffect,
         icon: poolItem.icon || item.icon,

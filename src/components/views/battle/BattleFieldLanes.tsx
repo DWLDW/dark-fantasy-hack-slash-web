@@ -352,6 +352,13 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                     </span>
                   </div>
 
+                  {/* Boss Danger Telegraph Overlay */}
+                  {isBossRoom && bossMonster?.bossTelegraphLanes?.includes(laneIdx) && (
+                    <div className="absolute inset-0 z-10 pointer-events-none rounded-lg border-2 border-red-500 animate-danger-lane flex items-start justify-center overflow-hidden">
+                      <span className="mt-8 px-1.5 py-0.5 rounded bg-red-600 text-white text-[9px] sm:text-[10px] font-mono font-black border border-red-300 shadow-[0_0_14px_rgba(239,68,68,0.9)]">☠️ DANGER</span>
+                    </div>
+                  )}
+
                   {/* Lane Hit Prediction Summary */}
                   {isBossWeakLane && (
                     <div className="w-full py-0.5 px-1 bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-600 text-white text-[9px] font-mono font-black rounded border border-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.8)] animate-pulse flex items-center justify-center gap-0.5 truncate">

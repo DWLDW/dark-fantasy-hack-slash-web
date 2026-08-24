@@ -296,11 +296,25 @@ export const BossHUD: React.FC = React.memo(() => {
         <div className="relative z-10 flex items-center justify-between text-[9px] sm:text-[10px] font-mono bg-iron-950/85 px-2 py-1 rounded-lg border border-iron-800 text-gray-300">
           <span className="flex items-center gap-1 text-amber-200 truncate">
             <Sparkles className="w-3 h-3 text-amber-400" />
-            <span>3턴 멸망기 차징 · 4턴 결계 약점 노출 · 50% 하수인 의식</span>
+            <span>멸망기 차징까지 {(() => { const r = 3 - (bossTurnCount % 3); return r === 3 ? 3 : r; })()}턴 · 약점 노출까지 {(() => { const r = 4 - (bossTurnCount % 4); return r === 4 ? 4 : r; })()}턴</span>
           </span>
           <span className="text-gray-400 flex-shrink-0 font-bold ml-2">
             턴 #{bossTurnCount}
           </span>
+        </div>
+      )}
+
+      {/* Row 5: Active Danger Lane Telegraph Strip */}
+      {boss.bossTelegraphLanes && boss.bossTelegraphLanes.length > 0 && (
+        <div className="relative z-10 mt-1.5 flex items-center justify-between text-[9px] sm:text-[10px] font-mono bg-gradient-to-r from-red-950/95 via-red-900/90 to-red-950/95 px-2 py-1 rounded-lg border-2 border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.7)] animate-pulse">
+          <span className="flex items-center gap-1 text-red-200 font-black truncate">
+            ⚠️ 위험 표식 레인:
+            <span className="bg-red-600 text-white font-black px-1 rounded border border-red-300 flex gap-1">
+              {boss.bossTelegraphLanes.map(l => <span key={l}>{l + 1}번</span>)}
+            </span>
+            <span className="text-yellow-200 hidden sm:inline">— 해당 레인에 서 있으면 보스의 충격파에 맞습니다!</span>
+          </span>
+          <span className="text-red-300 flex-shrink-0 font-bold ml-2">즉시 회피!</span>
         </div>
       )}
     </div>

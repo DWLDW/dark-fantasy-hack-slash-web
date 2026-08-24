@@ -985,6 +985,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let attackMonsters = monsters;
     const activeRoomType = currentDungeon.rooms.find(r => r.id === currentRoomId)?.type;
     const activeBoss = monsters.find(m => m.rank === 'boss');
+    const activeBossTelegraphLanes = activeBoss?.bossTelegraphLanes || [];
+    const telegraphActive = activeRoomType === 'boss' && activeBossTelegraphLanes.length > 0 && !activeBossTelegraphLanes.includes(playerLane);
+    const telegraphHit = activeBossTelegraphLanes.includes(playerLane)
+      ? Math.max(10, Math.floor((activeBoss?.intent.damage || 20) * 0.6))
+      : 0;
     let bossGuardTriggered = false;
 
     if (activeRoomType === 'boss' && activeBoss) {
@@ -1148,6 +1153,29 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (result.isWeakSpotHit) {
         playRuneWordSound();
         addLog('🎯 [WEAK SPOT CRITICAL!] 보스의 약점 코어를 직격하여 2.5배 치명타를 가하고 결계를 분쇄했습니다!', 'chain');
+      }
+
+      // Boss lane telegraph: standing in a marked lane when the boss acts = punish hit
+      if (telegraphActive) {
+        const telegraphHp = Math.max(0, playerStats.hp - telegraphHit);
+        setPlayerStats(prev => ({ ...prev, hp: Math.max(0, prev.hp - telegraphHit) }));
+        addLog(`⚠️ [보스 예고 공격!] ${activeBoss?.name || '보스'}가 표식한 레인에 서 있어 충격파에 맞았습니다! (-${telegraphHit} HP)`, 'damage');
+        if (telegraphHp <= 0 && playerStats.hp > 0) {
+          const hpPotionTele = consumables.find(c => c.id === 'c_hp' && c.count > 0);
+          if (hpPotionTele) {
+            setConsumables(prev => prev.map(c => c.id === 'c_hp' ? { ...c, count: c.count - 1 } : c));
+            const healAmt = Math.min(playerStats.maxHp, 80 + Math.floor(playerStats.maxHp * 0.3));
+            setPlayerStats(prev => ({ ...prev, hp: healAmt }));
+            playPotionSound();
+            addLog(`✨ [자동 물약 기사회생] 보스의 예고 공격으로 쓰러질 뻔했으나 생명력 물약으로 생존했습니다! (+${healAmt} HP)`, 'system');
+          } else {
+            setIsDeathModalOpen(true);
+            setIsEnemyTurn(false);
+            setIsAttacking(false);
+            setPlayerStats(prev => ({ ...prev, hp: 0, rage: 0 }));
+            return;
+          }
+        }
       }
 
       if (result.chainCount > 0) {
@@ -1407,9 +1435,16 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             // Guard weak lane cycle
             if (bossTurnCountRef.current % 4 === 0) {
               boss.bossWeakLane = Math.floor(Math.random() * 5);
-              addLog(`🎯 [약점 노출] 보스의 방어 결계 중 [${boss.bossWeakLane + 1}번 레인]에 약점 코어가 노출되었습니다! (적중 시 2.5배 치명타)`, 'system');
+              // Lane telegraph: mark 2 random lanes (never the weak lane) as danger zones
+              const allLanes = [0, 1, 2, 3, 4].filter(l => l !== boss.bossWeakLane);
+              const shuffled = [...allLanes].sort(() => 0.5 - Math.random());
+              const telegraphLanes = shuffled.slice(0, 2);
+              setMonsters(prev => prev.map(m => m.rank === 'boss' ? { ...m, bossTelegraphLanes: telegraphLanes } : m));
+              addLog(`🎯 [약점 노출 & 위험 표식] 보스의 결계에 약점 코어([${boss.bossWeakLane + 1}번 레인])가 노출되었습니다! (적중 시 2.5배 치명타)`, 'system');
+              addLog(`⚠️ [위험 표식!] ${telegraphLanes.map(l => l + 1 + '번').join(', ')} 레인이 보스의 공격 표적이 되었습니다. 다음 공격 전까지 해당 레인에서 벗어나세요!`, 'damage');
             } else {
               boss.bossWeakLane = undefined;
+              setMonsters(prev => prev.map(m => m.rank === 'boss' ? { ...m, bossTelegraphLanes: undefined } : m));
             }
           }
         }
