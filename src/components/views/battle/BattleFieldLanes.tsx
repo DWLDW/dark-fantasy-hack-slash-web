@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { useGame } from '../../../state/gameStore';
 import { Monster } from '../../../types/game';
 import { Sparkles, Coins, Gem, ShieldCheck, ArrowRight, Crosshair } from 'lucide-react';
@@ -29,6 +29,7 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
     claimShrine,
     selectedShrineType,
     setSelectedShrineType,
+    cycleShrineSelection,
     latestRoomLootEvent,
     equipItem,
     equipment,
@@ -39,6 +40,54 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
   const isCleared = totalMonsters === 0;
   const currentRoom = currentDungeon.rooms.find(r => r.id === currentRoomId);
   const actTheme = useMemo(() => getActTheme(currentDungeon.id), [currentDungeon.id]);
+
+  // Dedicated Shrine Keyboard Listener
+  useEffect(() => {
+    const isShrineActive = !roomEventClaimed && currentRoom?.type === 'shrine' && isCleared;
+    if (!isShrineActive) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (['ArrowLeft', 'KeyA', 'a', 'A'].includes(e.key) || e.code === 'ArrowLeft' || e.code === 'KeyA') {
+        e.preventDefault();
+        e.stopPropagation();
+        cycleShrineSelection(-1);
+        return;
+      }
+      if (['ArrowRight', 'KeyD', 'd', 'D'].includes(e.key) || e.code === 'ArrowRight' || e.code === 'KeyD') {
+        e.preventDefault();
+        e.stopPropagation();
+        cycleShrineSelection(1);
+        return;
+      }
+      if (e.key === '1') {
+        e.preventDefault();
+        e.stopPropagation();
+        setSelectedShrineType('fortune');
+        return;
+      }
+      if (e.key === '2') {
+        e.preventDefault();
+        e.stopPropagation();
+        setSelectedShrineType('crit');
+        return;
+      }
+      if (e.key === '3') {
+        e.preventDefault();
+        e.stopPropagation();
+        setSelectedShrineType('defense');
+        return;
+      }
+      if (e.key === ' ' || e.key === 'Spacebar' || e.key === 'Enter') {
+        e.preventDefault();
+        e.stopPropagation();
+        claimShrine(selectedShrineType);
+        return;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown, { capture: true });
+    return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
+  }, [roomEventClaimed, currentRoom?.type, isCleared, cycleShrineSelection, setSelectedShrineType, claimShrine, selectedShrineType]);
 
   // Group monsters by 5 lanes (0, 1, 2, 3, 4)
   const laneMonsters = useMemo(() => {
