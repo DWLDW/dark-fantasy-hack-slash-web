@@ -1052,13 +1052,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let bossGuardTriggered = false;
 
     if (activeRoomType === 'boss' && activeBoss) {
-      bossTurnCountRef.current += 1;
-      setBossTurnCount(bossTurnCountRef.current);
-
       const sigKey = activeBoss.bossSignatureKey || '';
       const isGuardGimmick = ['blood_drain', 'charged_shield', 'fire_web', 'lightning_pylon', 'void_gaze', 'ancients_whirlwind', 'guard'].some(k => sigKey.includes(k) || (activeBoss.bossGimmick && activeBoss.bossGimmick.includes('방어')));
 
-      if (isGuardGimmick && bossTurnCountRef.current % 4 === 0) {
+      if (isGuardGimmick && bossTurnCountRef.current > 0 && bossTurnCountRef.current % 4 === 0) {
         bossGuardTriggered = true;
         setBossGuardActive(true);
         setTimeout(() => setBossGuardActive(false), 1500);
@@ -1067,8 +1064,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const bIcon = activeBoss.icon || '👑';
 
         if (sigKey === 'charged_shield') {
-          triggerBossSkill({ name: bName, icon: bIcon, title: '태양의 충전 방패 (Solar Aegis)', desc: '방어력 +70% 증가 & 공격자에게 전격 반사 결계', element: 'lightning' });
-          addLog(`⚡ [${activeBoss.name} 시그니처: 태양의 충전 방패] 방어력 70% 증가! 공격 시 전류가 역류합니다!`, 'system');
+          triggerBossSkill({ name: bName, icon: bIcon, title: '태양의 충전 방패 (Solar Aegis)', desc: '받는 피해 70% 차단 & 공격자에게 전격 반사 결계', element: 'lightning' });
+          addLog(`⚡ [${activeBoss.name} 시그니처: 태양의 충전 방패] 방어 결계 활성화! 받는 피해가 70% 감소합니다!`, 'system');
         } else if (sigKey === 'lightning_pylon') {
           triggerBossSkill({ name: bName, icon: bIcon, title: '증오의 뇌격 방패 (Lightning Barrier)', desc: '증오의 번개 결계로 받는 피해 70% 차단', element: 'lightning' });
           addLog(`💀 [${activeBoss.name} 시그니처: 증오의 뇌격 방패] 증오의 번개 결계로 받는 피해가 70% 감소합니다!`, 'system');
@@ -1086,7 +1083,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     if (bossGuardTriggered) {
-      attackMonsters = monsters.map(m => m.rank === 'boss' ? { ...m, defense: Math.floor((m.defense || 10) * 3.34) } : m);
+      attackMonsters = monsters.map(m => m.rank === 'boss' ? { ...m, isGuarding: true } : m);
     }
 
     const result = resolveAttack(
@@ -2009,6 +2006,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setMaxChainThisRoom(0);
     bossTurnCountRef.current = 0;
     bossSummonedRef.current = {};
+    bossHazardLanesRef.current = [];
+    setBossHazardLanes([]);
     setBossTurnCount(0);
     setBossGuardActive(false);
 
@@ -2065,6 +2064,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setMaxChainThisRoom(0);
     bossTurnCountRef.current = 0;
     bossSummonedRef.current = {};
+    bossHazardLanesRef.current = [];
+    setBossHazardLanes([]);
     setBossTurnCount(0);
     setBossGuardActive(false);
 
@@ -2107,6 +2108,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setTempBuffs({ defenseBonus: 0, overkillBonus: 0 });
     setDungeonSnapshot(null);
     setPendingExitRoomId(null);
+    bossTurnCountRef.current = 0;
+    bossSummonedRef.current = {};
+    bossHazardLanesRef.current = [];
+    setBossHazardLanes([]);
+    setBossTurnCount(0);
+    setBossGuardActive(false);
     const maxPots = POTION_CAPACITY_TIERS[townUpgrades.potionCapacityLevel] || 3;
     setConsumables(curr => curr.map(c => c.id === 'c_hp' ? { ...c, count: maxPots } : c));
     startBGM('town');

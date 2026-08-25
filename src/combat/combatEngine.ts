@@ -27,7 +27,8 @@ export interface AttackResolution {
 
 export function calculateDamageMultiplier(attackerLevel: number, targetDefense: number): number {
   const K = 100 + attackerLevel * 10;
-  return K / (K + Math.max(0, targetDefense));
+  const rawMult = K / (K + Math.max(0, targetDefense));
+  return Math.max(0.05, Math.min(1.0, rawMult));
 }
 
 export function resolveAttack(
@@ -98,14 +99,14 @@ export function resolveAttack(
     runeDmgBonus = 1.15;
     runeOverkillBonus = 1.25;
   } else if (skill.activeRuneId === 'rune_void') {
-    runeDmgBonus = 1.20;
-    runeOverkillBonus = 1.20;
+    runeDmgBonus = 1.10;
+    runeOverkillBonus = 1.15;
   }
 
-  const skillLevelMult = 1 + ((skill.level || 1) - 1) * 0.15;
-  const critMultiplier = isCritical ? totalStats.critDamage / 100 : 1.0;
-  const flurryMultiplier = isExtraStrike ? 1.35 : 1.0;
-  const initialRawPayload = Math.floor(baseDamage * skill.damageMultiplier * skillLevelMult * runeDmgBonus * critMultiplier * flurryMultiplier);
+  const critMultiplier = totalStats.critDamage / 100;
+  const initialRawPayload = Math.floor(
+    baseDamage * (skill.damageMultiplier || 1.0) * runeDmgBonus * (isCritical ? critMultiplier : 1.0) * (isExtraStrike ? 1.35 : 1.0)
+  );
 
   const targetsHit: CombatHitResult[] = [];
   const kills: string[] = [];
@@ -130,12 +131,16 @@ export function resolveAttack(
   const monsterMap = new Map<string, Monster>(monsters.map(m => [m.id, { ...m }]));
   const effectiveOverkillEff = skill.overkillEfficiency * (totalStats.overkillEfficiency / 100) * runeOverkillBonus;
 
-  // Boss Interactive Mechanics: Stagger Break & Weak Spot
+  // Boss Interactive Mechanics: Stagger Break & Weak Spot & Guard
   const applyBossMechanics = (m: Monster, rawDmg: number): number => {
     let dmg = rawDmg;
     if (m.rank === 'boss') {
       if (m.isGroggy) {
         dmg = Math.floor(dmg * 1.5);
+      }
+      // 🛡️ Boss Guard / Barrier Gimmick (70% damage reduction without mutating defense stat)
+      if (m.isGuarding) {
+        dmg = Math.max(1, Math.floor(dmg * 0.30));
       }
       if (m.bossWeakLane !== undefined && m.bossWeakLane === playerLane) {
         dmg = Math.floor(dmg * 2.5);

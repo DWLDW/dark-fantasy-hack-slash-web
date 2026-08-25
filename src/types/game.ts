@@ -183,6 +183,7 @@ export interface Monster {
   bossTelegraphLanes?: number[];
   isChargingUltimate?: boolean;
   bossUltimateName?: string;
+  isGuarding?: boolean;
 }
 
 export type SkillRoute = 'line' | 'branch' | 'radius' | 'single';
