@@ -113,7 +113,14 @@ interface GameContextType {
   bossTurnCount: number;
   bossGuardActive: boolean;
   bossHazardLanes: number[];
-  playerHitFlash: { id: number; damage: number } | null;
+  playerHitFlash: {
+    id: number;
+    damage: number;
+    attackerName?: string;
+    isBoss?: boolean;
+    element?: ElementType;
+    lane?: number;
+  } | null;
   activeBossSkill: {
     name: string;
     icon: string;
@@ -357,12 +364,26 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [bossGuardActive, setBossGuardActive] = useState(false);
   const bossHazardLanesRef = useRef<number[]>([]);
   const [bossHazardLanes, setBossHazardLanes] = useState<number[]>([]);
-  const [playerHitFlash, setPlayerHitFlash] = useState<{ id: number; damage: number } | null>(null);
+  const [playerHitFlash, setPlayerHitFlash] = useState<{
+    id: number;
+    damage: number;
+    attackerName?: string;
+    isBoss?: boolean;
+    element?: ElementType;
+    lane?: number;
+  } | null>(null);
   const hitFlashTimerRef = useRef<number | null>(null);
-  const triggerPlayerHitFlash = useCallback((damage: number) => {
+  const triggerPlayerHitFlash = useCallback((damage: number, opts?: { attackerName?: string; isBoss?: boolean; element?: ElementType; lane?: number }) => {
     if (hitFlashTimerRef.current !== null) window.clearTimeout(hitFlashTimerRef.current);
-    setPlayerHitFlash({ id: Date.now(), damage });
-    hitFlashTimerRef.current = window.setTimeout(() => setPlayerHitFlash(null), 700);
+    setPlayerHitFlash({
+      id: Date.now(),
+      damage,
+      attackerName: opts?.attackerName,
+      isBoss: opts?.isBoss,
+      element: opts?.element,
+      lane: opts?.lane
+    });
+    hitFlashTimerRef.current = window.setTimeout(() => setPlayerHitFlash(null), opts?.isBoss ? 900 : 650);
   }, []);
   const [activeBossSkill, setActiveBossSkill] = useState<{
     name: string;
@@ -1465,6 +1486,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 calculatedShieldLayers = [];
               }
               calculatedHp = Math.max(0, calculatedHp - bossSkillDmg);
+              triggerPlayerHitFlash(bossSkillDmg, {
+                attackerName: boss.name,
+                isBoss: true,
+                element: (boss.element || 'fire') as ElementType,
+                lane: playerLane
+              });
             } else if (bossTurnCountRef.current % 3 === 0) {
               // Enter Charging State -> Gives player 1 turn to BREAK it!
               const staggerMax = Math.max(120, Math.floor(boss.maxHp * 0.18));
@@ -1528,6 +1555,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (hordeResult.totalEnemyDamage > 0) {
           playHordeAttackSound();
+          triggerPlayerHitFlash(hordeResult.totalEnemyDamage, {
+            attackerName: '적 몬스터 군단',
+            isBoss: false,
+            lane: playerLane
+          });
 
           if (hordeResult.potionUsed) {
             setConsumables(hordeResult.newConsumables);

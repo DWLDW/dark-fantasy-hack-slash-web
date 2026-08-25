@@ -14,7 +14,7 @@ const ELEMENT_FLASH: Record<string, string> = {
 };
 
 /**
- * 🌙 1. Vertical Crescent Sword Aura (종베기 초승달 검기 - 평소엔 컴팩트, 관통 시 거대화)
+ * 🌙 1. Vertical Crescent Sword Aura (종베기 초승달 검기 - 적 박스 맞춤형)
  */
 const VerticalSwordAura: React.FC<{ color: string; uid: string; isMassive?: boolean; variant?: number }> = ({ color, uid, isMassive, variant = 0 }) => {
   const animClass = isMassive ? 'fx-crescent-massive' : variant % 2 === 0 ? 'fx-crescent-compact' : 'fx-crescent-vertical';
@@ -22,7 +22,7 @@ const VerticalSwordAura: React.FC<{ color: string; uid: string; isMassive?: bool
     <div className={`relative w-full h-full ${animClass}`}>
       <svg
         className="fx-sword-aura-crescent w-full h-full"
-        viewBox="0 0 160 400"
+        viewBox={isMassive ? "0 0 120 340" : "0 0 100 160"}
         preserveAspectRatio="none"
       >
         <defs>
@@ -31,41 +31,45 @@ const VerticalSwordAura: React.FC<{ color: string; uid: string; isMassive?: bool
             <stop offset="30%" stopColor={color} stopOpacity="0.95" />
             <stop offset="100%" stopColor={color} stopOpacity="0" />
           </linearGradient>
-          <filter id={`v-glow-${uid}`} x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur in="SourceGraphic" stdDeviation={isMassive ? "8" : "4.5"} result="blur1" />
-            <feMerge>
-              <feMergeNode in="blur1" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
         </defs>
-        {/* Outer Curved Blade Arc */}
+        {/* Curved Razor Blade Arc */}
         <path
-          d={variant === 1 ? "M 95 15 Q 15 180, 85 385 Q 45 210, 95 15 Z" : "M 75 10 Q 25 180, 85 390 Q 55 200, 75 10 Z"}
+          d={
+            isMassive
+              ? "M 60 10 Q 20 170, 65 330 Q 40 180, 60 10 Z"
+              : variant === 1
+              ? "M 55 10 Q 15 80, 55 150 Q 30 85, 55 10 Z"
+              : "M 50 8 Q 20 80, 55 152 Q 35 85, 50 8 Z"
+          }
           fill={`url(#v-grad-${uid})`}
-          filter={`url(#v-glow-${uid})`}
+          filter="drop-shadow(0 0 8px currentColor)"
         />
-        {/* Sharp Inner Blade Edge */}
+        {/* Sharp White Core Edge */}
         <path
-          d={variant === 1 ? "M 95 25 Q 30 190, 85 375 Q 60 210, 95 25 Z" : "M 75 20 Q 40 190, 85 380 Q 65 200, 75 20 Z"}
+          d={
+            isMassive
+              ? "M 60 18 Q 28 170, 65 320 Q 48 180, 60 18 Z"
+              : variant === 1
+              ? "M 55 16 Q 22 80, 55 142 Q 38 85, 55 16 Z"
+              : "M 50 14 Q 28 80, 55 144 Q 42 85, 50 14 Z"
+          }
           fill="#ffffff"
           opacity="0.95"
         />
       </svg>
       <div className="fx-blade-sparks" style={{ color }} />
-      <div className="fx-blade-swing-trail" />
     </div>
   );
 };
 
 /**
- * ⚡ 1.5 Diagonal Anime Slashes (만화/액션게임풍 사선 검기)
+ * ⚡ 1.5 Diagonal Anime Slashes (만화/액션게임풍 사선 검기 - 적 박스 맞춤형)
  */
 const DiagonalSwordSlash: React.FC<{ color: string; uid: string; dir: 1 | 2 }> = ({ color, uid, dir }) => {
   const animClass = dir === 1 ? 'fx-slash-diag-1' : 'fx-slash-diag-2';
   return (
     <div className={`relative w-full h-full ${animClass}`}>
-      <svg className="fx-sword-aura-crescent w-full h-full" viewBox="0 0 200 200">
+      <svg className="fx-sword-aura-crescent w-full h-full" viewBox="0 0 160 160">
         <defs>
           <linearGradient id={`diag-grad-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#ffffff" />
@@ -74,12 +78,12 @@ const DiagonalSwordSlash: React.FC<{ color: string; uid: string; dir: 1 | 2 }> =
           </linearGradient>
         </defs>
         <path
-          d={dir === 1 ? "M 10 30 Q 110 90, 190 170 Q 120 120, 10 30 Z" : "M 190 30 Q 90 90, 10 170 Q 80 120, 190 30 Z"}
+          d={dir === 1 ? "M 15 25 Q 90 75, 145 135 Q 95 95, 15 25 Z" : "M 145 25 Q 70 75, 15 135 Q 65 95, 145 25 Z"}
           fill={`url(#diag-grad-${uid})`}
-          filter="drop-shadow(0 0 12px currentColor)"
+          filter="drop-shadow(0 0 8px currentColor)"
         />
         <path
-          d={dir === 1 ? "M 20 40 Q 110 95, 180 160 Q 115 115, 20 40 Z" : "M 180 40 Q 90 95, 20 160 Q 85 115, 180 40 Z"}
+          d={dir === 1 ? "M 22 32 Q 90 78, 138 128 Q 92 92, 22 32 Z" : "M 138 32 Q 70 78, 22 128 Q 68 92, 138 32 Z"}
           fill="#ffffff"
         />
       </svg>
@@ -89,37 +93,69 @@ const DiagonalSwordSlash: React.FC<{ color: string; uid: string; dir: 1 | 2 }> =
 };
 
 /**
- * 🌊 2. Horizontal Wide Crescent Sword Aura (부채꼴 횡베기 파동 검기 - 슬림 & 샤프)
+ * 🌊 2. Horizontal Wide Crescent Sword Aura (3종 샤프 레이저 아크)
  */
 const HorizontalSwordAura: React.FC<{ color: string; uid: string; variant?: number }> = ({ color, uid, variant = 0 }) => {
   return (
     <div className="relative w-full h-full fx-crescent-horizontal">
       <svg
         className="fx-sword-aura-crescent w-full h-full"
-        viewBox="0 0 400 90"
+        viewBox="0 0 400 60"
         preserveAspectRatio="none"
       >
         <defs>
           <linearGradient id={`h-grad-${uid}`} x1="0%" y1="50%" x2="100%" y2="50%">
             <stop offset="0%" stopColor={color} stopOpacity="0" />
-            <stop offset="25%" stopColor={color} stopOpacity="0.9" />
+            <stop offset="20%" stopColor={color} stopOpacity="0.85" />
             <stop offset="50%" stopColor="#ffffff" stopOpacity="1" />
-            <stop offset="75%" stopColor={color} stopOpacity="0.9" />
+            <stop offset="80%" stopColor={color} stopOpacity="0.85" />
             <stop offset="100%" stopColor={color} stopOpacity="0" />
           </linearGradient>
         </defs>
-        {/* Sleek Razor Cutting Arc */}
-        <path
-          d={variant === 1 ? "M 15 70 Q 200 10, 385 70 Q 200 35, 15 70 Z" : "M 15 65 Q 200 15, 385 65 Q 200 35, 15 65 Z"}
-          fill={`url(#h-grad-${uid})`}
-          filter="drop-shadow(0 0 10px currentColor)"
-        />
-        {/* White-Hot Core Blade Edge */}
-        <path
-          d="M 35 60 Q 200 22, 365 60 Q 200 34, 35 60 Z"
-          fill="#ffffff"
-          opacity="0.95"
-        />
+
+        {variant === 1 ? (
+          // Var 1: 이중 면도날 엇갈림 검기 (Dual Razor Arcs)
+          <>
+            <path
+              d="M 10 25 Q 200 5, 390 25 Q 200 15, 10 25 Z"
+              fill={`url(#h-grad-${uid})`}
+              filter="drop-shadow(0 0 6px currentColor)"
+            />
+            <path
+              d="M 20 40 Q 200 20, 380 40 Q 200 30, 20 40 Z"
+              fill={`url(#h-grad-${uid})`}
+              filter="drop-shadow(0 0 6px currentColor)"
+            />
+            <path d="M 30 24 Q 200 9, 370 24 Q 200 16, 30 24 Z" fill="#ffffff" />
+            <path d="M 40 39 Q 200 24, 360 39 Q 200 31, 40 39 Z" fill="#ffffff" />
+          </>
+        ) : variant === 2 ? (
+          // Var 2: 톱니 파동 횡참 (Sonic Razor Wave)
+          <>
+            <path
+              d="M 10 32 Q 100 12, 200 28 Q 300 12, 390 32 Q 300 20, 200 36 Q 100 20, 10 32 Z"
+              fill={`url(#h-grad-${uid})`}
+              filter="drop-shadow(0 0 8px currentColor)"
+            />
+            <path
+              d="M 30 31 Q 100 16, 200 29 Q 300 16, 370 31 Q 300 22, 200 34 Q 100 22, 30 31 Z"
+              fill="#ffffff"
+            />
+          </>
+        ) : (
+          // Var 0: 일도양단 초승달 (Pure Katana Crescent)
+          <>
+            <path
+              d="M 10 36 Q 200 8, 390 36 Q 200 22, 10 36 Z"
+              fill={`url(#h-grad-${uid})`}
+              filter="drop-shadow(0 0 8px currentColor)"
+            />
+            <path
+              d="M 30 35 Q 200 13, 370 35 Q 200 23, 30 35 Z"
+              fill="#ffffff"
+            />
+          </>
+        )}
       </svg>
       <div className="fx-blade-sparks" style={{ color }} />
     </div>
@@ -127,25 +163,24 @@ const HorizontalSwordAura: React.FC<{ color: string; uid: string; variant?: numb
 };
 
 /**
- * ⚔️ 3. Cross Guillotine Slash (처형 십자 검기)
+ * ⚔️ 3. Cross Guillotine Slash (처형 십자 검기 - 적 박스 맞춤형)
  */
 const CrossExecutionSlash: React.FC<{ color: string; uid: string }> = ({ color, uid }) => {
   return (
     <div className="relative w-full h-full flex items-center justify-center">
       <div className="absolute inset-0 fx-cross-slash-1">
-        <svg className="fx-sword-aura-crescent w-full h-full" viewBox="0 0 200 200">
-          <path d="M 15 15 Q 100 80, 185 185 Q 115 100, 15 15 Z" fill={color} filter="drop-shadow(0 0 15px currentColor)" />
-          <path d="M 25 25 Q 100 85, 175 175 Q 110 95, 25 25 Z" fill="#ffffff" />
+        <svg className="fx-sword-aura-crescent w-full h-full" viewBox="0 0 160 160">
+          <path d="M 20 20 Q 80 70, 140 140 Q 90 85, 20 20 Z" fill={color} filter="drop-shadow(0 0 10px currentColor)" />
+          <path d="M 28 28 Q 80 73, 132 132 Q 88 82, 28 28 Z" fill="#ffffff" />
         </svg>
       </div>
       <div className="absolute inset-0 fx-cross-slash-2">
-        <svg className="fx-sword-aura-crescent w-full h-full" viewBox="0 0 200 200">
-          <path d="M 185 15 Q 100 80, 15 185 Q 85 100, 185 15 Z" fill={color} filter="drop-shadow(0 0 15px currentColor)" />
-          <path d="M 175 25 Q 100 85, 25 175 Q 90 95, 175 25 Z" fill="#ffffff" />
+        <svg className="fx-sword-aura-crescent w-full h-full" viewBox="0 0 160 160">
+          <path d="M 140 20 Q 80 70, 20 140 Q 70 85, 140 20 Z" fill={color} filter="drop-shadow(0 0 10px currentColor)" />
+          <path d="M 132 28 Q 80 73, 28 132 Q 72 82, 132 28 Z" fill="#ffffff" />
         </svg>
       </div>
       <div className="fx-blade-sparks" style={{ color }} />
-      <div className="fx-blade-swing-trail" />
     </div>
   );
 };
@@ -169,7 +204,6 @@ const CycloneWhirlAura: React.FC<{ color: string; uid: string }> = ({ color, uid
         <path d="M 70 240 Q 20 120, 150 20 Q 90 100, 70 240 Z" fill={`url(#cyclone-grad-${uid})`} />
       </svg>
       <div className="fx-blade-sparks" style={{ color }} />
-      <div className="fx-blade-swing-trail" />
     </div>
   );
 };
@@ -182,26 +216,26 @@ const OverkillShockwave: React.FC<{ lane: number; damage?: number }> = ({ lane, 
     <div
       className="absolute pointer-events-none z-50 flex flex-col items-center justify-center"
       style={{
-        left: `${lane * 20 - 5}%`,
-        width: '30%',
-        top: '15%',
-        height: '70%'
+        left: `${lane * 20 - 4}%`,
+        width: '28%',
+        top: '30%',
+        height: '50%'
       }}
     >
       {/* 💥 Overkill Floating Badge */}
-      <div className="fx-overkill-badge font-mono font-black text-center z-50 drop-shadow-[0_0_15px_rgba(249,115,22,1)]">
-        <div className="text-[11px] sm:text-xs text-amber-300 font-cinzel font-black tracking-widest bg-black/80 px-2 py-0.5 rounded-full border border-amber-400">
+      <div className="fx-overkill-badge font-mono font-black text-center z-50 drop-shadow-[0_0_16px_rgba(249,115,22,1)]">
+        <div className="text-[10px] sm:text-xs text-amber-300 font-cinzel font-black tracking-widest bg-iron-950/95 px-2 py-0.5 rounded-full border-2 border-amber-400 shadow-lg">
           💥 OVERKILL!
         </div>
         {damage && (
-          <div className="text-sm sm:text-base text-orange-200">
+          <div className="text-xs sm:text-sm text-orange-200 font-bold mt-0.5">
             -{damage}
           </div>
         )}
       </div>
 
       {/* Dual Shockwave Blast Rings */}
-      <div className="w-24 h-24 sm:w-36 sm:h-36 fx-overkill-shockwave" />
+      <div className="w-20 h-20 sm:w-28 sm:h-28 fx-overkill-shockwave" />
       <div className="fx-overkill-sparkles" />
     </div>
   );
@@ -229,10 +263,10 @@ export const CombatFxLayer: React.FC = React.memo(() => {
   const glow = getElementGlow(element);
   const kind = getSlashKind(selectedSkill.route, selectedSkill.id);
 
-  // Check if multiple depths were hit or skill is pierce
+  // Check if multiple depths were hit (Pierce)
   const hitCount = floatingDamages.length;
   const isPierceSkill = selectedSkill.route === 'line';
-  const isMassivePierce = isPierceSkill || hitCount >= 2;
+  const isMassivePierce = isPierceSkill && hitCount >= 2;
   const overkillDmg = floatingDamages.find(d => d.isOverkill);
 
   useEffect(() => {
@@ -242,7 +276,7 @@ export const CombatFxLayer: React.FC = React.memo(() => {
       setShowStrike(true);
     }
     if (!isAttacking) {
-      const hold = kind === 'whirl' ? 450 : 320;
+      const hold = kind === 'whirl' ? 450 : 300;
       const t = setTimeout(() => setShowStrike(false), hold);
       prevAttack.current = isAttacking;
       return () => clearTimeout(t);
@@ -279,10 +313,10 @@ export const CombatFxLayer: React.FC = React.memo(() => {
           key={`v-${strikeKey}`}
           className="absolute"
           style={{
-            left: `${verticalLane * 20 - (isMassivePierce ? 6 : 3)}%`,
-            width: isMassivePierce ? '32%' : '26%',
-            top: isMassivePierce ? '2%' : '28%',
-            height: isMassivePierce ? '96%' : '60%',
+            left: `${verticalLane * 20 - (isMassivePierce ? 3 : 1)}%`,
+            width: isMassivePierce ? '26%' : '22%',
+            top: isMassivePierce ? '8%' : '44%',
+            height: isMassivePierce ? '80%' : '30%',
             color: glow
           }}
         >
@@ -302,10 +336,10 @@ export const CombatFxLayer: React.FC = React.memo(() => {
           key={`c-${strikeKey}`}
           className="absolute"
           style={{
-            left: `${verticalLane * 20 - 8}%`,
-            width: '36%',
-            top: '18%',
-            height: '65%',
+            left: `${verticalLane * 20 - 2}%`,
+            width: '24%',
+            top: '44%',
+            height: '30%',
             color: glow
           }}
         >
@@ -321,8 +355,8 @@ export const CombatFxLayer: React.FC = React.memo(() => {
           style={{
             left: `${branchSpan.start * 20}%`,
             width: `${branchSpan.count * 20}%`,
-            top: '42%',
-            height: '24%',
+            top: '48%',
+            height: '18%',
             color: glow
           }}
         >
