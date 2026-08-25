@@ -4,6 +4,7 @@ import { Monster } from '../../../types/game';
 import { Sparkles, Coins, Gem, ShieldCheck, ArrowRight, Crosshair } from 'lucide-react';
 import { calculateItemScore } from '../../../utils/itemScoring';
 import { getActTheme } from '../../../utils/actThemes';
+import { getMonsterDamageRange } from '../../../state/helpers/combatActionHelper';
 import { MonsterPortrait } from '../../fx/MonsterPortrait';
 import { CombatFxLayer } from '../../fx/CombatFxLayer';
 import { AtmosphereLayer } from '../../fx/AtmosphereLayer';
@@ -614,7 +615,14 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                           isBoss ? 'text-[9px] sm:text-[10px]' : 'text-[8px] sm:text-[9px]'
                         }`}>
                           <span className="font-black text-rose-300">{m.hp}</span>
-                          <span className="font-bold text-amber-300">⚔️{m.intent.damage || 6}</span>
+                          {(() => {
+                            const [minD, maxD] = getMonsterDamageRange(m.intent?.damage || 3);
+                            return (
+                              <span className="font-bold text-amber-300">
+                                ⚔️{minD}~{maxD}
+                              </span>
+                            );
+                          })()}
                         </div>
 
                         {/* Prediction / Targeting Tag */}

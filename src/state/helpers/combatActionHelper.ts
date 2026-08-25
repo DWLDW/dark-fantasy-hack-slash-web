@@ -15,6 +15,16 @@ export interface AttackGainsResult {
   shieldGained?: number;
 }
 
+/**
+ * 🎲 Calculates dynamic min~max damage roll for monsters (e.g. 3 -> 2~4)
+ */
+export function getMonsterDamageRange(damage: number): [number, number] {
+  const base = Math.max(1, damage);
+  const min = Math.max(1, Math.floor(base * 0.75));
+  const max = Math.max(min, Math.ceil(base * 1.25));
+  return [min, max];
+}
+
 export function calculateAttackGains(
   result: AttackResolution,
   effectiveSkill: Skill,
@@ -54,13 +64,12 @@ export function calculateAttackGains(
   result.kills.forEach(kId => {
     const m = monsters.find(mon => mon.id === kId);
     if (m) {
+      const isBoss = m.rank === 'boss';
       const isElite = m.rank === 'elite';
-      const baseMExp = Math.max(1, Math.floor(m.maxHp * 0.08));
-      actionExp += isElite ? baseMExp * 4 : baseMExp;
+      const baseMExp = Math.max(8, Math.floor(m.maxHp * 0.35));
+      actionExp += isBoss ? baseMExp * 10 : isElite ? baseMExp * 4 : baseMExp;
     }
   });
-
-  const bossKillsThisHit = monsters.filter(m => result.kills.includes(m.id) && m.rank === 'boss').length;
 
   return {
     gainedGold,
@@ -71,7 +80,7 @@ export function calculateAttackGains(
     totalHpHealed,
     skillHeal,
     voidHeal,
-    bossKillsThisHit,
+    bossKillsThisHit: result.kills.filter(kId => monsters.find(m => m.id === kId)?.rank === 'boss').length,
     primaryTargetCount: primaryTargets.length,
     shieldGained
   };
@@ -93,20 +102,21 @@ export function compressLaneSurvivors(newMonsters: Monster[]): Monster[] {
 
 export interface HordeAttackResult {
   totalEnemyDamage: number;
-  absorbedDamage: number;
-  nextShield: number;
-  nextShieldLayers: { amount: number; turns: number }[];
-  dodgedCount: number;
-  frozenCount: number;
-  activeAttackerCount: number;
   nextHp: number;
-  rageGainOnHit: number;
+  nextShield: number;
+  nextShieldLayers?: { amount: number; turns: number }[];
+  absorbedDamage: number;
   potionUsed: boolean;
   autoResurrected: boolean;
-  isDead: boolean;
   newConsumables: ConsumableItem[];
-  chargedSurvivors: Monster[];
+  isDead: boolean;
+  dodgedCount: number;
+  frozenCount: number;
   chargedStrikes: number;
+  activeAttackerCount: number;
+  attackingLanes: number[];
+  rageGainOnHit: number;
+  chargedSurvivors: Monster[];
 }
 
 export function resolveHordeCounterAttack(
@@ -133,6 +143,7 @@ export function resolveHordeCounterAttack(
 
   const activeAttackers = frontRowAttackers.filter(m => !m.isFrozen);
   const frozenCount = frontRowAttackers.filter(m => m.isFrozen).length;
+  const attackingLanes = activeAttackers.map(m => m.lane);
 
   let totalEnemyDamage = 0;
   let dodgedCount = 0;
@@ -146,14 +157,17 @@ export function resolveHordeCounterAttack(
     }
 
     const isElite = m.rank === 'elite' || m.rank === 'boss';
-    let rawDmg = m.intent.damage || (isElite ? 8 : 3);
+    const baseDmg = m.intent?.damage || (isElite ? 8 : 3);
+    const [minRoll, maxRoll] = getMonsterDamageRange(baseDmg);
+    let rolledDmg = Math.floor(minRoll + Math.random() * (maxRoll - minRoll + 1));
+
     // Fully charged monsters unleash a piercing strike
-    const isCharged = (m.intent.chargePercent || 0) >= 100;
+    const isCharged = (m.intent?.chargePercent || 0) >= 100;
     if (m.rank === 'boss' && m.maxHp > 0 && m.hp / m.maxHp <= 0.3) {
-      rawDmg = Math.floor(rawDmg * 1.5);
+      rolledDmg = Math.floor(rolledDmg * 1.5);
     }
     if (isCharged) {
-      rawDmg = Math.floor(rawDmg * 2);
+      rolledDmg = Math.floor(rolledDmg * 2);
       chargedStrikes++;
     }
     const effectiveDefense = isCharged ? Math.floor(defense / 2) : defense;
@@ -161,7 +175,7 @@ export function resolveHordeCounterAttack(
     const defMult = k / (k + Math.max(0, effectiveDefense));
     const resistMult = 1 - Math.min(75, Math.max(0, allResist || 0)) / 100;
     const drMult = ((100 - (damageReduction || 0)) / 100) * resistMult;
-    totalEnemyDamage += Math.max(1, Math.floor(rawDmg * defMult * drMult));
+    totalEnemyDamage += Math.max(1, Math.floor(rolledDmg * defMult * drMult));
   });
 
   // Shield damage absorption (layered, oldest layer absorbs first)
@@ -228,6 +242,7 @@ export function resolveHordeCounterAttack(
     dodgedCount,
     frozenCount,
     activeAttackerCount: activeAttackers.length,
+    attackingLanes,
     nextHp: isDead ? 0 : nextHp,
     rageGainOnHit,
     potionUsed,

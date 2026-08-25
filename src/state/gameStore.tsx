@@ -1600,8 +1600,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }));
           }
 
+          const lanesText = (hordeResult.attackingLanes || []).map(l => l + 1 + '번').join(', ');
           addLog(
-            `⚔️ 몬스터 전열의 반격! ${hordeResult.activeAttackerCount - hordeResult.dodgedCount}마리 공격 적중 ➔ ${hordeResult.totalEnemyDamage} 피해 (분노 충전 +${hordeResult.rageGainOnHit})`,
+            `⚔️ [전 레인 동시 협공!] ${lanesText ? `[${lanesText} 레인] ` : ''}${hordeResult.activeAttackerCount - hordeResult.dodgedCount}마리 몬스터 일제 강타 ➔ 총 ${hordeResult.totalEnemyDamage} 피해 (분노 +${hordeResult.rageGainOnHit})`,
             'damage'
           );
         } else {
