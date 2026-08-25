@@ -89,14 +89,14 @@ const DiagonalSwordSlash: React.FC<{ color: string; uid: string; dir: 1 | 2 }> =
 };
 
 /**
- * 🌊 2. Horizontal Wide Crescent Sword Aura (부채꼴 횡베기 파동 검기)
+ * 🌊 2. Horizontal Wide Crescent Sword Aura (부채꼴 횡베기 파동 검기 - 슬림 & 샤프)
  */
 const HorizontalSwordAura: React.FC<{ color: string; uid: string; variant?: number }> = ({ color, uid, variant = 0 }) => {
   return (
     <div className="relative w-full h-full fx-crescent-horizontal">
       <svg
         className="fx-sword-aura-crescent w-full h-full"
-        viewBox="0 0 450 180"
+        viewBox="0 0 400 90"
         preserveAspectRatio="none"
       >
         <defs>
@@ -108,19 +108,20 @@ const HorizontalSwordAura: React.FC<{ color: string; uid: string; variant?: numb
             <stop offset="100%" stopColor={color} stopOpacity="0" />
           </linearGradient>
         </defs>
+        {/* Sleek Razor Cutting Arc */}
         <path
-          d={variant === 1 ? "M 10 140 Q 225 10, 440 140 Q 225 55, 10 140 Z" : "M 10 130 Q 225 20, 440 130 Q 225 60, 10 130 Z"}
+          d={variant === 1 ? "M 15 70 Q 200 10, 385 70 Q 200 35, 15 70 Z" : "M 15 65 Q 200 15, 385 65 Q 200 35, 15 65 Z"}
           fill={`url(#h-grad-${uid})`}
-          filter="drop-shadow(0 0 16px currentColor)"
+          filter="drop-shadow(0 0 10px currentColor)"
         />
+        {/* White-Hot Core Blade Edge */}
         <path
-          d="M 40 120 Q 225 35, 410 120 Q 225 55, 40 120 Z"
+          d="M 35 60 Q 200 22, 365 60 Q 200 34, 35 60 Z"
           fill="#ffffff"
           opacity="0.95"
         />
       </svg>
       <div className="fx-blade-sparks" style={{ color }} />
-      <div className="fx-blade-swing-trail" />
     </div>
   );
 };
@@ -174,19 +175,32 @@ const CycloneWhirlAura: React.FC<{ color: string; uid: string }> = ({ color, uid
 };
 
 /**
- * 💥 5. Overkill Shatter & Shockwave Ring (오버킬 전용 독립 파열 폭발)
+ * 💥 5. Overkill Shatter & Shockwave Ring (오버킬 전용 독립 파열 폭발 및 엠블럼)
  */
-const OverkillShockwave: React.FC<{ lane: number }> = ({ lane }) => {
+const OverkillShockwave: React.FC<{ lane: number; damage?: number }> = ({ lane, damage }) => {
   return (
     <div
-      className="absolute pointer-events-none z-35 flex items-center justify-center"
+      className="absolute pointer-events-none z-50 flex flex-col items-center justify-center"
       style={{
         left: `${lane * 20 - 5}%`,
         width: '30%',
-        top: '20%',
-        height: '60%'
+        top: '15%',
+        height: '70%'
       }}
     >
+      {/* 💥 Overkill Floating Badge */}
+      <div className="fx-overkill-badge font-mono font-black text-center z-50 drop-shadow-[0_0_15px_rgba(249,115,22,1)]">
+        <div className="text-[11px] sm:text-xs text-amber-300 font-cinzel font-black tracking-widest bg-black/80 px-2 py-0.5 rounded-full border border-amber-400">
+          💥 OVERKILL!
+        </div>
+        {damage && (
+          <div className="text-sm sm:text-base text-orange-200">
+            -{damage}
+          </div>
+        )}
+      </div>
+
+      {/* Dual Shockwave Blast Rings */}
       <div className="w-24 h-24 sm:w-36 sm:h-36 fx-overkill-shockwave" />
       <div className="fx-overkill-sparkles" />
     </div>
@@ -253,7 +267,7 @@ export const CombatFxLayer: React.FC = React.memo(() => {
   const verticalLane = playerLane;
 
   return (
-    <div className="absolute inset-0 pointer-events-none z-30 overflow-hidden select-none" aria-hidden>
+    <div className="absolute inset-0 pointer-events-none z-25 overflow-hidden select-none" aria-hidden>
       {/* 1. Element Atmosphere Flash */}
       {showStrike && (
         <div key={`flash-${strikeKey}`} className={`absolute inset-0 ${ELEMENT_FLASH[element] || ELEMENT_FLASH.physical}`} />
@@ -265,10 +279,10 @@ export const CombatFxLayer: React.FC = React.memo(() => {
           key={`v-${strikeKey}`}
           className="absolute"
           style={{
-            left: `${verticalLane * 20 - (isMassivePierce ? 8 : 4)}%`,
-            width: isMassivePierce ? '36%' : '28%',
-            top: isMassivePierce ? '0%' : '24%',
-            height: isMassivePierce ? '100%' : '65%',
+            left: `${verticalLane * 20 - (isMassivePierce ? 6 : 3)}%`,
+            width: isMassivePierce ? '32%' : '26%',
+            top: isMassivePierce ? '2%' : '28%',
+            height: isMassivePierce ? '96%' : '60%',
             color: glow
           }}
         >
@@ -290,8 +304,8 @@ export const CombatFxLayer: React.FC = React.memo(() => {
           style={{
             left: `${verticalLane * 20 - 8}%`,
             width: '36%',
-            top: '15%',
-            height: '70%',
+            top: '18%',
+            height: '65%',
             color: glow
           }}
         >
@@ -299,16 +313,16 @@ export const CombatFxLayer: React.FC = React.memo(() => {
         </div>
       )}
 
-      {/* 4. Horizontal Sweep Crescent Aura (휩쓸기 3레인 부채꼴 횡베기 검기) */}
+      {/* 4. Horizontal Sweep Crescent Aura (휩쓸기 3레인 부채꼴 횡베기 검기 - 슬림형) */}
       {showStrike && kind === 'horizontal-wide' && (
         <div
           key={`h-${strikeKey}`}
           className="absolute"
           style={{
-            left: `${branchSpan.start * 20 - 2}%`,
-            width: `${branchSpan.count * 20 + 4}%`,
-            top: '30%',
-            height: '55%',
+            left: `${branchSpan.start * 20}%`,
+            width: `${branchSpan.count * 20}%`,
+            top: '42%',
+            height: '24%',
             color: glow
           }}
         >
@@ -324,8 +338,8 @@ export const CombatFxLayer: React.FC = React.memo(() => {
           style={{
             left: '5%',
             width: '90%',
-            top: '10%',
-            height: '80%',
+            top: '15%',
+            height: '70%',
             color: glow
           }}
         >
@@ -333,9 +347,9 @@ export const CombatFxLayer: React.FC = React.memo(() => {
         </div>
       )}
 
-      {/* 💥 6. Overkill Dedicated Shatter & Shockwave Explosion */}
+      {/* 💥 6. Overkill Dedicated Shatter & Shockwave Explosion (최상단 z-50) */}
       {showStrike && overkillDmg && (
-        <OverkillShockwave key={`overkill-${strikeKey}`} lane={overkillDmg.lane ?? playerLane} />
+        <OverkillShockwave key={`overkill-${strikeKey}`} lane={overkillDmg.lane ?? playerLane} damage={overkillDmg.damage} />
       )}
 
       {/* 7. Critical Hit Impact Burst */}

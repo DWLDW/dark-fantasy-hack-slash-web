@@ -533,7 +533,7 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                         {monsterDmgPopups.map(dp => (
                           <div
                             key={dp.id}
-                            className={`absolute -top-2 left-1/2 -translate-x-1/2 z-30 font-mono font-black whitespace-nowrap ${
+                            className={`absolute -top-2 left-1/2 -translate-x-1/2 z-45 font-mono font-black whitespace-nowrap ${
                               dp.isCrit
                                 ? 'text-amber-200 text-sm sm:text-base animate-crit-dmg drop-shadow-[0_0_10px_rgba(251,191,36,1)]'
                                 : dp.isOverkill
