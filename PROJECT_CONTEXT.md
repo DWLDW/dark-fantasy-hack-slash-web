@@ -55,6 +55,11 @@ Dragon Quest 식 턴제 전투 기반 + Diablo II 식 오버킬 체인, 룬워�
 - ⏱️ **턴 카운터 이중 증가 일원화 및 보스 상태 완벽 리셋**:
   - 1 라운드당 1회(적 반격 턴)에만 `bossTurnCountRef`가 증가하도록 통일하여 2턴마다 가드가 남발되던 문제 수정.
   - 던전 입장/룸 이동/마을 귀환 시 보스 턴 카운터, 가드 상태, 지형 장악 지대(`bossHazardLanes`)를 누락 없이 100% 초기화.
-- 📐 **데미지 배율 안전 하한선(Safety Minimum Floor) 추가 (`combatEngine.ts`)**:
-  - `calculateDamageMultiplier`에 `Math.max(0.05, Math.min(1.0, ...))` 하한선을 설정하여 극단적인 방어력 상황에서도 최소 5% 이상의 유효 타격이 보장되도록 안전장치 구축.
+### 6. 공격 딜레이 제로화(초고속 핵앤슬래시 템포) 및 전장 직격 보스 궁극기 VFX (`BossUltimateFxLayer.tsx`)
+- ⚡ **공격 딜레이 초압축 (0.2초대 쾌속 연속 타격)**:
+  - 타격 시퀀스 인터벌(`hitStepDuration`)을 12~25ms로 압축하여 다단히트도 120ms 내에 파파박 타격 완료.
+  - 적 턴 반격 대기시간(`counterAttackTimerRef`)을 기존 700ms ➔ **180ms**로 대폭 단축하여 스페이스바/스킬 연타 시 딜레이 없는 쾌속 액션 구현.
+- 👹 **전장 직격 GPU 가속 보스 궁극기 VFX (`BossUltimateFxLayer.tsx`)**:
+  - 디아블로 붉은 번개 지옥불 레이저 빔 (`RedLightningBeam`), 안다리엘 3중 맹독 확산 파동 링 (`PoisonNovaWaves`), 두리엘 빙결 파쇄 쇄도 (`FreezeChargeShatter`), 바알 공허 차원 균열 (`VoidAbyssRift`).
+  - Pure CSS GPU 가속(`transform: translate3d`, `opacity`, `will-change`)을 통해 모바일/PC 모두에서 발열과 렉 없이 60fps 무지연 렌더링 보장.
 

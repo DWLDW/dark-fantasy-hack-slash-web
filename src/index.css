@@ -208,6 +208,58 @@
   pointer-events: none;
 }
 
+/* 👹 Boss Ultimate: Red Lightning Laser Beam (디아블로 붉은 번개 숨결) */
+@keyframes redLaserBeam {
+  0% { opacity: 0; transform: scaleY(0.1) scaleX(0.4); filter: brightness(3); }
+  15% { opacity: 1; transform: scaleY(1.05) scaleX(1.4); filter: brightness(2) drop-shadow(0 0 35px #ef4444); }
+  35% { transform: scaleY(1) scaleX(1.1); filter: brightness(1.8) drop-shadow(0 0 25px #dc2626); }
+  75% { opacity: 0.9; transform: scaleY(1) scaleX(0.9); }
+  100% { opacity: 0; transform: scaleY(1.1) scaleX(0.1); filter: blur(4px); }
+}
+.animate-boss-laser-beam {
+  animation: redLaserBeam 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* 🦂 Boss Ultimate: Poison Nova Expanding Rings (안다리엘 맹독 분사 링) */
+@keyframes poisonNovaRing {
+  0% { opacity: 0.9; transform: scale(0.1); filter: drop-shadow(0 0 15px #10b981); }
+  40% { opacity: 1; transform: scale(1.2); filter: drop-shadow(0 0 30px #059669); }
+  100% { opacity: 0; transform: scale(2.2); filter: blur(6px); }
+}
+.animate-poison-nova-ring {
+  animation: poisonNovaRing 0.85s ease-out forwards;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* 🪲 Boss Ultimate: Freeze Shatter Crystals (두리엘 결빙 돌진 파편) */
+@keyframes freezeShatter {
+  0% { opacity: 0; transform: translateY(-20px) scale(0.6) rotate(-10deg); }
+  25% { opacity: 1; transform: translateY(0) scale(1.2) rotate(0deg); filter: drop-shadow(0 0 30px #06b6d4); }
+  70% { opacity: 1; transform: translateY(5px) scale(1); }
+  100% { opacity: 0; transform: translateY(25px) scale(0.7) rotate(10deg); filter: blur(4px); }
+}
+.animate-freeze-shatter {
+  animation: freezeShatter 0.85s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* 🐙 Boss Ultimate: Void Abyss Rift (바알 공허 촉수 균열) */
+@keyframes voidAbyssRift {
+  0% { opacity: 0; transform: scale(0.3) rotate(-5deg); }
+  25% { opacity: 1; transform: scale(1.15) rotate(0deg); filter: drop-shadow(0 0 35px #a855f7); }
+  75% { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 20px #9333ea); }
+  100% { opacity: 0; transform: scale(1.3) rotate(5deg); filter: blur(6px); }
+}
+.animate-void-rift {
+  animation: voidAbyssRift 0.9s ease-out forwards;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
 /* Screen Shake - Light (x5-9 kills) */
 @keyframes shakeLight {
   0%, 100% { transform: translate(0, 0); }

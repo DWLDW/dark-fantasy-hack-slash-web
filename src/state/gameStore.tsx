@@ -42,6 +42,7 @@ import { WARRIOR_SKILLS, ALL_AVAILABLE_SKILLS, DEFAULT_EQUIPPED_SLOTS, getSkillB
 import { calculateAttackGains, compressLaneSurvivors, resolveHordeCounterAttack } from './helpers/combatActionHelper';
 import { AttackSummaryEvent } from '../components/fx/CombatJackpotOverlay';
 import { ExtraTurnEvent } from '../components/fx/ExtraTurnCutin';
+import { BossUltimateFxEvent } from '../components/fx/BossUltimateFxLayer';
 import {
   SAVE_KEY,
   getInitialSave,
@@ -159,6 +160,7 @@ interface GameContextType {
   executeAttack: () => void;
   lastAttackSummary: AttackSummaryEvent | null;
   extraTurnEvent: ExtraTurnEvent | null;
+  bossUltimateFxEvent: BossUltimateFxEvent | null;
   useConsumable: (hotkeyOrId: string) => void;
   enterDungeon: (dungeonId: string, difficulty?: number) => void;
   selectNextRoom: (roomId: number) => void;
@@ -412,6 +414,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const [lastAttackSummary, setLastAttackSummary] = useState<AttackSummaryEvent | null>(null);
   const [extraTurnEvent, setExtraTurnEvent] = useState<ExtraTurnEvent | null>(null);
+  const [bossUltimateFxEvent, setBossUltimateFxEvent] = useState<BossUltimateFxEvent | null>(null);
 
   useEffect(() => {
     return () => {
@@ -1134,7 +1137,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const targets = result.targetsHit;
     const kills = result.kills;
     const speedFactor = Math.max(0.4, 1 - Math.min(60, (totalStats.attackSpeed || 0)) * 0.008);
-    const hitStepDuration = Math.max(25, Math.min(80, Math.floor((600 / Math.max(1, targets.length)) * speedFactor)));
+    const hitStepDuration = Math.max(12, Math.min(25, Math.floor((160 / Math.max(1, targets.length)) * speedFactor)));
 
     targets.forEach((hit, index) => {
       setTimeout(() => {
@@ -1161,11 +1164,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         setTimeout(() => {
           setFloatingDamages(prev => prev.slice(1));
-        }, 800);
+        }, 700);
       }, index * hitStepDuration);
     });
 
-    const totalHitTime = targets.length * hitStepDuration + 150;
+    const totalHitTime = targets.length * hitStepDuration + 35;
 
     setTimeout(() => {
       if (kills.length >= 5) {
@@ -1504,6 +1507,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
               const bIcon = boss.icon || '👑';
               const bElem = boss.element || 'fire';
 
+              // 💥 Trigger GPU-accelerated Boss Ultimate Battlefield VFX
+              setBossUltimateFxEvent({
+                id: `boss_ult_${Date.now()}`,
+                sigKey,
+                element: (boss.element || 'fire') as ElementType,
+                bossName: boss.name
+              });
+
               let bossSkillDmg = 0;
               let wipeShield = false;
 
@@ -1686,7 +1697,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         setIsEnemyTurn(false);
 
-      }, 700);
+      }, 180);
 
     }, totalHitTime);
 
@@ -2652,6 +2663,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     executeAttack,
     lastAttackSummary,
     extraTurnEvent,
+    bossUltimateFxEvent,
     triggerAttackOrSmartTarget,
     isManualLaneTargeted,
     useConsumable,
@@ -2778,7 +2790,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     equippedSkills,
     skillRunes,
     skillLevels,
-    passiveLevels
+    passiveLevels,
+    lastAttackSummary,
+    extraTurnEvent,
+    bossUltimateFxEvent
   ]);
 
   return (

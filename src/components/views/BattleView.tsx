@@ -12,6 +12,7 @@ import { BattleSkillsBar } from './battle/BattleSkillsBar';
 import { BattleStatusDock } from './battle/BattleStatusDock';
 import { CombatJackpotOverlay } from '../fx/CombatJackpotOverlay';
 import { ExtraTurnCutin } from '../fx/ExtraTurnCutin';
+import { BossUltimateFxLayer } from '../fx/BossUltimateFxLayer';
 
 export const BattleView: React.FC = React.memo(() => {
   const {
@@ -24,7 +25,8 @@ export const BattleView: React.FC = React.memo(() => {
     isAttacking,
     chainCount,
     lastAttackSummary,
-    extraTurnEvent
+    extraTurnEvent,
+    bossUltimateFxEvent
   } = useGame();
 
   const actTheme = useMemo(() => getActTheme(currentDungeon.id), [currentDungeon.id]);
@@ -125,6 +127,9 @@ export const BattleView: React.FC = React.memo(() => {
 
       {/* ⚡ Extra Turn 1-More Cutin Announcement */}
       <ExtraTurnCutin event={extraTurnEvent} />
+
+      {/* 💥 Boss Ultimate Battlefield Direct VFX Layer */}
+      <BossUltimateFxLayer event={bossUltimateFxEvent} />
 
       {/* Layer 1: Ultra-Compact Top Header */}
       <BattleHeader />
