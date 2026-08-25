@@ -21,24 +21,39 @@ export const BattleHeader: React.FC = React.memo(() => {
           <MiniRoomGraph />
         </div>
 
-        <div className="lg:col-span-5 bg-iron-900/95 border border-iron-750 rounded-lg p-1.5 sm:p-2 flex items-center justify-between shadow gap-2">
-          {/* Wait ATB Horde Timeline */}
+        <div className="lg:col-span-5 bg-iron-900/95 border border-brass-600/30 rounded-lg p-1.5 sm:p-2 flex items-center justify-between shadow-[0_0_16px_rgba(222,178,67,0.1)] gap-2">
+          {/* Swift Momentum Combo Gauge (공속 비례 충전 ➔ 100% 시 적 턴 무효화 & 추가 턴!) */}
           <div className="flex-1 pr-2 border-r border-iron-750">
             <div className="flex justify-between items-center text-[10px] sm:text-[11px] font-mono text-gray-300 font-bold mb-0.5">
               <span className="flex items-center gap-1">
-                <Activity className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-blood-400" />
-                {isEnemyTurn ? <span className="text-blood-400 animate-pulse font-black">적 반격!</span> : 'Wait ATB'}
+                <Activity className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400" />
+                {isEnemyTurn ? (
+                  <span className="text-blood-400 animate-pulse font-black">적 반격 진행 중</span>
+                ) : (
+                  <span className="text-amber-300 font-black flex items-center gap-1">
+                    <span>⚡ 신속 연계</span>
+                    <span className="text-[9px] text-gray-400 font-normal">({hordeTimelinePercent}%)</span>
+                  </span>
+                )}
               </span>
-              <span className="text-[10px] sm:text-xs text-gray-400">{isEnemyTurn ? 'STRIKE' : '대기'}</span>
+              <span className={`text-[9px] sm:text-[10px] font-mono font-black px-1.5 py-0.2 rounded ${
+                hordeTimelinePercent >= 75
+                  ? 'bg-amber-500 text-iron-950 animate-pulse'
+                  : 'bg-iron-800 text-gray-300'
+              }`}>
+                {hordeTimelinePercent >= 75 ? '⚡ 추가 턴 임박!' : '공격 시 충전'}
+              </span>
             </div>
             <div className="w-full bg-iron-950 h-2 sm:h-2.5 rounded-full overflow-hidden border border-iron-700">
               <div
                 className={`h-full transition-all duration-300 ${
                   isEnemyTurn
                     ? 'bg-gradient-to-r from-blood-600 to-blood-400 shadow-[0_0_10px_rgba(239,68,68,0.8)]'
-                    : 'bg-gradient-to-r from-blue-700 to-blue-500'
+                    : hordeTimelinePercent >= 75
+                    ? 'bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-300 shadow-[0_0_12px_rgba(251,191,36,0.8)]'
+                    : 'bg-gradient-to-r from-amber-600 to-yellow-500'
                 }`}
-                style={{ width: `${hordeTimelinePercent}%` }}
+                style={{ width: `${Math.min(100, hordeTimelinePercent)}%` }}
               />
             </div>
           </div>
@@ -75,7 +90,7 @@ export const BattleHeader: React.FC = React.memo(() => {
           </span>
           <div className="flex items-center gap-2 flex-wrap">
             {dungeonBuffs.map(b => (
-              <span key={b.id} className="bg-purple-950 px-1.5 py-0.2 rounded border border-purple-700 flex items-center gap-1">
+              <span key={b.id} className="bg-purple-950 px-1.5 py-0.5 rounded border border-purple-700 flex items-center gap-1">
                 <span>{b.icon}</span>
                 <strong>{b.name}</strong> ({b.description})
               </span>

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useGame } from '../../state/gameStore';
 import { EquipSlot, GameItem, ItemRarity, RuneWordRecipe } from '../../types/game';
 import { RUNEWORD_RECIPES } from '../../data/gameData';
@@ -60,6 +60,7 @@ export const InventoryModal: React.FC = () => {
     monsters,
     closeModal,
     openConfirmModal,
+    confirmDialogState,
     identifyItem,
     sellItem,
     bulkSellItems,
@@ -287,8 +288,117 @@ export const InventoryModal: React.FC = () => {
     return list;
   }, [selectedItem, runesVault]);
 
+  // Keyboard shortcut listener for inventory management
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (confirmDialogState?.isOpen) return;
+
+      // 1. Tab Switching (1: 소지품, 2: 보관함, 3: 룬 보관함)
+      if (e.key === '1') {
+        setActiveTab('inventory');
+        setSelectedItem(null);
+        return;
+      }
+      if (e.key === '2') {
+        setActiveTab('stash');
+        setSelectedItem(null);
+        return;
+      }
+      if (e.key === '3') {
+        setActiveTab('runes');
+        setSelectedItem(null);
+        return;
+      }
+
+      // 2. Arrow Key Grid Selection Navigation
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        e.preventDefault();
+        const currentList = activeTab === 'stash' ? stackedStashItems : stackedFilteredItems;
+        if (currentList.length > 0) {
+          const curIdx = selectedItem ? currentList.findIndex(entry => entry.item.id === selectedItem.id) : -1;
+          let nextIdx = 0;
+          if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+            nextIdx = curIdx < currentList.length - 1 ? curIdx + 1 : 0;
+          } else {
+            nextIdx = curIdx > 0 ? curIdx - 1 : currentList.length - 1;
+          }
+          setSelectedItem(currentList[nextIdx].item);
+        }
+        return;
+      }
+
+      // 3. Quick Actions on Selected Item
+      const key = e.key.toLowerCase();
+      if (key === 'e' || e.code === 'Enter') {
+        if (!selectedItem) return;
+        e.preventDefault();
+        if (activeTab === 'inventory') {
+          if (!isCombatMode && selectedItem.isIdentified !== false) {
+            handleEquip(selectedItem);
+          }
+        } else if (activeTab === 'stash') {
+          withdrawFromStash(selectedItem.id);
+          setSelectedItem(null);
+        }
+        return;
+      }
+
+      if (key === 'l') {
+        if (selectedItem) {
+          e.preventDefault();
+          toggleItemLock(selectedItem.id);
+        }
+        return;
+      }
+
+      if (key === 'd') {
+        if (!selectedItem) return;
+        e.preventDefault();
+        if (activeTab === 'inventory') {
+          if (selectedItem.slot !== 'rune' && selectedItem.slot !== 'consumable') {
+            depositToStash(selectedItem.id);
+            setSelectedItem(null);
+          }
+        } else if (activeTab === 'stash') {
+          withdrawFromStash(selectedItem.id);
+          setSelectedItem(null);
+        }
+        return;
+      }
+
+      if (key === 's') {
+        if (activeTab === 'inventory' && selectedItem && !selectedItem.isLocked) {
+          e.preventDefault();
+          handleSingleSell(selectedItem);
+        }
+        return;
+      }
+
+      if (key === 'a') {
+        if (activeTab === 'inventory' && !isCombatMode) {
+          e.preventDefault();
+          autoEquipBestItems();
+        }
+        return;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [
+    activeTab,
+    selectedItem,
+    stackedFilteredItems,
+    stackedStashItems,
+    isCombatMode,
+    confirmDialogState?.isOpen,
+    cleanEquipmentInventory.length,
+    cleanEquipmentStash.length
+  ]);
+
   return (
-    <div className="bg-iron-950 border-2 border-brass-500 rounded-lg p-3 md:p-5 w-full max-w-5xl max-h-[92vh] overflow-y-auto shadow-2xl text-xs md:text-sm select-none">
+    <div className="bg-iron-950 border-2 border-brass-500 rounded-lg p-3 md:p-5 w-full max-w-5xl max-h-[92vh] overflow-y-auto shadow-[0_0_40px_rgba(251,191,36,0.18)] text-xs md:text-sm select-none ui-ornate">
       {/* Top Header & Tab Switcher (Sticky) */}
       <div className="sticky -top-3 md:-top-5 bg-iron-950/95 backdrop-blur z-20 pt-1 pb-3 -mx-3 md:-mx-5 px-3 md:px-5 border-b border-iron-750 mb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-sm">
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
@@ -311,6 +421,7 @@ export const InventoryModal: React.FC = () => {
             >
               <Layers className="w-3.5 h-3.5" />
               <span>소지품 ({cleanEquipmentInventory.length})</span>
+              <kbd className="text-[9px] font-mono px-1 rounded bg-black/40 text-brass-300/80 border border-iron-750">1</kbd>
             </button>
 
             <button
@@ -326,6 +437,7 @@ export const InventoryModal: React.FC = () => {
             >
               <Package className="w-3.5 h-3.5 text-indigo-400" />
               <span>보관함 ({cleanEquipmentStash.length})</span>
+              <kbd className="text-[9px] font-mono px-1 rounded bg-black/40 text-indigo-300/80 border border-iron-750">2</kbd>
             </button>
 
             <button
@@ -341,6 +453,7 @@ export const InventoryModal: React.FC = () => {
             >
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
               <span>룬 보관함</span>
+              <kbd className="text-[9px] font-mono px-1 rounded bg-black/40 text-amber-300/80 border border-iron-750">3</kbd>
             </button>
           </div>
         </div>
@@ -519,6 +632,7 @@ export const InventoryModal: React.FC = () => {
                         >
                           <Sword className="w-3.5 h-3.5" />
                           <span>장착하기</span>
+                          <kbd className="text-[9px] font-mono px-1 rounded bg-black/30 text-iron-950 font-black border border-amber-500/50">E</kbd>
                         </button>
                       )}
 
@@ -538,10 +652,11 @@ export const InventoryModal: React.FC = () => {
                         <button
                           onClick={() => depositToStash(selectedItem.id)}
                           className="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 border bg-iron-950 text-indigo-300 border-indigo-600/70 hover:bg-indigo-950/60 cursor-pointer shadow"
-                          title="보관함(Stash)으로 옮깁니다"
+                          title="보관함(Stash)으로 옮깁니다 [D]"
                         >
                           <Package className="w-3.5 h-3.5" />
                           <span>보관함에 넣기</span>
+                          <kbd className="text-[9px] font-mono px-1 rounded bg-black/50 text-indigo-300 border border-indigo-600/50">D</kbd>
                         </button>
                       )}
                     </div>
@@ -555,10 +670,11 @@ export const InventoryModal: React.FC = () => {
                             ? 'bg-amber-950 text-amber-300 border-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.4)]'
                             : 'bg-iron-950 text-gray-400 border-iron-750 hover:text-white'
                         }`}
-                        title={selectedItem.isLocked ? "잠금을 해제합니다" : "아이템을 잠금하여 판매/소실을 방지합니다"}
+                        title={selectedItem.isLocked ? "잠금을 해제합니다 [L]" : "아이템을 잠금하여 판매/소실을 방지합니다 [L]"}
                       >
                         {selectedItem.isLocked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : <Unlock className="w-3.5 h-3.5 text-gray-400" />}
                         <span>{selectedItem.isLocked ? '잠금 해제' : '아이템 잠금'}</span>
+                        <kbd className="text-[9px] font-mono px-1 rounded bg-black/40 text-amber-300/80 border border-iron-750">L</kbd>
                       </button>
 
                       {/* Individual Sell */}
@@ -570,17 +686,18 @@ export const InventoryModal: React.FC = () => {
                             ? 'bg-iron-950 text-gray-600 border-iron-850 cursor-not-allowed opacity-50'
                             : 'bg-iron-950 text-amber-400 border-amber-700/60 hover:bg-amber-950/40 hover:border-amber-400 cursor-pointer'
                         }`}
-                        title={selectedItem.isLocked ? "잠금된 아이템은 판매할 수 없습니다" : "이 아이템을 상점에 판매합니다"}
+                        title={selectedItem.isLocked ? "잠금된 아이템은 판매할 수 없습니다" : "이 아이템을 상점에 판매합니다 [S]"}
                       >
                         <Coins className="w-3.5 h-3.5" />
                         <span>개별 판매 (+{(getItemSellPrice ? getItemSellPrice(selectedItem) : selectedItem.value || 5).toLocaleString()}G)</span>
+                        <kbd className="text-[9px] font-mono px-1 rounded bg-black/40 text-amber-300/80 border border-amber-600/50">S</kbd>
                       </button>
                     </div>
                   </div>
                 </div>
               ) : (
                 <div className="p-4 bg-iron-900/60 border border-iron-800 rounded-lg text-center text-gray-500 font-cinzel italic">
-                  위 목록에서 아이템을 클릭하면 상세 능력치 및 장착 비교가 표시됩니다.
+                  위 목록에서 아이템을 클릭하거나 [↑↓←→] 방향키로 선택하면 상세 능력치 및 장착 비교가 표시됩니다.
                 </div>
               )}
             </div>
@@ -697,6 +814,7 @@ export const InventoryModal: React.FC = () => {
                     >
                       <Package className="w-4 h-4" />
                       <span>소지품으로 꺼내기</span>
+                      <kbd className="text-[9px] font-mono px-1 rounded bg-black/40 text-indigo-200 border border-indigo-400/50">D/Enter</kbd>
                     </button>
 
                     <button
@@ -709,12 +827,13 @@ export const InventoryModal: React.FC = () => {
                     >
                       {selectedItem.isLocked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : <Unlock className="w-3.5 h-3.5 text-gray-400" />}
                       <span>{selectedItem.isLocked ? '잠금 해제' : '아이템 잠금'}</span>
+                      <kbd className="text-[9px] font-mono px-1 rounded bg-black/40 text-amber-300/80 border border-iron-750">L</kbd>
                     </button>
                   </div>
                 </div>
               ) : (
                 <div className="p-6 bg-iron-900/60 border border-iron-800 rounded-lg text-center text-gray-500 font-cinzel italic">
-                  보관함의 아이템을 클릭하면 상세 정보를 확인하고 소지품으로 꺼낼 수 있습니다.
+                  보관함의 아이템을 클릭하거나 [↑↓←→] 방향키로 선택하면 상세 정보를 확인하고 소지품으로 꺼낼 수 있습니다.
                 </div>
               )}
             </div>
@@ -731,6 +850,12 @@ export const InventoryModal: React.FC = () => {
           onTransmuteRune={transmuteRunesInVault}
         />
       )}
+
+      {/* Bottom Keyboard Shortcut Guide Bar */}
+      <div className="mt-3 pt-2 border-t border-iron-800 flex items-center justify-between text-[10px] sm:text-[11px] font-mono text-gray-400 flex-wrap gap-1">
+        <span>⌨️ 단축키: <strong className="text-brass-300">[1~3]</strong> 탭 | <strong className="text-brass-300">[↑↓←→]</strong> 아이템 탐색 | <strong className="text-amber-300">[E]</strong> 장착 | <strong className="text-indigo-300">[D]</strong> 보관/꺼내기 | <strong className="text-amber-300">[L]</strong> 잠금 | <strong className="text-amber-300">[S]</strong> 판매 | <strong className="text-yellow-300">[A]</strong> 추천장착</span>
+        <span className="text-gray-500 hidden sm:inline">[더블클릭] 빠른 장착/해제</span>
+      </div>
     </div>
   );
 };

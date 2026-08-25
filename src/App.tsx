@@ -50,6 +50,7 @@ const MainLayout: React.FC = () => {
     claimShrine,
     getSkillForSlot,
     selectedShrineType,
+    setSelectedShrineType,
     cycleShrineSelection,
     playerStats
   } = useGame();
@@ -82,6 +83,7 @@ const MainLayout: React.FC = () => {
     claimShrine,
     getSkillForSlot,
     selectedShrineType,
+    setSelectedShrineType,
     cycleShrineSelection,
     playerStats
   });
@@ -113,6 +115,7 @@ const MainLayout: React.FC = () => {
     claimShrine,
     getSkillForSlot,
     selectedShrineType,
+    setSelectedShrineType,
     cycleShrineSelection,
     playerStats
   };
@@ -234,21 +237,42 @@ const MainLayout: React.FC = () => {
         return;
       }
 
-      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      const currentRoom = g.currentDungeon.rooms.find(r => r.id === g.currentRoomId);
+      const isEventRoom = currentRoom && (currentRoom.type === 'treasure' || currentRoom.type === 'rune' || currentRoom.type === 'shrine');
+      const isShrineSelectActive = g.viewMode === 'battle' && g.monsters.length === 0 && isEventRoom && !g.roomEventClaimed && currentRoom?.type === 'shrine';
+
+      if (isShrineSelectActive) {
+        if (e.key === '1') {
+          e.preventDefault();
+          g.setSelectedShrineType('fortune');
+          return;
+        }
+        if (e.key === '2') {
+          e.preventDefault();
+          g.setSelectedShrineType('crit');
+          return;
+        }
+        if (e.key === '3') {
+          e.preventDefault();
+          g.setSelectedShrineType('defense');
+          return;
+        }
+      }
+
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || (isShrineSelectActive && (e.key.toLowerCase() === 'a' || e.key.toLowerCase() === 'd'))) {
         e.preventDefault();
         if (g.viewMode !== 'battle') return;
-        const currentRoom = g.currentDungeon.rooms.find(r => r.id === g.currentRoomId);
-        const isEventRoom = currentRoom && (currentRoom.type === 'treasure' || currentRoom.type === 'rune' || currentRoom.type === 'shrine');
-        if (isEventRoom && !g.roomEventClaimed && currentRoom?.type === 'shrine') {
-          g.cycleShrineSelection(e.key === 'ArrowLeft' ? -1 : 1);
+        const isLeft = e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a';
+        if (isShrineSelectActive) {
+          g.cycleShrineSelection(isLeft ? -1 : 1);
           return;
         }
         const canPickExit = g.monsters.length === 0 && (!isEventRoom || g.roomEventClaimed) && (currentRoom?.connections?.length || 0) > 1;
         if (canPickExit) {
-          g.cyclePendingExit(e.key === 'ArrowLeft' ? -1 : 1);
+          g.cyclePendingExit(isLeft ? -1 : 1);
           return;
         }
-        g.setPlayerLane(e.key === 'ArrowLeft' ? Math.max(0, g.playerLane - 1) : Math.min(4, g.playerLane + 1));
+        g.setPlayerLane(isLeft ? Math.max(0, g.playerLane - 1) : Math.min(4, g.playerLane + 1));
         return;
       }
 

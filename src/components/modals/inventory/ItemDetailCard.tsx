@@ -60,7 +60,7 @@ export const ItemDetailCard: React.FC<ItemDetailCardProps> = React.memo(({
             >
               <span>{item.name}</span>
               {isLocked && (
-                <span className="text-amber-400 text-xs bg-amber-950/80 px-1.5 py-0.2 rounded border border-amber-400 flex items-center gap-0.5 font-mono">
+                <span className="text-amber-400 text-xs bg-amber-950/80 px-1.5 py-0.5 rounded border border-amber-400 flex items-center gap-0.5 font-mono">
                   <Lock className="w-3 h-3" /> 잠금됨
                 </span>
               )}
@@ -69,16 +69,16 @@ export const ItemDetailCard: React.FC<ItemDetailCardProps> = React.memo(({
           <div className="flex items-center gap-1.5 text-[10px] text-gray-400 mt-0.5 flex-wrap">
             {getRarityBadge(item.rarity)}
             {item.setName && (
-              <span className="text-emerald-300 font-bold bg-emerald-950/80 px-1 py-0.2 rounded border border-emerald-600">
+              <span className="text-emerald-300 font-bold bg-emerald-950/80 px-1 py-0.5 rounded border border-emerald-600">
                 세트: {item.setName}
               </span>
             )}
             {item.requiredLevel && (
-              <span className="text-orange-300 font-bold bg-orange-950/80 px-1 py-0.2 rounded border border-orange-700">
+              <span className="text-orange-300 font-bold bg-orange-950/80 px-1 py-0.5 rounded border border-orange-700">
                 요구 레벨: Lv.{item.requiredLevel}
               </span>
             )}
-            <span className="uppercase text-amber-400 font-bold bg-iron-950 px-1 py-0.2 rounded border border-iron-700">
+            <span className="uppercase text-amber-400 font-bold bg-iron-950 px-1 py-0.5 rounded border border-iron-700">
               {item.tier || 'NORMAL'}
             </span>
             <span className="text-gray-300 font-mono">
@@ -119,10 +119,11 @@ export const ItemDetailCard: React.FC<ItemDetailCardProps> = React.memo(({
                   ? 'bg-amber-950 text-amber-300 border-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.4)]'
                   : 'bg-iron-950 text-gray-400 border-iron-750 hover:text-white hover:border-gray-500'
               }`}
-              title={isLocked ? "잠금을 해제합니다" : "아이템을 잠금하여 실수 판매나 소실을 방지합니다"}
+              title={isLocked ? "잠금을 해제합니다 [L]" : "아이템을 잠금하여 실수 판매나 소실을 방지합니다 [L]"}
             >
               {isLocked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : <Unlock className="w-3.5 h-3.5 text-gray-400" />}
               <span>{isLocked ? '잠금 해제' : '아이템 잠금'}</span>
+              <kbd className="text-[9px] font-mono px-1 rounded bg-black/40 text-amber-300/80 border border-iron-750">L</kbd>
             </button>
           )}
 
@@ -134,10 +135,11 @@ export const ItemDetailCard: React.FC<ItemDetailCardProps> = React.memo(({
                 onWithdraw(item.id);
               }}
               className="px-2.5 py-1 rounded bg-indigo-900 hover:bg-indigo-800 text-indigo-100 border border-indigo-400 font-bold text-xs flex items-center gap-1 shadow transition cursor-pointer"
-              title="보관함에서 인벤토리로 꺼냅니다"
+              title="보관함에서 인벤토리로 꺼냅니다 [D]"
             >
               <Package className="w-3.5 h-3.5" />
               <span>꺼내기</span>
+              <kbd className="text-[9px] font-mono px-1 rounded bg-indigo-950 text-indigo-200 border border-indigo-500/60">D</kbd>
             </button>
           )}
 
@@ -148,10 +150,11 @@ export const ItemDetailCard: React.FC<ItemDetailCardProps> = React.memo(({
                 onDeposit(item.id);
               }}
               className="px-2.5 py-1 rounded bg-iron-950 hover:bg-iron-800 text-gray-200 border border-iron-700 hover:border-indigo-400 font-bold text-xs flex items-center gap-1 shadow transition cursor-pointer"
-              title="인벤토리에서 모험가 보관함(Stash)으로 보관합니다"
+              title="인벤토리에서 모험가 보관함(Stash)으로 보관합니다 [D]"
             >
               <Package className="w-3.5 h-3.5 text-indigo-400" />
               <span>보관</span>
+              <kbd className="text-[9px] font-mono px-1 rounded bg-black/50 text-indigo-300 border border-indigo-600/50">D</kbd>
             </button>
           )}
 
@@ -184,7 +187,7 @@ export const ItemDetailCard: React.FC<ItemDetailCardProps> = React.memo(({
               <span>각인된 룬: [{item.socketedRunes.join(' + ')}]</span>
             </div>
             {item.isRuneWord && (
-              <span className="text-amber-300 font-black px-1.5 py-0.2 rounded bg-amber-950/80 border border-amber-400/70 font-mono animate-pulse">
+              <span className="text-amber-300 font-black px-1.5 py-0.5 rounded bg-amber-950/80 border border-amber-400/70 font-mono animate-pulse">
                 ❖ [{item.runeWordName || item.name}] 룬워드 발동!
               </span>
             )}
@@ -212,6 +215,12 @@ export const ItemDetailCard: React.FC<ItemDetailCardProps> = React.memo(({
             <strong>+{item.stats.defense}</strong>
           </div>
         )}
+        {item.stats.hp !== undefined && item.stats.hp > 0 && (
+          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between text-rose-300">
+            <span>❤️ 생명력 (HP)</span>
+            <strong>+{item.stats.hp}</strong>
+          </div>
+        )}
         {item.stats.str !== undefined && item.stats.str > 0 && (
           <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between text-red-200">
             <span>💪 힘 (STR)</span>
@@ -228,6 +237,12 @@ export const ItemDetailCard: React.FC<ItemDetailCardProps> = React.memo(({
           <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between text-yellow-200">
             <span>🛡️ 체력 (CON)</span>
             <strong>+{item.stats.con}</strong>
+          </div>
+        )}
+        {item.stats.evasion !== undefined && item.stats.evasion > 0 && (
+          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between text-teal-200">
+            <span>💨 회피율</span>
+            <strong>+{item.stats.evasion}%</strong>
           </div>
         )}
         {item.stats.critChance !== undefined && item.stats.critChance > 0 && (

@@ -94,7 +94,7 @@ export const BossSkillCutin: React.FC = React.memo(() => {
             <span className="text-[10px] sm:text-xs font-mono font-bold text-gray-300 truncate">
               {name}
             </span>
-            <span className={`px-1.5 py-0.2 rounded text-[9px] font-black border font-mono ${theme.badge}`}>
+            <span className={`px-1.5 py-0.5 rounded text-[9px] font-black border font-mono ${theme.badge}`}>
               {theme.elementIcon} 궁극기 발동
             </span>
           </div>

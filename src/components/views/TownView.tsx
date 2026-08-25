@@ -84,11 +84,12 @@ export const TownView: React.FC = React.memo(() => {
       <div className="relative rounded-xl overflow-hidden border-2 border-brass-600/70 shadow-2xl bg-iron-950">
         {/* Background Image Layer with atmospheric vignette gradients */}
         <div 
-          className="absolute inset-0 bg-cover bg-center opacity-45 mix-blend-luminosity filter contrast-125 pointer-events-none"
+          className="absolute inset-0 bg-cover bg-center opacity-70 contrast-110 pointer-events-none"
           style={{ backgroundImage: "url('/images/town_bg.png')" }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-iron-950 via-iron-950/75 to-iron-950/40 pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-r from-iron-950/90 via-transparent to-iron-950/90 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-iron-950 via-iron-950/55 to-red-950/25 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-iron-950/80 via-transparent to-iron-950/80 pointer-events-none" />
+        <div className="absolute inset-0 pointer-events-none town-embers" />
 
         {/* Content on Banner */}
         <div className="relative z-10 p-3 sm:p-4 md:p-5 flex flex-col md:flex-row md:items-center justify-between gap-3">
@@ -141,7 +142,7 @@ export const TownView: React.FC = React.memo(() => {
             <button
               data-tutorial="deploy"
               onClick={() => enterDungeon(lastDungeon.id, autoDeployDiff)}
-              className="px-4 py-2 bg-gradient-to-r from-blood-700 via-blood-600 to-amber-600 hover:from-blood-600 hover:to-amber-500 text-white font-black rounded-lg text-xs sm:text-sm flex items-center gap-1.5 shadow-xl ring-2 ring-amber-400/60 transition transform active:scale-95 animate-pulse cursor-pointer"
+              className="px-4 py-2 bg-gradient-to-r from-blood-700 via-blood-600 to-amber-600 hover:from-blood-600 hover:to-amber-500 text-white font-black rounded-lg text-xs sm:text-sm flex items-center gap-1.5 shadow-xl ring-2 ring-amber-400/60 hover:ring-amber-300 transition transform active:scale-95 hover:shadow-[0_0_20px_rgba(251,191,36,0.5)] animate-pulse cursor-pointer"
               title={`이전 던전 [${lastDungeon.name.split(":")[0]}] (개방 최고 난이도 Lv.${autoDeployDiff})으로 즉시 출격`}
             >
               <span>[Space] [{lastDungeon.name.split(":")[0]}] Lv.{autoDeployDiff} 즉시 출격</span>
@@ -155,7 +156,7 @@ export const TownView: React.FC = React.memo(() => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
         
         {/* Left Column (3 Cols Desktop Only): Quick Gear & Combat Specs (Hidden on Mobile to ensure Zero-Scroll) */}
-        <div className="hidden lg:flex lg:col-span-3 bg-iron-900/90 p-3 sm:p-4 rounded-xl border-2 border-iron-750 flex-col justify-between space-y-3 shadow-md">
+        <div className="hidden lg:flex lg:col-span-3 bg-iron-900/90 p-3 sm:p-4 rounded-xl border-2 border-brass-600/35 flex-col justify-between space-y-3 shadow-[0_0_22px_rgba(222,178,67,0.12)] ui-ornate">
           <div>
             <div className="flex justify-between items-center border-b border-iron-750 pb-2 mb-2.5">
               <h2 className="font-cinzel font-bold text-gray-100 text-xs sm:text-sm flex items-center gap-1.5">
@@ -190,7 +191,7 @@ export const TownView: React.FC = React.memo(() => {
                   </span>
                 </div>
                 {equipment.weapon?.socketedRunes && (
-                  <div className="text-[10px] text-purple-300 font-bold mt-0.5 bg-iron-900 px-1.5 py-0.2 rounded border border-iron-800">
+                  <div className="text-[10px] text-purple-300 font-bold mt-0.5 bg-iron-900 px-1.5 py-0.5 rounded border border-iron-800">
                     소켓: [{equipment.weapon.socketedRunes.join(' + ')}]
                   </div>
                 )}
@@ -219,7 +220,7 @@ export const TownView: React.FC = React.memo(() => {
                   </span>
                 </div>
                 {equipment.armor?.socketedRunes && (
-                  <div className="text-[10px] text-purple-300 font-bold mt-0.5 bg-iron-900 px-1.5 py-0.2 rounded border border-iron-800">
+                  <div className="text-[10px] text-purple-300 font-bold mt-0.5 bg-iron-900 px-1.5 py-0.5 rounded border border-iron-800">
                     소켓: [{equipment.armor.socketedRunes.join(' + ')}]
                   </div>
                 )}
@@ -271,7 +272,7 @@ export const TownView: React.FC = React.memo(() => {
         </div>
 
         {/* Center Column (5 Cols Desktop / Full Width on Mobile): Four Core Town Facilities */}
-        <div className="w-full lg:col-span-5 bg-iron-900/90 p-3 sm:p-4 rounded-xl border-2 border-iron-750 flex flex-col shadow-md min-h-[420px]">
+        <div className="w-full lg:col-span-5 bg-iron-900/90 p-3 sm:p-4 rounded-xl border-2 border-brass-600/30 flex flex-col shadow-[0_0_22px_rgba(222,178,67,0.1)] min-h-[420px] ui-ornate">
           
           {/* Facility Navigation Tabs (Tier 3: Dark Inset Active Tabs) */}
           <div className="grid grid-cols-4 gap-1 sm:gap-1.5 pb-2.5 border-b border-iron-750">
@@ -288,7 +289,7 @@ export const TownView: React.FC = React.memo(() => {
               <BookOpen className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
               <span className="truncate">케인</span>
               {unidentifiedCount > 0 && (
-                <span className="absolute -top-1 -right-1 px-1.5 py-0.2 bg-blood-500 text-white rounded-full text-[9px] font-mono font-black animate-pulse shadow">
+                <span className="absolute -top-1 -right-1 px-1.5 py-0.5 bg-blood-500 text-white rounded-full text-[9px] font-mono font-black animate-pulse shadow">
                   {unidentifiedCount}
                 </span>
               )}
@@ -366,7 +367,9 @@ export const TownView: React.FC = React.memo(() => {
                   <button
                     onClick={handleIdentifyAll}
                     disabled={unidentifiedCount === 0}
-                    className="w-full py-3 bg-gradient-to-r from-blue-700 via-indigo-600 to-blue-600 hover:from-blue-600 hover:to-indigo-500 disabled:opacity-40 text-white font-black rounded-lg transition shadow-lg text-xs md:text-sm flex items-center justify-center gap-2 cursor-pointer border border-blue-400 ring-2 ring-blue-400/50 shadow-[0_0_15px_rgba(96,165,250,0.4)] animate-pulse"
+                    className={`w-full py-3 bg-gradient-to-r from-blue-700 via-indigo-600 to-blue-600 hover:from-blue-600 hover:to-indigo-500 disabled:opacity-40 text-white font-black rounded-lg transition shadow-lg text-xs md:text-sm flex items-center justify-center gap-2 cursor-pointer border border-blue-400 ring-2 ring-blue-400/50 hover:ring-blue-300 hover:shadow-[0_0_15px_rgba(96,165,250,0.4)] ${
+                      unidentifiedCount > 0 ? 'animate-pulse' : ''
+                    }`}
                   >
                     <BookOpen className="w-4 h-4 text-blue-200" />
                     <span>소지품 일괄 무료 감정 (Identify All)</span>
@@ -397,7 +400,7 @@ export const TownView: React.FC = React.memo(() => {
                             <div className="space-y-0.5">
                               <div className="font-black flex items-center gap-1.5">
                                 <span>{item.name}</span>
-                                <span className="text-[9px] px-1 py-0.2 rounded bg-iron-950 border border-iron-700 text-gray-300 uppercase">
+                                <span className="text-[9px] px-1 py-0.5 rounded bg-iron-950 border border-iron-700 text-gray-300 uppercase">
                                   {item.rarity}
                                 </span>
                                 <span className="text-[10px] text-gray-400">({item.slot})</span>
@@ -461,7 +464,7 @@ export const TownView: React.FC = React.memo(() => {
                           <span className="font-cinzel font-black text-sm text-brass-200">
                             {gambleFeedback.item.name}
                           </span>
-                          <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-black uppercase bg-iron-900 border border-amber-500 text-amber-300">
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-black uppercase bg-iron-900 border border-amber-500 text-amber-300">
                             {gambleFeedback.item.rarity}
                           </span>
                           <span className="text-[10px] font-mono text-red-400 font-bold">
@@ -611,42 +614,112 @@ export const TownView: React.FC = React.memo(() => {
                   빈 소켓이 있는 노멀 베이스 장비에 룬을 순서대로 박아 <strong className="text-amber-300 font-bold">전설의 룬워드</strong>를 제작하세요.
                 </div>
 
-                {/* Step 1: Base Item Selection */}
-                <div className="p-2.5 bg-iron-950 rounded-lg border border-iron-800 space-y-1.5">
-                  <div className="font-bold text-gray-200 text-xs flex justify-between items-center">
-                    <span>1. 소켓 베이스 아이템 선택 (선택 시 맞춤 필터링):</span>
-                    {selectedBaseItem && (
+                {/* Step 1: Base Item Selection (Inventory-style Vertical Responsive Grid) */}
+                <div className="p-3 bg-iron-950 rounded-xl border border-iron-800 space-y-2">
+                  <div className="font-bold text-gray-200 text-xs flex justify-between items-center pb-1 border-b border-iron-800/80">
+                    <span className="flex items-center gap-1.5 text-amber-300">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                      <span>1. 소켓 베이스 장비 선택 (선택 시 맞춤 필터링):</span>
+                    </span>
+                    {selectedBaseItem ? (
                       <button
                         onClick={() => setSelectedBaseItem(null)}
-                        className="text-[10px] text-amber-400 hover:underline cursor-pointer"
+                        className="text-[11px] text-amber-400 hover:text-amber-200 font-mono font-bold hover:underline cursor-pointer flex items-center gap-0.5"
                       >
-                        선택 해제 (전체 도감 보기)
+                        ✕ 선택 해제 (전체 도감)
                       </button>
+                    ) : (
+                      <span className="text-[10px] text-gray-400 font-mono">
+                        보유 중인 소켓 장비: {socketableItems.length}개
+                      </span>
                     )}
                   </div>
-                  <div className="flex gap-2 overflow-x-auto pb-1">
-                    {socketableItems.map(item => (
-                      <button
-                        key={item.id}
-                        onClick={() => setSelectedBaseItem(selectedBaseItem?.id === item.id ? null : item)}
-                        className={`p-2 rounded-lg border-2 text-left flex-shrink-0 min-w-[120px] transition shadow cursor-pointer ${
-                          selectedBaseItem?.id === item.id
-                            ? 'bg-blood-950 border-brass-300 text-brass-100 ring-2 ring-brass-400'
-                            : 'bg-iron-900 border-iron-750 text-gray-200 hover:bg-iron-800'
-                        }`}
-                      >
-                        <div className="font-black text-xs truncate">{item.name}</div>
-                        <div className="text-[10px] text-purple-300 font-bold mt-0.5">
-                          {item.slot.toUpperCase()} · {item.sockets}소켓
-                        </div>
-                      </button>
-                    ))}
-                    {socketableItems.length === 0 && (
-                      <div className="p-2 text-gray-500 font-mono text-[11px] w-full text-center">
-                        소지품에 빈 소켓 장비가 없습니다. (하단에서 전체 룬워드 레시피 도감을 확인할 수 있습니다)
+
+                  {socketableItems.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-56 overflow-y-auto pr-1">
+                      {socketableItems.map(item => {
+                        const isSelected = selectedBaseItem?.id === item.id;
+                        const slotLabel = item.slot === 'weapon' ? '무기' : item.slot === 'armor' ? '갑옷' : item.slot === 'shield' ? '방패' : item.slot === 'helm' ? '투구' : item.slot;
+                        const socketedCount = item.socketedRunes?.length || 0;
+                        const remainingSockets = (item.sockets || 0) - socketedCount;
+
+                        return (
+                          <button
+                            key={item.id}
+                            onClick={() => setSelectedBaseItem(isSelected ? null : item)}
+                            className={`p-2.5 rounded-lg border-2 text-left flex flex-col justify-between gap-1.5 transition shadow cursor-pointer relative ${
+                              isSelected
+                                ? 'bg-gradient-to-b from-amber-950/80 via-iron-900 to-amber-950/80 border-amber-400 text-amber-100 ring-2 ring-amber-400/80 shadow-[0_0_15px_rgba(251,191,36,0.35)]'
+                                : 'bg-iron-900/90 border-iron-750 text-gray-200 hover:bg-iron-850 hover:border-iron-600'
+                            }`}
+                          >
+                            {/* Card Top: Name & Selection Badge */}
+                            <div className="flex items-start justify-between gap-1">
+                              <div className="font-black text-xs text-gray-100 truncate flex-1">
+                                {item.name}
+                              </div>
+                              {isSelected && (
+                                <span className="px-1.5 py-0.5 rounded bg-amber-400 text-iron-950 font-mono font-black text-[9px] flex-shrink-0 shadow">
+                                  선택됨
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Badges: Slot, Tier, Sockets */}
+                            <div className="flex items-center gap-1 flex-wrap text-[10px] font-mono">
+                              <span className="px-1.5 py-0.5 rounded bg-iron-950 border border-iron-700 text-gray-300 font-bold">
+                                {slotLabel}
+                              </span>
+                              <span className="px-1.5 py-0.5 rounded bg-iron-950 border border-iron-700 text-amber-400 font-bold uppercase text-[9px]">
+                                {item.tier || 'NORMAL'}
+                              </span>
+                              <span className="px-1.5 py-0.5 rounded bg-purple-950/90 border border-purple-500/80 text-purple-200 font-black">
+                                💎 {item.sockets} 소켓
+                              </span>
+                            </div>
+
+                            {/* Stats Line (Min/Max Dmg or Defense) */}
+                            <div className="text-[11px] font-mono font-bold flex items-center justify-between text-gray-300 pt-0.5 border-t border-iron-800">
+                              {item.stats.minDmg !== undefined && (
+                                <span className="text-brass-200">
+                                  공격력: {item.stats.minDmg} ~ {item.stats.maxDmg}
+                                  {item.stats.attackSpeed !== undefined && item.stats.attackSpeed > 0 && (
+                                    <span className="text-amber-300 ml-1">({item.stats.attackSpeed > 0 ? `+${item.stats.attackSpeed}%` : ''})</span>
+                                  )}
+                                </span>
+                              )}
+                              {item.stats.defense !== undefined && (
+                                <span className="text-blue-300">
+                                  방어력: {item.stats.defense}
+                                </span>
+                              )}
+                              {remainingSockets < (item.sockets || 0) && (
+                                <span className="text-[10px] text-emerald-400 font-bold">
+                                  ({socketedCount}/{item.sockets} 룬 각인)
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Socketed Runes List if any */}
+                            {item.socketedRunes && item.socketedRunes.length > 0 && (
+                              <div className="text-[9px] text-purple-300 font-mono bg-iron-950 px-1.5 py-0.5 rounded border border-iron-800 truncate">
+                                각인: [{item.socketedRunes.join(' + ')}]
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="p-4 text-center space-y-2 bg-iron-900/40 rounded-lg border border-dashed border-iron-800">
+                      <div className="text-gray-400 font-mono text-xs">
+                        소지품에 빈 소켓 장비가 없습니다.
                       </div>
-                    )}
-                  </div>
+                      <p className="text-[11px] text-gray-500 leading-relaxed max-w-md mx-auto">
+                        던전 탐험에서 회색(노멀) 소켓 베이스 아이템을 획득하거나, 하단에서 룬워드 제작에 필요한 소켓 및 룬 공식을 미리 확인하세요.
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Step 2: Recipes Grid View */}
@@ -924,7 +997,7 @@ export const TownView: React.FC = React.memo(() => {
         </div>
 
         {/* Right Column (4 Cols Desktop Only): 33 D2 Rune Vault (Hidden on Mobile to ensure Zero-Scroll) */}
-        <div className="hidden lg:flex lg:col-span-4 bg-iron-900/90 p-3 sm:p-4 rounded-xl border-2 border-iron-750 flex-col space-y-2.5 shadow-md">
+        <div className="hidden lg:flex lg:col-span-4 bg-iron-900/90 p-3 sm:p-4 rounded-xl border-2 border-amber-700/35 flex-col space-y-2.5 shadow-[0_0_22px_rgba(180,83,9,0.12)] ui-ornate">
           <div className="flex justify-between items-center border-b border-iron-750 pb-2">
             <h3 className="font-cinzel font-bold text-gray-100 text-xs sm:text-sm flex items-center gap-1.5">
               <Sparkles className="w-4 h-4 text-purple-400" />

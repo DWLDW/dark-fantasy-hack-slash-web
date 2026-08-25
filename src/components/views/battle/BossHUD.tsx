@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { useGame } from '../../../state/gameStore';
 import { getActTheme } from '../../../utils/actThemes';
 import { Crown, Shield, Flame, Skull, Swords, AlertTriangle, Zap, Sparkles, Target, ShieldAlert } from 'lucide-react';
+import { MonsterPortrait } from '../../fx/MonsterPortrait';
 
 /**
  * BossHUD — Dedicated high-impact boss battle HUD.
@@ -124,7 +125,19 @@ export const BossHUD: React.FC = React.memo(() => {
           }`}
           title="클릭 시 보스 전면 레인으로 이동"
         >
-          <span>{isGroggy ? '💫' : boss.icon || '👑'}</span>
+          {isGroggy ? (
+            <span>💫</span>
+          ) : (
+            <MonsterPortrait
+              icon={boss.icon}
+              name={boss.name}
+              rank="boss"
+              element={boss.element}
+              size={44}
+              isEnraged={isEnraged}
+              isFrozen={Boolean(boss.isFrozen)}
+            />
+          )}
           {isEnraged && !isGroggy && (
             <span className="absolute -top-1 -right-1 text-[11px] animate-pulse">⚡</span>
           )}
@@ -156,7 +169,7 @@ export const BossHUD: React.FC = React.memo(() => {
           {/* Interactive Badges */}
           <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
             {/* Element Attribute */}
-            <span className={`px-1.5 py-0.2 rounded text-[8px] sm:text-[9px] font-bold border font-mono ${elementBadge.badge}`}>
+            <span className={`px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-bold border font-mono ${elementBadge.badge}`}>
               {elementBadge.text}
             </span>
 
@@ -193,14 +206,14 @@ export const BossHUD: React.FC = React.memo(() => {
 
             {/* Enrage Tag */}
             {isEnraged && !isGroggy && (
-              <span className="px-1.5 py-0.2 rounded text-[8px] sm:text-[9px] font-black bg-red-600 text-white border border-red-300 animate-pulse">
+              <span className="px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-black bg-red-600 text-white border border-red-300 animate-pulse">
                 ⚡ 광란 (ATK +50%)
               </span>
             )}
 
             {/* Guard Active Notice */}
             {bossGuardActive && !isGroggy && (
-              <span className="px-1.5 py-0.2 rounded text-[8px] sm:text-[9px] font-black bg-blue-600 text-white border border-blue-300 animate-pulse">
+              <span className="px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-black bg-blue-600 text-white border border-blue-300 animate-pulse">
                 🛡️ 결계 가동 (피해 -70%)
               </span>
             )}

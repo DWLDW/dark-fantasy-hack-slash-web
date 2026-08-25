@@ -112,10 +112,11 @@ export const InventoryFilterBar: React.FC<InventoryFilterBarProps> = React.memo(
           <button
             onClick={onAutoEquip}
             className="px-3.5 py-1.5 rounded-lg text-xs font-black transition flex items-center gap-1.5 border shadow bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-iron-950 border-amber-300 ring-2 ring-amber-300/80 shadow-[0_0_15px_rgba(251,191,36,0.6)] cursor-pointer transform active:scale-95 animate-pulse"
-            title="공격력+체력 가중치 기반으로 소지품에서 가장 우수한 상위 장비를 자동 일괄 장착합니다. (미미한 차이는 기존 장비 유지)"
+            title="공격력+체력 가중치 기반으로 소지품에서 가장 우수한 상위 장비를 자동 일괄 장착합니다 [A]"
           >
             <Zap className="w-3.5 h-3.5 fill-iron-950" />
             <span>추천 일괄 장착</span>
+            <kbd className="text-[9px] font-mono px-1 rounded bg-black/40 text-amber-200 border border-amber-600/60">A</kbd>
           </button>
         )}
 
@@ -161,7 +162,7 @@ export const InventoryFilterBar: React.FC<InventoryFilterBarProps> = React.memo(
           <Coins className="w-3.5 h-3.5 text-amber-400" />
           <span>전부 팔기</span>
           {sellableCount > 0 && (
-            <span className="text-[10px] font-mono font-bold text-amber-300 bg-black/60 px-1.5 py-0.2 rounded border border-amber-500/40">
+            <span className="text-[10px] font-mono font-bold text-amber-300 bg-black/60 px-1.5 py-0.5 rounded border border-amber-500/40">
               {sellableCount}개 (+{totalSellGold.toLocaleString()}G)
             </span>
           )}

@@ -92,10 +92,16 @@ export const CharacterModal: React.FC = React.memo(() => {
   ] as const;
 
   return (
-    <div className="bg-iron-950 border-2 border-brass-500 rounded-lg p-4 md:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl text-xs md:text-sm select-none font-sans">
+    <div className="bg-iron-950 border-2 border-brass-500 rounded-lg p-4 md:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-[0_0_40px_rgba(251,191,36,0.18)] text-xs md:text-sm select-none font-sans ui-ornate">
       {/* Header */}
       <div className="flex items-center justify-between pb-3 border-b border-iron-750 mb-4 gap-2">
         <div className="flex items-center gap-2.5 flex-wrap">
+          <img
+            src="/images/player/berserker_idle.png"
+            alt="광전사"
+            className="pixel-sprite h-14 w-auto drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]"
+            draggable={false}
+          />
           <h2 className="text-base md:text-lg font-cinzel font-black text-brass-200 tracking-wider">
             캐릭터 능력치 & 스탯
           </h2>
@@ -204,9 +210,24 @@ export const CharacterModal: React.FC = React.memo(() => {
               highlight="text-brass-200 font-black text-sm"
             />
             <StatRow
-              label="공격 속도 (IAS %)"
-              value={`+${totalStats.attackSpeed || 0}% (신속 연격 ${Math.min(75, Math.floor((totalStats.attackSpeed || 0) * 0.6))}%, 선제 ${totalStats.baseAtbPercent}%)`}
+              label="공격 / 시전 속도 (IAS / Cast Rate)"
+              value={`+${totalStats.attackSpeed || 0}% (스킬 분노 소모 -${totalStats.rageCostReduction || 0}%)`}
               highlight="text-amber-300 font-bold"
+            />
+            <StatRow
+              label="⚡ 신속 연계 콤보 충전 (Swift Momentum)"
+              value={`타격당 +${30 + Math.floor((totalStats.attackSpeed || 0) * 0.5)}% (100% 시 연속 추가 턴!)`}
+              highlight="text-amber-400 font-black"
+            />
+            <StatRow
+              label="🗡️ 선제 기습 공격 (Initiative Ambush)"
+              value={`${totalStats.baseAtbPercent || 50}% (${(totalStats.baseAtbPercent || 50) >= 65 ? '진입 즉시 전열 무료 기습!' : '일반 개시'})`}
+              highlight={(totalStats.baseAtbPercent || 50) >= 65 ? "text-emerald-400 font-bold" : "text-gray-400"}
+            />
+            <StatRow
+              label="🧛 생명력 흡수 (Life Steal %)"
+              value={`+${totalStats.lifeSteal || 0}% (타격 피해량 비례 회복)`}
+              highlight={totalStats.lifeSteal > 0 ? "text-rose-400 font-black" : "text-gray-400"}
             />
             <StatRow
               label="물리 방어력 (Armor)"

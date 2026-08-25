@@ -709,6 +709,150 @@ export const BOSS_METADATA_TABLE: Record<string, BossMetadata> = {
   }
 };
 
+export interface MonsterTemplate {
+  name: string;
+  icon: string;
+}
+
+export interface DungeonMonsterRoster {
+  frontline: MonsterTemplate; // d=0 Tank/Melee
+  midline: MonsterTemplate;   // d=1 Bruiser/Fighter
+  backline: MonsterTemplate;  // d=2 Ranged/Caster
+  elite: MonsterTemplate;
+}
+
+export const DUNGEON_MONSTER_TEMPLATES: Record<string, DungeonMonsterRoster> = {
+  // ==================== ACT 1 ====================
+  act1_1_den: {
+    frontline: { name: '악의 소굴 고블린', icon: '👺' },
+    midline: { name: '부패한 시체 구울', icon: '🧟' },
+    backline: { name: '카버 흑마술사', icon: '🧙‍♂️' },
+    elite: { name: '화염 고블린 투사', icon: '👺🔥' }
+  },
+  act1_2_crypt: {
+    frontline: { name: '납골당 해골 전사', icon: '💀' },
+    midline: { name: '역병 시체좀비', icon: '🧟‍♂️' },
+    backline: { name: '타락한 뼈 궁수', icon: '🏹' },
+    elite: { name: '해골 군단장', icon: '💀⚔️' }
+  },
+  act1_3_tower: {
+    frontline: { name: '탑의 유령 방패병', icon: '🛡️👻' },
+    midline: { name: '핏빛 염소인간 투사', icon: '🐐' },
+    backline: { name: '타락한 핏빛 궁수', icon: '🏹🩸' },
+    elite: { name: '고문관 악마장', icon: '👿' }
+  },
+  act1_4_catacombs: {
+    frontline: { name: '고뇌의 거미 마귀', icon: '🕷️' },
+    midline: { name: '타락한 사령술사', icon: '🔮' },
+    backline: { name: '맹독 가시 악마', icon: '🦂' },
+    elite: { name: '고뇌의 사제', icon: '🕷️⭐' }
+  },
+
+  // ==================== ACT 2 ====================
+  act2_1_sewers: {
+    frontline: { name: '하수도 독침 모기', icon: '🦟' },
+    midline: { name: '저주받은 언데드 시라소니', icon: '🐆' },
+    backline: { name: '역병 미이라 사제', icon: '🏺' },
+    elite: { name: '하수도 부패 군주', icon: '🦟👑' }
+  },
+  act2_2_oasis: {
+    frontline: { name: '모래 구더기 유충', icon: '🐛' },
+    midline: { name: '사막 약탈자 전사', icon: '🥷' },
+    backline: { name: '풍뎅이 번개충', icon: '🪲⚡' },
+    elite: { name: '거대 번개 풍뎅이', icon: '🪲⭐' }
+  },
+  act2_3_sanctuary: {
+    frontline: { name: '비전의 유령 수호자', icon: '👻' },
+    midline: { name: '차원 왜곡 악마', icon: '👾' },
+    backline: { name: '소환술사 제자', icon: '🧙' },
+    elite: { name: '비전 차원장', icon: '🔮⭐' }
+  },
+  act2_4_duriel: {
+    frontline: { name: '탈 라샤의 수호 미이라', icon: '🏺' },
+    midline: { name: '사막 맹독 전갈', icon: '🦂' },
+    backline: { name: '모래 폭풍 뼈 마법사', icon: '💀🌪️' },
+    elite: { name: '고대 무덤 수호대장', icon: '🏺⭐' }
+  },
+
+  // ==================== ACT 3 ====================
+  act3_1_jungle: {
+    frontline: { name: '밀림 맹독 거미', icon: '🕷️' },
+    midline: { name: '정글 피그미 전사', icon: '🎭' },
+    backline: { name: '밀림 침묵의 주술사', icon: '🧙‍♂️' },
+    elite: { name: '피그미 족장', icon: '🎭⭐' }
+  },
+  act3_2_kurast: {
+    frontline: { name: '자카룸 광신도 전사', icon: '⚔️' },
+    midline: { name: '타락한 사원 집행관', icon: '🛡️' },
+    backline: { name: '암흑 번개 주술사', icon: '⚡' },
+    elite: { name: '자카룸 대사제', icon: '🧙‍♂️⭐' }
+  },
+  act3_3_travincal: {
+    frontline: { name: '평의회 근위 호위병', icon: '🛡️' },
+    midline: { name: '히드라 소환사', icon: '🐉' },
+    backline: { name: '자카룸 흑마도사', icon: '🔮' },
+    elite: { name: '평의회 집행관 토크', icon: '🧝⭐' }
+  },
+  act3_4_durance: {
+    frontline: { name: '증오의 피의 군주', icon: '🧛' },
+    midline: { name: '타락한 언데드 기사', icon: '💀🛡️' },
+    backline: { name: '영혼 흡수 유령', icon: '👻' },
+    elite: { name: '브렘 스파크피스트', icon: '⚡⭐' }
+  },
+
+  // ==================== ACT 4 ====================
+  act4_1_plains: {
+    frontline: { name: '지옥의 핏빛 메가데몬', icon: '👹' },
+    midline: { name: '타락한 악마 늑대', icon: '🐺' },
+    backline: { name: '어둠의 저주 망령', icon: '👻' },
+    elite: { name: '절망의 집행관', icon: '👹⭐' }
+  },
+  act4_2_forge: {
+    frontline: { name: '용암 불꽃 골렘', icon: '🗿🔥' },
+    midline: { name: '화염 채찍 악마', icon: '👿' },
+    backline: { name: '지옥불 사제', icon: '🧙‍♂️🔥' },
+    elite: { name: '대장간 화염거인', icon: '🔨⭐' }
+  },
+  act4_3_sanctuary: {
+    frontline: { name: '파멸의 베놈 로드', icon: '🐉' },
+    midline: { name: '혼돈의 흑마법 기사', icon: '🛡️🔮' },
+    backline: { name: '망각의 뼈 사령술사', icon: '💀🧙‍♂️' },
+    elite: { name: '영혼의 잠식자 파수관', icon: '👁️⭐' }
+  },
+  act4_4_altar: {
+    frontline: { name: '지옥의 공포 베놈로드', icon: '🐉🔥' },
+    midline: { name: '심연의 파멸군주', icon: '👹' },
+    backline: { name: '대악마 직속 주술사', icon: '🧙‍♂️🩸' },
+    elite: { name: '군주 드 사이스', icon: '💀👑' }
+  },
+
+  // ==================== ACT 5 ====================
+  act5_1_foothills: {
+    frontline: { name: '바알의 공성 돌격병', icon: '🦏' },
+    midline: { name: '설원 야만족 투사', icon: '🪓' },
+    backline: { name: '공성 투석기 포병', icon: '💣' },
+    elite: { name: '핏빛 언덕 투사장', icon: '🎪⭐' }
+  },
+  act5_2_summit: {
+    frontline: { name: '수호신 탈릭의 환영', icon: '🛡️⚔️' },
+    midline: { name: '수호신 코릭의 환영', icon: '🪓' },
+    backline: { name: '수호신 마다크의 환영', icon: '🏹⚡' },
+    elite: { name: '고대인의 정예 투사', icon: '⚔️⭐' }
+  },
+  act5_3_keep: {
+    frontline: { name: '바알의 자폭 파괴자', icon: '💣' },
+    midline: { name: '설원 예티 거수', icon: '🦍' },
+    backline: { name: '피의 유혹 세이렌', icon: '🧜‍♀️' },
+    elite: { name: '공룡 수호거수 리스터', icon: '🦖⭐' }
+  },
+  act5_4_throne: {
+    frontline: { name: '파멸의 자폭 괴수', icon: '💣' },
+    midline: { name: '지옥의 영혼 흡수자', icon: '🧛‍♂️' },
+    backline: { name: '심연의 어둠 소환사', icon: '🐙' },
+    elite: { name: '파멸의 분신 하수인', icon: '🐙⭐' }
+  }
+};
+
 export function createDungeonFormation(
   dungeonId: string,
   roomType: 'normal' | 'elite' | 'boss' | 'treasure' | 'rune' | 'shrine' | 'start' = 'normal',
@@ -716,7 +860,8 @@ export function createDungeonFormation(
   difficultyLevel: number = 1
 ): Monster[] {
   const monsters: Monster[] = [];
-  if (roomType === 'treasure' || roomType === 'rune' || roomType === 'shrine' || roomType === 'start') {
+  // Start room has no monsters. Treasure, rune, and shrine rooms have guardian defenders!
+  if (roomType === 'start') {
     return monsters;
   }
 
@@ -727,21 +872,16 @@ export function createDungeonFormation(
 
   const dungeon = DUNGEONS_DATA.find(d => d.id === dungeonId) || DUNGEONS_DATA[0];
   const recLv = Math.max(1, dungeon.recommendedLevel || 1);
-  const dungeonIdx = Math.max(0, DUNGEONS_DATA.findIndex(d => d.id === dungeonId));
-  const monsterNames = (dungeon.monsterSummary || '').split(',').map(s => s.trim()).filter(Boolean);
-  const baseName1 = monsterNames[0] || '어둠의 방랑자';
-  const baseName2 = monsterNames[1] || '해골 궁수';
-  const baseName3 = monsterNames[2] || '타락한 주술사';
+  const roster = DUNGEON_MONSTER_TEMPLATES[dungeonId] || DUNGEON_MONSTER_TEMPLATES['act1_1_den'];
+
   const bossMeta = BOSS_METADATA_TABLE[dungeonId] || {
-    name: monsterNames[monsterNames.length - 1] || '지옥의 군주',
+    name: '지옥의 군주',
     icon: '👑',
     element: 'physical' as const,
     signatureKey: 'roar',
     gimmickTitle: '광역 포효',
     gimmickDesc: '3턴마다 전 레인 광역 포효'
   };
-  const bossName = bossMeta.name;
-  const eliteName = monsterNames.length > 2 ? monsterNames[monsterNames.length - 2] : '정예 집행관';
 
   // Smooth, satisfying Diablo 2 progression curve across all 20 dungeons
   const baseHp = recLv <= 10
@@ -762,25 +902,32 @@ export function createDungeonFormation(
   for (let l = 0; l < 5; l++) {
     for (let d = 0; d < depthsPerLane; d++) {
       const isBoss = (roomType === 'boss') && (l === 2 && d === 0);
-      const isElite = !isBoss && (roomType === 'elite' || roomType === 'boss') && (d === 0 && (l === 1 || l === 3));
+      const isElite = !isBoss && (roomType === 'elite' || roomType === 'boss' || roomType === 'treasure' || roomType === 'shrine' || roomType === 'rune') && (d === 0 && (l === 1 || l === 3));
 
       let mHp = Math.floor(baseHp * hpMult);
       let mDef = Math.floor(baseDef * defMult);
       let mDmg = Math.floor(baseDmg * dmgMult);
-      let mName = d === 0 ? baseName1 : (d % 2 === 1 ? baseName2 : baseName3);
+
+      // Pick distinctive monster archetype based on depth:
+      // d=0: Frontline Melee/Tank, d=1: Midline Bruiser, d=2: Backline Caster/Ranged
+      const template = d === 0 ? roster.frontline : d === 1 ? roster.midline : roster.backline;
+      let mName = template.name;
+      let mIcon = template.icon;
       let rank: 'normal' | 'elite' | 'boss' = 'normal';
 
       if (isBoss) {
         mHp = recLv <= 10 ? Math.floor(baseHp * 6.5 * hpMult) : Math.floor(baseHp * 8.5 * hpMult);
         mDef = Math.floor((baseDef + (recLv <= 10 ? 4 : 8)) * defMult);
         mDmg = recLv <= 10 ? Math.floor(baseDmg * 2.5 * dmgMult) : Math.floor(baseDmg * 2.8 * dmgMult);
-        mName = `👑 ${bossName}`;
+        mName = bossMeta.name;
+        mIcon = bossMeta.icon;
         rank = 'boss';
       } else if (isElite) {
         mHp = recLv <= 10 ? Math.floor(baseHp * 3.0 * hpMult) : Math.floor(baseHp * 3.8 * hpMult);
         mDef = Math.floor((baseDef + (recLv <= 10 ? 2 : 4)) * defMult);
         mDmg = recLv <= 10 ? Math.floor(baseDmg * 1.6 * dmgMult) : Math.floor(baseDmg * 1.8 * dmgMult);
-        mName = `⭐ ${eliteName}`;
+        mName = roster.elite.name;
+        mIcon = roster.elite.icon;
         rank = 'elite';
       } else if (d === 0) {
         // Frontline Guard: slightly sturdier
@@ -809,7 +956,7 @@ export function createDungeonFormation(
         bossGimmick: isBoss ? `${bossMeta.gimmickTitle}: ${bossMeta.gimmickDesc}` : undefined,
         bossSignatureKey: isBoss ? bossMeta.signatureKey : undefined,
         element: isBoss ? bossMeta.element : undefined,
-        icon: isBoss ? bossMeta.icon : isElite ? '⭐' : '👹'
+        icon: mIcon
       });
     }
   }

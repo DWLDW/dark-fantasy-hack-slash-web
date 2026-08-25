@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { GameItem, ItemStats } from '../../../types/game';
 import { Scale, ArrowRight } from 'lucide-react';
 
@@ -34,6 +34,14 @@ export const COMPARISON_STATS: StatConfig[] = [
 ];
 
 export const ItemCompareTable: React.FC<ItemCompareTableProps> = React.memo(({ selectedItem, equippedItem }) => {
+  const visibleStats = useMemo(() => {
+    return COMPARISON_STATS.filter(({ key }) => {
+      const curVal = (equippedItem?.stats?.[key] as number) || 0;
+      const nextVal = (selectedItem.stats?.[key] as number) || 0;
+      return curVal !== 0 || nextVal !== 0;
+    });
+  }, [selectedItem, equippedItem]);
+
   return (
     <div className="bg-iron-900/90 p-2.5 rounded-lg border border-iron-750 space-y-2">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[10px] font-mono border-b border-iron-800 pb-1.5">
@@ -48,56 +56,59 @@ export const ItemCompareTable: React.FC<ItemCompareTableProps> = React.memo(({ s
         </span>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-[140px] overflow-y-auto pr-0.5">
-        {COMPARISON_STATS.map(({ key, label, isPercent, icon }) => {
-          const curVal = (equippedItem?.stats?.[key] as number) || 0;
-          const nextVal = (selectedItem.stats?.[key] as number) || 0;
-          const diff = nextVal - curVal;
+      {visibleStats.length === 0 ? (
+        <div className="text-center py-2.5 text-gray-400 font-mono text-[11px] bg-iron-950/40 rounded border border-iron-800">
+          ✨ 비교 대상 장비와 모든 기본 스탯 수치가 동일합니다.
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-[140px] overflow-y-auto pr-0.5">
+          {visibleStats.map(({ key, label, isPercent, icon }) => {
+            const curVal = (equippedItem?.stats?.[key] as number) || 0;
+            const nextVal = (selectedItem.stats?.[key] as number) || 0;
+            const diff = nextVal - curVal;
 
-          const isCore = ['minDmg', 'maxDmg', 'attackSpeed', 'defense', 'hp', 'str', 'dex', 'con'].includes(key);
-          if (!isCore && curVal === 0 && nextVal === 0) return null;
+            return (
+              <div
+                key={key}
+                className={`p-1.5 rounded border text-[11px] font-mono flex items-center justify-between transition ${
+                  diff > 0
+                    ? 'bg-green-950/30 border-green-700/60'
+                    : diff < 0
+                    ? 'bg-red-950/30 border-red-700/60'
+                    : 'bg-iron-950/60 border-iron-800'
+                }`}
+              >
+                <div className="text-gray-300 truncate mr-1 flex items-center gap-1">
+                  <span className="text-[10px]">{icon}</span>
+                  <span className="text-[10px] font-sans">{label}</span>
+                </div>
 
-          return (
-            <div
-              key={key}
-              className={`p-1.5 rounded border text-[11px] font-mono flex items-center justify-between transition ${
-                diff > 0
-                  ? 'bg-green-950/30 border-green-700/60'
-                  : diff < 0
-                  ? 'bg-red-950/30 border-red-700/60'
-                  : 'bg-iron-950/60 border-iron-800'
-              }`}
-            >
-              <div className="text-gray-300 truncate mr-1 flex items-center gap-1">
-                <span className="text-[10px]">{icon}</span>
-                <span className="text-[10px] font-sans">{label}</span>
-              </div>
-
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <span className="text-gray-400 text-[10px]">
-                  {curVal}{isPercent ? '%' : ''}
-                </span>
-                <ArrowRight className="w-2.5 h-2.5 text-gray-600" />
-                <span className={`font-black ${diff > 0 ? 'text-green-400' : diff < 0 ? 'text-red-400' : 'text-gray-300'}`}>
-                  {nextVal}{isPercent ? '%' : ''}
-                </span>
-
-                {diff !== 0 && (
-                  <span
-                    className={`text-[10px] font-black px-1 rounded ml-0.5 ${
-                      diff > 0
-                        ? 'text-green-400 bg-green-950 border border-green-600/50'
-                        : 'text-red-400 bg-red-950 border border-red-600/50'
-                    }`}
-                  >
-                    {diff > 0 ? `+${diff}` : `${diff}`}{isPercent ? '%' : ''}
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <span className="text-gray-400 text-[10px]">
+                    {curVal}{isPercent ? '%' : ''}
                   </span>
-                )}
+                  <ArrowRight className="w-2.5 h-2.5 text-gray-600" />
+                  <span className={`font-black ${diff > 0 ? 'text-green-400' : diff < 0 ? 'text-red-400' : 'text-gray-300'}`}>
+                    {nextVal}{isPercent ? '%' : ''}
+                  </span>
+
+                  {diff !== 0 && (
+                    <span
+                      className={`text-[10px] font-black px-1 rounded ml-0.5 ${
+                        diff > 0
+                          ? 'text-green-400 bg-green-950 border border-green-600/50'
+                          : 'text-red-400 bg-red-950 border border-red-600/50'
+                      }`}
+                    >
+                      {diff > 0 ? `+${diff}` : `${diff}`}{isPercent ? '%' : ''}
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 });

@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useGame } from '../../state/gameStore';
 import { DUNGEONS_DATA, ACT_DUNGEON_GROUPS, isDungeonUnlocked, isActUnlocked } from '../../data/dungeons';
+import { ACT_THEMES } from '../../utils/actThemes';
 import {
   Compass,
   Flame,
@@ -76,23 +77,130 @@ export const DungeonSelectView: React.FC = React.memo(() => {
     enterDungeon(selectedDungeon.id, selectedDifficulty);
   };
 
-  // Keyboard shortcut listener for modal: Space/Enter = Deploy, Esc = Close (ignore if global modal or confirm modal is open)
+  // Comprehensive keyboard shortcut listener:
+  // - Difficulty cycling (ArrowLeft/Right or +/- keys)
+  // - Act switching (1~5)
+  // - Dungeon selection (Up/Down)
+  // - Deploy / Open modal (Space/Enter)
+  // - Close / Return to Town (Escape)
   useEffect(() => {
-    if (!isDeployModalOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       if (activeModal || confirmDialogState?.isOpen) return;
+
+      // When Deploy Modal is Open:
+      if (isDeployModalOpen) {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsDeployModalOpen(false);
+          return;
+        }
+
+        if (e.code === 'Space' || e.code === 'Enter') {
+          e.preventDefault();
+          e.stopPropagation();
+          handleDeploy();
+          return;
+        }
+
+        if (
+          e.key === 'ArrowLeft' ||
+          e.key === 'ArrowDown' ||
+          e.key === '-' ||
+          e.key === '_' ||
+          e.code === 'NumpadSubtract'
+        ) {
+          e.preventDefault();
+          e.stopPropagation();
+          changeDifficulty(-1);
+          return;
+        }
+
+        if (
+          e.key === 'ArrowRight' ||
+          e.key === 'ArrowUp' ||
+          e.key === '+' ||
+          e.key === '=' ||
+          e.code === 'NumpadAdd'
+        ) {
+          e.preventDefault();
+          e.stopPropagation();
+          changeDifficulty(1);
+          return;
+        }
+        return;
+      }
+
+      // When Main Map View is Active:
       if (e.key === 'Escape') {
-        e.stopPropagation();
-        setIsDeployModalOpen(false);
-      } else if (e.code === 'Space' || e.code === 'Enter') {
         e.preventDefault();
-        e.stopPropagation();
-        handleDeploy();
+        setViewMode('town');
+        return;
+      }
+
+      // Act 1~5 Switching via Number keys
+      const actKey = Number(e.key);
+      if (actKey >= 1 && actKey <= 5) {
+        if (isActUnlocked(actKey, dungeonClears)) {
+          e.preventDefault();
+          setSelectedAct(actKey);
+          const firstDId = ACT_DUNGEON_GROUPS[actKey]?.[0];
+          if (firstDId) setSelectedDungeonId(firstDId);
+        }
+        return;
+      }
+
+      // Dungeon Selection via ArrowUp / ArrowDown
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        const curIdx = currentActDungeons.findIndex(d => d.id === selectedDungeonId);
+        let nextIdx = 0;
+        if (e.key === 'ArrowDown') {
+          nextIdx = curIdx < currentActDungeons.length - 1 ? curIdx + 1 : 0;
+        } else {
+          nextIdx = curIdx > 0 ? curIdx - 1 : currentActDungeons.length - 1;
+        }
+        setSelectedDungeonId(currentActDungeons[nextIdx].id);
+        return;
+      }
+
+      // Difficulty cycling on map
+      if (e.key === 'ArrowLeft' || e.key === '-' || e.key === '_' || e.code === 'NumpadSubtract') {
+        e.preventDefault();
+        changeDifficulty(-1);
+        return;
+      }
+      if (e.key === 'ArrowRight' || e.key === '+' || e.key === '=' || e.code === 'NumpadAdd') {
+        e.preventDefault();
+        changeDifficulty(1);
+        return;
+      }
+
+      // Open Deploy Modal / Launch via Space / Enter
+      if (e.code === 'Space' || e.code === 'Enter') {
+        e.preventDefault();
+        if (isCurrentDungeonUnlocked) {
+          openDungeonDeploy(selectedDungeon.id);
+        }
+        return;
       }
     };
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isDeployModalOpen, selectedDungeon.id, selectedDifficulty, isCurrentDungeonUnlocked, activeModal, confirmDialogState?.isOpen]);
+  }, [
+    isDeployModalOpen,
+    selectedDungeon.id,
+    selectedDifficulty,
+    isCurrentDungeonUnlocked,
+    activeModal,
+    confirmDialogState?.isOpen,
+    currentActDungeons,
+    selectedDungeonId,
+    dungeonClears,
+    maxDiff
+  ]);
 
   // Multipliers preview
   const hpMult = (1 + (selectedDifficulty - 1) * 0.35).toFixed(2);
@@ -100,7 +208,7 @@ export const DungeonSelectView: React.FC = React.memo(() => {
   const mfBonus = (selectedDifficulty - 1) * 3;
 
   return (
-    <div className="w-full max-w-5xl mx-auto p-2 sm:p-4 pb-28 sm:pb-32 text-gray-200 select-none font-sans space-y-3">
+    <div className={`w-full max-w-5xl mx-auto p-2 sm:p-4 pb-28 sm:pb-32 text-gray-200 select-none font-sans space-y-3 rounded-xl ${ACT_THEMES[selectedAct]?.bgGradient || ''}`}>
       {/* Header */}
       <div className="flex items-center justify-between border-b border-iron-750 pb-2.5">
         <div className="flex items-center gap-2.5">
@@ -120,9 +228,11 @@ export const DungeonSelectView: React.FC = React.memo(() => {
         <button
           onClick={() => setViewMode('town')}
           className="px-3 py-1.5 rounded-lg bg-iron-900 hover:bg-iron-800 border border-iron-700 hover:border-iron-500 text-gray-300 hover:text-white text-xs font-bold transition flex items-center gap-1 shadow cursor-pointer flex-shrink-0"
+          title="마을로 돌아갑니다 [Esc]"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>마을 귀환</span>
+          <kbd className="text-[9px] font-mono px-1 rounded bg-black/40 text-gray-400 border border-iron-750">Esc</kbd>
         </button>
       </div>
 
@@ -147,15 +257,16 @@ export const DungeonSelectView: React.FC = React.memo(() => {
               disabled={!isActOpen}
               className={`p-1.5 sm:p-2.5 rounded-lg border-2 text-left transition relative flex flex-col justify-between ${
                 isSelected
-                  ? 'bg-blood-950/80 border-brass-400 ring-2 ring-brass-400/60 shadow-[0_0_15px_rgba(251,191,36,0.3)]'
+                  ? `${ACT_THEMES[actNum].accentBadge} border-brass-400 ring-2 ring-brass-400/60 shadow-[0_0_18px_rgba(251,191,36,0.4)]`
                   : isActOpen
                   ? 'bg-iron-900/90 border-iron-750 hover:border-iron-600 hover:bg-iron-850 cursor-pointer'
                   : 'bg-iron-950/60 border-iron-850 opacity-50 cursor-not-allowed text-gray-600'
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className={`font-mono font-black text-xs ${isSelected ? 'text-brass-300' : isActOpen ? 'text-gray-300' : 'text-gray-600'}`}>
-                  ACT {actNum}
+                <span className={`font-mono font-black text-xs flex items-center gap-1 ${isSelected ? 'text-brass-300' : isActOpen ? 'text-gray-300' : 'text-gray-600'}`}>
+                  <span>ACT {actNum}</span>
+                  <span className="text-[9px] opacity-70">[{actNum}]</span>
                 </span>
                 {isActCompleted ? (
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
@@ -196,7 +307,7 @@ export const DungeonSelectView: React.FC = React.memo(() => {
                 !unlocked
                   ? 'bg-iron-950/70 border-iron-850 opacity-60 cursor-not-allowed'
                   : isSelected
-                  ? 'bg-gradient-to-r from-blood-950/90 via-iron-900 to-iron-900 border-brass-400 ring-2 ring-brass-400/60 shadow-lg cursor-pointer'
+                  ? 'bg-gradient-to-r from-blood-950/90 via-iron-900 to-iron-900 border-brass-400 ring-2 ring-brass-400/60 shadow-[0_0_20px_rgba(251,191,36,0.28)] cursor-pointer'
                   : 'bg-iron-900/80 border-iron-750 hover:border-iron-600 hover:bg-iron-850 cursor-pointer'
               }`}
             >
@@ -216,11 +327,11 @@ export const DungeonSelectView: React.FC = React.memo(() => {
                     <span className="font-bold text-xs sm:text-sm text-white truncate">
                       {dungeon.name}
                     </span>
-                    <span className="text-[9px] sm:text-[10px] font-mono px-1.5 py-0.2 rounded bg-iron-950 border border-iron-750 text-amber-300 font-bold">
+                    <span className="text-[9px] sm:text-[10px] font-mono px-1.5 py-0.5 rounded bg-iron-950 border border-iron-750 text-amber-300 font-bold">
                       Lv.{dungeon.recommendedLevel} 권장
                     </span>
                     {clearCount > 0 && (
-                      <span className="text-[9px] sm:text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-950/80 border border-emerald-600 text-emerald-300 font-bold">
+                      <span className="text-[9px] sm:text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-950/80 border border-emerald-600 text-emerald-300 font-bold">
                         클리어: {clearCount}회
                       </span>
                     )}
@@ -313,9 +424,11 @@ export const DungeonSelectView: React.FC = React.memo(() => {
                 <button
                   onClick={() => changeDifficulty(-1)}
                   disabled={selectedDifficulty <= 1}
-                  className="w-11 h-9 rounded bg-iron-950 hover:bg-iron-800 disabled:opacity-40 border border-iron-700 font-black text-sm flex items-center justify-center text-gray-300 cursor-pointer"
+                  className="w-14 h-9 rounded bg-iron-950 hover:bg-iron-800 disabled:opacity-40 border border-iron-700 font-black text-xs flex items-center justify-center gap-1 text-gray-300 cursor-pointer"
+                  title="난이도 1단계 감소 [← 또는 -]"
                 >
-                  <Minus className="w-4 h-4" />
+                  <Minus className="w-3.5 h-3.5" />
+                  <kbd className="text-[9px] font-mono text-gray-400">←/-</kbd>
                 </button>
 
                 <div className="flex-1 text-center font-mono font-black text-xl text-amber-300 tracking-wider">
@@ -325,9 +438,11 @@ export const DungeonSelectView: React.FC = React.memo(() => {
                 <button
                   onClick={() => changeDifficulty(1)}
                   disabled={selectedDifficulty >= maxDiff}
-                  className="w-11 h-9 rounded bg-iron-950 hover:bg-iron-800 disabled:opacity-40 border border-iron-700 font-black text-sm flex items-center justify-center text-gray-300 cursor-pointer"
+                  className="w-14 h-9 rounded bg-iron-950 hover:bg-iron-800 disabled:opacity-40 border border-iron-700 font-black text-xs flex items-center justify-center gap-1 text-gray-300 cursor-pointer"
+                  title="난이도 1단계 증가 [→ 또는 +]"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-3.5 h-3.5" />
+                  <kbd className="text-[9px] font-mono text-gray-400">→/+</kbd>
                 </button>
               </div>
 
@@ -337,7 +452,7 @@ export const DungeonSelectView: React.FC = React.memo(() => {
                   <button
                     key={lvl}
                     onClick={() => setDiffDirect(lvl)}
-                    className={`flex-1 py-1 rounded border transition ${
+                    className={`flex-1 py-1 rounded border transition cursor-pointer ${
                       selectedDifficulty === lvl
                         ? 'bg-amber-500 text-iron-950 font-black border-amber-400 shadow'
                         : 'bg-iron-950 text-gray-400 border-iron-800 hover:text-white'
@@ -371,13 +486,20 @@ export const DungeonSelectView: React.FC = React.memo(() => {
                 onClick={handleDeploy}
                 className="w-full py-3.5 bg-gradient-to-r from-blood-700 via-blood-600 to-amber-600 hover:from-blood-600 hover:to-amber-500 text-white font-black text-sm rounded-lg transition shadow-xl ring-2 ring-amber-400/60 flex items-center justify-center gap-2 cursor-pointer transform active:scale-95 animate-pulse"
               >
-                <span>⚔️ [{selectedDungeon.name.split(':')[0]}] Lv.{selectedDifficulty} 원정 출격 [Space]</span>
+                <span>⚔️ [{selectedDungeon.name.split(':')[0]}] Lv.{selectedDifficulty} 원정 출격</span>
+                <kbd className="text-[10px] font-mono font-bold bg-black/40 px-1.5 py-0.5 rounded border border-amber-300/50">Space / Enter</kbd>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* Bottom Keyboard Shortcut Guide Bar */}
+      <div className="p-2.5 rounded-lg bg-iron-900/90 border border-iron-750 flex items-center justify-between text-[10px] sm:text-[11px] font-mono text-gray-400 flex-wrap gap-1 shadow">
+        <span>⌨️ 단축키: <strong className="text-brass-300">[1~5]</strong> 액트 전환 | <strong className="text-brass-300">[↑/↓]</strong> 던전 선택 | <strong className="text-amber-300">[←/→ 또는 +/-]</strong> 난이도 조절 | <strong className="text-amber-300">[Space/Enter]</strong> 출격 | <strong className="text-gray-300">[Esc]</strong> 마을 귀환</span>
+        <span className="text-gray-500 hidden sm:inline">[클릭/Space] 던전 입장</span>
+      </div>
     </div>
   );
 });

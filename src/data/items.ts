@@ -1214,7 +1214,7 @@ export function getActDropPool(actNum: number): GameItem[] {
     // Act 2 (Lv 14~28): Normal/Exceptional 전 부위 + Act 2 적정 유니크/세트
     return GAME_ITEMS_POOL.filter(item => {
       const isAct2Unique = [
-        'u_butchers_pupil', 'u_stealth_armor', 'u_chance_guards', 'u_magefist',
+        'u_butchers_pupil', 'e_sigon_armor', 'u_chance_guards', 'u_magefist',
         'm_waterwalk', 'u_manald_heal', 'u_cats_eye', 'e_sigon_shield', 'e_sigon_boots'
       ].includes(item.id);
       const isBase = item.rarity === 'normal' && (item.tier === 'normal' || item.tier === 'exceptional');
@@ -1226,7 +1226,7 @@ export function getActDropPool(actNum: number): GameItem[] {
     // Act 3 (Lv 30~44): Exceptional 전 부위 + Act 3 적정 유니크/세트
     return GAME_ITEMS_POOL.filter(item => {
       const isAct3Unique = [
-        'u_ali_baba', 'u_vipermagi', 'u_shaftstop', 'u_guillaumes_face',
+        'u_ali_baba', 'm_vipermagi', 'u_shaftstop', 'u_guillaumes_face',
         'u_herald_of_zakarum', 'u_wilhelms_pride', 'u_rite_of_passage',
         'u_dwarf_star', 'u_highlords_wrath', 'm_waterwalk'
       ].includes(item.id);
@@ -1240,7 +1240,7 @@ export function getActDropPool(actNum: number): GameItem[] {
     return GAME_ITEMS_POOL.filter(item => {
       const isAct4Unique = [
         'u_shako', 'u_tyraels_might', 'u_herald_of_zakarum', 'u_laying_of_hands',
-        'u_war_traveler', 'u_soj', 'u_raven_frost', 'u_maras', 'u_atmas_scarab', 'u_vipermagi'
+        'u_war_traveler', 'u_soj', 'u_raven_frost', 'u_maras', 'u_atmas_scarab', 'm_vipermagi'
       ].includes(item.id);
       const isBase = item.rarity === 'normal' && (item.tier === 'exceptional' || item.tier === 'elite');
       return isAct4Unique || isBase;
@@ -1250,7 +1250,7 @@ export function getActDropPool(actNum: number): GameItem[] {
   // Act 5 (Lv 62~75): Elite 종결 전 부위 + Act 5 종결 유니크/세트
   return GAME_ITEMS_POOL.filter(item => {
     const isAct5Unique = [
-      'u_grandfather', 'u_windforce', 'u_andariel_visage', 'u_stormshield',
+      'u_grandfather', 'u_windforce', 'u_andariels_visage', 'u_stormshield',
       'u_draculs', 'u_gorerider', 'u_bul_kathos', 'u_maras', 'u_soj', 'u_laying_of_hands'
     ].includes(item.id);
     const isBase = item.rarity === 'normal';

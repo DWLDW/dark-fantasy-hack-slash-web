@@ -36,7 +36,7 @@ export const BottomDock: React.FC = React.memo(() => {
   }, [activeModal, openModal, closeModal]);
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 bg-iron-950/98 backdrop-blur-md border-t border-iron-700 z-40 py-1.5 px-3 md:py-2 select-none shadow-2xl">
+    <footer className="fixed bottom-0 left-0 right-0 bg-iron-950/98 backdrop-blur-md border-t-2 border-brass-600/40 z-40 py-1.5 px-3 md:py-2 select-none shadow-[0_-12px_28px_rgba(0,0,0,0.55)]">
       <div className="max-w-7xl mx-auto flex items-center justify-around md:justify-between">
         
         {/* Navigation Links */}
@@ -121,7 +121,7 @@ export const BottomDock: React.FC = React.memo(() => {
               K
             </kbd>
             {playerStats.skillPoints > 0 && (
-              <span className="absolute -top-1 -right-1 px-1.5 py-0.2 bg-gradient-to-r from-amber-500 to-yellow-400 text-iron-950 font-mono font-black text-[10px] rounded-full shadow border border-amber-200 animate-pulse">
+              <span className="absolute -top-1 -right-1 px-1.5 py-0.5 bg-gradient-to-r from-amber-500 to-yellow-400 text-iron-950 font-mono font-black text-[10px] rounded-full shadow border border-amber-200 animate-pulse">
                 +{playerStats.skillPoints}SP
               </span>
             )}

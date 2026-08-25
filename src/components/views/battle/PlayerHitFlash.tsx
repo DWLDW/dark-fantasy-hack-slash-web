@@ -18,9 +18,11 @@ export const PlayerHitFlash: React.FC = React.memo(() => {
       {/* Red edge vignette flash */}
       <div className={`absolute inset-0 animate-player-hit-flash ${
         isHeavy
-          ? 'shadow-[inset_0_0_120px_60px_rgba(185,28,28,0.85)]'
+          ? 'shadow-[inset_0_0_140px_70px_rgba(185,28,28,0.95)] bg-red-950/25'
           : 'shadow-[inset_0_0_90px_35px_rgba(185,28,28,0.55)]'
       }`} />
+      <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-red-600/35 to-transparent animate-player-hit-flash" />
+      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-red-900/40 to-transparent animate-player-hit-flash" />
 
       {/* Center-screen damage number */}
       <div className="absolute inset-x-0 top-[38%] flex justify-center">

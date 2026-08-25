@@ -1,7 +1,26 @@
 import React from 'react';
 import { useGame } from '../../../state/gameStore';
-import { isSkillUnlocked, getSkillDamageText } from '../../../data/skills';
-import { Swords } from 'lucide-react';
+import { isSkillUnlocked, getSkillDamageText, SKILL_RUNES_DATA } from '../../../data/skills';
+import { Swords, Skull, Zap, Shield, Flame, RotateCw, Megaphone } from 'lucide-react';
+
+const SKILL_ICON: Record<string, React.ReactNode> = {
+  slash: <Swords className="w-3.5 h-3.5" />,
+  execute: <Skull className="w-3.5 h-3.5" />,
+  cleave: <Zap className="w-3.5 h-3.5" />,
+  shield_bash: <Shield className="w-3.5 h-3.5" />,
+  berserk: <Flame className="w-3.5 h-3.5" />,
+  whirlwind: <RotateCw className="w-3.5 h-3.5" />,
+  war_cry: <Megaphone className="w-3.5 h-3.5" />
+};
+
+const RUNE_TINT: Record<string, string> = {
+  fire: 'from-red-950/80 via-orange-950/40 to-iron-950',
+  cold: 'from-cyan-950/80 via-sky-950/40 to-iron-950',
+  lightning: 'from-amber-950/80 via-yellow-950/40 to-iron-950',
+  poison: 'from-emerald-950/80 via-lime-950/40 to-iron-950',
+  void: 'from-purple-950/80 via-fuchsia-950/40 to-iron-950',
+  physical: 'from-stone-900/80 via-iron-900 to-iron-950'
+};
 
 export const BattleSkillsBar: React.FC = React.memo(() => {
   const {
@@ -41,25 +60,30 @@ export const BattleSkillsBar: React.FC = React.memo(() => {
           const unlocked = isSkillUnlocked(skill.id, playerStats.level);
           const canAfford = playerStats.rage >= skill.rageCost;
           const dmgText = getSkillDamageText(skill, totalStats, sLevel, skillRunes[skill.id] || skill.activeRuneId);
+          const rune = SKILL_RUNES_DATA.find(r => r.id === (skillRunes[skill.id] || skill.activeRuneId));
+          const tint = RUNE_TINT[rune?.element || 'physical'];
 
           return (
             <button
               key={skill.id}
               onClick={() => { if (isCleared || totalMonsters === 0 || !unlocked) return; selectSkillOrExecute(skill); }}
               disabled={isAttacking || isEnemyTurn || !unlocked}
-              className={`p-1.5 sm:p-2 rounded-lg border text-left flex flex-col justify-between transition relative shadow cursor-pointer ${
+              className={`p-1.5 sm:p-2 rounded-lg border text-left flex flex-col justify-between transition relative shadow cursor-pointer bg-gradient-to-br ${tint} ${
                 !unlocked
-                  ? 'bg-iron-950 border-iron-800 text-gray-600 opacity-50 cursor-not-allowed'
+                  ? 'border-iron-800 text-gray-600 opacity-50 cursor-not-allowed'
                   : isSelected
-                  ? 'bg-blood-950 border-brass-400 text-brass-100 ring-2 ring-brass-400 shadow-[0_0_10px_rgba(222,178,67,0.5)] scale-[1.02]'
+                  ? 'border-brass-400 text-brass-100 ring-2 ring-brass-400 skill-card-selected scale-[1.03]'
                   : canAfford
-                  ? 'bg-iron-900 border-iron-750 text-gray-100 hover:bg-iron-850 hover:border-iron-600'
-                  : 'bg-iron-950/70 border-iron-800 text-gray-500 opacity-60'
+                  ? 'border-iron-750 text-gray-100 hover:bg-iron-850 hover:border-iron-600'
+                  : 'border-iron-800 text-gray-500 opacity-60'
               }`}
               title={unlocked ? `${skill.name} (클릭 시 스마트 타겟팅 락온, 재클릭 시 시전)` : `Lv.${skill.unlockLevel} 해금`}
             >
               <div className="flex items-center justify-between text-xs sm:text-sm font-black font-cinzel leading-tight">
-                <span className="truncate">{unlocked ? skill.name.split(' ')[0] : '잠김'}</span>
+                <span className="truncate flex items-center gap-1">
+                  <span className={isSelected ? 'text-amber-300' : 'text-brass-400'}>{SKILL_ICON[skill.id]}</span>
+                  {unlocked ? skill.name.split(' ')[0] : '잠김'}
+                </span>
                 <span className={`text-[9px] sm:text-[10px] font-mono font-black px-1 rounded ${
                   isSelected ? 'bg-brass-400 text-iron-950' : 'bg-iron-950 text-amber-400 border border-iron-750'
                 }`}>
@@ -109,12 +133,12 @@ export const BattleSkillsBar: React.FC = React.memo(() => {
         disabled={isAttacking || isEnemyTurn}
         className={`px-3.5 sm:px-5 py-2 rounded-lg font-black text-sm md:text-base flex flex-col items-center justify-center shadow-xl transition transform active:scale-95 flex-shrink-0 cursor-pointer min-w-[90px] sm:min-w-[110px] ${
           isCleared
-            ? 'bg-gradient-to-r from-brass-600 to-amber-600 hover:from-brass-500 hover:to-amber-500 text-white ring-2 ring-brass-400 shadow-[0_0_15px_rgba(222,178,67,0.6)] animate-pulse'
+            ? 'bg-gradient-to-r from-brass-600 to-amber-600 hover:from-brass-500 hover:to-amber-500 text-white ring-2 ring-brass-400 shadow-[0_0_15px_rgba(222,178,67,0.6)] attack-cta'
             : isEnemyTurn
             ? 'bg-blood-950 text-blood-300 border-2 border-blood-600 cursor-wait'
             : isAttacking
-            ? 'bg-amber-700 text-white animate-pulse'
-            : 'bg-gradient-to-r from-blood-700 via-blood-600 to-amber-600 hover:from-blood-600 hover:to-amber-500 text-white ring-2 ring-blood-400 shadow-[0_0_15px_rgba(239,68,68,0.6)] animate-pulse'
+            ? 'bg-amber-700 text-white ring-1 ring-amber-300 animate-pulse'
+            : 'bg-gradient-to-r from-blood-700 via-blood-600 to-amber-600 hover:from-blood-600 hover:to-amber-500 text-white ring-2 ring-blood-400 attack-cta'
         }`}
       >
         <div className="flex items-center gap-1">

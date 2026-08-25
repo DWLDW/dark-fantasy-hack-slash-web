@@ -18,7 +18,7 @@ export const BattleTacticalPreview: React.FC = React.memo(() => {
     : '없음 (전체 관통)';
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-1.5 bg-iron-900/95 px-2.5 py-1.5 rounded-lg border border-iron-700 text-xs sm:text-sm font-mono shadow select-none flex-shrink-0">
+    <div className="flex flex-wrap items-center justify-between gap-1.5 bg-gradient-to-r from-iron-950 via-iron-900 to-iron-950 px-2.5 py-1.5 rounded-lg border border-brass-600/40 text-xs sm:text-sm font-mono shadow-[0_0_16px_rgba(222,178,67,0.12)] select-none flex-shrink-0">
       <div className="flex items-center gap-2">
         <span className="text-brass-300 font-black flex items-center gap-1.5">
           <Crosshair className="w-4 h-4 text-amber-400" />

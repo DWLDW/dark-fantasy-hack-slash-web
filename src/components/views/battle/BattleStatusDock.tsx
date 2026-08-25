@@ -148,7 +148,7 @@ export const BattleStatusDock: React.FC<BattleStatusDockProps> = React.memo(({
             {lifeFloater && (
               <div
                 key={lifeFloater.id}
-                className={`absolute -top-5 right-2 z-40 font-mono font-black text-xs pointer-events-none animate-bounce drop-shadow px-2 py-0.2 rounded ${
+                className={`absolute -top-5 right-2 z-40 font-mono font-black text-xs pointer-events-none animate-bounce drop-shadow px-2 py-0.5 rounded ${
                   lifeFloater.type === 'damage'
                     ? 'text-red-300 bg-red-950/95 border border-red-500'
                     : 'text-emerald-300 bg-emerald-950/95 border border-emerald-400'
@@ -201,7 +201,7 @@ export const BattleStatusDock: React.FC<BattleStatusDockProps> = React.memo(({
               {/* 2. Center Status Slot */}
               <div className="relative z-10 font-mono font-bold text-[9px] text-center flex-1 truncate px-1">
                 {expectedIncomingDmg > 0 && !isCleared ? (
-                  <span className="text-red-200 bg-red-950/90 px-1.5 py-0.2 rounded border border-red-500 animate-pulse">
+                  <span className="text-red-200 bg-red-950/90 px-1.5 py-0.5 rounded border border-red-500 animate-pulse">
                     피격 -{expectedIncomingDmg}
                   </span>
                 ) : shieldAmount > 0 ? (
@@ -223,7 +223,7 @@ export const BattleStatusDock: React.FC<BattleStatusDockProps> = React.memo(({
             {rageFloater && (
               <div
                 key={rageFloater.id}
-                className="absolute -top-5 right-2 z-40 font-mono font-black text-xs pointer-events-none animate-bounce drop-shadow px-2 py-0.2 rounded text-amber-300 bg-amber-950/95 border border-amber-500"
+                className="absolute -top-5 right-2 z-40 font-mono font-black text-xs pointer-events-none animate-bounce drop-shadow px-2 py-0.5 rounded text-amber-300 bg-amber-950/95 border border-amber-500"
               >
                 {rageFloater.text}
               </div>

@@ -18,7 +18,9 @@ export const BattleView: React.FC = React.memo(() => {
     playerStats,
     totalStats,
     isEnemyTurn,
-    currentDungeon
+    currentDungeon,
+    isAttacking,
+    chainCount
   } = useGame();
 
   const actTheme = useMemo(() => getActTheme(currentDungeon.id), [currentDungeon.id]);
@@ -97,8 +99,12 @@ export const BattleView: React.FC = React.memo(() => {
     }
   }, [floatingDamages, monsters]);
 
+  const strikeShake = isAttacking
+    ? (chainCount >= 25 ? 'animate-shake-heavy' : chainCount >= 10 ? 'animate-shake-medium' : 'animate-shake-light')
+    : '';
+
   return (
-    <div className={`w-full min-h-full transition-colors duration-500 rounded-xl p-1 sm:p-2 ${actTheme.bgGradient}`}>
+    <div className={`w-full min-h-full transition-colors duration-500 rounded-xl p-1 sm:p-2 ${actTheme.bgGradient} ${strikeShake}`}>
       <div className="max-w-7xl mx-auto px-1 sm:px-2 py-1 space-y-2 select-none pb-20 sm:pb-24 overflow-x-hidden relative font-sans">
         {/* Low HP Red Vignette Screen Pulse */}
         {isLowHp && (
@@ -124,7 +130,7 @@ export const BattleView: React.FC = React.memo(() => {
       <BattleFieldLanes dyingMonsterIds={dyingMonsterIds} />
 
       {/* Layer 3: Bottom Battle Control Dock */}
-      <div className="bg-iron-950/98 border-2 border-iron-750 rounded-xl p-2.5 sm:p-3 shadow-2xl space-y-2 select-none">
+      <div className="bg-iron-950/95 border-2 border-brass-600/40 rounded-xl p-2.5 sm:p-3 shadow-2xl space-y-2 select-none ui-ornate">
         {/* ROW 1: Skills QWER & Attack Button */}
         <BattleSkillsBar />
 

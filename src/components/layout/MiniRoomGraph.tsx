@@ -44,7 +44,7 @@ export const MiniRoomGraph: React.FC = React.memo(() => {
   const isEncounterDone = monsters.length === 0 && (!isEventRoom || roomEventClaimed);
 
   return (
-    <div className="bg-iron-900 border border-iron-750 rounded p-1.5 sm:p-2.5 text-xs shadow select-none">
+    <div className="bg-iron-900/95 border border-brass-600/30 rounded p-1.5 sm:p-2.5 text-xs shadow select-none">
       <div className="flex items-center justify-between mb-1 pb-1 border-b border-iron-750">
         <div className="flex items-center gap-1.5 font-cinzel font-black text-gray-100 text-[11px] sm:text-xs">
           <span className="text-blood-400">❖</span>

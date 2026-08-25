@@ -404,3 +404,293 @@
   animation: playerHitNumberAnim 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* ===== Immersion: global chrome ===== */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 80;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(185, 28, 28, 0.12), transparent 42%),
+    radial-gradient(ellipse at 50% 110%, rgba(0, 0, 0, 0.55), transparent 50%);
+  box-shadow: inset 0 0 90px 20px rgba(0, 0, 0, 0.45);
+}
+
+.ui-ornate {
+  position: relative;
+  box-shadow:
+    inset 0 1px 0 rgba(251, 191, 36, 0.18),
+    0 0 0 1px rgba(251, 191, 36, 0.12),
+    0 12px 28px rgba(0, 0, 0, 0.45);
+}
+.ui-ornate::before,
+.ui-ornate::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
+  border-color: rgba(222, 178, 67, 0.7);
+}
+.ui-ornate::before {
+  top: 4px;
+  left: 4px;
+  border-top: 2px solid;
+  border-left: 2px solid;
+}
+.ui-ornate::after {
+  bottom: 4px;
+  right: 4px;
+  border-bottom: 2px solid;
+  border-right: 2px solid;
+}
+
+.hud-bar-shine {
+  position: relative;
+  overflow: hidden;
+}
+.hud-bar-shine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.28) 0%, transparent 42%, rgba(0,0,0,0.28) 100%);
+  pointer-events: none;
+}
+
+/* ===== Battlefield stage ===== */
+.battlefield-stage {
+  background-image:
+    radial-gradient(ellipse at 50% 120%, rgba(127, 29, 29, 0.28), transparent 55%),
+    linear-gradient(180deg, rgba(8, 10, 16, 0.2), rgba(8, 10, 16, 0.55));
+}
+.battlefield-floor {
+  background:
+    repeating-linear-gradient(90deg, rgba(251, 191, 36, 0.06) 0 2px, transparent 2px 20%),
+    linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.45));
+  mask-image: linear-gradient(180deg, transparent, black 40%);
+}
+.battlefield-fog {
+  background: radial-gradient(ellipse at 50% 0%, rgba(148, 163, 184, 0.12), transparent 55%);
+  animation: fogDrift 9s ease-in-out infinite alternate;
+}
+@keyframes fogDrift {
+  from { transform: translateX(-3%) scale(1); opacity: 0.5; }
+  to { transform: translateX(3%) scale(1.05); opacity: 0.8; }
+}
+
+.fx-particle {
+  position: absolute;
+  bottom: -8px;
+  width: 3px;
+  height: 3px;
+  border-radius: 999px;
+  animation: particleRise linear infinite;
+}
+.fx-particle-ember {
+  background: #fb923c;
+  box-shadow: 0 0 8px #f97316;
+  width: 3px;
+  height: 5px;
+}
+.fx-particle-ash {
+  background: #fca5a5;
+  box-shadow: 0 0 6px rgba(248, 113, 113, 0.7);
+}
+.fx-particle-sand {
+  background: #fde68a;
+  width: 2px;
+  height: 2px;
+}
+.fx-particle-spore {
+  background: #86efac;
+  box-shadow: 0 0 8px #22c55e;
+}
+.fx-particle-snow {
+  background: #e0f2fe;
+  box-shadow: 0 0 6px #67e8f9;
+  width: 4px;
+  height: 4px;
+}
+@keyframes particleRise {
+  0% { transform: translate3d(0, 0, 0) scale(0.6); opacity: 0; }
+  12% { opacity: 1; }
+  100% { transform: translate3d(18px, -280px, 0) scale(1.1); opacity: 0; }
+}
+
+.lane-player-active {
+  background-image: linear-gradient(180deg, transparent 40%, rgba(251, 191, 36, 0.12) 100%);
+}
+
+.monster-token-front {
+  transform: scale(1.02);
+  z-index: 2;
+}
+.monster-token-hit {
+  filter: brightness(1.8) saturate(1.4);
+  animation: hitPunch 0.22s ease-out;
+}
+@keyframes hitPunch {
+  0% { transform: scale(1.12) translateX(-3px); }
+  40% { transform: scale(0.94) translateX(3px); }
+  100% { transform: scale(1); }
+}
+
+.hit-spark {
+  position: absolute;
+  inset: -6px;
+  background: radial-gradient(circle, rgba(255,255,255,0.75) 0%, rgba(251,191,36,0.35) 35%, transparent 70%);
+  animation: sparkBurst 0.35s ease-out forwards;
+}
+.hit-slash {
+  position: absolute;
+  left: 10%;
+  top: 20%;
+  width: 80%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #fff, #fbbf24, transparent);
+  transform: rotate(-28deg);
+  box-shadow: 0 0 12px #fbbf24;
+  animation: slashSweep 0.32s ease-out forwards;
+}
+@keyframes sparkBurst {
+  0% { opacity: 1; transform: scale(0.4); }
+  100% { opacity: 0; transform: scale(1.6); }
+}
+@keyframes slashSweep {
+  0% { opacity: 0; transform: rotate(-28deg) scaleX(0.2); }
+  35% { opacity: 1; transform: rotate(-28deg) scaleX(1); }
+  100% { opacity: 0; transform: rotate(-28deg) translateX(12px); }
+}
+
+.hp-bar-shell {
+  box-shadow: inset 0 0 4px rgba(0,0,0,0.8), 0 0 6px rgba(239,68,68,0.25);
+}
+.hp-bar-fill {
+  position: relative;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.55);
+}
+.hp-bar-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.4), transparent 55%);
+}
+
+.monster-portrait-enraged {
+  animation: pulse-glow 0.8s ease-in-out infinite;
+}
+.monster-portrait-frozen {
+  filter: saturate(0.4) hue-rotate(180deg) brightness(1.3);
+}
+.monster-portrait-dying {
+  filter: grayscale(0.6) brightness(1.8);
+}
+
+.pixel-sprite {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+.champion-idle {
+  animation: champBob 1.8s steps(2) infinite;
+}
+.champion-slash {
+  animation: champSlash 0.28s steps(2);
+}
+@keyframes champBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+@keyframes champSlash {
+  0% { transform: translate(0, 0) scale(1); }
+  40% { transform: translate(3px, -2px) scale(1.08); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+/* Combat blade slashes — drawn cuts, not beams */
+.fx-blade-slash {
+  display: block;
+  overflow: visible;
+  filter: drop-shadow(0 0 6px currentColor);
+}
+.fx-blade-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: bladeDraw 0.34s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.fx-blade-glow {
+  opacity: 0.7;
+}
+.fx-blade-core {
+  filter: drop-shadow(0 0 3px #fff);
+}
+@keyframes bladeDraw {
+  0% { stroke-dashoffset: 1; opacity: 0; }
+  10% { opacity: 1; }
+  52% { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 0; }
+}
+
+.fx-cut-vertical,
+.fx-cut-horizontal {
+  pointer-events: none;
+}
+.fx-cut-sparks {
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  top: 8%;
+  bottom: 8%;
+  background:
+    radial-gradient(circle at 48% 12%, #fff 0 2px, transparent 3px),
+    radial-gradient(circle at 62% 40%, currentColor 0 2px, transparent 3px),
+    radial-gradient(circle at 38% 70%, #fff 0 1.5px, transparent 3px),
+    radial-gradient(circle at 55% 88%, currentColor 0 2px, transparent 3.5px);
+  animation: sparkBurst 0.4s ease-out forwards;
+}
+.fx-cut-sparks-wide {
+  left: 6%;
+  right: 6%;
+  top: 20%;
+  bottom: 20%;
+}
+.fx-cut-whirl .fx-blade-draw {
+  animation-duration: 0.42s;
+}
+
+.fx-flash-fire { animation: screenFlashFire 0.38s ease-out forwards; background: rgba(239, 68, 68, 0.18); }
+.fx-flash-cold { animation: screenFlashCold 0.38s ease-out forwards; background: rgba(6, 182, 212, 0.16); }
+.fx-flash-lightning { animation: screenFlashLightning 0.4s ease-out forwards; background: rgba(250, 204, 21, 0.16); }
+.fx-flash-poison { animation: screenFlashPoison 0.4s ease-out forwards; background: rgba(74, 222, 128, 0.14); }
+.fx-flash-void { animation: screenFlashVoid 0.4s ease-out forwards; background: rgba(168, 85, 247, 0.16); }
+.fx-flash-physical { animation: screenFlash 0.28s ease-out forwards; background: rgba(255, 255, 255, 0.12); }
+
+.fx-crit-burst {
+  background: radial-gradient(circle at 50% 60%, rgba(251, 191, 36, 0.35), transparent 55%);
+  animation: screenFlash 0.35s ease-out forwards;
+}
+
+.skill-card-selected {
+  animation: skillSelectPulse 1.6s ease-in-out infinite;
+}
+@keyframes skillSelectPulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(222, 178, 67, 0.4); }
+  50% { box-shadow: 0 0 22px rgba(251, 191, 36, 0.75); }
+}
+
+.attack-cta {
+  animation: ctaPulse 1.4s ease-in-out infinite;
+}
+
+.town-embers {
+  background-image:
+    radial-gradient(circle at 12% 80%, rgba(251, 146, 60, 0.18), transparent 18%),
+    radial-gradient(circle at 78% 70%, rgba(239, 68, 68, 0.12), transparent 16%),
+    radial-gradient(circle at 40% 90%, rgba(251, 191, 36, 0.12), transparent 14%);
+  animation: fogDrift 8s ease-in-out infinite alternate;
+}
+@keyframes ctaPulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(239, 68, 68, 0.45); }
+  50% { box-shadow: 0 0 28px rgba(251, 191, 36, 0.7), 0 0 12px rgba(239, 68, 68, 0.8); }
+}
+

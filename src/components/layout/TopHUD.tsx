@@ -11,7 +11,7 @@ export const TopHUD: React.FC = React.memo(() => {
 
   return (
     <>
-      <header className="bg-iron-950 border-b border-iron-750 px-2 sm:px-3 py-1.5 sm:py-2 text-xs md:text-sm select-none sticky top-0 z-40 shadow-xl overflow-x-hidden">
+      <header className="bg-gradient-to-b from-iron-900 to-iron-950 border-b-2 border-brass-600/50 px-2 sm:px-3 py-1.5 sm:py-2 text-xs md:text-sm select-none sticky top-0 z-40 shadow-[0_8px_24px_rgba(0,0,0,0.55)] overflow-x-hidden">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-1.5 sm:gap-2 flex-wrap">
           {/* Left: Player Level & Class & Exp & Settings & Quick Reset */}
           <div className="flex items-center space-x-1.5 sm:space-x-2.5">
@@ -33,7 +33,7 @@ export const TopHUD: React.FC = React.memo(() => {
               </span>
 
               {isLevelUpAnimated && (
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-amber-400 text-iron-950 text-[8px] font-black px-1.5 py-0.2 rounded-full whitespace-nowrap shadow-lg border border-white animate-pulse">
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-amber-400 text-iron-950 text-[8px] font-black px-1.5 py-0.5 rounded-full whitespace-nowrap shadow-lg border border-white animate-pulse">
                   LEVEL UP!
                 </div>
               )}
@@ -59,11 +59,18 @@ export const TopHUD: React.FC = React.memo(() => {
               <span className="hidden sm:inline">설정</span>
             </button>
 
+            <div className="flex items-center gap-1.5">
+              <img
+                src="/images/player/berserker_idle.png"
+                alt=""
+                className="pixel-sprite hidden sm:block h-8 w-auto drop-shadow"
+                draggable={false}
+              />
             <div className="flex flex-col">
               <div className="flex items-center space-x-1.5 font-cinzel font-bold text-gray-100 text-xs sm:text-sm tracking-wide">
                 <span>광전사</span>
                 {playerStats.statPoints > 0 && (
-                  <span className="bg-amber-500/30 text-amber-200 border border-amber-400 text-[10px] px-1 py-0.2 rounded font-bold animate-pulse">
+                  <span className="bg-amber-500/30 text-amber-200 border border-amber-400 text-[10px] px-1 py-0.5 rounded font-bold animate-pulse">
                     +{playerStats.statPoints}P
                   </span>
                 )}
@@ -75,6 +82,7 @@ export const TopHUD: React.FC = React.memo(() => {
                   style={{ width: `${expPercent}%` }}
                 />
               </div>
+            </div>
             </div>
           </div>
 
@@ -88,9 +96,9 @@ export const TopHUD: React.FC = React.memo(() => {
                 </span>
                 <span className="text-white text-[9px] sm:text-xs">{playerStats.hp}/{playerStats.maxHp}</span>
               </div>
-              <div className="w-full bg-iron-900 h-2 sm:h-3 rounded overflow-hidden border border-iron-700 relative shadow-inner">
+              <div className="w-full bg-iron-900 h-2.5 sm:h-3.5 rounded overflow-hidden border border-blood-800 relative shadow-inner hud-bar-shine">
                 <div
-                  className="bg-gradient-to-r from-blood-700 via-blood-600 to-blood-400 h-full transition-all duration-300 shadow-[0_0_10px_rgba(239,68,68,0.7)]"
+                  className="bg-gradient-to-r from-blood-800 via-blood-500 to-rose-300 h-full transition-all duration-300 shadow-[0_0_14px_rgba(239,68,68,0.85)]"
                   style={{ width: `${hpPercent}%` }}
                 />
               </div>
@@ -104,9 +112,9 @@ export const TopHUD: React.FC = React.memo(() => {
                 </span>
                 <span className="text-white text-[9px] sm:text-xs">{playerStats.rage}/{playerStats.maxRage}</span>
               </div>
-              <div className="w-full bg-iron-900 h-2 sm:h-3 rounded overflow-hidden border border-iron-700 relative shadow-inner">
+              <div className="w-full bg-iron-900 h-2.5 sm:h-3.5 rounded overflow-hidden border border-amber-800 relative shadow-inner hud-bar-shine">
                 <div
-                  className="bg-gradient-to-r from-amber-600 via-orange-500 to-amber-400 h-full transition-all duration-300 shadow-[0_0_10px_rgba(245,158,11,0.7)]"
+                  className="bg-gradient-to-r from-amber-800 via-orange-500 to-yellow-300 h-full transition-all duration-300 shadow-[0_0_14px_rgba(245,158,11,0.85)]"
                   style={{ width: `${ragePercent}%` }}
                 />
               </div>
@@ -121,10 +129,10 @@ export const TopHUD: React.FC = React.memo(() => {
               <span className="font-bold text-[11px] sm:text-sm">{playerStats.gold.toLocaleString()}G</span>
             </div>
 
-            {/* Shards */}
-            <div className="hidden sm:flex items-center space-x-1.5 text-purple-200 bg-iron-900 px-2.5 py-1 rounded border border-purple-600/60 shadow">
-              <Sparkles className="w-4 h-4 text-purple-400" />
-              <span className="font-bold text-xs md:text-sm">{playerStats.shards}</span>
+            {/* Shards (모바일에서도 골드와 함께 상시 노출) */}
+            <div className="flex items-center space-x-1 sm:space-x-1.5 text-purple-200 bg-iron-900 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded border border-purple-600/60 shadow">
+              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400" />
+              <span className="font-bold text-[11px] sm:text-sm">{playerStats.shards}</span>
             </div>
 
             {/* Quick Location Badge */}

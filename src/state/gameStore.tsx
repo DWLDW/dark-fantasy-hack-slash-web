@@ -1130,6 +1130,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         hp: Math.min(prev.maxHp, prev.hp + gains.totalHpHealed)
       }));
 
+      if (gains.totalHpHealed > 0) {
+        addLog(`🧛 [생명력 흡수] 공격을 통해 생명력 +${gains.totalHpHealed} HP를 흡혈 회복했습니다!`, "loot");
+      }
+
       let currentShieldLayers = playerStats.shieldLayers || [];
       if (gains.shieldGained && gains.shieldGained > 0) {
         const newLayer = { amount: Math.min(playerStats.maxHp, gains.shieldGained), turns: 2 };
@@ -1346,9 +1350,23 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
+      // Swift Momentum Gauge (공속 IAS 비례 충전)
+      const momentumGain = 30 + Math.floor((totalStats.attackSpeed || 0) * 0.5);
+      const nextMomentum = hordeTimelinePercent + momentumGain;
+
+      if (nextMomentum >= 100) {
+        // Swift Momentum Extra Action Triggered! (적 턴 무효화 및 플레이어 추가 턴)
+        setIsAttacking(false);
+        setIsEnemyTurn(false);
+        setHordeTimelinePercent(Math.max(0, nextMomentum - 100));
+        playExplosionSound();
+        addLog(`⚡ [신속 연계 맹공!] 공속(+${totalStats.attackSpeed || 0}%) 콤보 게이지 완충! [추가 연속 턴 (EXTRA ACTION)] 발동으로 적 반격 없이 즉시 공격합니다!`, 'loot');
+        return;
+      }
+
       // Horde Counter-Attack Turn
       setIsEnemyTurn(true);
-      setHordeTimelinePercent(100);
+      setHordeTimelinePercent(nextMomentum);
 
       counterAttackTimerRef.current = window.setTimeout(() => {
         if (viewMode !== 'battle') return;
@@ -1578,7 +1596,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         }
         setIsEnemyTurn(false);
-        setHordeTimelinePercent(totalStats.baseAtbPercent || 50);
 
       }, 700);
 
@@ -1831,7 +1848,31 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCurrentRoomId(firstRoomId);
 
     const initialMonsters = createDungeonFormation(dungeon.id, roomType, playerStats.level, diffToUse);
-    setMonsters(initialMonsters);
+    
+    // Initiative Ambush Strike Check
+    const startingMomentum = Math.min(85, totalStats.baseAtbPercent || 50);
+    setHordeTimelinePercent(startingMomentum);
+
+    if (startingMomentum >= 65 && initialMonsters.length > 0 && roomType !== 'start') {
+      const ambushDmg = Math.max(5, Math.floor((totalStats.minDmg + totalStats.maxDmg) * 0.40));
+      const targetLanes = [Math.max(0, playerLane - 1), playerLane, Math.min(4, playerLane + 1)];
+      let ambushedCount = 0;
+      const updatedMonsters = initialMonsters.map(m => {
+        if (m.depth === 0 && targetLanes.includes(m.lane) && m.hp > 0) {
+          ambushedCount++;
+          return { ...m, hp: Math.max(0, m.hp - ambushDmg) };
+        }
+        return m;
+      }).filter(m => m.hp > 0);
+
+      setMonsters(compressLaneSurvivors(updatedMonsters));
+      if (ambushedCount > 0) {
+        playHitSound(0);
+        addLog(`🗡️ [선제 기습!] 가벼운 무기 선제권(${startingMomentum}%)으로 던전 진입 즉시 전열 몬스터 ${ambushedCount}마리를 기습 타격했습니다! (-${ambushDmg} 피해)`, 'loot');
+      }
+    } else {
+      setMonsters(initialMonsters);
+    }
 
     setChainCount(0);
     setMaxChainThisRoom(0);
@@ -1863,7 +1904,32 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const room = currentDungeon.rooms.find(r => r.id === roomId);
     const roomType = room?.type || 'normal';
     const spawned = createDungeonFormation(currentDungeon.id, roomType, playerStats.level, currentDifficulty);
-    setMonsters(spawned);
+    
+    // Initiative Ambush Strike Check
+    const startingMomentum = Math.min(85, totalStats.baseAtbPercent || 50);
+    setHordeTimelinePercent(startingMomentum);
+
+    if (startingMomentum >= 65 && spawned.length > 0 && roomType !== 'start') {
+      const ambushDmg = Math.max(5, Math.floor((totalStats.minDmg + totalStats.maxDmg) * 0.40));
+      const targetLanes = [Math.max(0, playerLane - 1), playerLane, Math.min(4, playerLane + 1)];
+      let ambushedCount = 0;
+      const updatedMonsters = spawned.map(m => {
+        if (m.depth === 0 && targetLanes.includes(m.lane) && m.hp > 0) {
+          ambushedCount++;
+          return { ...m, hp: Math.max(0, m.hp - ambushDmg) };
+        }
+        return m;
+      }).filter(m => m.hp > 0);
+
+      setMonsters(compressLaneSurvivors(updatedMonsters));
+      if (ambushedCount > 0) {
+        playHitSound(0);
+        addLog(`🗡️ [선제 기습!] 가벼운 무기 선제권(${startingMomentum}%)으로 룸 진입 즉시 전열 몬스터 ${ambushedCount}마리를 기습 타격했습니다! (-${ambushDmg} 피해)`, 'loot');
+      }
+    } else {
+      setMonsters(spawned);
+    }
+
     setChainCount(0);
     setMaxChainThisRoom(0);
     bossTurnCountRef.current = 0;

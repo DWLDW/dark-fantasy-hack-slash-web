@@ -40,6 +40,7 @@ export default {
           normal: '#d1d5db',
           magic: '#60a5fa',
           rare: '#fde047',
+          set: '#4ade80',
           unique: '#fb923c',
           runeword: '#fbbf24',
           legendary: '#f43f5e',

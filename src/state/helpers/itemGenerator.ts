@@ -190,7 +190,7 @@ export function generateGambleItem(
     baseAtbPercent,
     stats: {
       ...(gambleType === 'weapon' ? { minDmg: baseMinDmg, maxDmg: baseMaxDmg } : {}),
-      ...(gambleType === 'armor' ? { defense: baseDefense } : {})
+      ...(gambleType === 'armor' || gambleType === 'shield' || gambleType === 'helm' || gambleType === 'gloves' || gambleType === 'boots' ? { defense: baseDefense } : {})
     },
     value: Math.floor(cost * 0.4),
     icon,
@@ -248,7 +248,7 @@ export function identifyItemHelper(item: GameItem, effLevel: number): GameItem {
 
   const baseName = item.baseItemName || (item.slot === 'ring1' || item.slot === 'ring2' || item.slot === 'ring' ? '반지' : item.slot === 'amulet' ? '목걸이' : item.slot === 'weapon' ? '도검' : '갑옷');
   const isWpn = item.slot === 'weapon';
-  const isArm = item.slot === 'armor' || item.slot === 'shield' || item.slot === 'helm';
+  const isArm = item.slot === 'armor' || item.slot === 'shield' || item.slot === 'helm' || item.slot === 'gloves' || item.slot === 'boots';
 
   const baseMin = item.stats.minDmg || (isWpn ? Math.max(5, effLevel * 2) : 0);
   const baseMax = item.stats.maxDmg || (isWpn ? Math.max(10, effLevel * 3.5) : 0);

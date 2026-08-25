@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { useGame } from '../../state/gameStore';
 import { Trophy, Sparkles, BookOpen, Coins, Gem, ArrowRight, Flame, HelpCircle, Zap, ShieldCheck, Package, Lock, Swords, Crown } from 'lucide-react';
 import { D2_RUNES } from '../../data/gameData';
@@ -79,13 +79,44 @@ export const DungeonVictoryModal: React.FC = () => {
     bulkSellItems(['normal']);
   };
 
+  // 🎮 게이머 손목 피로 방지: Space/Enter로 즉시 다음 진격, Esc로 마을 귀환
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      if (e.code === 'Space' || e.code === 'Enter') {
+        e.preventDefault();
+        e.stopPropagation();
+        handleReDeploy();
+        return;
+      }
+
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        closeVictoryModal();
+        return;
+      }
+
+      if (e.key.toLowerCase() === 'f' && hasUnidentified) {
+        e.preventDefault();
+        e.stopPropagation();
+        identifyAllVictoryLoot();
+        return;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [hasUnidentified, handleReDeploy, closeVictoryModal, identifyAllVictoryLoot]);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-fade-in select-none">
       <div className="bg-gradient-to-b from-iron-950 via-iron-900 to-iron-950 border-2 border-brass-400 rounded-xl p-4 sm:p-6 w-full max-w-2xl max-h-[92vh] overflow-y-auto shadow-[0_0_50px_rgba(251,191,36,0.3)] space-y-3 text-xs md:text-sm font-sans">
         
         {/* Top Glorious Header */}
         <div className="text-center space-y-1 border-b border-brass-600/60 pb-2.5 relative">
-          <div className="inline-flex items-center justify-center p-2.5 rounded-full bg-amber-950/80 border-2 border-amber-400 text-amber-300 shadow-[0_0_20px_rgba(251,191,36,0.5)] animate-bounce">
+          <div className="inline-flex items-center justify-center p-2.5 rounded-full bg-amber-950/80 border-2 border-amber-400 text-amber-300 shadow-[0_0_20px_rgba(251,191,36,0.35)]">
             <Trophy className="w-7 h-7" />
           </div>
           <h2 className="text-lg md:text-2xl font-cinzel font-black text-transparent bg-clip-text bg-gradient-to-r from-brass-300 via-amber-200 to-brass-400 tracking-wider">
@@ -102,7 +133,7 @@ export const DungeonVictoryModal: React.FC = () => {
 
           {/* Performance Leap Banner */}
           {dungeonVictoryLoot.performanceGrade && (
-            <div className="mt-1.5 p-1.5 rounded-lg bg-gradient-to-r from-amber-950/90 via-blood-950 to-amber-950/90 border border-amber-400 text-center font-mono animate-pulse shadow">
+            <div className="mt-1.5 p-1.5 rounded-lg bg-gradient-to-r from-amber-950/90 via-blood-950 to-amber-950/90 border border-amber-400 text-center font-mono shadow">
               <div className="text-amber-300 font-black text-xs md:text-sm flex items-center justify-center gap-1.5">
                 <Zap className="w-4 h-4 text-yellow-300" />
                 <span>{dungeonVictoryLoot.performanceGrade}</span>
@@ -228,7 +259,7 @@ export const DungeonVictoryModal: React.FC = () => {
                   }`}
                 >
                   {isRecommended && (
-                    <span className="absolute -top-1.5 -right-1.5 px-2 py-0.2 rounded-full bg-emerald-600 text-white text-[9px] font-black border border-emerald-300 shadow flex items-center gap-1">
+                    <span className="absolute -top-1.5 -right-1.5 px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[9px] font-black border border-emerald-300 shadow flex items-center gap-1">
                       <ShieldCheck className="w-3 h-3" /> 추천
                     </span>
                   )}
@@ -295,14 +326,19 @@ export const DungeonVictoryModal: React.FC = () => {
             <button
               onClick={identifyAllVictoryLoot}
               disabled={!hasUnidentified}
-              className={`px-3 py-1.5 rounded-lg text-xs font-black transition shadow flex items-center justify-center gap-1 cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-black transition shadow flex items-center justify-center gap-1.5 cursor-pointer ${
                 hasUnidentified
-                  ? 'bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white ring-2 ring-blue-300 animate-pulse'
+                  ? 'bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white ring-1 ring-blue-300 animate-pulse'
                   : 'bg-iron-800 text-gray-500 border border-iron-700 cursor-not-allowed opacity-50'
               }`}
             >
               <BookOpen className="w-3.5 h-3.5" />
-              <span>{hasUnidentified ? '📜 전리품 일괄 무료 감정' : '✓ 모든 전리품 감정 완료'}</span>
+              <span>{hasUnidentified ? '전리품 일괄 감정' : '모든 전리품 감정 완료'}</span>
+              {hasUnidentified && (
+                <kbd className="px-1.5 py-0.5 rounded bg-blue-950/90 text-cyan-200 text-[10px] font-mono border border-blue-400">
+                  F
+                </kbd>
+              )}
             </button>
           </div>
         </div>
@@ -313,7 +349,7 @@ export const DungeonVictoryModal: React.FC = () => {
               <Package className="w-4 h-4 text-yellow-400" />
               <div>
                 <div className="text-xs font-bold text-yellow-200">가방 {inventory.length}/40 — 정리 필요</div>
-                <div className="text-[10px] text-gray-400 font-mono">일반 장비 {normalCount}개 판매 가능 ��� 예상 {normalGoldPreview.toLocaleString()} G</div>
+                <div className="text-[10px] text-gray-400 font-mono">일반 장비 {normalCount}개 판매 가능 ➔ 예상 {normalGoldPreview.toLocaleString()} G</div>
               </div>
             </div>
             <button
@@ -331,7 +367,7 @@ export const DungeonVictoryModal: React.FC = () => {
         <div className="pt-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
           <button
             onClick={handleReDeploy}
-            className={`w-full py-3 text-white font-black rounded-lg text-xs md:text-sm transition shadow-xl transform active:scale-95 flex items-center justify-center gap-2 animate-pulse cursor-pointer ${
+            className={`w-full py-3 text-white font-black rounded-lg text-xs md:text-sm transition shadow-xl transform active:scale-95 flex items-center justify-center gap-2 cursor-pointer animate-pulse ${
               isStoryProgression
                 ? 'bg-gradient-to-r from-blood-700 via-blood-600 to-amber-600 hover:from-blood-600 hover:to-amber-500 ring-2 ring-amber-400/80 shadow-[0_0_20px_rgba(251,191,36,0.4)]'
                 : 'bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-400 hover:from-amber-500 hover:to-yellow-300 text-iron-950 ring-2 ring-amber-300 shadow-xl'
@@ -339,6 +375,11 @@ export const DungeonVictoryModal: React.FC = () => {
           >
             {isStoryProgression ? <Swords className="w-4 h-4 text-white" /> : <Crown className="w-4 h-4 text-iron-950" />}
             <span className={isStoryProgression ? 'text-white' : 'text-iron-950'}>{targetLabel}</span>
+            <kbd className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-black border ${
+              isStoryProgression ? 'bg-blood-950 text-amber-300 border-amber-400' : 'bg-amber-900 text-yellow-200 border-amber-700'
+            }`}>
+              Space
+            </kbd>
             <ArrowRight className={`w-4 h-4 ${isStoryProgression ? 'text-white' : 'text-iron-950'}`} />
           </button>
 
@@ -347,6 +388,9 @@ export const DungeonVictoryModal: React.FC = () => {
             className="w-full py-3 bg-iron-900 hover:bg-iron-800 border-2 border-iron-700 hover:border-iron-500 text-gray-200 hover:text-white font-bold rounded-lg text-xs md:text-sm transition shadow-lg flex items-center justify-center gap-2 cursor-pointer"
           >
             <span>🏘️ 전리품 챙겨 마을로 귀환</span>
+            <kbd className="px-1.5 py-0.5 rounded bg-iron-950 text-gray-400 text-[10px] font-mono border border-iron-750">
+              Esc
+            </kbd>
           </button>
         </div>
       </div>

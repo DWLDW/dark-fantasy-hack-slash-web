@@ -3,6 +3,7 @@ import { useGame } from '../../state/gameStore';
 import { useHoldAction } from '../../utils/useHoldAction';
 import { ALL_AVAILABLE_SKILLS, SKILL_RUNES_DATA, isSkillUnlocked, getSkillById, getSkillDamageText } from '../../data/skills';
 import { WARRIOR_PASSIVE_SKILLS, isPassiveUnlocked } from '../../data/passiveSkills';
+import { calculateResetShardCost } from '../../state/helpers/skillManager';
 import {
   X,
   Sparkles,
@@ -108,8 +109,9 @@ export const SkillRuneModal: React.FC = React.memo(() => {
     }
   };
 
+  const shardCost = calculateResetShardCost(playerStats.level);
+
   const handleResetSkills = () => {
-    const shardCost = Math.max(50, Math.floor(50 + (Math.max(1, playerStats.level) - 1) * (950 / 49)));
     openConfirmModal({
       title: '스킬 & 패시브 포인트 초기화',
       message: `모든 액티브 스킬과 패시브 스킬에 투자된 스킬 포인트를 전액 회수하여 다시 분배하시겠습니까?\n\n💎 필요 샤드: ${shardCost}개 (보유: ${playerStats.shards || 0}개)\n(장착된 스킬 룬과 룬워드 효과는 안전하게 보존됩니다)`,
@@ -124,11 +126,10 @@ export const SkillRuneModal: React.FC = React.memo(() => {
     return Object.values(passiveLevels).reduce((acc, lv) => acc + (lv || 0), 0);
   }, [passiveLevels]);
 
-  const shardCost = Math.max(50, Math.floor(50 + (Math.max(1, playerStats.level) - 1) * (950 / 49)));
   const hasEnoughShards = (playerStats.shards || 0) >= shardCost;
 
   return (
-    <div className="bg-iron-950 border-2 border-brass-500 rounded-xl p-3.5 sm:p-5 w-full max-w-3xl max-h-[92vh] overflow-y-auto sm:overflow-hidden shadow-2xl space-y-2.5 text-xs md:text-sm select-none font-sans">
+    <div className="bg-iron-950 border-2 border-brass-500 rounded-xl p-3.5 sm:p-5 w-full max-w-3xl max-h-[92vh] overflow-y-auto sm:overflow-hidden shadow-[0_0_40px_rgba(251,191,36,0.18)] space-y-2.5 text-xs md:text-sm select-none font-sans ui-ornate">
       
       {/* 1. Top Header with SP Badge & Reset */}
       <div className="flex items-center justify-between pb-2 border-b border-iron-750 gap-2">
@@ -245,7 +246,7 @@ export const SkillRuneModal: React.FC = React.memo(() => {
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className={`text-[11px] font-black px-1.5 py-0.2 rounded font-mono ${
+                      <span className={`text-[11px] font-black px-1.5 py-0.5 rounded font-mono ${
                         isCurrentSelectedSlot ? 'bg-amber-400 text-iron-950' : 'bg-iron-800 text-amber-300'
                       }`}>
                         [{slot}]
@@ -489,7 +490,7 @@ export const SkillRuneModal: React.FC = React.memo(() => {
                           <h4 className="font-cinzel font-black text-xs sm:text-sm text-gray-200 truncate">
                             {passive.name}
                           </h4>
-                          <span className={`px-1.5 py-0.2 rounded text-[8px] font-mono font-bold border ${categoryBadge}`}>
+                          <span className={`px-1.5 py-0.5 rounded text-[8px] font-mono font-bold border ${categoryBadge}`}>
                             {categoryLabel}
                           </span>
                         </div>

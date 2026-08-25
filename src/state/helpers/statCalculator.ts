@@ -224,6 +224,10 @@ export function calculateTotalStats(
     runeBonusHp += Math.floor((playerStats.maxHp || 100) * (tjLevel * 0.05));
   }
 
+  // Attack Speed = Cast Rate: reduces skill Rage cost by up to 35%
+  const speedRageReduction = Math.min(35, Math.floor(attackSpeed * 0.30));
+  const finalRageCostReduction = Math.min(60, rageCostReduction + speedRageReduction);
+
   const speedAtbBonus = Math.floor(attackSpeed * 0.25);
   const finalAtb = Math.min(85, Math.max(baseAtbPercent, baseAtbPercent + speedAtbBonus));
 
@@ -247,7 +251,7 @@ export function calculateTotalStats(
     lifeSteal: Math.floor(lifeSteal),
     attackSpeed: Math.floor(attackSpeed),
     turnRageRegen: Math.floor(turnRageRegen),
-    rageCostReduction: Math.floor(rageCostReduction),
+    rageCostReduction: Math.floor(finalRageCostReduction),
     baseAtbPercent: finalAtb,
     runeBonusHp: Math.floor(runeBonusHp),
     activeSetBonuses

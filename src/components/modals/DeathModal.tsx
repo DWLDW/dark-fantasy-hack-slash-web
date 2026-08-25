@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Skull, ShieldAlert, Home, ArrowRight } from 'lucide-react';
 
 interface DeathModalProps {
@@ -7,14 +7,27 @@ interface DeathModalProps {
 }
 
 export const DeathModal: React.FC<DeathModalProps> = ({ isOpen, onConfirm }) => {
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space' || e.code === 'Enter' || e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        onConfirm();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onConfirm]);
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fade-in select-none">
       <div className="bg-gradient-to-b from-blood-950 via-iron-950 to-iron-950 border-2 border-blood-600 rounded-xl p-5 md:p-7 max-w-md w-full shadow-[0_0_50px_rgba(220,38,38,0.5)] text-center space-y-4 relative">
         
-        {/* Skull Pulse Icon */}
-        <div className="w-16 h-16 mx-auto bg-blood-900/60 border-2 border-blood-500 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(239,68,68,0.7)] animate-bounce">
+        {/* Skull Icon */}
+        <div className="w-16 h-16 mx-auto bg-blood-900/60 border-2 border-blood-500 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(239,68,68,0.5)]">
           <Skull className="w-9 h-9 text-blood-300" />
         </div>
 
@@ -43,10 +56,13 @@ export const DeathModal: React.FC<DeathModalProps> = ({ isOpen, onConfirm }) => 
 
         <button
           onClick={onConfirm}
-          className="w-full py-3.5 bg-gradient-to-r from-blood-700 via-blood-600 to-blood-500 hover:from-blood-600 hover:to-blood-400 text-white font-black rounded-lg text-sm md:text-base flex items-center justify-center gap-2 shadow-2xl transition transform active:scale-95 animate-pulse"
+          className="w-full py-3.5 bg-gradient-to-r from-blood-700 via-blood-600 to-blood-500 hover:from-blood-600 hover:to-blood-400 text-white font-black rounded-lg text-sm md:text-base flex items-center justify-center gap-2 shadow-2xl transition transform active:scale-95 cursor-pointer ring-1 ring-blood-400 animate-pulse"
         >
           <Home className="w-4 h-4" />
           <span>마을로 귀환하기 (체력 100% 회복)</span>
+          <kbd className="px-1.5 py-0.5 rounded bg-blood-950 text-blood-200 text-xs font-mono border border-blood-400">
+            Space
+          </kbd>
           <ArrowRight className="w-4 h-4" />
         </button>
       </div>
