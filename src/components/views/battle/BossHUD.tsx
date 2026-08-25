@@ -109,21 +109,21 @@ export const BossHUD: React.FC = React.memo(() => {
         isCharging ? 'bg-gradient-to-t from-red-600/40 via-transparent to-transparent' : actTheme.ambientGlow
       }`} />
 
-      {/* ═══ TOP ROW: Boss Pixel Portrait + Name + Badges + Stats ═══ */}
-      <div className="relative z-10 flex items-center gap-2 mb-1.5">
-        {/* 👾 Big Retro Pixel Boss Portrait Space */}
+      {/* ═══ TOP: Big Central Retro Pixel Boss Portrait ═══ */}
+      <div className="relative z-10 flex flex-col items-center justify-center text-center mb-1">
+        {/* 👾 Big Retro Pixel Boss Portrait */}
         <div
           onClick={() => setPlayerLane(boss.lane)}
-          className={`relative flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center border shadow transition transform hover:scale-105 cursor-pointer overflow-hidden p-0.5 ${
+          className={`relative flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-2xl flex items-center justify-center border-2 shadow-2xl transition transform hover:scale-105 cursor-pointer overflow-hidden p-1 ${
             isGroggy
-              ? 'bg-yellow-950/90 border-yellow-400 shadow-[0_0_15px_rgba(251,191,36,0.9)] ring-1 ring-yellow-300'
+              ? 'bg-yellow-950/90 border-yellow-400 shadow-[0_0_25px_rgba(251,191,36,0.9)] ring-2 ring-yellow-300'
               : isCharging
-              ? 'bg-red-950/95 border-red-400 shadow-[0_0_20px_rgba(239,68,68,0.9)] ring-1 ring-red-400 animate-pulse'
+              ? 'bg-red-950/95 border-red-400 shadow-[0_0_35px_rgba(239,68,68,0.9)] ring-2 ring-red-400 animate-pulse'
               : isEnraged
-              ? 'bg-red-950/90 border-red-400 shadow-[0_0_15px_rgba(239,68,68,0.8)]'
-              : 'bg-iron-950/95 border-amber-500/80 shadow-[0_0_12px_rgba(251,191,36,0.4)]'
+              ? 'bg-red-950/90 border-red-400 shadow-[0_0_25px_rgba(239,68,68,0.8)]'
+              : 'bg-iron-950/95 border-amber-500/80 shadow-[0_0_20px_rgba(251,191,36,0.5)]'
           }`}
-          title="클릭 시 보스 전면 레인으로 즉시 이동"
+          title="클릭 시 보스 전면 레인으로 즉시 조준 이동"
         >
           <BossPixelPortrait
             name={boss.name}
@@ -132,85 +132,89 @@ export const BossHUD: React.FC = React.memo(() => {
             isEnraged={isEnraged}
             isGroggy={isGroggy}
             isCharging={isCharging}
-            size={50}
+            size={76}
           />
           {isEnraged && !isGroggy && (
-            <span className="absolute top-0.5 right-0.5 text-[8px] animate-bounce bg-red-600 text-white font-black px-0.5 rounded border border-red-300">광란</span>
+            <span className="absolute top-1 right-1 text-[9px] animate-bounce bg-red-600 text-white font-black px-1 rounded border border-red-300">
+              ⚡광란
+            </span>
           )}
           {isCharging && (
-            <span className="absolute bottom-0.5 inset-x-0.5 text-[7px] bg-red-600 text-white font-black text-center py-0.2 rounded border border-white animate-pulse">
-              CAST
+            <span className="absolute bottom-1 inset-x-1 text-[8px] bg-red-600 text-white font-black text-center py-0.5 rounded border border-white animate-pulse">
+              CASTING!
             </span>
           )}
         </div>
 
-        {/* Boss Name & Tactical Badges */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1 flex-wrap">
-            <Crown className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
-            <h3 className={`font-cinzel font-black text-xs sm:text-sm tracking-wide truncate ${
-              isGroggy
-                ? 'text-yellow-300'
-                : isCharging
-                ? 'text-red-300'
-                : isEnraged
-                ? 'text-red-300'
-                : 'text-amber-200'
-            }`}>
-              {bossDisplayName}
-            </h3>
-            <span className="text-[9px] text-amber-400 font-mono font-bold bg-amber-950/80 px-1 py-0.2 rounded border border-amber-600/60">
-              Act {actTheme.act}
-            </span>
-          </div>
-
-          {/* Interactive Badges */}
-          <div className="flex items-center gap-1 mt-0.5 flex-wrap">
-            <span className={`px-1 py-0.2 rounded text-[8px] font-bold border font-mono ${elementBadge.badge}`}>
-              {elementBadge.text}
-            </span>
-
-            {isGroggy && (
-              <span className="px-1 py-0.2 rounded text-[8px] font-black bg-yellow-500 text-iron-950 border border-yellow-200 animate-pulse">
-                💫 그로기 (+50%)
-              </span>
-            )}
-
-            {isCharging && (
-              <span className="px-1 py-0.2 rounded text-[8px] font-black bg-red-600 text-white border border-red-300 animate-pulse">
-                멸망기 차징!
-              </span>
-            )}
-
-            {hasWeakLane && (
-              <button
-                onClick={() => setPlayerLane(boss.bossWeakLane!)}
-                className={`px-1 py-0.2 rounded text-[8px] font-black border transition cursor-pointer flex items-center gap-0.5 ${
-                  isPlayerOnWeakLane
-                    ? 'bg-emerald-600 text-white border-emerald-300 animate-pulse'
-                    : 'bg-rose-950 text-rose-300 border-rose-500 hover:bg-rose-900'
-                }`}
-              >
-                <Target className="w-2.5 h-2.5" />
-                <span>약점 {boss.bossWeakLane! + 1}번</span>
-              </button>
-            )}
-
-            {bossGuardActive && !isGroggy && (
-              <span className="px-1 py-0.2 rounded text-[8px] font-black bg-blue-600 text-white border border-blue-300 animate-pulse">
-                🛡️ 결계 (-70%)
-              </span>
-            )}
-          </div>
+        {/* 👑 Boss Name & Title */}
+        <div className="flex items-center justify-center gap-1.5 mt-1">
+          <Crown className="w-4 h-4 text-amber-400 flex-shrink-0" />
+          <h3 className={`font-cinzel font-black text-sm sm:text-base tracking-wider ${
+            isGroggy
+              ? 'text-yellow-300 drop-shadow-[0_0_12px_rgba(251,191,36,0.9)]'
+              : isCharging
+              ? 'text-red-300 drop-shadow-[0_0_12px_rgba(239,68,68,0.9)]'
+              : isEnraged
+              ? 'text-red-300 drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]'
+              : 'text-amber-200'
+          }`}>
+            {bossDisplayName}
+          </h3>
+          <span className="text-[9px] sm:text-[10px] text-amber-400 font-mono font-bold bg-amber-950/80 px-1.5 py-0.2 rounded border border-amber-600/60">
+            Act {actTheme.act}
+          </span>
         </div>
 
-        {/* Boss Stats Readout */}
-        <div className="flex-shrink-0 flex items-center gap-1.5 text-[9px] sm:text-[10px] font-mono">
-          <span className="flex items-center gap-0.5 text-rose-300" title="공격력">
+        {/* 🏷️ Status Badges & Quick Stats Strip */}
+        <div className="flex items-center justify-center gap-1.5 mt-0.5 flex-wrap">
+          {/* Element */}
+          <span className={`px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-bold border font-mono ${elementBadge.badge}`}>
+            {elementBadge.text}
+          </span>
+
+          {/* Groggy */}
+          {isGroggy && (
+            <span className="px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-black bg-yellow-500 text-iron-950 border border-yellow-200 animate-pulse">
+              💫 그로기 (+50%)
+            </span>
+          )}
+
+          {/* Charging */}
+          {isCharging && (
+            <span className="px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-black bg-red-600 text-white border border-red-300 animate-pulse">
+              멸망기 차징 중!
+            </span>
+          )}
+
+          {/* Weak Lane */}
+          {hasWeakLane && (
+            <button
+              onClick={() => setPlayerLane(boss.bossWeakLane!)}
+              className={`px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-black border transition cursor-pointer flex items-center gap-0.5 ${
+                isPlayerOnWeakLane
+                  ? 'bg-emerald-600 text-white border-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.8)] animate-pulse'
+                  : 'bg-rose-950 text-rose-300 border-rose-500 hover:bg-rose-900'
+              }`}
+              title="클릭 시 약점 레인으로 즉시 조준"
+            >
+              <Target className="w-3 h-3" />
+              <span>약점 {boss.bossWeakLane! + 1}번 {isPlayerOnWeakLane ? '✓ 조준됨' : '(클릭 이동)'}</span>
+            </button>
+          )}
+
+          {/* Guard */}
+          {bossGuardActive && !isGroggy && (
+            <span className="px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-black bg-blue-600 text-white border border-blue-300 animate-pulse">
+              🛡️ 결계 (-70%)
+            </span>
+          )}
+
+          {/* Stats Readout */}
+          <span className="flex items-center gap-0.5 text-rose-300 font-mono text-[9px] sm:text-[10px] ml-1">
             <Swords className="w-3 h-3" />
             <span className="font-black">{boss.intent.damage || 0}</span>
           </span>
-          <span className="flex items-center gap-0.5 text-blue-300" title="방어력">
+          <span className="flex items-center gap-0.5 text-blue-300 font-mono text-[9px] sm:text-[10px]">
             <Shield className="w-3 h-3" />
             <span className="font-black">{boss.defense}</span>
           </span>
@@ -219,7 +223,12 @@ export const BossHUD: React.FC = React.memo(() => {
 
       {/* Row 2: Abyssal Boss Health Bar with Emblems */}
       <div className="relative z-10 mb-1">
-        <div className="relative w-full bg-iron-950 rounded-full overflow-hidden border border-amber-500/80 h-4 sm:h-5 shadow-inner">
+        <div className="relative w-full bg-iron-950 rounded-full overflow-hidden border-2 border-amber-500/80 h-5 sm:h-6 shadow-[inset_0_2px_8px_rgba(0,0,0,0.95)]">
+          {/* Phase Markers */}
+          <div className="absolute top-0 bottom-0 w-0.5 bg-purple-400/70 z-10" style={{ left: '50%' }} title="50% 소환" />
+          <div className="absolute top-0 bottom-0 w-0.5 bg-amber-400/90 z-10" style={{ left: '30%' }} title="30% 광란" />
+
+          {/* Abyssal Gradient Health Fill */}
           <div
             className={`h-full transition-all duration-500 relative bg-gradient-to-r ${
               isGroggy
@@ -233,9 +242,9 @@ export const BossHUD: React.FC = React.memo(() => {
 
           {/* HP Value Label Overlay */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="font-mono font-black text-[10px] sm:text-xs drop-shadow text-white flex items-center gap-1">
+            <span className="font-mono font-black text-xs sm:text-sm drop-shadow text-white flex items-center gap-1">
               <span>{boss.hp.toLocaleString()} / {boss.maxHp.toLocaleString()}</span>
-              <span className="text-[8px] sm:text-[9px] text-amber-200 font-bold">
+              <span className="text-[9px] sm:text-[10px] text-amber-200 font-bold ml-1">
                 ({Math.round(hpPercent)}%)
               </span>
             </span>

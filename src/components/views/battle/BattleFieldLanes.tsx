@@ -123,40 +123,40 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
       <AtmosphereLayer act={actTheme.act} theme={actTheme} />
       {!isCleared && <CombatFxLayer />}
       {isCleared ? (
-        <div className="w-full h-full flex flex-col justify-center items-center relative z-20 py-1">
+        <div className="w-full h-full flex flex-col justify-center items-center relative z-20 p-1 sm:p-2">
           {latestRoomLootEvent ? (
             /* 🔥 HERO LOOT REVEAL OVERLAY WITH DROPPED ITEM CARDS */
-            <div className="w-full h-full p-2 sm:p-2.5 bg-gradient-to-b from-iron-950 via-iron-900 to-iron-950 border-2 border-amber-400 rounded-xl shadow-[0_0_40px_rgba(251,191,36,0.35)] space-y-1.5 animate-fade-in flex flex-col justify-between items-center text-center">
+            <div className="w-full h-full max-w-2xl p-2.5 sm:p-4 bg-gradient-to-b from-iron-950 via-iron-900 to-iron-950 border-2 border-amber-400 rounded-2xl shadow-[0_0_50px_rgba(251,191,36,0.4)] space-y-2 animate-fade-in flex flex-col justify-between items-center text-center">
               
               {/* Loot Header & Currency Banner */}
-              <div className="space-y-0.5 w-full">
-                <div className="flex items-center justify-center gap-1.5">
-                  <span className="text-base sm:text-lg">
+              <div className="space-y-1 w-full">
+                <div className="flex items-center justify-center gap-2">
+                  <span className="text-xl sm:text-2xl">
                     {latestRoomLootEvent.type === 'treasure' ? '🎁' : latestRoomLootEvent.type === 'rune' ? '🔮' : '⚔️'}
                   </span>
-                  <h3 className="text-xs sm:text-sm font-cinzel font-black text-amber-200 tracking-wider flex items-center gap-1">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                  <h3 className="text-sm sm:text-base font-cinzel font-black text-amber-200 tracking-wider flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
                     <span>[{latestRoomLootEvent.title}] 획득 전리품</span>
-                    <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                    <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
                   </h3>
                 </div>
 
                 {/* Currency Rewards Row */}
-                <div className="flex items-center justify-center gap-2 font-mono text-[10px] sm:text-[11px] flex-wrap">
+                <div className="flex items-center justify-center gap-2.5 font-mono text-xs sm:text-sm flex-wrap">
                   {latestRoomLootEvent.gold !== undefined && latestRoomLootEvent.gold > 0 && (
-                    <span className="px-2 py-0.5 rounded bg-yellow-950/80 border border-yellow-500 text-yellow-300 font-bold flex items-center gap-1">
-                      <Coins className="w-3 h-3" />
-                      <span>+{latestRoomLootEvent.gold.toLocaleString()} G</span>
+                    <span className="px-3 py-1 rounded-lg bg-yellow-950/80 border border-yellow-500 text-yellow-300 font-bold flex items-center gap-1.5 shadow">
+                      <Coins className="w-3.5 h-3.5 text-yellow-400" />
+                      <span>+{latestRoomLootEvent.gold.toLocaleString()} Gold</span>
                     </span>
                   )}
                   {latestRoomLootEvent.shards !== undefined && latestRoomLootEvent.shards > 0 && (
-                    <span className="px-2 py-0.5 rounded bg-purple-950/80 border border-purple-500 text-purple-300 font-bold flex items-center gap-1">
-                      <Gem className="w-3 h-3" />
+                    <span className="px-3 py-1 rounded-lg bg-purple-950/80 border border-purple-500 text-purple-300 font-bold flex items-center gap-1.5 shadow">
+                      <Gem className="w-3.5 h-3.5 text-purple-400" />
                       <span>+{latestRoomLootEvent.shards} Shard</span>
                     </span>
                   )}
                   {latestRoomLootEvent.runeName && (
-                    <span className="px-2 py-0.5 rounded bg-purple-950/80 border border-purple-400 text-purple-200 font-bold flex items-center gap-1">
+                    <span className="px-3 py-1 rounded-lg bg-purple-950/80 border border-purple-400 text-purple-200 font-bold flex items-center gap-1.5 shadow">
                       <span>🔮 {latestRoomLootEvent.runeName} 룬 x{latestRoomLootEvent.count || 1}</span>
                     </span>
                   )}
@@ -165,7 +165,7 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
 
               {/* Dropped Items Grid (Clickable to Equip immediately) */}
               {latestRoomLootEvent.items && latestRoomLootEvent.items.length > 0 ? (
-                <div className="w-full max-w-xl grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-32 overflow-y-auto px-1">
+                <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto px-1">
                   {latestRoomLootEvent.items.map(item => {
                     const isIdentified = item.isIdentified !== false;
                     const score = isIdentified ? calculateItemScore(item) : null;
@@ -177,7 +177,7 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                         onClick={() => {
                           if (isIdentified && !isEquipped) equipItem(item);
                         }}
-                        className={`p-1.5 rounded-lg border flex items-center justify-between gap-1.5 transition text-left cursor-pointer shadow ${
+                        className={`p-2 rounded-xl border-2 flex items-center justify-between gap-2 transition text-left cursor-pointer shadow-md ${
                           isEquipped
                             ? 'bg-emerald-950/70 border-emerald-500 text-emerald-200 ring-1 ring-emerald-400'
                             : item.rarity === 'unique' || item.rarity === 'legendary'
@@ -189,14 +189,14 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                         title={isIdentified ? "클릭 시 즉시 장착" : "데커드 케인 감정 후 장착 가능"}
                       >
                         <div className="min-w-0 flex-1">
-                          <div className="font-black text-[11px] truncate flex items-center gap-1">
+                          <div className="font-black text-xs sm:text-sm truncate flex items-center gap-1.5">
                             <span>{item.name}</span>
-                            <span className="text-[8px] font-mono uppercase opacity-80 px-1 py-0.5 bg-iron-900 rounded border border-iron-800">
+                            <span className="text-[9px] font-mono uppercase opacity-80 px-1.5 py-0.5 bg-iron-900 rounded border border-iron-800">
                               {item.slot}
                             </span>
                           </div>
                           {isIdentified && item.stats && (
-                            <div className="text-[9px] text-gray-300 font-mono flex items-center gap-1.5 mt-0.2 truncate">
+                            <div className="text-[10px] sm:text-[11px] text-gray-300 font-mono flex items-center gap-2 mt-0.5 truncate">
                               {item.stats.minDmg !== undefined && (
                                 <span className="text-brass-300 font-bold">공격 {item.stats.minDmg}~{item.stats.maxDmg}</span>
                               )}
@@ -213,8 +213,8 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                         {/* Equip status button / badge */}
                         <div className="flex-shrink-0">
                           {isEquipped ? (
-                            <span className="text-[9px] font-mono font-bold text-emerald-300 bg-emerald-950 px-1.5 py-0.5 rounded border border-emerald-500 flex items-center gap-0.5">
-                              <ShieldCheck className="w-2.5 h-2.5" /> 장착됨
+                            <span className="text-[10px] font-mono font-bold text-emerald-300 bg-emerald-950 px-2 py-1 rounded-lg border border-emerald-500 flex items-center gap-1">
+                              <ShieldCheck className="w-3 h-3" /> 장착됨
                             </span>
                           ) : isIdentified ? (
                             <button
@@ -222,12 +222,12 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                                 e.stopPropagation();
                                 equipItem(item);
                               }}
-                              className="px-2 py-0.5 rounded bg-amber-500 hover:bg-amber-400 text-iron-950 font-black text-[10px] shadow transition cursor-pointer"
+                              className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-iron-950 font-black text-xs shadow transition cursor-pointer"
                             >
                               장착
                             </button>
                           ) : (
-                            <span className="text-[9px] text-blood-300 font-mono">미확인</span>
+                            <span className="text-[10px] text-blood-300 font-mono">미확인</span>
                           )}
                         </div>
                       </div>
@@ -235,109 +235,113 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                   })}
                 </div>
               ) : (
-                <p className="text-[11px] text-emerald-400 font-mono font-bold">
+                <p className="text-xs sm:text-sm text-emerald-400 font-mono font-bold">
                   ✓ 모든 보상이 안전하게 수령되었습니다.
                 </p>
               )}
 
-              <div className="text-[10px] font-mono text-gray-400 flex items-center gap-1">
+              <div className="text-[11px] sm:text-xs font-mono text-gray-300 flex items-center gap-1.5 bg-iron-950/80 px-3 py-1 rounded-full border border-iron-800">
                 <span>[Space] 키를 눌러 다음 방으로 이동하세요</span>
-                <ArrowRight className="w-3 h-3 text-amber-400" />
+                <ArrowRight className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
               </div>
             </div>
           ) : currentRoom?.type === 'shrine' && !roomEventClaimed ? (
             /* ⛩️ INTERACTIVE SHRINE SELECTION OVERLAY */
-            <div className="w-full h-full p-2 bg-gradient-to-b from-iron-950 via-purple-950/80 to-iron-950 border-2 border-purple-400 rounded-xl shadow-[0_0_30px_rgba(168,85,247,0.35)] space-y-1.5 animate-fade-in flex flex-col justify-between items-center text-center">
+            <div className="w-full h-full max-w-2xl p-3 sm:p-4 bg-gradient-to-b from-iron-950 via-purple-950/80 to-iron-950 border-2 border-purple-400 rounded-2xl shadow-[0_0_40px_rgba(168,85,247,0.4)] space-y-2 animate-fade-in flex flex-col justify-between items-center text-center">
               
-              <div className="space-y-0.5">
-                <h3 className="text-xs sm:text-sm font-cinzel font-black text-purple-200 tracking-wider flex items-center justify-center gap-1">
-                  <Sparkles className="w-3.5 h-3.5 text-purple-400 animate-pulse" />
+              <div className="space-y-1">
+                <h3 className="text-sm sm:text-base font-cinzel font-black text-purple-200 tracking-wider flex items-center justify-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
                   <span>신비로운 고대 성소의 축복</span>
-                  <Sparkles className="w-3.5 h-3.5 text-purple-400 animate-pulse" />
+                  <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
                 </h3>
-                <p className="text-[10px] text-gray-300 font-mono">
+                <p className="text-xs text-gray-300 font-mono">
                   원하는 축복을 선택하세요 (단축키 [1], [2], [3] 또는 [←], [→])
                 </p>
               </div>
 
               {/* 3 Shrine Options Grid */}
-              <div className="w-full max-w-lg grid grid-cols-3 gap-1.5">
+              <div className="w-full max-w-xl grid grid-cols-3 gap-2">
                 {/* 1. Fortune Blessing */}
                 <button
                   onClick={() => setSelectedShrineType('fortune')}
-                  className={`p-1.5 sm:p-2 rounded-lg border flex flex-col items-center justify-between text-center transition cursor-pointer shadow ${
+                  className={`p-2.5 sm:p-3 rounded-xl border-2 flex flex-col items-center justify-between text-center transition cursor-pointer shadow ${
                     selectedShrineType === 'fortune'
                       ? 'bg-amber-950/90 border-amber-400 text-amber-100 ring-2 ring-amber-400/80 scale-102'
                       : 'bg-iron-900/80 border-iron-750 text-gray-300 hover:border-amber-500/60'
                   }`}
                 >
-                  <div className="text-base sm:text-lg">✨</div>
-                  <div className="font-bold text-[10px] sm:text-[11px] text-amber-300 mt-0.5">
+                  <div className="text-xl sm:text-2xl">✨</div>
+                  <div className="font-black text-xs sm:text-sm text-amber-300 mt-1">
                     풍요의 축복 [1]
                   </div>
-                  <div className="text-[8px] sm:text-[9px] text-gray-400 font-mono mt-0.5">
+                  <div className="text-[10px] sm:text-xs text-gray-300 font-mono mt-0.5">
                     행운(MF) +30%
                   </div>
                   {selectedShrineType === 'fortune' && (
-                    <div className="pt-0.5 text-[8px] text-amber-300 font-black">
+                    <div className="pt-1 text-[10px] text-amber-300 font-black">
                       ✓ 선택됨
                     </div>
                   )}
                 </button>
 
-                {/* 2. Critical Blessing */}
+                {/* 2. Combat Mastery Blessing */}
                 <button
                   onClick={() => setSelectedShrineType('crit')}
-                  className={`p-1.5 sm:p-2 rounded-lg border flex flex-col items-center justify-between text-center transition cursor-pointer shadow ${
+                  className={`p-2.5 sm:p-3 rounded-xl border-2 flex flex-col items-center justify-between text-center transition cursor-pointer shadow ${
                     selectedShrineType === 'crit'
-                      ? 'bg-red-950/90 border-red-400 text-red-100 ring-2 ring-red-400/80 scale-102'
-                      : 'bg-iron-900/80 border-iron-750 text-gray-300 hover:border-red-500/60'
+                      ? 'bg-blood-950/90 border-blood-400 text-blood-100 ring-2 ring-blood-400/80 scale-102'
+                      : 'bg-iron-900/80 border-iron-750 text-gray-300 hover:border-blood-500/60'
                   }`}
                 >
-                  <div className="text-base sm:text-lg">⚡</div>
-                  <div className="font-bold text-[10px] sm:text-[11px] text-red-300 mt-0.5">
-                    학살의 축복 [2]
+                  <div className="text-xl sm:text-2xl">⚔️</div>
+                  <div className="font-black text-xs sm:text-sm text-blood-300 mt-1">
+                    투지의 축복 [2]
                   </div>
-                  <div className="text-[8px] sm:text-[9px] text-gray-400 font-mono mt-0.5">
-                    치명타율 +15%
+                  <div className="text-[10px] sm:text-xs text-gray-300 font-mono mt-0.5">
+                    치명타율 +15% / 공속 +20%
                   </div>
                   {selectedShrineType === 'crit' && (
-                    <div className="pt-0.5 text-[8px] text-red-300 font-black">
+                    <div className="pt-1 text-[10px] text-blood-300 font-black">
                       ✓ 선택됨
                     </div>
                   )}
                 </button>
 
-                {/* 3. Defense Blessing */}
+                {/* 3. Aegis Protection Blessing */}
                 <button
                   onClick={() => setSelectedShrineType('defense')}
-                  className={`p-1.5 sm:p-2 rounded-lg border flex flex-col items-center justify-between text-center transition cursor-pointer shadow ${
+                  className={`p-2.5 sm:p-3 rounded-xl border-2 flex flex-col items-center justify-between text-center transition cursor-pointer shadow ${
                     selectedShrineType === 'defense'
                       ? 'bg-blue-950/90 border-blue-400 text-blue-100 ring-2 ring-blue-400/80 scale-102'
                       : 'bg-iron-900/80 border-iron-750 text-gray-300 hover:border-blue-500/60'
                   }`}
                 >
-                  <div className="text-base sm:text-lg">🛡️</div>
-                  <div className="font-bold text-[10px] sm:text-[11px] text-blue-300 mt-0.5">
+                  <div className="text-xl sm:text-2xl">🛡️</div>
+                  <div className="font-black text-xs sm:text-sm text-blue-300 mt-1">
                     수호의 축복 [3]
                   </div>
-                  <div className="text-[8px] sm:text-[9px] text-gray-400 font-mono mt-0.5">
-                    방어력 +25%
+                  <div className="text-[10px] sm:text-xs text-gray-300 font-mono mt-0.5">
+                    방어력 +50 / 피해감소 +15%
                   </div>
                   {selectedShrineType === 'defense' && (
-                    <div className="pt-0.5 text-[8px] text-blue-300 font-black">
+                    <div className="pt-1 text-[10px] text-blue-300 font-black">
                       ✓ 선택됨
                     </div>
                   )}
                 </button>
               </div>
 
-              <button
-                onClick={() => claimShrine(selectedShrineType)}
-                className="mt-0.5 px-3 py-1 bg-gradient-to-r from-blue-600 to-indigo-500 hover:from-blue-500 hover:to-indigo-400 text-white font-black rounded-lg text-[11px] shadow-lg transition transform active:scale-95 animate-pulse cursor-pointer flex items-center justify-center gap-1 mx-auto"
-              >
-                <span>축복 수령 [Space]</span>
-              </button>
+              {/* Confirm Claim Button */}
+              <div className="w-full max-w-sm flex items-center justify-center">
+                <button
+                  onClick={() => claimShrine(selectedShrineType)}
+                  className="w-full py-2 px-4 rounded-xl bg-gradient-to-r from-purple-600 via-amber-500 to-purple-600 hover:from-purple-500 hover:to-amber-400 text-iron-950 font-black text-xs sm:text-sm shadow-xl transition cursor-pointer flex items-center justify-center gap-2 animate-pulse"
+                >
+                  <Sparkles className="w-4 h-4 text-iron-950 fill-current" />
+                  <span>축복 활성화 및 다음 방으로 이동 [Space]</span>
+                </button>
+              </div>
             </div>
           ) : (
             <div className="text-center space-y-0.5 py-1">

@@ -330,10 +330,10 @@ export const CombatFxLayer: React.FC = React.memo(() => {
           key={`v-${strikeKey}`}
           className="absolute"
           style={{
-            left: `${verticalLane * 20 - (isMassivePierce ? 3 : 1)}%`,
-            width: isMassivePierce ? '26%' : '22%',
-            top: isMassivePierce ? '8%' : '44%',
-            height: isMassivePierce ? '80%' : '30%',
+            left: `${verticalLane * 20 - (isMassivePierce ? 4 : 2)}%`,
+            width: isMassivePierce ? '28%' : '24%',
+            top: isMassivePierce ? '5%' : '20%',
+            height: isMassivePierce ? '85%' : '60%',
             color: glow
           }}
         >
@@ -353,10 +353,10 @@ export const CombatFxLayer: React.FC = React.memo(() => {
           key={`c-${strikeKey}`}
           className="absolute"
           style={{
-            left: `${verticalLane * 20 - 2}%`,
-            width: '24%',
-            top: '44%',
-            height: '30%',
+            left: `${verticalLane * 20 - 3}%`,
+            width: '26%',
+            top: '20%',
+            height: '55%',
             color: glow
           }}
         >
@@ -370,10 +370,10 @@ export const CombatFxLayer: React.FC = React.memo(() => {
           key={`h-${strikeKey}`}
           className="absolute"
           style={{
-            left: `${branchSpan.start * 20}%`,
-            width: `${branchSpan.count * 20}%`,
-            top: '48%',
-            height: '18%',
+            left: `${Math.max(0, branchSpan.start * 20 - 2)}%`,
+            width: `${Math.min(100, branchSpan.count * 20 + 4)}%`,
+            top: '25%',
+            height: '45%',
             color: glow
           }}
         >
@@ -387,10 +387,10 @@ export const CombatFxLayer: React.FC = React.memo(() => {
           key={`s-${strikeKey}`}
           className="absolute"
           style={{
-            left: selectedSkill.route === 'radius' ? '10%' : `${verticalLane * 20}%`,
-            width: selectedSkill.route === 'radius' ? '80%' : '20%',
-            top: '35%',
-            height: '35%',
+            left: selectedSkill.route === 'radius' ? '5%' : `${verticalLane * 20 - 3}%`,
+            width: selectedSkill.route === 'radius' ? '90%' : '26%',
+            top: '20%',
+            height: '55%',
             color: glow
           }}
         >
@@ -406,8 +406,8 @@ export const CombatFxLayer: React.FC = React.memo(() => {
           style={{
             left: '5%',
             width: '90%',
-            top: '15%',
-            height: '70%',
+            top: '10%',
+            height: '80%',
             color: glow
           }}
         >
