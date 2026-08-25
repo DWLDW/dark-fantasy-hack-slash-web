@@ -209,6 +209,21 @@ const CycloneWhirlAura: React.FC<{ color: string; uid: string }> = ({ color, uid
 };
 
 /**
+ * 🛡️ 4.5 Shield Bash / War Cry Shockwave Ring
+ */
+const ShieldImpactAura: React.FC<{ color: string; uid: string }> = ({ color, uid }) => {
+  return (
+    <div className="relative w-full h-full flex items-center justify-center animate-ping">
+      <svg className="w-full h-full" viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="70" fill="none" stroke={color} strokeWidth="8" filter="drop-shadow(0 0 12px currentColor)" opacity="0.9" />
+        <circle cx="100" cy="100" r="85" fill="none" stroke="#ffffff" strokeWidth="3" opacity="0.95" />
+      </svg>
+      <div className="fx-blade-sparks" style={{ color }} />
+    </div>
+  );
+};
+
+/**
  * 💥 5. Overkill Shatter & Shockwave Ring (오버킬 전용 독립 파열 폭발 및 엠블럼)
  */
 const OverkillShockwave: React.FC<{ lane: number; damage?: number }> = ({ lane, damage }) => {
@@ -224,11 +239,11 @@ const OverkillShockwave: React.FC<{ lane: number; damage?: number }> = ({ lane, 
     >
       {/* 💥 Overkill Floating Badge */}
       <div className="fx-overkill-badge font-mono font-black text-center z-50 drop-shadow-[0_0_16px_rgba(249,115,22,1)]">
-        <div className="text-[10px] sm:text-xs text-amber-300 font-cinzel font-black tracking-widest bg-iron-950/95 px-2 py-0.5 rounded-full border-2 border-amber-400 shadow-lg">
+        <div className="text-[10px] sm:text-xs text-amber-300 font-cinzel font-black tracking-widest bg-iron-950/95 px-2 py-0.5 rounded-full border-2 border-amber-400 shadow-lg animate-bounce">
           💥 OVERKILL!
         </div>
         {damage && (
-          <div className="text-xs sm:text-sm text-orange-200 font-bold mt-0.5">
+          <div className="text-xs sm:text-sm text-orange-200 font-bold mt-0.5 font-mono">
             -{damage}
           </div>
         )}
@@ -241,7 +256,9 @@ const OverkillShockwave: React.FC<{ lane: number; damage?: number }> = ({ lane, 
   );
 };
 
-function getSlashKind(route: SkillRoute, skillId?: string): 'vertical' | 'horizontal-wide' | 'cross' | 'whirl' {
+function getSlashKind(route: SkillRoute, skillId?: string): 'vertical' | 'horizontal-wide' | 'cross' | 'whirl' | 'shield' | 'berserk' {
+  if (skillId === 'shield_bash' || skillId === 'war_cry') return 'shield';
+  if (skillId === 'berserk') return 'berserk';
   if (route === 'radius') return 'whirl';
   if (skillId === 'execute') return 'cross';
   if (route === 'branch') return 'horizontal-wide';
@@ -276,7 +293,7 @@ export const CombatFxLayer: React.FC = React.memo(() => {
       setShowStrike(true);
     }
     if (!isAttacking) {
-      const hold = kind === 'whirl' ? 450 : 300;
+      const hold = kind === 'whirl' || kind === 'shield' ? 450 : 300;
       const t = setTimeout(() => setShowStrike(false), hold);
       prevAttack.current = isAttacking;
       return () => clearTimeout(t);
@@ -308,7 +325,7 @@ export const CombatFxLayer: React.FC = React.memo(() => {
       )}
 
       {/* 2. Vertical Cleave / Anime Diagonal Slashes (가르기 / 관통 종베기 검기) */}
-      {showStrike && kind === 'vertical' && (
+      {showStrike && (kind === 'vertical' || kind === 'berserk') && (
         <div
           key={`v-${strikeKey}`}
           className="absolute"
@@ -347,7 +364,7 @@ export const CombatFxLayer: React.FC = React.memo(() => {
         </div>
       )}
 
-      {/* 4. Horizontal Sweep Crescent Aura (휩쓸기 3레인 부채꼴 횡베기 검기 - 슬림형) */}
+      {/* 4. Horizontal Sweep Crescent Aura (휩쓸기 3레인 부채꼴 횡베기 검기) */}
       {showStrike && kind === 'horizontal-wide' && (
         <div
           key={`h-${strikeKey}`}
@@ -364,7 +381,24 @@ export const CombatFxLayer: React.FC = React.memo(() => {
         </div>
       )}
 
-      {/* 5. Cyclone Whirlwind Arc (광전사의 분노 / 회전 폭풍 검기) */}
+      {/* 4.5 Shield Bash / War Cry Shockwave */}
+      {showStrike && kind === 'shield' && (
+        <div
+          key={`s-${strikeKey}`}
+          className="absolute"
+          style={{
+            left: selectedSkill.route === 'radius' ? '10%' : `${verticalLane * 20}%`,
+            width: selectedSkill.route === 'radius' ? '80%' : '20%',
+            top: '35%',
+            height: '35%',
+            color: glow
+          }}
+        >
+          <ShieldImpactAura color={glow} uid={`${strikeKey}-shield`} />
+        </div>
+      )}
+
+      {/* 5. Cyclone Whirlwind Arc (회전 폭풍 검기) */}
       {showStrike && kind === 'whirl' && (
         <div
           key={`w-${strikeKey}`}

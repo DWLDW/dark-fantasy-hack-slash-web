@@ -10,6 +10,8 @@ import { PlayerHitFlash } from './battle/PlayerHitFlash';
 import { BattleFieldLanes } from './battle/BattleFieldLanes';
 import { BattleSkillsBar } from './battle/BattleSkillsBar';
 import { BattleStatusDock } from './battle/BattleStatusDock';
+import { CombatJackpotOverlay } from '../fx/CombatJackpotOverlay';
+import { ExtraTurnCutin } from '../fx/ExtraTurnCutin';
 
 export const BattleView: React.FC = React.memo(() => {
   const {
@@ -20,7 +22,9 @@ export const BattleView: React.FC = React.memo(() => {
     isEnemyTurn,
     currentDungeon,
     isAttacking,
-    chainCount
+    chainCount,
+    lastAttackSummary,
+    extraTurnEvent
   } = useGame();
 
   const actTheme = useMemo(() => getActTheme(currentDungeon.id), [currentDungeon.id]);
@@ -116,6 +120,12 @@ export const BattleView: React.FC = React.memo(() => {
       {/* Full-screen player damage feedback */}
       <PlayerHitFlash />
 
+      {/* 🎰 Arcade Jackpot Total Damage Roulette Overlay */}
+      <CombatJackpotOverlay attackSummary={lastAttackSummary} />
+
+      {/* ⚡ Extra Turn 1-More Cutin Announcement */}
+      <ExtraTurnCutin event={extraTurnEvent} />
+
       {/* Layer 1: Ultra-Compact Top Header */}
       <BattleHeader />
 
@@ -126,7 +136,7 @@ export const BattleView: React.FC = React.memo(() => {
       <BossHUD />
 
       {/* Layer 2: Main 5-Lane Battlefield Area (Flex-1 Maximized Viewport) */}
-      <div className="w-full flex-1 flex flex-col justify-center min-h-0 my-0.5 overflow-hidden">
+      <div className="w-full flex-1 flex flex-col justify-center min-h-0 my-0.5 overflow-hidden relative">
         <BattleFieldLanes dyingMonsterIds={dyingMonsterIds} />
       </div>
 

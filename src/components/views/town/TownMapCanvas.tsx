@@ -1,12 +1,11 @@
 import React from 'react';
-import { BookOpen, Dices, Sparkles, Box, Compass, Home } from 'lucide-react';
+import { BookOpen, Dices, Sparkles, Box, Compass } from 'lucide-react';
 
 interface TownMapCanvasProps {
   onOpenFacility: (facility: 'cain' | 'gamble' | 'runewords' | 'cube') => void;
   unidentifiedCount: number;
   onDeploy: () => void;
   onWorldMap: () => void;
-  onTitle: () => void;
   lastDungeonName: string;
   autoDeployDiff: number;
   playerLevel: number;
@@ -17,7 +16,6 @@ export const TownMapCanvas: React.FC<TownMapCanvasProps> = React.memo(({
   unidentifiedCount,
   onDeploy,
   onWorldMap,
-  onTitle,
   lastDungeonName,
   autoDeployDiff,
   playerLevel
@@ -46,18 +44,6 @@ export const TownMapCanvas: React.FC<TownMapCanvasProps> = React.memo(({
         <div className="text-[10px] sm:text-xs font-mono text-gray-300 drop-shadow hidden sm:block bg-black/60 px-2.5 py-0.5 rounded border border-iron-800">
           캠프의 NPC와 비전 제단을 터치하여 상점과 공방을 이용하세요.
         </div>
-      </div>
-
-      {/* 4. Top-Right Title Screen Button */}
-      <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 flex items-center gap-2">
-        <button
-          onClick={onTitle}
-          className="px-3 py-1.5 bg-iron-950/90 hover:bg-iron-900 border border-iron-700 hover:border-amber-400 text-gray-300 hover:text-white rounded-xl text-xs font-bold font-mono flex items-center gap-1.5 shadow transition cursor-pointer"
-          title="메인 타이틀 화면으로 이동"
-        >
-          <Home className="w-3.5 h-3.5 text-amber-400" />
-          <span>타이틀</span>
-        </button>
       </div>
 
       {/* ============================================================== */}

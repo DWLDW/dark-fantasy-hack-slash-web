@@ -40,6 +40,8 @@ import { isActUnlocked, isDungeonUnlocked, getHighestUnlockedDungeon, getNextSto
 import { findBestEquipmentPlan } from '../utils/itemScoring';
 import { WARRIOR_SKILLS, ALL_AVAILABLE_SKILLS, DEFAULT_EQUIPPED_SLOTS, getSkillById, isSkillUnlocked } from '../data/skills';
 import { calculateAttackGains, compressLaneSurvivors, resolveHordeCounterAttack } from './helpers/combatActionHelper';
+import { AttackSummaryEvent } from '../components/fx/CombatJackpotOverlay';
+import { ExtraTurnEvent } from '../components/fx/ExtraTurnCutin';
 import {
   SAVE_KEY,
   getInitialSave,
@@ -155,6 +157,8 @@ interface GameContextType {
   setSelectedSkill: (skill: Skill) => void;
   selectSkillOrExecute: (skill: Skill) => void;
   executeAttack: () => void;
+  lastAttackSummary: AttackSummaryEvent | null;
+  extraTurnEvent: ExtraTurnEvent | null;
   useConsumable: (hotkeyOrId: string) => void;
   enterDungeon: (dungeonId: string, difficulty?: number) => void;
   selectNextRoom: (roomId: number) => void;
@@ -405,6 +409,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setActiveBossSkill(null);
     }, 1800);
   }, []);
+
+  const [lastAttackSummary, setLastAttackSummary] = useState<AttackSummaryEvent | null>(null);
+  const [extraTurnEvent, setExtraTurnEvent] = useState<ExtraTurnEvent | null>(null);
 
   useEffect(() => {
     return () => {
@@ -1090,6 +1097,31 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       attackMonsters,
       false
     );
+
+    // 🎰 Trigger Arcade Jackpot Total Damage Roulette Event
+    setLastAttackSummary({
+      id: `atk_${Date.now()}`,
+      totalDamage: result.totalDamage,
+      isCrit: result.isCritical,
+      isExtraStrike: Boolean(result.isExtraStrike),
+      isBossBreak: result.isBossBreak,
+      isWeakSpotHit: result.isWeakSpotHit,
+      overkillCount: result.overkillHits.length,
+      chainCount: result.kills.length,
+      skillName: effectiveSkill.name,
+      element: effectiveSkill.element || 'physical'
+    });
+
+    // ⚡ Trigger Extra Turn Cut-in on Execute Fatal Kill
+    if (effectiveSkill.id === 'execute' && result.kills.length > 0) {
+      setExtraTurnEvent({
+        id: `extra_${Date.now()}`,
+        reason: 'execute',
+        timestamp: Date.now()
+      });
+      playRuneWordSound();
+      addLog('⚡ [처형 격살 성공!] 적의 반격을 무효화하고 즉시 추가 턴(EXTRA TURN)을 획득했습니다!', 'chain');
+    }
 
     playSlashSound();
     const critText = result.isCritical ? " ★ 치명타 폭발!" : "";
@@ -2611,6 +2643,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setSelectedSkill,
     selectSkillOrExecute,
     executeAttack,
+    lastAttackSummary,
+    extraTurnEvent,
     triggerAttackOrSmartTarget,
     isManualLaneTargeted,
     useConsumable,

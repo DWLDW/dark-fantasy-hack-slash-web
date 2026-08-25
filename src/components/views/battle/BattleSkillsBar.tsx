@@ -43,12 +43,14 @@ export const BattleSkillsBar: React.FC = React.memo(() => {
     claimTreasure,
     claimRuneAltar,
     claimShrine,
-    selectedShrineType
+    selectedShrineType,
+    extraTurnEvent
   } = useGame();
 
   const totalMonsters = monsters.length;
   const isCleared = totalMonsters === 0;
   const currentRoom = currentDungeon.rooms.find(r => r.id === currentRoomId);
+  const isExtraTurnActive = Boolean(extraTurnEvent && Date.now() - extraTurnEvent.timestamp < 1500);
 
   return (
     <div className="w-full flex items-stretch gap-1 select-none font-sans flex-shrink-0">
@@ -132,7 +134,9 @@ export const BattleSkillsBar: React.FC = React.memo(() => {
         }}
         disabled={isAttacking || isEnemyTurn}
         className={`px-3 sm:px-4 py-1 rounded-lg font-black text-xs sm:text-sm flex flex-col items-center justify-center shadow-lg transition transform active:scale-95 flex-shrink-0 cursor-pointer min-w-[76px] sm:min-w-[95px] min-h-[46px] sm:min-h-[50px] ${
-          isCleared
+          isExtraTurnActive && !isCleared && !isAttacking
+            ? 'bg-gradient-to-r from-yellow-500 via-amber-400 to-yellow-500 text-iron-950 ring-2 ring-yellow-300 shadow-[0_0_20px_rgba(251,191,36,0.9)] animate-pulse'
+            : isCleared
             ? 'bg-gradient-to-r from-amber-600 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 text-iron-950 ring-1 ring-amber-300 shadow-[0_0_12px_rgba(251,191,36,0.6)] animate-pulse'
             : isEnemyTurn
             ? 'bg-blood-950 text-blood-300 border border-blood-600 cursor-wait opacity-80'
@@ -142,18 +146,22 @@ export const BattleSkillsBar: React.FC = React.memo(() => {
         }`}
       >
         <div className="flex items-center gap-1">
-          <Swords className="w-3.5 h-3.5 text-amber-300" />
+          <Swords className={`w-3.5 h-3.5 ${isExtraTurnActive ? 'text-iron-950' : 'text-amber-300'}`} />
           <span>
             {isAttacking
               ? '타격...'
               : isEnemyTurn
               ? '반격...'
+              : isExtraTurnActive && !isCleared
+              ? '연속 공격!'
               : isCleared
               ? ((currentRoom?.type === 'treasure' || currentRoom?.type === 'rune' || currentRoom?.type === 'shrine') && !roomEventClaimed ? '수령' : '다음')
               : '공격'}
           </span>
         </div>
-        <span className="text-[9px] font-mono text-amber-200/90 font-bold leading-none mt-0.5">[Space]</span>
+        <span className={`text-[9px] font-mono font-bold leading-none mt-0.5 ${
+          isExtraTurnActive ? 'text-iron-900 font-black' : 'text-amber-200/90'
+        }`}>[Space]</span>
       </button>
     </div>
   );

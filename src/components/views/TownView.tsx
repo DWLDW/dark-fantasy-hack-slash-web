@@ -1,3 +1,4 @@
+import { TownMapCanvas } from './town/TownMapCanvas';
 import React, { useState, useMemo } from 'react';
 import { useGame } from '../../state/gameStore';
 import { DUNGEONS_DATA, RUNEWORD_RECIPES, D2_RUNES } from '../../data/gameData';
@@ -6,7 +7,7 @@ import { POTION_CAPACITY_TIERS, getPotionCapacityUpgradeCost, getPotionHealingUp
 import { GameItem } from '../../types/game';
 import { ACHIEVEMENTS } from '../../data/achievements';
 import { isDungeonUnlocked, getHighestUnlockedDungeon } from '../../data/dungeons';
-import { Box, Sparkles, Dices, BookOpen, ArrowRight, Shield, Compass, Hammer, Trophy, Zap, Package } from 'lucide-react';
+import { Box, Home, X, Sparkles, Dices, BookOpen, ArrowRight, Shield, Compass, Hammer, Trophy, Zap, Package } from 'lucide-react';
 
 export const TownView: React.FC = React.memo(() => {
   const {
@@ -80,75 +81,70 @@ export const TownView: React.FC = React.memo(() => {
   return (
     <div className="max-w-7xl mx-auto p-2 sm:p-4 md:p-6 space-y-3 pb-24 sm:pb-28 select-none overflow-x-hidden font-sans">
       
-      {/* 1. Immersive Town Visual Banner (Rogue Encampment AI Art Illustration + Fixed Header) */}
-      <div className="relative rounded-xl overflow-hidden border-2 border-brass-600/70 shadow-2xl bg-iron-950">
-        {/* Background Image Layer with atmospheric vignette gradients */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center opacity-70 contrast-110 pointer-events-none"
-          style={{ backgroundImage: "url('/images/town_bg.png')" }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-iron-950 via-iron-950/55 to-red-950/25 pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-r from-iron-950/80 via-transparent to-iron-950/80 pointer-events-none" />
-        <div className="absolute inset-0 pointer-events-none town-embers" />
+{/* 1. Center Interactive Dark Fantasy Town Map Canvas */}
+      <TownMapCanvas
+        onOpenFacility={(fac) => setActiveFacility(fac)}
+        unidentifiedCount={unidentifiedCount}
+        onDeploy={() => enterDungeon(lastDungeon.id, autoDeployDiff)}
+        onWorldMap={() => setViewMode('dungeon_select')}
+        lastDungeonName={lastDungeon.name}
+        autoDeployDiff={autoDeployDiff}
+        playerLevel={playerStats.level}
+      />
 
-        {/* Content on Banner */}
-        <div className="relative z-10 p-3 sm:p-4 md:p-5 flex flex-col md:flex-row md:items-center justify-between gap-3">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-base sm:text-xl md:text-2xl font-cinzel font-black text-brass-200 tracking-wider flex items-center gap-2 drop-shadow-md">
-                <span>로그 캠프 (Rogue Encampment)</span>
-              </h1>
-              <span className="px-2 py-0.5 rounded bg-blood-950/80 border border-blood-600 text-blood-300 font-mono text-[10px] sm:text-xs font-bold">
-                1막 본거지
-              </span>
-            </div>
-            <p className="text-[11px] sm:text-xs text-gray-300 font-mono leading-relaxed max-w-xl drop-shadow">
-              호라드림의 현자 데커드 케인, 기드의 암시장, 룬워드 공방과 호라드릭 큐브 연구소가 위치한 성역의 안식처입니다.
-            </p>
+      {/* 1.5. Primary Expedition Action Bar */}
+      <div className="p-3 bg-iron-950 border-2 border-brass-600/50 rounded-xl flex items-center justify-between gap-2 flex-wrap shadow-xl">
+        <div className="flex items-center gap-2 font-mono text-xs text-gray-300">
+          <div className="w-7 h-7 rounded bg-iron-900 border border-brass-500/60 flex items-center justify-center text-amber-400 font-black">
+            Lv.{playerStats.level}
           </div>
+          <span className="font-bold text-white font-cinzel">광전사</span>
+          <span>·</span>
+          <span className="text-brass-300 font-bold">{playerStats.gold.toLocaleString()}G</span>
+          <span>·</span>
+          <span className="text-purple-300 font-bold">{playerStats.shards} Shards</span>
+        </div>
 
-          {/* Quick Action Buttons */}
-          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap flex-shrink-0">
-            <button
-              onClick={() => openModal('inventory')}
-              className="px-3 py-1.5 bg-iron-900/90 hover:bg-iron-800 border border-indigo-500/70 hover:border-indigo-400 text-indigo-300 hover:text-indigo-100 rounded-lg text-xs font-bold flex items-center gap-1.5 transition shadow-md cursor-pointer"
-              title="모험가 개인 보관함 및 소지품 열기 [I]"
-            >
-              <Package className="w-3.5 h-3.5 text-indigo-400" />
-              <span>보관함·가방 [I]</span>
-            </button>
+        <div className="flex items-center gap-2 flex-wrap flex-shrink-0">
+          
 
-            <button
-              onClick={() => openModal('achievement')}
-              className="px-3 py-1.5 bg-iron-900/90 hover:bg-iron-800 border border-amber-500/70 hover:border-amber-400 text-amber-300 hover:text-amber-100 rounded-lg text-xs font-bold flex items-center gap-1.5 transition shadow-md relative cursor-pointer"
-              title="성역의 위업 (업적 및 보상 확인)"
-            >
-              <Trophy className="w-3.5 h-3.5 text-amber-400" />
-              <span>업적</span>
-              {ACHIEVEMENTS.some(a => a.condition(achievementStats) && !claimedAchievements.includes(a.id)) && (
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping absolute -top-1 -right-1" />
-              )}
-            </button>
+          <button
+            onClick={() => openModal('inventory')}
+            className="px-3 py-1.5 bg-iron-900 hover:bg-iron-800 border border-iron-750 text-gray-200 hover:text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition shadow cursor-pointer min-h-[38px]"
+            title="가방 및 모험가 보관함 열기 [I]"
+          >
+            <Package className="w-4 h-4 text-indigo-400" />
+            <span>가방·보관함 [I]</span>
+          </button>
 
-            <button
-              data-tutorial="dungeon_select"
-              onClick={() => setViewMode('dungeon_select')}
-              className="px-3 py-1.5 bg-iron-900/90 hover:bg-iron-800 border border-iron-600 text-gray-200 hover:text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition shadow-md cursor-pointer"
-            >
-              <Compass className="w-3.5 h-3.5 text-amber-400" />
-              <span>던전 월드맵</span>
-            </button>
-            
-            <button
-              data-tutorial="deploy"
-              onClick={() => enterDungeon(lastDungeon.id, autoDeployDiff)}
-              className="px-5 py-2.5 bg-gradient-to-r from-blood-700 via-blood-600 to-amber-600 hover:from-blood-600 hover:to-amber-500 text-white font-black rounded-xl text-xs sm:text-sm flex items-center gap-2 shadow-xl ring-2 ring-amber-400/80 hover:ring-amber-300 transition transform active:scale-95 min-h-[46px] cursor-pointer"
-              title={`이전 던전 [${lastDungeon.name.split(":")[0]}] (개방 최고 난이도 Lv.${autoDeployDiff})으로 즉시 출격`}
-            >
-              <span>[Space] [{lastDungeon.name.split(":")[0]}] Lv.{autoDeployDiff} 즉시 출격</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
+          <button
+            onClick={() => openModal('achievement')}
+            className="px-3 py-1.5 bg-iron-900 hover:bg-iron-800 border border-amber-500/70 hover:border-amber-400 text-amber-300 hover:text-amber-100 rounded-lg text-xs font-bold flex items-center gap-1.5 transition shadow relative cursor-pointer min-h-[38px]"
+          >
+            <Trophy className="w-3.5 h-3.5 text-amber-400" />
+            <span>업적</span>
+            {ACHIEVEMENTS.some(a => a.condition(achievementStats) && !claimedAchievements.includes(a.id)) && (
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping absolute -top-1 -right-1" />
+            )}
+          </button>
+
+          <button
+            onClick={() => setViewMode('dungeon_select')}
+            className="px-3.5 py-1.5 bg-iron-900 hover:bg-iron-800 border border-iron-750 text-gray-200 hover:text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition shadow cursor-pointer min-h-[38px]"
+          >
+            <Compass className="w-4 h-4 text-red-400" />
+            <span>던전 월드맵</span>
+          </button>
+
+          <button
+            data-tutorial="deploy"
+            onClick={() => enterDungeon(lastDungeon.id, autoDeployDiff)}
+            className="px-5 py-2 bg-gradient-to-r from-blood-700 via-blood-600 to-amber-600 hover:from-blood-600 hover:to-amber-500 text-white font-black rounded-lg text-xs sm:text-sm flex items-center gap-2 shadow-xl ring-2 ring-amber-400/80 hover:ring-amber-300 transition transform active:scale-95 min-h-[38px] cursor-pointer"
+            title={`[${lastDungeon.name.split(":")[0]}] (난이도 Lv.${autoDeployDiff})으로 즉시 출격`}
+          >
+            <span>[Space] [{lastDungeon.name.split(":")[0]}] Lv.{autoDeployDiff} 즉시 출격</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
         </div>
       </div>
 

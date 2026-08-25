@@ -149,6 +149,65 @@
   pointer-events: none;
 }
 
+/* 🎰 Arcade Jackpot Total Damage Popup */
+@keyframes jackpotRollPop {
+  0% { opacity: 0; transform: translate(-50%, -40%) scale(0.6); }
+  20% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+  35% { transform: translate(-50%, -50%) scale(0.95); }
+  50% { transform: translate(-50%, -50%) scale(1.05); }
+  80% { opacity: 1; transform: translate(-50%, -50%) scale(1); filter: brightness(1.2); }
+  100% { opacity: 0; transform: translate(-50%, -65%) scale(0.85); }
+}
+.animate-jackpot-pop {
+  animation: jackpotRollPop 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* 💥 Critical Hit Heavy Slam (대형 크리티컬 스탬프) */
+@keyframes critSlam {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(3.2) rotate(-5deg); filter: drop-shadow(0 0 35px rgba(251, 191, 36, 1)); }
+  15% { opacity: 1; transform: translate(-50%, -50%) scale(0.92) rotate(-2deg); }
+  25% { transform: translate(-50%, -50%) scale(1.04) rotate(0deg); }
+  40% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+  85% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -58%) scale(0.8); filter: blur(4px); }
+}
+.animate-crit-slam {
+  animation: critSlam 1.35s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* ⚡ Extra Turn 1-More Cutin (대각선 라이트닝 컷인) */
+@keyframes extraTurnCutin {
+  0% { opacity: 0; transform: translate(-50%, -50%) scaleX(0.1) skewX(-20deg); }
+  15% { opacity: 1; transform: translate(-50%, -50%) scaleX(1.1) skewX(-15deg); }
+  25% { transform: translate(-50%, -50%) scaleX(0.97) skewX(-10deg); }
+  40% { transform: translate(-50%, -50%) scaleX(1) skewX(-10deg); }
+  85% { opacity: 1; transform: translate(-50%, -50%) scaleX(1) skewX(-10deg); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scaleX(1.3) skewX(-5deg); filter: blur(6px); }
+}
+.animate-extra-turn-cutin {
+  animation: extraTurnCutin 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* 💀 Overkill Burst Badge */
+@keyframes overkillPop {
+  0% { opacity: 0; transform: scale(0.3) rotate(-15deg); }
+  25% { opacity: 1; transform: scale(1.25) rotate(5deg); }
+  45% { transform: scale(0.95) rotate(-2deg); }
+  60% { transform: scale(1.05) rotate(0deg); }
+  85% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.8) translateY(-15px); }
+}
+.animate-overkill-pop {
+  animation: overkillPop 1.1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  pointer-events: none;
+}
+
 /* Screen Shake - Light (x5-9 kills) */
 @keyframes shakeLight {
   0%, 100% { transform: translate(0, 0); }
