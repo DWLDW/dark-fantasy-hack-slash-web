@@ -1252,12 +1252,28 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         addLog(`🛡️ ${stopperMonster?.name || "적"}의 견고한 방어에 오버킬 체인이 저지되었습니다!`, "system");
       }
 
-      const survivors = compressLaneSurvivors(result.newMonsters);
+      let survivors = compressLaneSurvivors(result.newMonsters);
+      const currentRoom = currentDungeon.rooms.find(r => r.id === currentRoomId);
+      const isBossRoom = currentRoom?.type === 'boss';
+
+      // 👑 Boss Victory Instant-Clear:
+      // If we are in a boss room and the boss is killed (either in result.kills or no alive boss in survivors),
+      // instantly wipe all remaining minions and trigger full dungeon victory without needing to clear minions!
+      const originalBoss = monsters.find(m => m.rank === 'boss' && m.hp > 0);
+      const hadBossOriginally = Boolean(originalBoss);
+      const hasAliveBoss = survivors.some(m => m.rank === 'boss' && m.hp > 0);
+      const isBossDefeated = isBossRoom && hadBossOriginally && (!hasAliveBoss || (originalBoss && result.kills.includes(originalBoss.id)));
+
+      if (isBossDefeated) {
+        survivors = [];
+        result.newMonsters = [];
+        addLog('👑 [보스 토벌 격살!] 던전의 최종 우두머리가 쓰러져 잔존 졸개들이 모두 도주/소멸했습니다! 즉시 던전을 정복합니다!', 'loot');
+      }
+
       setMonsters(survivors);
       setIsAttacking(false);
 
       if (survivors.length === 0) {
-        const currentRoom = currentDungeon.rooms.find(r => r.id === currentRoomId);
         const isEventRewardRoom = currentRoom && (currentRoom.type === 'treasure' || currentRoom.type === 'rune' || currentRoom.type === 'shrine');
 
         setCurrentDungeon(prevDungeon => ({

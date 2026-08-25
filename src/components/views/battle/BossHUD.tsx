@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { useGame } from '../../../state/gameStore';
 import { getActTheme } from '../../../utils/actThemes';
 import { Crown, Shield, Flame, Skull, Swords, AlertTriangle, Zap, Sparkles, Target, ShieldAlert } from 'lucide-react';
-import { MonsterPortrait } from '../../fx/MonsterPortrait';
+import { BossPixelPortrait } from '../../fx/BossPixelPortrait';
 
 /**
  * BossHUD — Dedicated high-impact boss battle HUD.
@@ -92,7 +92,7 @@ export const BossHUD: React.FC = React.memo(() => {
 
   return (
     <div
-      className={`relative rounded-xl border-2 p-2 sm:p-3 shadow-2xl transition-all duration-300 overflow-hidden ${elementBadge.auraColor} ${
+      className={`relative rounded-xl border-2 p-2.5 sm:p-3 shadow-2xl transition-all duration-300 overflow-hidden ${elementBadge.auraColor} ${
         isGroggy
           ? 'bg-gradient-to-r from-yellow-950/90 via-iron-950 to-yellow-950/90 border-yellow-400 ring-2 ring-yellow-400/80 animate-pulse'
           : isCharging
@@ -109,41 +109,37 @@ export const BossHUD: React.FC = React.memo(() => {
         isCharging ? 'bg-gradient-to-t from-red-600/40 via-transparent to-transparent' : actTheme.ambientGlow
       }`} />
 
-      {/* Row 1: Boss Icon + Name + Badges + Action Indicators */}
-      <div className="relative z-10 flex items-center gap-2 sm:gap-3 mb-2">
-        {/* Boss Emblem Icon Box */}
+      {/* ═══ TOP ROW: Boss Pixel Portrait + Name + Badges + Stats ═══ */}
+      <div className="relative z-10 flex items-center gap-3 sm:gap-4 mb-2.5">
+        {/* 👾 Big Retro Pixel Boss Portrait Space */}
         <div
           onClick={() => setPlayerLane(boss.lane)}
-          className={`relative flex-shrink-0 w-12 h-12 sm:w-15 sm:h-15 rounded-xl flex items-center justify-center text-2xl sm:text-3xl border-2 shadow-2xl transition transform hover:scale-105 cursor-pointer ${
+          className={`relative flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-2xl flex items-center justify-center border-2 shadow-2xl transition transform hover:scale-105 cursor-pointer overflow-hidden p-1 ${
             isGroggy
-              ? 'bg-yellow-900 border-yellow-400 shadow-[0_0_25px_rgba(251,191,36,0.9)] animate-bounce'
+              ? 'bg-yellow-950/90 border-yellow-400 shadow-[0_0_25px_rgba(251,191,36,0.9)] ring-2 ring-yellow-300'
               : isCharging
-              ? 'bg-red-900 border-red-400 shadow-[0_0_30px_rgba(239,68,68,0.9)] animate-pulse'
+              ? 'bg-red-950/95 border-red-400 shadow-[0_0_35px_rgba(239,68,68,0.9)] ring-2 ring-red-400 animate-pulse'
               : isEnraged
-              ? 'bg-red-900 border-red-400 shadow-[0_0_20px_rgba(239,68,68,0.7)]'
-              : 'bg-iron-900/95 border-amber-500 shadow-[0_0_18px_rgba(251,191,36,0.4)]'
+              ? 'bg-red-950/90 border-red-400 shadow-[0_0_25px_rgba(239,68,68,0.8)]'
+              : 'bg-iron-950/95 border-amber-500/80 shadow-[0_0_20px_rgba(251,191,36,0.5)]'
           }`}
-          title="클릭 시 보스 전면 레인으로 이동"
+          title="클릭 시 보스 전면 레인으로 즉시 이동"
         >
-          {isGroggy ? (
-            <span>💫</span>
-          ) : (
-            <MonsterPortrait
-              icon={boss.icon}
-              name={boss.name}
-              rank="boss"
-              element={boss.element}
-              size={44}
-              isEnraged={isEnraged}
-              isFrozen={Boolean(boss.isFrozen)}
-            />
-          )}
+          <BossPixelPortrait
+            name={boss.name}
+            element={boss.element}
+            signatureKey={boss.bossSignatureKey}
+            isEnraged={isEnraged}
+            isGroggy={isGroggy}
+            isCharging={isCharging}
+            size={76}
+          />
           {isEnraged && !isGroggy && (
-            <span className="absolute -top-1 -right-1 text-[11px] animate-pulse">⚡</span>
+            <span className="absolute top-1 right-1 text-xs animate-bounce bg-red-600 text-white font-black px-1 rounded border border-red-300">⚡광란</span>
           )}
           {isCharging && (
-            <span className="absolute -bottom-1 -right-1 text-[10px] bg-red-600 text-white font-black px-1 rounded border border-white animate-pulse">
-              CAST
+            <span className="absolute bottom-1 inset-x-1 text-[9px] bg-red-600 text-white font-black text-center py-0.5 rounded border border-white animate-pulse">
+              CASTING!
             </span>
           )}
         </div>
@@ -152,7 +148,7 @@ export const BossHUD: React.FC = React.memo(() => {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
             <Crown className="w-4 h-4 text-amber-400 flex-shrink-0" />
-            <h3 className={`font-cinzel font-black text-sm sm:text-base tracking-wide truncate ${
+            <h3 className={`font-cinzel font-black text-sm sm:text-lg tracking-wide truncate ${
               isGroggy
                 ? 'text-yellow-300 drop-shadow-[0_0_10px_rgba(251,191,36,0.9)]'
                 : isCharging
@@ -163,7 +159,9 @@ export const BossHUD: React.FC = React.memo(() => {
             }`}>
               {bossDisplayName}
             </h3>
-            <span className="text-[10px] text-gray-400 font-mono font-bold">Act {actTheme.act}</span>
+            <span className="text-[10px] sm:text-xs text-amber-400 font-mono font-bold bg-amber-950/80 px-1.5 py-0.5 rounded border border-amber-600/60">
+              Act {actTheme.act}
+            </span>
           </div>
 
           {/* Interactive Badges */}

@@ -118,7 +118,11 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
   }, [laneMonsters, isBossRoom]);
 
   return (
-    <div className={`${actTheme.containerBg} border-2 ${actTheme.borderColor} ${actTheme.glowShadow} rounded-xl p-1.5 sm:p-2 relative select-none font-sans flex flex-col justify-between overflow-hidden flex-shrink-0 transition-all duration-300 h-[255px] sm:h-[310px] max-h-[255px] sm:max-h-[310px] battlefield-stage`}>
+    <div className={`${actTheme.containerBg} border-2 ${actTheme.borderColor} ${actTheme.glowShadow} rounded-xl p-1.5 sm:p-2 relative select-none font-sans flex flex-col justify-between overflow-hidden flex-shrink-0 transition-all duration-300 ${
+      isBossRoom
+        ? 'h-[155px] sm:h-[180px] max-h-[155px] sm:max-h-[180px]'
+        : 'h-[255px] sm:h-[310px] max-h-[255px] sm:max-h-[310px]'
+    } battlefield-stage`}>
       <AtmosphereLayer act={actTheme.act} theme={actTheme} />
       {!isCleared && <CombatFxLayer />}
       {isCleared ? (
@@ -386,9 +390,10 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
             const laneFatalHits = laneList.filter(m => preview.targetsHit.find(t => t.monsterId === m.id)?.isFatal).length;
             const hasHitsInLane = laneHitTargets.length > 0;
 
-            // Render up to 4 monsters in the visible stack
-            const visibleMonsters = laneList.slice(0, 4);
-            const queuedCount = Math.max(0, laneList.length - 4);
+            // Render up to 2 monsters in boss room, up to 4 monsters in normal room
+            const maxVisibleRows = isBossRoom ? 2 : 4;
+            const visibleMonsters = laneList.slice(0, maxVisibleRows);
+            const queuedCount = Math.max(0, laneList.length - maxVisibleRows);
 
             return (
               <div
