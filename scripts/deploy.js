@@ -60,6 +60,7 @@ async function testSSH() {
 
   const runTest = (extraArgs) => {
     return new Promise((resolve) => {
+      let settled = false;
       const child = spawn('ssh', [
         ...extraArgs,
         '-i', keyPath,
@@ -75,27 +76,42 @@ async function testSSH() {
       let stdout = '';
       child.stdout.on('data', d => { stdout += d.toString(); });
       child.on('close', code => {
-        resolve(code === 0 && stdout.includes('SSH_OK'));
+        if (!settled) {
+          settled = true;
+          resolve(code === 0 && stdout.includes('SSH_OK'));
+        }
       });
-      child.on('error', () => resolve(false));
+      child.on('error', () => {
+        if (!settled) {
+          settled = true;
+          resolve(false);
+        }
+      });
+      setTimeout(() => {
+        if (!settled) {
+          settled = true;
+          try { child.kill(); } catch (_) {}
+          resolve(false);
+        }
+      }, 5000);
     });
   };
 
-  // Try 1: Direct SSH
-  if (await runTest([])) {
-    console.log('✅ Direct SSH connection successful!');
-    return ['-o', 'PubkeyAcceptedAlgorithms=+ssh-rsa', '-o', 'HostKeyAlgorithms=+ssh-rsa'];
-  }
-
-  // Try 2: Bind to local active IPs
+  // Try 1: Wi-Fi / Local Active IPs
   const localIps = getLocalIPs();
-  console.log(`⚠️ Direct SSH failed. Testing fallback local IP bindings: [${localIps.join(', ')}]...`);
+  console.log(`📡 Testing direct & local IP bindings: [${localIps.join(', ')}]...`);
 
   for (const ip of localIps) {
     if (await runTest(['-o', `BindAddress=${ip}`])) {
       console.log(`✅ SSH connection succeeded with BindAddress=${ip}`);
       return ['-o', `BindAddress=${ip}`, '-o', 'PubkeyAcceptedAlgorithms=+ssh-rsa', '-o', 'HostKeyAlgorithms=+ssh-rsa'];
     }
+  }
+
+  // Try 2: Direct SSH Fallback
+  if (await runTest([])) {
+    console.log('✅ Direct SSH connection successful!');
+    return ['-o', 'PubkeyAcceptedAlgorithms=+ssh-rsa', '-o', 'HostKeyAlgorithms=+ssh-rsa'];
   }
 
   console.error('❌ Could not establish SSH connection. Please check your network or Clash/VPN proxy settings.');
