@@ -142,7 +142,7 @@ export const TownView: React.FC = React.memo(() => {
             <button
               data-tutorial="deploy"
               onClick={() => enterDungeon(lastDungeon.id, autoDeployDiff)}
-              className="px-4 py-2 bg-gradient-to-r from-blood-700 via-blood-600 to-amber-600 hover:from-blood-600 hover:to-amber-500 text-white font-black rounded-lg text-xs sm:text-sm flex items-center gap-1.5 shadow-xl ring-2 ring-amber-400/60 hover:ring-amber-300 transition transform active:scale-95 hover:shadow-[0_0_20px_rgba(251,191,36,0.5)] animate-pulse cursor-pointer"
+              className="px-5 py-2.5 bg-gradient-to-r from-blood-700 via-blood-600 to-amber-600 hover:from-blood-600 hover:to-amber-500 text-white font-black rounded-xl text-xs sm:text-sm flex items-center gap-2 shadow-xl ring-2 ring-amber-400/80 hover:ring-amber-300 transition transform active:scale-95 min-h-[46px] cursor-pointer"
               title={`이전 던전 [${lastDungeon.name.split(":")[0]}] (개방 최고 난이도 Lv.${autoDeployDiff})으로 즉시 출격`}
             >
               <span>[Space] [{lastDungeon.name.split(":")[0]}] Lv.{autoDeployDiff} 즉시 출격</span>
@@ -275,7 +275,7 @@ export const TownView: React.FC = React.memo(() => {
         <div className="w-full lg:col-span-5 bg-iron-900/90 p-3 sm:p-4 rounded-xl border-2 border-brass-600/30 flex flex-col shadow-[0_0_22px_rgba(222,178,67,0.1)] min-h-[420px] ui-ornate">
           
           {/* Facility Navigation Tabs (Tier 3: Dark Inset Active Tabs) */}
-          <div className="grid grid-cols-4 gap-1 sm:gap-1.5 pb-2.5 border-b border-iron-750">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pb-3 border-b border-iron-750">
             {/* 1. DECKARD CAIN */}
             <button
               data-tutorial="cain"
@@ -286,8 +286,7 @@ export const TownView: React.FC = React.memo(() => {
                   : 'bg-iron-950 text-gray-400 hover:bg-iron-900 hover:text-white border border-iron-800 font-medium'
               }`}
             >
-              <BookOpen className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
-              <span className="truncate">케인</span>
+              <div className="w-7 h-7 rounded bg-blue-950/80 border border-blue-500/60 flex items-center justify-center text-blue-400 flex-shrink-0"><BookOpen className="w-4 h-4" /></div><div className="text-left min-w-0"><div className="font-cinzel font-bold text-white text-xs truncate">데커드 케인</div><div className="text-[9px] text-gray-400 font-mono truncate">장비 무료 감정</div></div>
               {unidentifiedCount > 0 && (
                 <span className="absolute -top-1 -right-1 px-1.5 py-0.5 bg-blood-500 text-white rounded-full text-[9px] font-mono font-black animate-pulse shadow">
                   {unidentifiedCount}
@@ -305,8 +304,7 @@ export const TownView: React.FC = React.memo(() => {
                   : 'bg-iron-950 text-gray-400 hover:bg-iron-900 hover:text-white border border-iron-800 font-medium'
               }`}
             >
-              <Dices className="w-3.5 h-3.5 text-yellow-400 flex-shrink-0" />
-              <span className="truncate">기드</span>
+              <div className="w-7 h-7 rounded bg-yellow-950/80 border border-yellow-500/60 flex items-center justify-center text-yellow-400 flex-shrink-0"><Dices className="w-4 h-4" /></div><div className="text-left min-w-0"><div className="font-cinzel font-bold text-white text-xs truncate">기드의 암시장</div><div className="text-[9px] text-gray-400 font-mono truncate">신비한 장비 도박</div></div>
             </button>
 
             {/* 3. RUNEWORDS */}
@@ -319,8 +317,7 @@ export const TownView: React.FC = React.memo(() => {
                   : 'bg-iron-950 text-gray-400 hover:bg-iron-900 hover:text-white border border-iron-800 font-medium'
               }`}
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
-              <span className="truncate">룬워드</span>
+              <div className="w-7 h-7 rounded bg-purple-950/80 border border-purple-500/60 flex items-center justify-center text-purple-400 flex-shrink-0"><Sparkles className="w-4 h-4" /></div><div className="text-left min-w-0"><div className="font-cinzel font-bold text-white text-xs truncate">룬워드 공방</div><div className="text-[9px] text-gray-400 font-mono truncate">소켓 룬워드 제련</div></div>
             </button>
 
             {/* 4. HORADRIC CUBE & LAB */}
@@ -332,8 +329,7 @@ export const TownView: React.FC = React.memo(() => {
                   : 'bg-iron-950 text-gray-400 hover:bg-iron-900 hover:text-white border border-iron-800 font-medium'
               }`}
             >
-              <Box className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
-              <span className="truncate">큐브·연구소</span>
+              <div className="w-7 h-7 rounded bg-emerald-950/80 border border-emerald-500/60 flex items-center justify-center text-emerald-400 flex-shrink-0"><Box className="w-4 h-4" /></div><div className="text-left min-w-0"><div className="font-cinzel font-bold text-white text-xs truncate">호라드릭 연구소</div><div className="text-[9px] text-gray-400 font-mono truncate">30레벨 연구·합성</div></div>
             </button>
           </div>
 
@@ -1052,3 +1048,4 @@ export const TownView: React.FC = React.memo(() => {
 });
 
 TownView.displayName = 'TownView';
+

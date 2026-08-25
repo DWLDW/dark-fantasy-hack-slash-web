@@ -14,37 +14,35 @@ export const BattleTacticalPreview: React.FC = React.memo(() => {
 
   const stopperMonster = preview.stopperId ? monsters.find(m => m.id === preview.stopperId) : null;
   const stopperText = stopperMonster
-    ? `L${stopperMonster.lane !== undefined ? stopperMonster.lane + 1 : '전열'}`
-    : '없음 (전체 관통)';
+    ? `${(stopperMonster.lane ?? 0) + 1}열`
+    : '전체관통';
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-1.5 bg-gradient-to-r from-iron-950 via-iron-900 to-iron-950 px-2.5 py-1.5 rounded-lg border border-brass-600/40 text-xs sm:text-sm font-mono shadow-[0_0_16px_rgba(222,178,67,0.12)] select-none flex-shrink-0">
-      <div className="flex items-center gap-2">
-        <span className="text-brass-300 font-black flex items-center gap-1.5">
-          <Crosshair className="w-4 h-4 text-amber-400" />
-          <span>{selectedSkill.name.split(' ')[0]} [{selectedSkill.hotkey}]</span>
+    <div className="w-full flex items-center justify-between gap-1 px-2 py-0.5 bg-iron-950/70 rounded border border-iron-800 text-[10px] sm:text-[11px] font-mono select-none flex-shrink-0">
+      <div className="flex items-center gap-1.5 truncate">
+        <span className="text-amber-300 font-bold flex items-center gap-1 flex-shrink-0">
+          <Crosshair className="w-3 h-3 text-amber-400" />
+          <span>{selectedSkill.name.split(' ')[0]}</span>
         </span>
-        <span className="text-gray-500">|</span>
-        <span className="text-gray-200">
-          타격: <strong className="text-brass-200 font-black text-sm">{preview.appliedDamage}</strong>
+        <span className="text-gray-300 flex-shrink-0">
+          피해 <strong>{preview.appliedDamage}</strong>
           {preview.totalDamage > preview.appliedDamage && (
-            <span className="text-purple-300/80 text-[10px] ml-1">+오버킬 {preview.totalDamage - preview.appliedDamage}</span>
+            <span className="text-purple-300 text-[9px] ml-0.5">(+{preview.totalDamage - preview.appliedDamage})</span>
           )}
         </span>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-shrink-0">
         {preview.chainCount > 0 ? (
-          <span className="text-emerald-300 bg-emerald-950/80 border border-emerald-500 px-2 py-0.5 rounded font-black flex items-center gap-1 animate-pulse text-xs">
-            <Flame className="w-3.5 h-3.5 text-blood-400" />
-            <span>예상 {preview.chainCount}처치</span>
+          <span className="text-emerald-300 font-black flex items-center gap-0.5 animate-pulse">
+            <Flame className="w-3 h-3 text-amber-400" />
+            <span>{preview.chainCount}처치 예상</span>
           </span>
         ) : (
-          <span className="text-gray-400 text-xs">처치 0</span>
+          <span className="text-gray-500">0처치</span>
         )}
-        <span className="text-gray-500">|</span>
-        <span className="text-gray-400 text-xs">
-          저지점: <strong className="text-blood-300 font-black">{stopperText}</strong>
+        <span className="text-gray-400 text-[9px]">
+          저지: <strong className="text-rose-300">{stopperText}</strong>
         </span>
       </div>
     </div>

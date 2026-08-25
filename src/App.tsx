@@ -29,7 +29,7 @@ const MainLayout: React.FC = () => {
     isDeathModalOpen,
     isTutorialOpen,
     confirmDialogState,
-    executeAttack,
+    executeAttack, triggerAttackOrSmartTarget, isManualLaneTargeted,
     isAttacking,
     isEnemyTurn,
     selectSkillOrExecute,
@@ -62,7 +62,7 @@ const MainLayout: React.FC = () => {
     isDeathModalOpen,
     isTutorialOpen,
     confirmDialogState,
-    executeAttack,
+    executeAttack, triggerAttackOrSmartTarget, isManualLaneTargeted,
     isAttacking,
     isEnemyTurn,
     selectSkillOrExecute,
@@ -94,7 +94,7 @@ const MainLayout: React.FC = () => {
     isDeathModalOpen,
     isTutorialOpen,
     confirmDialogState,
-    executeAttack,
+    executeAttack, triggerAttackOrSmartTarget, isManualLaneTargeted,
     isAttacking,
     isEnemyTurn,
     selectSkillOrExecute,
@@ -208,7 +208,7 @@ const MainLayout: React.FC = () => {
         e.preventDefault();
         if (g.viewMode === 'battle') {
           if (g.monsters.length > 0) {
-            if (!g.isAttacking && !g.isEnemyTurn) g.executeAttack();
+            if (!g.isAttacking && !g.isEnemyTurn) g.triggerAttackOrSmartTarget();
             return;
           }
           if (e.repeat) return;
@@ -272,7 +272,7 @@ const MainLayout: React.FC = () => {
           g.cyclePendingExit(isLeft ? -1 : 1);
           return;
         }
-        g.setPlayerLane(isLeft ? Math.max(0, g.playerLane - 1) : Math.min(4, g.playerLane + 1));
+        g.setPlayerLane(isLeft ? Math.max(0, g.playerLane - 1) : Math.min(4, g.playerLane + 1), true);
         return;
       }
 
@@ -328,3 +328,4 @@ export function App() {
 }
 
 export default App;
+

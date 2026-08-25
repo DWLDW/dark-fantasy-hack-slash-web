@@ -104,37 +104,38 @@ export const BattleView: React.FC = React.memo(() => {
     : '';
 
   return (
-    <div className={`w-full min-h-full transition-colors duration-500 rounded-xl p-1 sm:p-2 ${actTheme.bgGradient} ${strikeShake}`}>
-      <div className="max-w-7xl mx-auto px-1 sm:px-2 py-1 space-y-2 select-none pb-20 sm:pb-24 overflow-x-hidden relative font-sans">
-        {/* Low HP Red Vignette Screen Pulse */}
-        {isLowHp && (
-          <div className="fixed inset-0 pointer-events-none border-4 sm:border-8 border-blood-600/50 shadow-[inset_0_0_60px_rgba(239,68,68,0.5)] z-30 animate-pulse" />
-        )}
+    <div className={`w-full h-full flex flex-col justify-between transition-colors duration-500 rounded-xl p-1 sm:p-1.5 ${actTheme.bgGradient} ${strikeShake} overflow-hidden select-none font-sans relative`}>
+      {/* Low HP Red Vignette Screen Pulse */}
+      {isLowHp && (
+        <div className="fixed inset-0 pointer-events-none border-4 sm:border-8 border-blood-600/50 shadow-[inset_0_0_60px_rgba(239,68,68,0.5)] z-30 animate-pulse" />
+      )}
 
-        {/* Boss Signature Skill Cinematic Cut-in & Fullscreen Flash */}
-        <BossSkillCutin />
+      {/* Boss Signature Skill Cinematic Cut-in & Fullscreen Flash */}
+      <BossSkillCutin />
 
-        {/* Full-screen player damage feedback (vignette + floating number) */}
-        <PlayerHitFlash />
+      {/* Full-screen player damage feedback */}
+      <PlayerHitFlash />
 
-        {/* Layer 1: Top Header Navigation & Status */}
-        <BattleHeader />
+      {/* Layer 1: Ultra-Compact Top Header */}
+      <BattleHeader />
 
-      {/* Layer 1.5: Real-time Tactical Attack Preview Banner */}
+      {/* Layer 1.5: Micro Tactical Preview Banner */}
       <BattleTacticalPreview />
 
       {/* Layer 1.7: Boss Dedicated HUD (boss rooms only) */}
       <BossHUD />
 
-      {/* Layer 2: Main 5-Lane Battlefield Area */}
-      <BattleFieldLanes dyingMonsterIds={dyingMonsterIds} />
+      {/* Layer 2: Main 5-Lane Battlefield Area (Flex-1 Maximized Viewport) */}
+      <div className="w-full flex-1 flex flex-col justify-center min-h-0 my-0.5 overflow-hidden">
+        <BattleFieldLanes dyingMonsterIds={dyingMonsterIds} />
+      </div>
 
       {/* Layer 3: Bottom Battle Control Dock */}
-      <div className="bg-iron-950/95 border-2 border-brass-600/40 rounded-xl p-2.5 sm:p-3 shadow-2xl space-y-2 select-none ui-ornate">
+      <div className="w-full bg-iron-950/95 border border-brass-600/40 rounded-xl p-1 sm:p-1.5 shadow-2xl flex flex-col gap-1 flex-shrink-0 ui-ornate">
         {/* ROW 1: Skills QWER & Attack Button */}
         <BattleSkillsBar />
 
-        {/* ROW 2: Horizontal Dual Gauges (ㅡ LIFE / RAGE) & Consumables Quick Belt */}
+        {/* ROW 2: Compact Dual Gauges & Consumables Quick Belt */}
         <BattleStatusDock
           expectedIncomingDmg={expectedIncomingDmg}
           isLowHp={isLowHp}
@@ -142,7 +143,6 @@ export const BattleView: React.FC = React.memo(() => {
           rageFloater={rageFloater}
         />
       </div>
-    </div>
     </div>
   );
 });

@@ -149,7 +149,9 @@ interface GameContextType {
   unequipItem: (slot: EquipSlot) => void;
   upgradeStat: (stat: 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha', amount?: number) => void;
   resetStatPoints: () => void;
-  setPlayerLane: (lane: number) => void;
+  setPlayerLane: (lane: number, isManual?: boolean) => void;
+  isManualLaneTargeted: boolean;
+  triggerAttackOrSmartTarget: () => void;
   setSelectedSkill: (skill: Skill) => void;
   selectSkillOrExecute: (skill: Skill) => void;
   executeAttack: () => void;
@@ -316,7 +318,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const clearLatestRoomLootEvent = () => setLatestRoomLootEvent(null);
   const [townUpgrades, setTownUpgrades] = useState<TownUpgrades>(() => savedData?.townUpgrades || DEFAULT_TOWN_UPGRADES);
   const [hasSeenTutorial, setHasSeenTutorial] = useState<boolean>(() => savedData?.hasSeenTutorial ?? false);
-  const [isTutorialOpen, setIsTutorialOpen] = useState<boolean>(() => !(savedData?.hasSeenTutorial ?? false));
+  const [isTutorialOpen, setIsTutorialOpen] = useState<boolean>(false);
   const [tutorialStep, setTutorialStep] = useState<number>(0);
   const [equippedSkillSlots, setEquippedSkillSlots] = useState<Record<string, string>>(() => ({
     ...DEFAULT_EQUIPPED_SLOTS,
@@ -725,7 +727,16 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   // Benchmark 30-Goblin formation from GDD Section 26
   const [monsters, setMonsters] = useState<Monster[]>(createGoblin30Formation());
-  const [playerLane, setPlayerLane] = useState<number>(2);
+  const [playerLane, setPlayerLaneState] = useState<number>(2);
+  const [isManualLaneTargeted, setIsManualLaneTargeted] = useState<boolean>(false);
+  const lastAttackTapRef = useRef<number>(0);
+
+  const setPlayerLane = useCallback((lane: number, isManual: boolean = true) => {
+    setPlayerLaneState(lane);
+    if (isManual) {
+      setIsManualLaneTargeted(true);
+    }
+  }, []);
   const [selectedSkill, setSelectedSkill] = useState<Skill>(WARRIOR_SKILLS[0]);
   const [chainCount, setChainCount] = useState<number>(0);
   const [maxChainThisRoom, setMaxChainThisRoom] = useState<number>(0);
@@ -1658,20 +1669,59 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     const best = findBestLaneForSkill(playerStats.level, totalStats, skill, monsters);
     if (selectedSkill.id === skill.id) {
-      if (playerLane !== best && monsters.some(m => m.lane === best && m.hp > 0)) {
-        setPlayerLane(best);
+      if (!isManualLaneTargeted && playerLane !== best && monsters.some(m => m.lane === best && m.hp > 0)) {
+        setPlayerLane(best, false);
       } else {
         if (monsters.length > 0) {
+          setIsManualLaneTargeted(false);
           executeAttack();
         }
       }
     } else {
       setSelectedSkill(skill);
-      if (monsters.length > 0) {
-        setPlayerLane(best);
+      setIsManualLaneTargeted(false);
+      if (monsters.length > 0 && monsters.some(m => m.lane === best && m.hp > 0)) {
+        setPlayerLane(best, false);
       }
     }
-  }, [selectedSkill, playerLane, totalStats, playerStats.level, monsters, executeAttack, setPlayerLane, addLog]);
+  }, [selectedSkill, playerLane, isManualLaneTargeted, totalStats, playerStats.level, monsters, executeAttack, setPlayerLane, addLog]);
+
+  // Unified Smart / Manual Attack Trigger (Space key & UI Attack button)
+  const triggerAttackOrSmartTarget = useCallback(() => {
+    if (viewMode !== 'battle' || isAttacking || isEnemyTurn || monsters.length === 0) return;
+    if (playerStats.hp <= 0) {
+      addLog('플레이어가 쓰러졌습니다! 마을로 귀환해야 합니다.', 'system');
+      return;
+    }
+
+    const now = Date.now();
+    const isDoubleTap = now - lastAttackTapRef.current < 750;
+    lastAttackTapRef.current = now;
+
+    // 1. If player manually selected a lane, attack immediately
+    if (isManualLaneTargeted) {
+      setIsManualLaneTargeted(false);
+      executeAttack();
+      return;
+    }
+
+    // 2. If already standing in front of monsters, or double tap, attack immediately
+    const best = findBestLaneForSkill(playerStats.level, totalStats, effectiveSkill, monsters);
+    const hasBest = monsters.some(m => m.lane === best && m.hp > 0);
+    const hasCurrent = monsters.some(m => m.lane === playerLane && m.hp > 0);
+
+    if (isDoubleTap || hasCurrent || playerLane === best) {
+      if (isDoubleTap && hasBest && playerLane !== best) {
+        setPlayerLane(best, false);
+      }
+      setIsManualLaneTargeted(false);
+      executeAttack();
+    } else {
+      if (hasBest) {
+        setPlayerLane(best, false);
+      }
+    }
+  }, [viewMode, isAttacking, isEnemyTurn, monsters, playerStats.hp, isManualLaneTargeted, playerLane, totalStats, effectiveSkill, playerStats.level, executeAttack, setPlayerLane, addLog]);
 
   // Consumables Quick Slot
   const useConsumable = useCallback((hotkeyOrId: string) => {
@@ -2561,6 +2611,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setSelectedSkill,
     selectSkillOrExecute,
     executeAttack,
+    triggerAttackOrSmartTarget,
+    isManualLaneTargeted,
     useConsumable,
     enterDungeon,
     selectNextRoom,
@@ -2700,3 +2752,4 @@ export const useGame = () => {
   if (!context) throw new Error('useGame must be used within a GameProvider');
   return context;
 };
+

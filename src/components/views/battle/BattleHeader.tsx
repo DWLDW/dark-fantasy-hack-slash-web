@@ -9,90 +9,73 @@ export const BattleHeader: React.FC = React.memo(() => {
     hordeTimelinePercent,
     chainCount,
     abandonDungeon,
-    dungeonBuffs,
-    openConfirmModal
+    dungeonBuffs
   } = useGame();
 
   return (
-    <div className="space-y-1.5 font-sans">
-      {/* Top Header Grid: Mini Room Graph + Wait ATB + Chain + Safe Town Return */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-1.5 items-center">
-        <div className="lg:col-span-7">
+    <div className="w-full flex flex-col gap-1 font-sans select-none flex-shrink-0">
+      {/* Ultra-Compact Top Header Bar (Fixed Height ~34-36px) */}
+      <div className="w-full bg-iron-950/90 border border-brass-600/30 rounded-lg px-2 py-1 flex items-center justify-between gap-2 shadow-md">
+        
+        {/* Left: Slim MiniRoomGraph */}
+        <div className="flex-shrink-0 min-w-0">
           <MiniRoomGraph />
         </div>
 
-        <div className="lg:col-span-5 bg-iron-900/95 border border-brass-600/30 rounded-lg p-1.5 sm:p-2 flex items-center justify-between shadow-[0_0_16px_rgba(222,178,67,0.1)] gap-2">
-          {/* Swift Momentum Combo Gauge (공속 비례 충전 ➔ 100% 시 적 턴 무효화 & 추가 턴!) */}
-          <div className="flex-1 pr-2 border-r border-iron-750">
-            <div className="flex justify-between items-center text-[10px] sm:text-[11px] font-mono text-gray-300 font-bold mb-0.5">
-              <span className="flex items-center gap-1">
-                <Activity className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400" />
-                {isEnemyTurn ? (
-                  <span className="text-blood-400 animate-pulse font-black">적 반격 진행 중</span>
-                ) : (
-                  <span className="text-amber-300 font-black flex items-center gap-1">
-                    <span>⚡ 신속 연계</span>
-                    <span className="text-[9px] text-gray-400 font-normal">({hordeTimelinePercent}%)</span>
-                  </span>
-                )}
-              </span>
-              <span className={`text-[9px] sm:text-[10px] font-mono font-black px-1.5 py-0.2 rounded ${
-                hordeTimelinePercent >= 75
-                  ? 'bg-amber-500 text-iron-950 animate-pulse'
-                  : 'bg-iron-800 text-gray-300'
-              }`}>
-                {hordeTimelinePercent >= 75 ? '⚡ 추가 턴 임박!' : '공격 시 충전'}
-              </span>
-            </div>
-            <div className="w-full bg-iron-950 h-2 sm:h-2.5 rounded-full overflow-hidden border border-iron-700">
+        {/* Center: Slim Swift Momentum Combo Gauge */}
+        <div className="flex-1 max-w-xs flex items-center gap-1.5 px-2 border-x border-iron-800">
+          <Activity className="w-3 h-3 text-amber-400 flex-shrink-0" />
+          <div className="flex-1 flex flex-col justify-center">
+            <div className="w-full bg-iron-900 h-1.5 sm:h-2 rounded-full overflow-hidden border border-iron-750">
               <div
                 className={`h-full transition-all duration-300 ${
                   isEnemyTurn
-                    ? 'bg-gradient-to-r from-blood-600 to-blood-400 shadow-[0_0_10px_rgba(239,68,68,0.8)]'
+                    ? 'bg-blood-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]'
                     : hordeTimelinePercent >= 75
-                    ? 'bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-300 shadow-[0_0_12px_rgba(251,191,36,0.8)]'
-                    : 'bg-gradient-to-r from-amber-600 to-yellow-500'
+                    ? 'bg-gradient-to-r from-amber-500 to-yellow-300 shadow-[0_0_8px_rgba(251,191,36,0.8)]'
+                    : 'bg-amber-600'
                 }`}
                 style={{ width: `${Math.min(100, hordeTimelinePercent)}%` }}
               />
             </div>
           </div>
+          <span className="text-[9px] font-mono font-bold text-amber-300 flex-shrink-0">
+            {hordeTimelinePercent >= 75 ? '⚡추가턴' : `${hordeTimelinePercent}%`}
+          </span>
+        </div>
 
-          {/* Action Chain Counter */}
-          <div className="text-center px-1">
-            <div className="text-[9px] text-gray-400 font-mono font-bold">1회 처치</div>
-            <div className={`font-cinzel font-black text-sm sm:text-base ${chainCount > 0 ? 'text-amber-300 animate-chain-pop' : 'text-gray-500'}`}>
-              {chainCount > 0 ? `x${chainCount}` : 'x0'}
-            </div>
-          </div>
+        {/* Right: Chain Counter & Compact Return */}
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          {chainCount > 0 && (
+            <span className="px-1.5 py-0.5 rounded bg-amber-950/80 border border-amber-500 text-amber-300 text-[10px] font-mono font-black animate-pulse">
+              x{chainCount}
+            </span>
+          )}
 
-          {/* Safe Town Return Button */}
           <button
             onClick={() => {
-              if (window.confirm('이번 원정을 포기하고 마을로 안전하게 귀환하시겠습니까? (미저장 전리품 몰수)')) {
+              if (window.confirm('이번 원정을 포기하고 마을로 귀환하시겠습니까? (미저장 전리품 몰수)')) {
                 abandonDungeon();
               }
             }}
-            className="px-2.5 py-1 bg-iron-950 hover:bg-iron-800 border border-iron-750 hover:border-red-500/70 text-gray-400 hover:text-red-300 rounded text-[10px] font-mono font-bold transition cursor-pointer flex items-center gap-1 shadow flex-shrink-0"
-            title="원정을 중단하고 마을로 안전하게 귀환합니다"
+            className="p-1 sm:px-2 sm:py-0.5 bg-iron-900 hover:bg-iron-800 border border-iron-750 hover:border-red-500/70 text-gray-400 hover:text-red-300 rounded text-[10px] font-mono font-bold transition cursor-pointer flex items-center gap-1 shadow-sm"
+            title="마을로 안전하게 귀환"
           >
             <Home className="w-3 h-3 text-amber-400" />
-            <span>귀환</span>
+            <span className="hidden sm:inline">귀환</span>
           </button>
         </div>
       </div>
 
-      {/* Active Dungeon Shrine Buffs Banner */}
+      {/* Active Dungeon Shrine Buffs Mini Pill (Only when present, compact 18px) */}
       {dungeonBuffs.length > 0 && (
-        <div className="bg-iron-950 border border-purple-500/60 rounded px-2.5 py-0.5 flex items-center gap-2 overflow-x-auto text-[10px] sm:text-xs text-purple-200 font-mono shadow">
-          <span className="font-bold flex items-center gap-1 flex-shrink-0 text-amber-300">
-            <Sparkles className="w-3.5 h-3.5" /> 성소 축복:
-          </span>
-          <div className="flex items-center gap-2 flex-wrap">
+        <div className="bg-iron-950/80 border border-purple-500/40 rounded px-2 py-0.5 flex items-center gap-1.5 overflow-x-auto text-[9px] text-purple-200 font-mono shadow-sm">
+          <Sparkles className="w-3 h-3 text-amber-300 flex-shrink-0" />
+          <div className="flex items-center gap-1.5 flex-wrap">
             {dungeonBuffs.map(b => (
-              <span key={b.id} className="bg-purple-950 px-1.5 py-0.5 rounded border border-purple-700 flex items-center gap-1">
+              <span key={b.id} className="bg-purple-950/90 px-1.5 py-0.2 rounded border border-purple-700/60 flex items-center gap-1">
                 <span>{b.icon}</span>
-                <strong>{b.name}</strong> ({b.description})
+                <strong>{b.name}</strong>
               </span>
             ))}
           </div>

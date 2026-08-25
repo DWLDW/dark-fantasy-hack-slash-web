@@ -64,29 +64,12 @@ export const ALL_AVAILABLE_SKILLS: Skill[] = [
     damageMultiplier: 1.2,
     overkillEfficiency: 0.50,
     rageGainPerHit: 15,
-    route: 'line',
-    description: '기본 공격. 자원 소모가 없으며 타격당 분노 +15를 생성하여 처형/휩쓸기/휠윈드 스킬을 빌드업합니다.',
-    icon: 'Sword',
+    route: 'single',
+    description: '기본 단일 타격. 명중 시 분노를 +15 획득하며 전방의 적에게 빠른 물리 피해를 입힙니다.',
+    icon: 'Swords',
     hotkey: 'Q',
     activeRuneId: 'rune_fire',
     unlockLevel: 1,
-    hitCount: 1
-  },
-  {
-    id: 'execute',
-    name: '처형 (Execute)',
-    level: 1,
-    maxLevel: 30,
-    rageCost: 30,
-    manaCost: 0,
-    damageMultiplier: 4.2,
-    overkillEfficiency: 0.80,
-    route: 'single',
-    description: '전방 단일 적에게 4.2배수의 치명적 처형 일격을 가합니다. 처형으로 적 격살 시 적의 반격을 무효화하고 즉시 추가 턴(EXTRA TURN)을 획득합니다!',
-    icon: 'Skull',
-    hotkey: 'W',
-    activeRuneId: 'rune_poison',
-    unlockLevel: 2,
     hitCount: 1
   },
   {
@@ -97,14 +80,14 @@ export const ALL_AVAILABLE_SKILLS: Skill[] = [
     rageCost: 15,
     manaCost: 0,
     damageMultiplier: 1.6,
-    overkillEfficiency: 0.70,
-    rageGainPerHit: 0,
+    overkillEfficiency: 0.85,
+    rageGainPerHit: 5,
     route: 'branch',
-    description: '전방 및 좌우 3개 Lane의 전열을 휩쓰는 광역기. 적은 분노(15)를 소모하여 다수의 적을 빠르게 소탕합니다.',
+    description: '현재 레인과 인접한 좌우 레인(총 3레인)의 최전방 적들을 동시에 베어냅니다. (타격당 분노 +5)',
     icon: 'Zap',
-    hotkey: 'E',
+    hotkey: 'W',
     activeRuneId: 'rune_lightning',
-    unlockLevel: 3,
+    unlockLevel: 2,
     hitCount: 3
   },
   {
@@ -112,52 +95,72 @@ export const ALL_AVAILABLE_SKILLS: Skill[] = [
     name: '방패 강타 (Shield Bash)',
     level: 1,
     maxLevel: 30,
-    rageCost: 15,
+    rageCost: 10,
     manaCost: 0,
-    damageMultiplier: 2.4,
-    overkillEfficiency: 0.65,
+    damageMultiplier: 1.3,
+    overkillEfficiency: 0.40,
+    rageGainPerHit: 5,
     route: 'single',
-    description: '단단한 방패로 전방 적을 후려쳐 2.4배 물리 피해를 입히고 플레이어에게 생명력 보호막(Shield)을 생성합니다!',
+    description: '방패로 전방 적을 강타하여 피해를 입히고 자신의 방어력의 100%만큼 보호막(Shield)을 생성합니다. (보스 저지 게이지 250% 파괴)',
     icon: 'Shield',
     hotkey: 'W',
     activeRuneId: 'rune_frost',
-    unlockLevel: 6,
+    unlockLevel: 5,
     hitCount: 1
   },
   {
-    id: 'berserk',
-    name: '광폭 공격 (Berserk)',
+    id: 'execute',
+    name: '처형 (Execute)',
     level: 1,
     maxLevel: 30,
-    rageCost: 25,
+    rageCost: 20,
     manaCost: 0,
-    damageMultiplier: 1.45,
-    overkillEfficiency: 0,
+    damageMultiplier: 2.2,
+    overkillEfficiency: 0.90,
+    rageGainPerHit: 0,
     route: 'single',
-    description: '오버킬 없이 전방 단일 적에게 1.45배수의 맹렬한 광폭 일격을 3연타(총 4.35배) 퍼붓습니다. 오버킬 전이가 없는 대신 안정적인 최대 화력을 자랑합니다.',
-    icon: 'Flame',
+    description: '전방 단일 적에게 220%의 파괴적인 일격을 날립니다. 오버킬 발생 시 잉여 데미지의 90%가 후열 적에게 관통 이월됩니다.',
+    icon: 'Skull',
     hotkey: 'E',
-    activeRuneId: 'rune_fire',
-    unlockLevel: 15,
-    hitCount: 3
+    activeRuneId: 'rune_poison',
+    unlockLevel: 10,
+    hitCount: 1
   },
   {
     id: 'whirlwind',
     name: '휠윈드 (Whirlwind)',
     level: 1,
     maxLevel: 30,
-    rageCost: 45,
+    rageCost: 35,
     manaCost: 0,
-    damageMultiplier: 1.1,
-    overkillEfficiency: 0.60,
-    rageGainPerHit: 0,
+    damageMultiplier: 1.3,
+    overkillEfficiency: 0.80,
+    rageGainPerHit: 4,
     route: 'radius',
-    description: '전 레인 2열(10칸)을 휩쓰는 광역 폭풍. 타격 시 자체 분노를 생성하지 않아 자원을 소모하므로, 통찰(Insight) 룬워드를 착용하거나 가르기/휩쓸기와 연계해야 난사할 수 있습니다.',
+    description: '무기를 휘두르며 전장의 5개 모든 레인 최전방 적들을 동시에 폭풍처럼 회전 타격합니다. (타격당 분노 +4)',
     icon: 'RotateCw',
     hotkey: 'R',
-    activeRuneId: 'rune_frost',
+    activeRuneId: 'rune_fire',
+    unlockLevel: 15,
+    hitCount: 5
+  },
+  {
+    id: 'berserk',
+    name: '광전사의 진노 (Berserk)',
+    level: 1,
+    maxLevel: 30,
+    rageCost: 25,
+    manaCost: 0,
+    damageMultiplier: 2.8,
+    overkillEfficiency: 0.95,
+    rageGainPerHit: 0,
+    route: 'single',
+    description: '자신의 생명력 10%를 희생하여 전방 적에게 280%의 폭발적인 치명타 피해를 입힙니다.',
+    icon: 'Flame',
+    hotkey: 'E',
+    activeRuneId: 'rune_fire',
     unlockLevel: 20,
-    hitCount: 10
+    hitCount: 1
   },
   {
     id: 'war_cry',
@@ -181,15 +184,15 @@ export const ALL_AVAILABLE_SKILLS: Skill[] = [
 
 export const DEFAULT_EQUIPPED_SLOTS: Record<'Q' | 'W' | 'E' | 'R', string> = {
   Q: 'slash',
-  W: 'execute',
-  E: 'cleave',
+  W: 'cleave',
+  E: 'execute',
   R: 'whirlwind'
 };
 
 export const WARRIOR_SKILLS: Skill[] = [
   ALL_AVAILABLE_SKILLS.find(s => s.id === 'slash')!,
-  ALL_AVAILABLE_SKILLS.find(s => s.id === 'execute')!,
   ALL_AVAILABLE_SKILLS.find(s => s.id === 'cleave')!,
+  ALL_AVAILABLE_SKILLS.find(s => s.id === 'execute')!,
   ALL_AVAILABLE_SKILLS.find(s => s.id === 'whirlwind')!
 ];
 
@@ -221,8 +224,6 @@ export function getSkillDamageText(
   const runeDmgBonus = 1 + (activeRune?.damageBonusPercent || 0) / 100;
   const totalMult = skill.damageMultiplier * levelMult * runeDmgBonus;
 
-  const dmgMin = Math.floor(minD * totalMult);
-  const dmgMax = Math.floor(maxD * totalMult);
   const dmgAvg = Math.floor(avgD * totalMult);
   const percentStr = Math.round(totalMult * 100) + '%';
 
