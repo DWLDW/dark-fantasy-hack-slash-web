@@ -13,86 +13,175 @@ const ELEMENT_FLASH: Record<string, string> = {
   physical: 'fx-flash-physical'
 };
 
-const VERTICAL_PATH = 'M 54 6 C 30 130, 70 255, 44 394';
-const HORIZONTAL_PATH = 'M 8 62 C 70 18, 210 86, 392 38';
-
-const WHIRL_CUTS = [
-  { top: '16%', angle: -11, delay: '0ms' },
-  { top: '34%', angle: 9, delay: '90ms' },
-  { top: '52%', angle: -7, delay: '180ms' },
-  { top: '70%', angle: 12, delay: '270ms' }
-];
-
-interface BladeSlashProps {
-  dir: 'vertical' | 'horizontal';
-  color: string;
-  uid: string;
-  delay?: string;
-  thick?: boolean;
-}
-
-const BladeSlash: React.FC<BladeSlashProps> = ({ dir, color, uid, delay = '0ms', thick }) => {
-  const viewBox = dir === 'vertical' ? '0 0 100 400' : '0 0 400 100';
-  const d = dir === 'vertical' ? VERTICAL_PATH : HORIZONTAL_PATH;
-  const glowW = thick ? 28 : 20;
-  const midW = thick ? 12 : 8;
-  const coreW = thick ? 4.5 : 3.2;
-  const filterId = `blade-glow-${uid}`;
-
+/**
+ * 🌙 1. Vertical Crescent Sword Aura (종베기 관통 초승달 검기)
+ */
+const VerticalSwordAura: React.FC<{ color: string; uid: string }> = ({ color, uid }) => {
   return (
-    <svg
-      className="fx-blade-slash"
-      viewBox={viewBox}
-      preserveAspectRatio="none"
-      width="100%"
-      height="100%"
-    >
-      <defs>
-        <filter id={filterId} x="-40%" y="-40%" width="180%" height="180%">
-          <feGaussianBlur stdDeviation="4.5" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-      </defs>
-      <path
-        className="fx-blade-draw fx-blade-glow"
-        d={d}
-        fill="none"
-        stroke={color}
-        strokeWidth={glowW}
-        strokeLinecap="round"
-        pathLength={1}
-        filter={`url(#${filterId})`}
-        style={{ animationDelay: delay }}
-      />
-      <path
-        className="fx-blade-draw"
-        d={d}
-        fill="none"
-        stroke={color}
-        strokeWidth={midW}
-        strokeLinecap="round"
-        pathLength={1}
-        style={{ animationDelay: delay }}
-      />
-      <path
-        className="fx-blade-draw fx-blade-core"
-        d={d}
-        fill="none"
-        stroke="#fff"
-        strokeWidth={coreW}
-        strokeLinecap="round"
-        pathLength={1}
-        style={{ animationDelay: delay }}
-      />
-    </svg>
+    <div className="relative w-full h-full fx-crescent-vertical">
+      <svg
+        className="fx-sword-aura-crescent w-full h-full"
+        viewBox="0 0 160 400"
+        preserveAspectRatio="none"
+      >
+        <defs>
+          <linearGradient id={`v-grad-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
+            <stop offset="35%" stopColor={color} stopOpacity="0.95" />
+            <stop offset="100%" stopColor={color} stopOpacity="0" />
+          </linearGradient>
+          <filter id={`v-glow-${uid}`} x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur1" />
+            <feGaussianBlur in="SourceGraphic" stdDeviation="14" result="blur2" />
+            <feMerge>
+              <feMergeNode in="blur2" />
+              <feMergeNode in="blur1" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        {/* Outer Aura Flare */}
+        <path
+          d="M 80 10 Q 30 180, 80 390 Q 60 200, 80 10 Z"
+          fill={`url(#v-grad-${uid})`}
+          filter={`url(#v-glow-${uid})`}
+        />
+        {/* Sharp Inner Blade Curve */}
+        <path
+          d="M 80 20 Q 45 190, 80 380 Q 70 200, 80 20 Z"
+          fill="#ffffff"
+          opacity="0.9"
+        />
+      </svg>
+      <div className="fx-blade-sparks" style={{ color }} />
+      <div className="fx-blade-swing-trail" />
+    </div>
   );
 };
 
-function slashKind(route: SkillRoute): 'vertical' | 'horizontal-wide' | 'whirl' {
+/**
+ * 🌊 2. Horizontal Wide Crescent Sword Aura (부채꼴 횡베기 파동 검기)
+ */
+const HorizontalSwordAura: React.FC<{ color: string; uid: string }> = ({ color, uid }) => {
+  return (
+    <div className="relative w-full h-full fx-crescent-horizontal">
+      <svg
+        className="fx-sword-aura-crescent w-full h-full"
+        viewBox="0 0 450 180"
+        preserveAspectRatio="none"
+      >
+        <defs>
+          <linearGradient id={`h-grad-${uid}`} x1="0%" y1="50%" x2="100%" y2="50%">
+            <stop offset="0%" stopColor={color} stopOpacity="0" />
+            <stop offset="25%" stopColor={color} stopOpacity="0.9" />
+            <stop offset="50%" stopColor="#ffffff" stopOpacity="1" />
+            <stop offset="75%" stopColor={color} stopOpacity="0.9" />
+            <stop offset="100%" stopColor={color} stopOpacity="0" />
+          </linearGradient>
+          <filter id={`h-glow-${uid}`} x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        {/* Massive Sweeping Crescent Blade */}
+        <path
+          d="M 10 130 Q 225 15, 440 130 Q 225 60, 10 130 Z"
+          fill={`url(#h-grad-${uid})`}
+          filter={`url(#h-glow-${uid})`}
+        />
+        {/* Blazing White-Hot Cutting Edge */}
+        <path
+          d="M 40 120 Q 225 35, 410 120 Q 225 55, 40 120 Z"
+          fill="#ffffff"
+          opacity="0.92"
+        />
+      </svg>
+      <div className="fx-blade-sparks" style={{ color }} />
+      <div className="fx-blade-swing-trail" />
+    </div>
+  );
+};
+
+/**
+ * ⚔️ 3. Cross Guillotine Slash (십자 교차 단두대 참격)
+ */
+const CrossExecutionSlash: React.FC<{ color: string; uid: string }> = ({ color, uid }) => {
+  return (
+    <div className="relative w-full h-full flex items-center justify-center">
+      {/* Blade Slash 1: Left-to-Right Diagonal */}
+      <div className="absolute inset-0 fx-cross-slash-1">
+        <svg className="fx-sword-aura-crescent w-full h-full" viewBox="0 0 200 200">
+          <path
+            d="M 15 15 Q 100 80, 185 185 Q 115 100, 15 15 Z"
+            fill={color}
+            filter="drop-shadow(0 0 15px currentColor)"
+          />
+          <path
+            d="M 25 25 Q 100 85, 175 175 Q 110 95, 25 25 Z"
+            fill="#ffffff"
+          />
+        </svg>
+      </div>
+      {/* Blade Slash 2: Right-to-Left Diagonal */}
+      <div className="absolute inset-0 fx-cross-slash-2">
+        <svg className="fx-sword-aura-crescent w-full h-full" viewBox="0 0 200 200">
+          <path
+            d="M 185 15 Q 100 80, 15 185 Q 85 100, 185 15 Z"
+            fill={color}
+            filter="drop-shadow(0 0 15px currentColor)"
+          />
+          <path
+            d="M 175 25 Q 100 85, 25 175 Q 90 95, 175 25 Z"
+            fill="#ffffff"
+          />
+        </svg>
+      </div>
+      <div className="fx-blade-sparks" style={{ color }} />
+      <div className="fx-blade-swing-trail" />
+    </div>
+  );
+};
+
+/**
+ * 🌪️ 4. Cyclone Whirlwind Sword Aura (360도 회전 폭풍 검기)
+ */
+const CycloneWhirlAura: React.FC<{ color: string; uid: string }> = ({ color, uid }) => {
+  return (
+    <div className="relative w-full h-full fx-crescent-whirl">
+      <svg className="fx-sword-aura-crescent w-full h-full" viewBox="0 0 300 300">
+        <defs>
+          <radialGradient id={`cyclone-grad-${uid}`} cx="50%" cy="50%" r="50%">
+            <stop offset="30%" stopColor="#ffffff" stopOpacity="0.9" />
+            <stop offset="70%" stopColor={color} stopOpacity="0.8" />
+            <stop offset="100%" stopColor={color} stopOpacity="0" />
+          </radialGradient>
+        </defs>
+        {/* Triple Spinning Crescent Arc Blades */}
+        <path
+          d="M 150 20 Q 280 60, 260 180 Q 210 140, 150 20 Z"
+          fill={`url(#cyclone-grad-${uid})`}
+        />
+        <path
+          d="M 260 180 Q 200 280, 70 240 Q 120 190, 260 180 Z"
+          fill={`url(#cyclone-grad-${uid})`}
+        />
+        <path
+          d="M 70 240 Q 20 120, 150 20 Q 90 100, 70 240 Z"
+          fill={`url(#cyclone-grad-${uid})`}
+        />
+      </svg>
+      <div className="fx-blade-sparks" style={{ color }} />
+      <div className="fx-blade-swing-trail" />
+    </div>
+  );
+};
+
+function getSlashKind(route: SkillRoute, skillId?: string): 'vertical' | 'horizontal-wide' | 'cross' | 'whirl' {
   if (route === 'radius') return 'whirl';
+  if (skillId === 'execute') return 'cross';
   if (route === 'branch') return 'horizontal-wide';
   return 'vertical';
 }
@@ -109,7 +198,7 @@ export const CombatFxLayer: React.FC = React.memo(() => {
   const rune = SKILL_RUNES_DATA.find(r => r.id === runeId);
   const element = selectedSkill.element || rune?.element || 'physical';
   const glow = getElementGlow(element);
-  const kind = slashKind(selectedSkill.route);
+  const kind = getSlashKind(selectedSkill.route, selectedSkill.id);
 
   useEffect(() => {
     if (isAttacking && !prevAttack.current) {
@@ -117,7 +206,7 @@ export const CombatFxLayer: React.FC = React.memo(() => {
       setShowStrike(true);
     }
     if (!isAttacking) {
-      const hold = kind === 'whirl' ? 420 : 220;
+      const hold = kind === 'whirl' ? 450 : 350;
       const t = setTimeout(() => setShowStrike(false), hold);
       prevAttack.current = isAttacking;
       return () => clearTimeout(t);
@@ -140,84 +229,86 @@ export const CombatFxLayer: React.FC = React.memo(() => {
   }, [playerLane]);
 
   const verticalLane = playerLane;
-  const isPierce = selectedSkill.route === 'line';
 
   return (
-    <div className="absolute inset-0 pointer-events-none z-30 overflow-hidden" aria-hidden>
+    <div className="absolute inset-0 pointer-events-none z-30 overflow-hidden select-none" aria-hidden>
+      {/* 1. Element Atmosphere Flash */}
       {showStrike && (
         <div key={`flash-${strikeKey}`} className={`absolute inset-0 ${ELEMENT_FLASH[element] || ELEMENT_FLASH.physical}`} />
       )}
 
+      {/* 2. Vertical Cleave Sword Aura (가르기 / 관통 종베기 검기) */}
       {showStrike && kind === 'vertical' && (
         <div
           key={`v-${strikeKey}`}
-          className="absolute fx-cut-vertical"
+          className="absolute"
           style={{
-            left: `${verticalLane * 20}%`,
-            width: '20%',
-            top: isPierce ? '2%' : '28%',
-            height: isPierce ? '96%' : '68%',
+            left: `${verticalLane * 20 - 5}%`,
+            width: '30%',
+            top: '0%',
+            height: '100%',
             color: glow
           }}
         >
-          <BladeSlash dir="vertical" color={glow} uid={`${strikeKey}-v`} thick={selectedSkill.route === 'single'} />
-          {isPierce && (
-            <div className="absolute inset-0 opacity-50" style={{ transform: 'translateX(10%)' }}>
-              <BladeSlash dir="vertical" color={glow} uid={`${strikeKey}-v2`} delay="40ms" />
-            </div>
-          )}
-          <span className="fx-cut-sparks" style={{ color: glow }} />
+          <VerticalSwordAura color={glow} uid={`${strikeKey}-v`} />
         </div>
       )}
 
+      {/* 3. Cross Guillotine Slash (처형 십자 검기) */}
+      {showStrike && kind === 'cross' && (
+        <div
+          key={`c-${strikeKey}`}
+          className="absolute"
+          style={{
+            left: `${verticalLane * 20 - 8}%`,
+            width: '36%',
+            top: '15%',
+            height: '70%',
+            color: glow
+          }}
+        >
+          <CrossExecutionSlash color={glow} uid={`${strikeKey}-cross`} />
+        </div>
+      )}
+
+      {/* 4. Horizontal Sweep Crescent Aura (휩쓸기 3레인 부채꼴 횡베기 검기) */}
       {showStrike && kind === 'horizontal-wide' && (
         <div
           key={`h-${strikeKey}`}
-          className="absolute fx-cut-horizontal"
+          className="absolute"
           style={{
-            left: `${branchSpan.start * 20 + 1}%`,
-            width: `${branchSpan.count * 20 - 2}%`,
-            top: '48%',
-            height: '38%',
-            transform: 'rotate(-6deg)',
+            left: `${branchSpan.start * 20 - 2}%`,
+            width: `${branchSpan.count * 20 + 4}%`,
+            top: '30%',
+            height: '55%',
             color: glow
           }}
         >
-          <BladeSlash dir="horizontal" color={glow} uid={`${strikeKey}-h`} thick />
-          <span className="fx-cut-sparks fx-cut-sparks-wide" style={{ color: glow }} />
+          <HorizontalSwordAura color={glow} uid={`${strikeKey}-h`} />
         </div>
       )}
 
+      {/* 5. Cyclone Whirlwind Arc (광전사의 분노 / 회전 폭풍 검기) */}
       {showStrike && kind === 'whirl' && (
-        <div key={`w-${strikeKey}`} className="absolute inset-0">
-          {WHIRL_CUTS.map((cut, i) => (
-            <div
-              key={i}
-              className="absolute fx-cut-horizontal fx-cut-whirl"
-              style={{
-                left: '3%',
-                width: '94%',
-                top: cut.top,
-                height: '26%',
-                transform: `rotate(${cut.angle}deg)`,
-                color: glow
-              }}
-            >
-              <BladeSlash
-                dir="horizontal"
-                color={glow}
-                uid={`${strikeKey}-w${i}`}
-                delay={cut.delay}
-                thick={i === 1 || i === 2}
-              />
-            </div>
-          ))}
-          <span className="fx-cut-sparks fx-cut-sparks-wide" style={{ color: glow }} />
+        <div
+          key={`w-${strikeKey}`}
+          className="absolute"
+          style={{
+            left: '5%',
+            width: '90%',
+            top: '10%',
+            height: '80%',
+            color: glow
+          }}
+        >
+          <CycloneWhirlAura color={glow} uid={`${strikeKey}-w`} />
         </div>
       )}
 
+      {/* 6. Critical Hit Impact Burst */}
       {hasCrit && showStrike && <div className="absolute inset-0 fx-crit-burst" />}
 
+      {/* 7. Chain Combo Popup Banner */}
       {banner && (
         <div
           key={banner.id}

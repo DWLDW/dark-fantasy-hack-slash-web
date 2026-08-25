@@ -607,55 +607,129 @@ body::before {
   100% { transform: translate(0, 0) scale(1); }
 }
 
-/* Combat blade slashes — drawn cuts, not beams */
-.fx-blade-slash {
+/* ==========================================================================
+   💥 HYPER SWORD AURA & BLADE SLASH FX (진짜 칼 휘두름 + 초승달 검기 파동)
+   ========================================================================== */
+
+/* 1. Dynamic Sword Aura Arc Crescent */
+.fx-sword-aura-crescent {
   display: block;
   overflow: visible;
-  filter: drop-shadow(0 0 6px currentColor);
-}
-.fx-blade-draw {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  animation: bladeDraw 0.34s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-.fx-blade-glow {
-  opacity: 0.7;
-}
-.fx-blade-core {
-  filter: drop-shadow(0 0 3px #fff);
-}
-@keyframes bladeDraw {
-  0% { stroke-dashoffset: 1; opacity: 0; }
-  10% { opacity: 1; }
-  52% { stroke-dashoffset: 0; opacity: 1; }
-  100% { stroke-dashoffset: 0; opacity: 0; }
+  filter: drop-shadow(0 0 12px currentColor) drop-shadow(0 0 24px currentColor);
+  mix-blend-mode: screen;
 }
 
-.fx-cut-vertical,
-.fx-cut-horizontal {
-  pointer-events: none;
+/* 2. Vertical Downward Cleave (종베기 검기 파동) */
+.fx-crescent-vertical {
+  animation: swordCleaveVertical 0.36s cubic-bezier(0.12, 0.9, 0.25, 1) forwards;
+  transform-origin: 50% 100%;
 }
-.fx-cut-sparks {
+@keyframes swordCleaveVertical {
+  0% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.3, 0.6) rotate(-4deg);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(0px) scale(1.15, 1.25) rotate(0deg);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-25px) scale(1.2, 1.4) rotate(2deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-50px) scale(1.35, 1.5) rotate(4deg);
+  }
+}
+
+/* 3. Horizontal Wide Arc Wave (부채꼴 횡베기 검기 파동) */
+.fx-crescent-horizontal {
+  animation: swordSweepHorizontal 0.38s cubic-bezier(0.15, 0.95, 0.3, 1) forwards;
+  transform-origin: 50% 50%;
+}
+@keyframes swordSweepHorizontal {
+  0% {
+    opacity: 0;
+    transform: scale(0.4, 0.4) rotate(-18deg);
+  }
+  25% {
+    opacity: 1;
+    transform: scale(1.15, 1.1) rotate(-6deg);
+  }
+  65% {
+    opacity: 0.95;
+    transform: scale(1.25, 1.2) rotate(2deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.4, 1.3) rotate(8deg);
+  }
+}
+
+/* 4. Cross Execution Slash (십자 교차 단두대 참격) */
+.fx-cross-slash-1 {
+  animation: crossSlashLeft 0.32s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+}
+.fx-cross-slash-2 {
+  animation: crossSlashRight 0.32s cubic-bezier(0.1, 0.9, 0.2, 1) 0.05s forwards;
+}
+@keyframes crossSlashLeft {
+  0% { opacity: 0; transform: translate(-30px, -30px) scale(0.4) rotate(-42deg); }
+  25% { opacity: 1; transform: translate(0, 0) scale(1.2) rotate(-38deg); }
+  70% { opacity: 1; transform: translate(15px, 15px) scale(1.3) rotate(-36deg); }
+  100% { opacity: 0; transform: translate(30px, 30px) scale(1.4) rotate(-35deg); }
+}
+@keyframes crossSlashRight {
+  0% { opacity: 0; transform: translate(30px, -30px) scale(0.4) rotate(42deg); }
+  25% { opacity: 1; transform: translate(0, 0) scale(1.2) rotate(38deg); }
+  70% { opacity: 1; transform: translate(-15px, 15px) scale(1.3) rotate(36deg); }
+  100% { opacity: 0; transform: translate(-30px, 30px) scale(1.4) rotate(35deg); }
+}
+
+/* 5. Cyclone Whirlwind Arc (회전 폭풍 검기) */
+.fx-crescent-whirl {
+  animation: swordCyclone 0.45s cubic-bezier(0.16, 0.9, 0.3, 1) forwards;
+  transform-origin: 50% 50%;
+}
+@keyframes swordCyclone {
+  0% { opacity: 0; transform: rotate(0deg) scale(0.3); }
+  25% { opacity: 1; transform: rotate(90deg) scale(1.1); }
+  65% { opacity: 1; transform: rotate(240deg) scale(1.25); }
+  100% { opacity: 0; transform: rotate(360deg) scale(1.4); }
+}
+
+/* 6. Blade Swing Trail & Impact Sparks */
+.fx-blade-swing-trail {
   position: absolute;
-  left: 18%;
-  right: 18%;
-  top: 8%;
-  bottom: 8%;
+  inset: -10%;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 50%, rgba(255, 255, 255, 0.4) 0%, transparent 60%);
+  animation: swingTrailFade 0.28s ease-out forwards;
+}
+@keyframes swingTrailFade {
+  0% { opacity: 0; transform: scale(0.6); }
+  30% { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 0; transform: scale(1.3); }
+}
+
+.fx-blade-sparks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
   background:
-    radial-gradient(circle at 48% 12%, #fff 0 2px, transparent 3px),
-    radial-gradient(circle at 62% 40%, currentColor 0 2px, transparent 3px),
-    radial-gradient(circle at 38% 70%, #fff 0 1.5px, transparent 3px),
-    radial-gradient(circle at 55% 88%, currentColor 0 2px, transparent 3.5px);
-  animation: sparkBurst 0.4s ease-out forwards;
+    radial-gradient(circle at 45% 45%, #fff 0 3px, transparent 4px),
+    radial-gradient(circle at 55% 40%, currentColor 0 3px, transparent 5px),
+    radial-gradient(circle at 40% 60%, #fff 0 2.5px, transparent 4px),
+    radial-gradient(circle at 60% 58%, currentColor 0 3px, transparent 5px),
+    radial-gradient(circle at 50% 50%, #fff 0 4px, transparent 6px);
+  filter: drop-shadow(0 0 8px currentColor);
+  animation: sparksExplode 0.35s ease-out forwards;
 }
-.fx-cut-sparks-wide {
-  left: 6%;
-  right: 6%;
-  top: 20%;
-  bottom: 20%;
-}
-.fx-cut-whirl .fx-blade-draw {
-  animation-duration: 0.42s;
+@keyframes sparksExplode {
+  0% { opacity: 0; transform: scale(0.4); }
+  35% { opacity: 1; transform: scale(1.2); }
+  100% { opacity: 0; transform: scale(1.6); }
 }
 
 .fx-flash-fire { animation: screenFlashFire 0.38s ease-out forwards; background: rgba(239, 68, 68, 0.18); }
