@@ -112,6 +112,8 @@ interface GameContextType {
   hordeTimelinePercent: number;
   bossTurnCount: number;
   bossGuardActive: boolean;
+  bossHazardLanes: number[];
+  playerHitFlash: { id: number; damage: number } | null;
   activeBossSkill: {
     name: string;
     icon: string;
@@ -353,6 +355,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const bossSummonedRef = useRef<Record<string, boolean>>({});
   const [bossTurnCount, setBossTurnCount] = useState(0);
   const [bossGuardActive, setBossGuardActive] = useState(false);
+  const bossHazardLanesRef = useRef<number[]>([]);
+  const [bossHazardLanes, setBossHazardLanes] = useState<number[]>([]);
+  const [playerHitFlash, setPlayerHitFlash] = useState<{ id: number; damage: number } | null>(null);
+  const hitFlashTimerRef = useRef<number | null>(null);
+  const triggerPlayerHitFlash = useCallback((damage: number) => {
+    if (hitFlashTimerRef.current !== null) window.clearTimeout(hitFlashTimerRef.current);
+    setPlayerHitFlash({ id: Date.now(), damage });
+    hitFlashTimerRef.current = window.setTimeout(() => setPlayerHitFlash(null), 700);
+  }, []);
   const [activeBossSkill, setActiveBossSkill] = useState<{
     name: string;
     icon: string;
@@ -990,6 +1001,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const telegraphHit = activeBossTelegraphLanes.includes(playerLane)
       ? Math.max(10, Math.floor((activeBoss?.intent.damage || 20) * 0.6))
       : 0;
+    // Hazard terrain feedback: standing in a hazard lane when attacking = reactive splash damage
+    const hazardLanesNow = activeRoomType === 'boss' ? bossHazardLanesRef.current : [];
+    const playerInHazard = hazardLanesNow.includes(playerLane);
+    const hazardHit = playerInHazard
+      ? Math.max(5, Math.floor((activeBoss?.intent.damage || 20) * 0.3))
+      : 0;
+    // AoE skills that hit INTO a hazard lane detonate it for reduced splash (teaches "AoE pokes the terrain")
+    const isAoeSkill = ['branch', 'radius'].includes(effectiveSkill.route);
+    const hazardDetonationTargets = isAoeSkill ? hazardLanesNow.filter(l => l !== playerLane) : [];
     let bossGuardTriggered = false;
 
     if (activeRoomType === 'boss' && activeBoss) {
@@ -1176,6 +1196,22 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             return;
           }
         }
+      }
+
+      // Hazard terrain: reactive damage when attacking from inside a hazard lane
+      if (playerInHazard) {
+        triggerPlayerHitFlash(hazardHit);
+        setPlayerStats(prev => ({ ...prev, hp: Math.max(0, prev.hp - hazardHit) }));
+        const isPoisonHazard = activeBoss?.bossSignatureKey === 'poison_nova';
+        addLog(`${isPoisonHazard ? '🧪' : '❄️'} [지형 반동!] 맹독/결빙 지대 위에서 공격하여 반동 피해를 입었습니다! (-${hazardHit} HP)`, 'damage');
+      }
+
+      // Hazard terrain: AoE detonation splash when hitting into a hazard lane (reduced, teaches interaction)
+      if (hazardDetonationTargets.length > 0) {
+        const detonationDmg = Math.max(3, Math.floor((activeBoss?.intent.damage || 20) * 0.15));
+        triggerPlayerHitFlash(detonationDmg);
+        setPlayerStats(prev => ({ ...prev, hp: Math.max(0, prev.hp - detonationDmg * hazardDetonationTargets.length) }));
+        addLog(`💥 [지형 폭발!] 광역기가 ${hazardDetonationTargets.map(l => l + 1 + '번').join(', ')} 레인의 맹독/결빙 지대를 직격해 폭발했습니다! (-${detonationDmg * hazardDetonationTargets.length} HP)`, 'damage');
       }
 
       if (result.chainCount > 0) {
@@ -1445,6 +1481,29 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             } else {
               boss.bossWeakLane = undefined;
               setMonsters(prev => prev.map(m => m.rank === 'boss' ? { ...m, bossTelegraphLanes: undefined } : m));
+            }
+
+            // Terrain hazard gimmick (poison_nova / frost_burrow bosses): every 3rd boss turn,
+            // flood 2 random lanes with hazard terrain. Attacking FROM a hazard lane hurts the player,
+            // and AoE skills that hit INTO a hazard lane splash back for reduced damage.
+            const hazardSigKeys = ['poison_nova', 'frost_burrow'];
+            if (hazardSigKeys.includes(boss.bossSignatureKey || '')) {
+              if (bossTurnCountRef.current % 3 === 0) {
+                const hazardLanes = [0, 1, 2, 3, 4].sort(() => 0.5 - Math.random()).slice(0, 2);
+                bossHazardLanesRef.current = hazardLanes;
+                setBossHazardLanes(hazardLanes);
+                const isPoison = boss.bossSignatureKey === 'poison_nova';
+                triggerBossSkill({
+                  name: boss.name.replace(/^👑\s*/, ''),
+                  icon: boss.icon || '👑',
+                  title: isPoison ? '☠️ 맹독 웅덩이 생성!' : '❄️ 결빙 지대 생성!',
+                  desc: isPoison
+                    ? `${hazardLanes.map(l => l + 1 + '번').join(', ')} 레인이 맹독에 잠겼습니다! 해당 레인 공격 시 반동 피해, 광역기 직격 시 지형 폭발!`
+                    : `${hazardLanes.map(l => l + 1 + '번').join(', ')} 레인이 결빙 지대로 변했습니다! 해당 레인 공격 시 반동 피해, 광역기 직격 시 지형 폭발!`,
+                  element: isPoison ? 'poison' : 'cold'
+                });
+                addLog(`${isPoison ? '🧪' : '❄️'} [보스 기믹: 지형 장악] ${hazardLanes.map(l => l + 1 + '번').join(', ')} 레인에 ${isPoison ? '맹독 웅덩이' : '결빙 지대'}가 생성되었습니다!`, 'damage');
+              }
             }
           }
         }
@@ -2365,6 +2424,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     hordeTimelinePercent,
     bossTurnCount,
     bossGuardActive,
+    bossHazardLanes,
+    playerHitFlash,
     activeBossSkill,
     floatingDamages,
     totalStats,
@@ -2484,6 +2545,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     hordeTimelinePercent,
     bossTurnCount,
     bossGuardActive,
+    bossHazardLanes,
+    playerHitFlash,
     activeBossSkill,
     floatingDamages,
     totalStats,

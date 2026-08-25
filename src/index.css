@@ -385,3 +385,22 @@
   animation: dangerLanePulse 1.1s ease-in-out infinite;
 }
 
+/* ═══ Player Hit Feedback: red vignette flash + floating damage number ═══ */
+@keyframes playerHitFlashAnim {
+  0% { opacity: 0; }
+  12% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.animate-player-hit-flash {
+  animation: playerHitFlashAnim 0.7s ease-out forwards;
+}
+@keyframes playerHitNumberAnim {
+  0% { transform: translateY(20px) scale(0.6); opacity: 0; }
+  18% { transform: translateY(0) scale(1.25); opacity: 1; }
+  35% { transform: translateY(-6px) scale(1); opacity: 1; }
+  100% { transform: translateY(-46px) scale(0.95); opacity: 0; }
+}
+.animate-player-hit-number {
+  animation: playerHitNumberAnim 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+

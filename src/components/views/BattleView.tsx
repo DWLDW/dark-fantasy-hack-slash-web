@@ -6,6 +6,7 @@ import { BattleHeader } from './battle/BattleHeader';
 import { BattleTacticalPreview } from './battle/BattleTacticalPreview';
 import { BossHUD } from './battle/BossHUD';
 import { BossSkillCutin } from './battle/BossSkillCutin';
+import { PlayerHitFlash } from './battle/PlayerHitFlash';
 import { BattleFieldLanes } from './battle/BattleFieldLanes';
 import { BattleSkillsBar } from './battle/BattleSkillsBar';
 import { BattleStatusDock } from './battle/BattleStatusDock';
@@ -106,6 +107,9 @@ export const BattleView: React.FC = React.memo(() => {
 
         {/* Boss Signature Skill Cinematic Cut-in & Fullscreen Flash */}
         <BossSkillCutin />
+
+        {/* Full-screen player damage feedback (vignette + floating number) */}
+        <PlayerHitFlash />
 
         {/* Layer 1: Top Header Navigation & Status */}
         <BattleHeader />
