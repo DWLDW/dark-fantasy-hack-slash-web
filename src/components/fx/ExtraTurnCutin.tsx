@@ -26,45 +26,42 @@ export const ExtraTurnCutin: React.FC<ExtraTurnCutinProps> = React.memo(({ event
   const isExecute = active.reason === 'execute';
 
   return (
-    <div className="absolute inset-0 pointer-events-none z-50 flex items-center justify-center select-none overflow-hidden" aria-hidden>
-      {/* Background Shockwave Flash Strip */}
-      <div className="absolute inset-x-0 h-28 bg-gradient-to-r from-transparent via-amber-500/25 to-transparent animate-pulse" />
-
-      {/* ⚡ Diagonal Golden Lightning Cut-in Banner */}
+    <div className="absolute inset-0 pointer-events-none z-50 flex items-start justify-center pt-16 sm:pt-20 select-none overflow-hidden" aria-hidden>
+      {/* ⚡ Top Sleek Lightning Cut-in Banner (Zero Center Masking) */}
       <div
         key={active.id}
-        className="relative animate-extra-turn-cutin flex flex-col items-center justify-center px-6 py-2 rounded-xl bg-gradient-to-r from-iron-950 via-amber-950/95 to-iron-950 border-y-2 border-amber-400 shadow-[0_0_35px_rgba(251,191,36,0.9)] max-w-md w-full text-center"
+        className="relative animate-extra-turn-cutin flex flex-col items-center justify-center px-4 sm:px-6 py-1.5 rounded-xl bg-black/80 border border-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.8)] max-w-sm sm:max-w-md w-auto text-center"
       >
         {/* Top Tag */}
-        <div className="flex items-center gap-1.5 font-mono text-[10px] sm:text-xs font-black text-amber-300 tracking-widest uppercase">
+        <div className="flex items-center gap-1.5 font-mono text-[9px] sm:text-[10px] font-black text-amber-300 tracking-widest uppercase">
           {isExecute ? (
             <>
-              <Skull className="w-3.5 h-3.5 text-red-500" />
+              <Skull className="w-3 h-3 text-red-500" />
               <span>처형 격살 성공 · 반격 무효화</span>
-              <Skull className="w-3.5 h-3.5 text-red-500" />
+              <Skull className="w-3 h-3 text-red-500" />
             </>
           ) : (
             <>
-              <Zap className="w-3.5 h-3.5 text-yellow-400" />
+              <Zap className="w-3 h-3 text-yellow-400" />
               <span>신속 모멘텀 100% 돌파</span>
-              <Zap className="w-3.5 h-3.5 text-yellow-400" />
+              <Zap className="w-3 h-3 text-yellow-400" />
             </>
           )}
         </div>
 
-        {/* 💥 Main Big Title: 1 MORE! EXTRA TURN */}
-        <div className="flex items-center justify-center gap-2 my-0.5">
-          <Zap className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-300 fill-current animate-bounce" />
-          <h2 className="font-cinzel font-black text-xl sm:text-3xl text-transparent bg-clip-text bg-gradient-to-r from-yellow-100 via-amber-300 to-yellow-500 drop-shadow-[0_0_20px_rgba(251,191,36,1)] tracking-wider">
-            1 MORE! EXTRA TURN
+        {/* 💥 Main Title: 1 MORE! EXTRA TURN */}
+        <div className="flex items-center justify-center gap-1.5 my-0.5">
+          <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-300 fill-current animate-bounce" />
+          <h2 className="font-cinzel font-black text-base sm:text-xl text-yellow-300 drop-shadow-[0_2px_4px_rgba(0,0,0,1)] tracking-wider">
+            ⚡ 1 MORE! EXTRA TURN ⚡
           </h2>
-          <Zap className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-300 fill-current animate-bounce" />
+          <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-300 fill-current animate-bounce" />
         </div>
 
         {/* Sub Instruction Tag */}
-        <div className="flex items-center justify-center gap-1 text-[10px] sm:text-xs font-mono font-bold text-amber-200/90">
-          <Swords className="w-3 h-3 text-amber-400" />
-          <span>즉시 다음 공격을 시전하세요! [Space]</span>
+        <div className="flex items-center justify-center gap-1 text-[9px] sm:text-[10px] font-mono font-bold text-amber-200">
+          <Swords className="w-2.5 h-2.5 text-amber-400" />
+          <span>즉시 추가 연속 공격 시전 [Space]</span>
         </div>
       </div>
     </div>

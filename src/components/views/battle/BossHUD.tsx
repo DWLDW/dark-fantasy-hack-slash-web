@@ -209,11 +209,19 @@ export const BossHUD: React.FC = React.memo(() => {
             </span>
           )}
 
-          {/* Stats Readout */}
-          <span className="flex items-center gap-0.5 text-rose-300 font-mono text-[9px] sm:text-[10px] ml-1">
-            <Swords className="w-3 h-3" />
-            <span className="font-black">{boss.intent.damage || 0}</span>
-          </span>
+          {/* Next Skill / Planned Attack Intent Badge */}
+          {boss.intent?.skillName ? (
+            <span className="px-2 py-0.5 rounded text-[8px] sm:text-[10px] font-mono font-black bg-rose-950/90 text-yellow-300 border border-rose-500 shadow flex items-center gap-1 animate-pulse">
+              <span>{boss.intent.skillName}</span>
+              <span className="text-rose-300 font-bold">(-{boss.intent.damage || 0})</span>
+            </span>
+          ) : (
+            <span className="flex items-center gap-0.5 text-rose-300 font-mono text-[9px] sm:text-[10px] ml-1">
+              <Swords className="w-3 h-3" />
+              <span className="font-black">{boss.intent?.damage || 0}</span>
+            </span>
+          )}
+
           <span className="flex items-center gap-0.5 text-blue-300 font-mono text-[9px] sm:text-[10px]">
             <Shield className="w-3 h-3" />
             <span className="font-black">{boss.defense}</span>

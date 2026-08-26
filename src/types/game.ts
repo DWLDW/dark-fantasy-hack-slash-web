@@ -167,6 +167,8 @@ export interface Monster {
     damage?: number;
     targetLane?: number;
     chargePercent?: number;
+    skillName?: string;
+    desc?: string;
   };
   icon: string;
   isTargeted?: boolean;

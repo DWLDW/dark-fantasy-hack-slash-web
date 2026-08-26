@@ -75,21 +75,32 @@ export const BattleView: React.FC = React.memo(() => {
   const expectedIncomingDmg = useMemo(() => {
     if (isCleared || isEnemyTurn) return 0;
     let totalDmg = 0;
+
+    const k = 100 + playerStats.level * 10;
+    const defMult = k / (k + Math.max(0, totalStats.defense));
+    const drMult = (100 - (totalStats.damageReduction || 0)) / 100;
+
+    // 1. Horde lane frontliners incoming damage
     for (let l = 0; l < 5; l++) {
-      const laneAlive = monsters.filter(m => m.lane === l && m.hp > 0).sort((a, b) => a.depth - b.depth);
+      const laneAlive = monsters.filter(m => m.lane === l && m.hp > 0 && m.rank !== 'boss').sort((a, b) => a.depth - b.depth);
       if (laneAlive.length > 0 && !laneAlive[0].isFrozen) {
         const m = laneAlive[0];
-        const isElite = m.rank === 'elite' || m.rank === 'boss';
-        let raw = m.intent.damage || (isElite ? 8 : 3);
-        if (m.rank === 'boss' && m.maxHp > 0 && m.hp / m.maxHp <= 0.3) {
-          raw = Math.floor(raw * 1.5);
-        }
-        const k = 100 + playerStats.level * 10;
-        const defMult = k / (k + Math.max(0, totalStats.defense));
-        const drMult = (100 - (totalStats.damageReduction || 0)) / 100;
+        const isElite = m.rank === 'elite';
+        const raw = m.intent?.damage || (isElite ? 8 : 3);
         totalDmg += Math.max(1, Math.floor(raw * defMult * drMult));
       }
     }
+
+    // 2. Boss Skill / Attack incoming damage
+    const boss = monsters.find(m => m.rank === 'boss' && m.hp > 0);
+    if (boss && !boss.isFrozen && !boss.isGroggy) {
+      let rawBoss = boss.intent?.damage || 20;
+      if (boss.maxHp > 0 && boss.hp / boss.maxHp <= 0.3) {
+        rawBoss = Math.floor(rawBoss * 1.25);
+      }
+      totalDmg += Math.max(1, Math.floor(rawBoss * defMult * drMult));
+    }
+
     return totalDmg;
   }, [monsters, isCleared, isEnemyTurn, playerStats.level, totalStats.defense, totalStats.damageReduction]);
 

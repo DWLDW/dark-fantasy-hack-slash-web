@@ -9,6 +9,7 @@ export interface ActTheme {
   subtitle: string;
   bgGradient: string;
   containerBg: string;
+  bgImage: string;
   laneBg: string;
   laneBorder: string;
   borderColor: string;
@@ -26,6 +27,7 @@ export const ACT_THEMES: Record<number, ActTheme> = {
     subtitle: '핏빛 황야 & 수도원 카타콤',
     bgGradient: 'bg-gradient-to-b from-stone-950 via-rose-950/50 to-black',
     containerBg: 'bg-gradient-to-b from-zinc-950/95 via-rose-950/45 to-black/95',
+    bgImage: '/images/acts/act1.webp',
     laneBg: 'bg-rose-950/20',
     laneBorder: 'border-rose-900/40 hover:border-rose-700/70',
     borderColor: 'border-rose-800/70',
@@ -41,6 +43,7 @@ export const ACT_THEMES: Record<number, ActTheme> = {
     subtitle: '작열하는 사막 & 고대 파라오 석묘',
     bgGradient: 'bg-gradient-to-b from-stone-950 via-amber-950/60 to-zinc-950',
     containerBg: 'bg-gradient-to-b from-stone-950/95 via-amber-950/50 to-stone-950/95',
+    bgImage: '/images/acts/act2.webp',
     laneBg: 'bg-amber-950/25',
     laneBorder: 'border-amber-800/40 hover:border-amber-600/70',
     borderColor: 'border-amber-600/80',
@@ -56,6 +59,7 @@ export const ACT_THEMES: Record<number, ActTheme> = {
     subtitle: '맹독 밀림 정글 & 증오의 억류지',
     bgGradient: 'bg-gradient-to-b from-slate-950 via-emerald-950/60 to-stone-950',
     containerBg: 'bg-gradient-to-b from-slate-950/95 via-emerald-950/50 to-slate-950/95',
+    bgImage: '/images/acts/act3.webp',
     laneBg: 'bg-emerald-950/25',
     laneBorder: 'border-emerald-800/40 hover:border-emerald-600/70',
     borderColor: 'border-emerald-600/80',
@@ -71,6 +75,7 @@ export const ACT_THEMES: Record<number, ActTheme> = {
     subtitle: '용암 강 협곡 & 혼돈의 성역',
     bgGradient: 'bg-gradient-to-b from-black via-red-950/70 to-orange-950/40',
     containerBg: 'bg-gradient-to-b from-black/95 via-red-950/60 to-black/95',
+    bgImage: '/images/acts/act4.webp',
     laneBg: 'bg-red-950/30',
     laneBorder: 'border-red-800/50 hover:border-red-600/80',
     borderColor: 'border-red-600/90',
@@ -86,6 +91,7 @@ export const ACT_THEMES: Record<number, ActTheme> = {
     subtitle: '혹한의 설산 정상 & 파멸의 세계석',
     bgGradient: 'bg-gradient-to-b from-slate-950 via-cyan-950/65 to-indigo-950/50',
     containerBg: 'bg-gradient-to-b from-slate-950/95 via-cyan-950/55 to-slate-950/95',
+    bgImage: '/images/acts/act5.webp',
     laneBg: 'bg-cyan-950/25',
     laneBorder: 'border-cyan-800/40 hover:border-cyan-600/70',
     borderColor: 'border-cyan-500/80',

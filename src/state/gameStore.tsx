@@ -1726,6 +1726,58 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 addLog(`${isPoison ? '🧪' : '❄️'} [보스 기믹: 지형 장악] ${hazardLanes.map(l => l + 1 + '번').join(', ')} 레인에 ${isPoison ? '맹독 웅덩이' : '결빙 지대'}가 생성되었습니다!`, 'damage');
               }
             }
+
+            // 🎯 Pre-calculate and update Boss Intent for the NEXT turn so the player sees the exact incoming damage & skill!
+            const nextTurn = bossTurnCountRef.current + 1;
+            const sigKey = boss.bossSignatureKey || '';
+            const bElem = boss.element || 'fire';
+            const baseDmg = 20;
+
+            let nextIntentType: 'cast' | 'attack' = 'cast';
+            let nextDmg = Math.floor(baseDmg * 1.3);
+            let nextSkillName = '⚔️ 암흑 분쇄타';
+            let nextDesc = '다음 턴 묵직한 강타를 시전합니다.';
+
+            if (boss.isChargingUltimate) {
+              let ultDmg = Math.floor(baseDmg * 2.0);
+              let ultName = '맹독 분사';
+              if (sigKey === 'holy_freeze_charge') { ultDmg = Math.floor(baseDmg * 2.6); ultName = '흉포한 결빙 돌진'; }
+              else if (sigKey === 'red_lightning_hose') { ultDmg = Math.floor(baseDmg * 3.0); ultName = '붉은 번개 숨결'; }
+              else if (sigKey === 'frozen_blade') { ultDmg = Math.floor(baseDmg * 2.2); ultName = '얼어붙은 성검 참격'; }
+              else if (sigKey === 'vile_clone_burn') { ultDmg = Math.floor(baseDmg * 2.4); ultName = '파멸의 분노 소각'; }
+              nextDmg = ultDmg;
+              nextSkillName = `💀 [멸망기 발동: ${ultName}]`;
+              nextDesc = '저지(Break) 실패 시 전멸급 광역 피해 방출!';
+            } else if (nextTurn % 3 === 0) {
+              nextDmg = 0;
+              nextSkillName = '⚠️ [멸망기 차징 준비]';
+              nextDesc = '다음 턴 멸망기 차징 게이지가 활성화됩니다.';
+            } else {
+              if (sigKey === 'poison_nova' || bElem === 'poison') {
+                if (nextTurn % 2 === 1) { nextDmg = Math.floor(baseDmg * 1.3); nextSkillName = '🦂 독침 연사'; nextDesc = '연속 독 관통 피해'; }
+                else { nextDmg = Math.floor(baseDmg * 1.15); nextSkillName = '🦂 유독한 안개'; nextDesc = '전 레인 독기 방출'; }
+              } else if (sigKey === 'holy_freeze_charge' || bElem === 'cold') {
+                if (nextTurn % 2 === 1) { nextDmg = Math.floor(baseDmg * 1.35); nextSkillName = '🪲 결빙 강타'; nextDesc = '분노 -15 소각 및 결빙 타격'; }
+                else { nextDmg = Math.floor(baseDmg * 1.4); nextSkillName = '🪲 흉포한 도약'; nextDesc = '육중한 파쇄타'; }
+              } else if (sigKey === 'lightning_pylon' || bElem === 'lightning') {
+                if (nextTurn % 2 === 1) { nextDmg = Math.floor(baseDmg * 1.35); nextSkillName = '⚡ 연쇄 번개'; nextDesc = '3회 튕기는 뇌격포'; }
+                else { nextDmg = Math.floor(baseDmg * 1.45); nextSkillName = '💀 해골 유도탄'; nextDesc = '영혼 추적 마탄'; }
+              } else if (sigKey === 'red_lightning_hose' || bElem === 'fire') {
+                if (nextTurn % 2 === 1) { nextDmg = Math.floor(baseDmg * 1.4); nextSkillName = '🔥 지옥불 파도'; nextDesc = '전 레인 화염 파도'; }
+                else { nextDmg = Math.floor(baseDmg * 1.5); nextSkillName = '👹 암흑 화염구'; nextDesc = '지옥불 응축 폭발'; }
+              } else if (sigKey === 'vile_clone_burn' || bElem === 'void') {
+                if (nextTurn % 2 === 1) { nextDmg = Math.floor(baseDmg * 1.3); nextSkillName = '🐙 마나 연소 광선'; nextDesc = '분노 -20 소각'; }
+                else { nextDmg = Math.floor(baseDmg * 1.45); nextSkillName = '🐙 혈마 쐐기'; nextDesc = '심연의 관통 쐐기'; }
+              }
+            }
+
+            boss.intent = {
+              type: nextIntentType,
+              damage: nextDmg,
+              skillName: nextSkillName,
+              desc: nextDesc,
+              chargePercent: boss.isChargingUltimate ? 100 : 75
+            };
           }
         }
 

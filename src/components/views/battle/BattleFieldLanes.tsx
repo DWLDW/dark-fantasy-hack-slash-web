@@ -121,6 +121,15 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
 
   return (
     <div className={`${actTheme.containerBg} border-2 ${actTheme.borderColor} ${actTheme.glowShadow} rounded-xl p-1 sm:p-1.5 relative select-none font-sans flex flex-col justify-between overflow-hidden flex-1 min-h-[260px] sm:min-h-[340px] battlefield-stage`}>
+      {/* 🌌 Act Themed Subtle Background Artwork */}
+      {actTheme.bgImage && (
+        <img
+          src={actTheme.bgImage}
+          alt={actTheme.name}
+          className="absolute inset-0 w-full h-full object-cover opacity-25 mix-blend-luminosity pointer-events-none z-0 transition-opacity duration-700 select-none"
+          loading="eager"
+        />
+      )}
       <AtmosphereLayer act={actTheme.act} theme={actTheme} />
       {!isCleared && <CombatFxLayer />}
       {isCleared ? (
