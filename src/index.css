@@ -179,6 +179,92 @@
   will-change: transform, opacity;
 }
 
+/* 💥 ANIME / ARCADE FIGHTING IMPACT BANNER KEYFRAMES */
+@keyframes animeSlamPunch {
+  0% {
+    opacity: 0;
+    transform: scale(2.6) translateY(-24px) rotate(-8deg) skewX(-12deg);
+  }
+  12% {
+    opacity: 1;
+    transform: scale(0.92) translateY(4px) rotate(2deg) skewX(-12deg);
+  }
+  24% {
+    transform: scale(1.06) translateY(-2px) rotate(-1deg) skewX(-12deg);
+  }
+  36% {
+    transform: scale(1) translateY(0) rotate(0deg) skewX(-12deg);
+  }
+  85% {
+    opacity: 1;
+    transform: scale(1) translateY(0) rotate(0deg) skewX(-12deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.85) translateY(-40px) rotate(-3deg) skewX(-12deg);
+  }
+}
+.animate-anime-slam {
+  animation: animeSlamPunch 1.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+@keyframes slashSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-60px) skewX(-18deg) scaleY(0.4);
+  }
+  20% {
+    opacity: 1;
+    transform: translateX(6px) skewX(-12deg) scaleY(1.15);
+  }
+  35% {
+    transform: translateX(-2px) skewX(-12deg) scaleY(0.98);
+  }
+  50% {
+    transform: translateX(0) skewX(-12deg) scaleY(1);
+  }
+  85% {
+    opacity: 1;
+    transform: translateX(0) skewX(-12deg) scaleY(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(40px) skewX(-12deg) scaleY(0.8);
+  }
+}
+.animate-slash-slide {
+  animation: slashSlideIn 1.15s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+@keyframes hazardScroll {
+  0% { background-position: 0 0; }
+  100% { background-position: 32px 0; }
+}
+.animate-hazard-stripes {
+  background-size: 32px 32px;
+  animation: hazardScroll 0.8s linear infinite;
+}
+
+/* 🎨 Comic & Anime 3D Ink Stroke Utilities */
+.text-anime-stroke-thick {
+  -webkit-text-stroke: 3px #000000;
+  paint-order: stroke fill;
+}
+.text-anime-stroke-thin {
+  -webkit-text-stroke: 1.5px #000000;
+  paint-order: stroke fill;
+}
+.text-anime-3d-shadow {
+  filter: drop-shadow(2px 2px 0px #000000) drop-shadow(4px 4px 0px #000000);
+}
+.banner-hard-shadow {
+  filter: drop-shadow(4px 4px 0px #000000) drop-shadow(0 0 16px rgba(251, 191, 36, 0.7));
+}
+
 /* ⚡ Extra Turn 1-More Cutin (Clean Fade) */
 @keyframes extraTurnCutin {
   0% { opacity: 0; transform: translateY(-8px) scale(0.9); }

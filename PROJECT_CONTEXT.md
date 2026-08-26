@@ -172,6 +172,19 @@ Dragon Quest 식 턴제 전투 기반 + Diablo II 식 오버킬 체인, 룬워�
   - 사용자 피드백을 수용하여 상단 슬림 배너 대신, **화면 정중앙에 큼직하게 파파박 올라가는 총합 데미지 롤러(`text-4xl sm:text-6xl md:text-7xl font-black`)**로 원복.
   - 치명타 슬램(`animate-crit-slam`, `CRITICAL HIT!`), 약점 타격(`WEAK SPOT 2.5x`), 보스 그로기(`BREAK! GROGGY`)가 중앙에서 시원하게 팡 터지도록 연출.
   - 하단 오버킬 뱃지(`OVERKILL x3`)와 체인 콤보 배너(`CHAIN x4`)를 중앙에 다이내믹하게 표출하여 호쾌한 아케이드 손맛 극대화.
+### 18. 일본 애니메이션/아케이드 격투 게임 스타일 타격감 배너 UI 전면 개편 (`CombatJackpotOverlay.tsx`, `index.css`)
+- 💥 **얌전한 타원형 배지 탈피 ➔ 날카롭고 화려한 사선 다각형(Clip-Path/Skew) 도입**:
+  - 킬라킬(Kill la Kill), 페르소나 5, 길티기어 스타일의 **샤프한 사선 셰브론(`clip-path: polygon(...)`, `-skew-x-12`)** 및 스파이크 임팩트 셰이프 적용.
+  - **CRITICAL HIT!**: 2중 레이어드 블랙 먹선 + 옐로우/앰버/레드 불꽃 그라데이션 + 빗살 해저드 애니메이션(`animate-hazard-stripes`) + ⚡ 번개 엠블럼.
+  - **WEAK SPOT 2.5x**: 페르소나 스타일 에메랄드/시안 레이저 사선 평행사변형 배너.
+  - **BREAK! GROGGY**: 톱니형 파열 임팩트 배너.
+  - **OVERKILL xN**: 해골 💀 + 블러디 오렌지/레드 사선 톱니 배지.
+  - **CHAIN xN**: 불꽃 🔥 + 골든 옐로우 스피드 배지.
+- 🎨 **3D 만화 먹선 텍스트 스트로크 & 입체 섀도우**:
+  - `-webkit-text-stroke: 3px #000000` + `text-anime-3d-shadow` + 하드 오프셋 그림자로 100% 선명하고 박진감 넘치는 만화 타이포그래피 구현.
+- 🥋 **격투 게임풍 줌인 펀치 슬램 애니메이션 (`animate-anime-slam`)**:
+  - 2.6배 스케일에서 빠르게 축소되며 지진 진동과 함께 묵직하게 내리꽂히는 타격 애니메이션 적용.
+
 
 
 
