@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useGame } from '../../state/gameStore';
-import { DUNGEONS_DATA, ACT_DUNGEON_GROUPS, isDungeonUnlocked, isActUnlocked } from '../../data/dungeons';
+import { DUNGEONS_DATA, ACT_DUNGEON_GROUPS, isDungeonUnlocked, isActUnlocked, generateEndlessRiftDungeon } from '../../data/dungeons';
 import { ACT_THEMES } from '../../utils/actThemes';
 import {
   Compass,
@@ -13,7 +13,10 @@ import {
   CheckCircle2,
   ArrowLeft,
   X,
-  Swords
+  Swords,
+  Sparkles,
+  Zap,
+  Crown
 } from 'lucide-react';
 
 const ACT_NAMES: Record<number, { title: string; subtitle: string }> = {
@@ -32,14 +35,19 @@ export const DungeonSelectView: React.FC = React.memo(() => {
     maxUnlockedDifficulty,
     setCurrentDifficulty,
     achievementStats,
+    endlessRiftTier,
     activeModal,
     confirmDialogState
   } = useGame();
 
-  const [selectedAct, setSelectedAct] = useState<number>(1);
+  const [selectedAct, setSelectedAct] = useState<number | 'rift'>(1);
+  const [selectedRiftTier, setSelectedRiftTier] = useState<number>(endlessRiftTier || 1);
   const dungeonClears = achievementStats.dungeonClears || {};
 
+  const isRiftUnlocked = Boolean(isActUnlocked(5, dungeonClears) && (dungeonClears['act5_4_throne'] || 0) >= 1);
+
   const currentActDungeons = useMemo(() => {
+    if (selectedAct === 'rift') return [];
     const ids = ACT_DUNGEON_GROUPS[selectedAct] || ACT_DUNGEON_GROUPS[1];
     return ids.map(id => DUNGEONS_DATA.find(d => d.id === id)!).filter(Boolean);
   }, [selectedAct]);
@@ -47,11 +55,17 @@ export const DungeonSelectView: React.FC = React.memo(() => {
   const [selectedDungeonId, setSelectedDungeonId] = useState<string>(currentActDungeons[0]?.id || DUNGEONS_DATA[0].id);
   const [isDeployModalOpen, setIsDeployModalOpen] = useState<boolean>(false);
 
-  const selectedDungeon = DUNGEONS_DATA.find(d => d.id === selectedDungeonId) || currentActDungeons[0] || DUNGEONS_DATA[0];
+  const selectedDungeon = useMemo(() => {
+    if (selectedAct === 'rift') {
+      return generateEndlessRiftDungeon(selectedRiftTier);
+    }
+    return DUNGEONS_DATA.find(d => d.id === selectedDungeonId) || currentActDungeons[0] || DUNGEONS_DATA[0];
+  }, [selectedAct, selectedRiftTier, selectedDungeonId, currentActDungeons]);
+
   const maxDiff = Math.max(1, maxUnlockedDifficulty || 1);
   const [selectedDifficulty, setSelectedDifficulty] = useState<number>(currentDifficulty || 1);
 
-  const isCurrentDungeonUnlocked = isDungeonUnlocked(selectedDungeon.id, dungeonClears);
+  const isCurrentDungeonUnlocked = selectedAct === 'rift' ? isRiftUnlocked : isDungeonUnlocked(selectedDungeon.id, dungeonClears);
 
   const changeDifficulty = (delta: number) => {
     const next = Math.max(1, Math.min(maxDiff, selectedDifficulty + delta));
@@ -180,7 +194,11 @@ export const DungeonSelectView: React.FC = React.memo(() => {
       // Open Deploy Modal / Launch via Space / Enter
       if (e.code === 'Space' || e.code === 'Enter') {
         e.preventDefault();
-        if (isCurrentDungeonUnlocked) {
+        if (selectedAct === 'rift') {
+          if (isRiftUnlocked) {
+            enterDungeon(`endless_rift_t${selectedRiftTier}`, maxDiff);
+          }
+        } else if (isCurrentDungeonUnlocked) {
           openDungeonDeploy(selectedDungeon.id);
         }
         return;
@@ -208,7 +226,7 @@ export const DungeonSelectView: React.FC = React.memo(() => {
   const mfBonus = (selectedDifficulty - 1) * 3;
 
   return (
-    <div className={`w-full max-w-5xl mx-auto p-2 sm:p-4 pb-28 sm:pb-32 text-gray-200 select-none font-sans space-y-3 rounded-xl ${ACT_THEMES[selectedAct]?.bgGradient || ''}`}>
+    <div className={`w-full max-w-5xl mx-auto p-2 sm:p-4 pb-28 sm:pb-32 text-gray-200 select-none font-sans space-y-3 rounded-xl ${selectedAct === 'rift' ? 'bg-gradient-to-b from-purple-950/60 via-iron-950 to-purple-950/70' : (ACT_THEMES[selectedAct]?.bgGradient || '')}`}>
       {/* Header */}
       <div className="flex items-center justify-between border-b border-iron-750 pb-2.5">
         <div className="flex items-center gap-2.5">
@@ -220,7 +238,7 @@ export const DungeonSelectView: React.FC = React.memo(() => {
               <span>성역 월드맵 & 원정 게이트</span>
             </h1>
             <p className="text-[10px] sm:text-xs text-gray-400 font-mono hidden sm:block">
-              각 액트의 4개 던전을 순차적으로 공략하여 상위 액트로 진출하세요.
+              각 액트의 4개 던전을 순차적으로 공략하거나 대균열(Endless Rift)에서 무한 파밍에 도전하세요.
             </p>
           </div>
         </div>
@@ -236,8 +254,8 @@ export const DungeonSelectView: React.FC = React.memo(() => {
         </button>
       </div>
 
-      {/* 5 Acts Tabs Switcher */}
-      <div className="grid grid-cols-5 gap-1 sm:gap-2">
+      {/* 6 Tabs Switcher (Acts 1..5 + Endless Rift) */}
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-1 sm:gap-2">
         {([1, 2, 3, 4, 5] as const).map(actNum => {
           const isActOpen = isActUnlocked(actNum, dungeonClears);
           const actDungeons = ACT_DUNGEON_GROUPS[actNum] || [];
@@ -282,88 +300,221 @@ export const DungeonSelectView: React.FC = React.memo(() => {
             </button>
           );
         })}
+
+        {/* 🌌 6th Tab: Endless Rift */}
+        <button
+          key="rift"
+          onClick={() => {
+            if (!isRiftUnlocked) return;
+            setSelectedAct('rift');
+          }}
+          disabled={!isRiftUnlocked}
+          className={`p-1.5 sm:p-2.5 rounded-lg border-2 text-left transition relative flex flex-col justify-between ${
+            selectedAct === 'rift'
+              ? 'bg-gradient-to-b from-purple-950/90 via-iron-950 to-purple-950/90 border-purple-400 ring-2 ring-purple-400/60 shadow-[0_0_20px_rgba(192,132,252,0.5)]'
+              : isRiftUnlocked
+              ? 'bg-purple-950/40 border-purple-800/60 hover:border-purple-500 hover:bg-purple-900/50 cursor-pointer'
+              : 'bg-iron-950/60 border-iron-850 opacity-50 cursor-not-allowed text-gray-600'
+          }`}
+          title={isRiftUnlocked ? "무한 파밍 대균열 모드" : "5막 최종 보스 정복 후 해금"}
+        >
+          <div className="flex items-center justify-between">
+            <span className={`font-mono font-black text-xs flex items-center gap-1 ${selectedAct === 'rift' ? 'text-purple-300' : isRiftUnlocked ? 'text-purple-300' : 'text-gray-600'}`}>
+              <span>🌌 대균열</span>
+            </span>
+            {isRiftUnlocked ? (
+              <span className="text-[10px] font-mono font-black text-purple-300">T{endlessRiftTier}</span>
+            ) : (
+              <Lock className="w-3.5 h-3.5 text-gray-500" />
+            )}
+          </div>
+          <div className="font-bold text-[10px] sm:text-[11px] truncate mt-0.5 text-purple-200 hidden sm:block">
+            Endless Rift
+          </div>
+        </button>
       </div>
 
-      {/* Act Title Banner */}
-      <div className="text-xs font-cinzel font-bold text-gray-300 px-1 flex items-center justify-between border-b border-iron-800 pb-1">
-        <span>{ACT_NAMES[selectedAct].title} — 4대 원정 던전</span>
-        <span className="text-[10px] text-gray-400 font-mono">{ACT_NAMES[selectedAct].subtitle}</span>
-      </div>
+      {selectedAct === 'rift' ? (
+        /* 🌌 Dedicated Endless Rift Command Center */
+        <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-b from-iron-950 via-purple-950/40 to-iron-950 border-2 border-purple-400/80 shadow-[0_0_30px_rgba(168,85,247,0.3)] space-y-4 animate-fade-in">
+          {/* Header & Tier Control Row */}
+          <div className="flex items-center justify-between flex-wrap gap-3 border-b border-purple-800/50 pb-4">
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-base sm:text-xl font-cinzel font-black text-purple-200 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-purple-400 animate-pulse" />
+                  <span>{selectedDungeon.name}</span>
+                </h2>
+                <span className="px-2.5 py-0.5 rounded-full bg-purple-900 border border-purple-400 text-purple-200 font-mono font-black text-xs">
+                  Lv.{selectedDungeon.recommendedLevel} 권장
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full bg-amber-950 border border-amber-500 text-amber-300 font-mono font-black text-xs flex items-center gap-1">
+                  <Flame className="w-3.5 h-3.5 text-amber-400" />
+                  최고 난이도 (Lv.{maxDiff}) 자동 적용
+                </span>
+              </div>
+              <p className="text-xs text-gray-300 font-mono mt-1">
+                {selectedDungeon.theme} · 몬스터 수량: {selectedDungeon.riftTier ? 16 + Math.min(8, Math.floor(selectedDungeon.riftTier / 4)) : 16}마리 군세
+              </p>
+            </div>
 
-      {/* 4 Dungeons List (Clean & Compact with Zero Scrolling Needed) */}
-      <div className="space-y-2">
-        {currentActDungeons.map((dungeon, idx) => {
-          const unlocked = isDungeonUnlocked(dungeon.id, dungeonClears);
-          const isSelected = dungeon.id === selectedDungeon.id;
-          const clearCount = dungeonClears[dungeon.id] || 0;
+            {/* Tier Controls */}
+            <div className="flex items-center gap-2 bg-iron-950 p-1.5 rounded-xl border border-purple-500 shadow">
+              <button
+                onClick={() => setSelectedRiftTier(t => Math.max(1, t - 1))}
+                disabled={selectedRiftTier <= 1}
+                className="w-8 h-8 rounded-lg bg-iron-900 hover:bg-iron-800 disabled:opacity-40 text-purple-300 font-black text-sm flex items-center justify-center border border-iron-750 transition cursor-pointer"
+                title="티어 낮추기"
+              >
+                <Minus className="w-4 h-4" />
+              </button>
+              <div className="px-3 py-1 font-mono font-black text-sm sm:text-base text-purple-200 text-center min-w-[90px]">
+                Tier {selectedRiftTier}
+              </div>
+              <button
+                onClick={() => setSelectedRiftTier(t => Math.min(endlessRiftTier + 5, t + 1))}
+                className="w-8 h-8 rounded-lg bg-iron-900 hover:bg-iron-800 text-purple-300 font-black text-sm flex items-center justify-center border border-iron-750 transition cursor-pointer"
+                title="티어 올리기"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
 
-          return (
-            <div
-              key={dungeon.id}
+          {/* Feature Highlights Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-xs">
+            <div className="p-3 rounded-xl bg-iron-950/80 border border-purple-800/60 space-y-1">
+              <div className="text-purple-300 font-bold flex items-center gap-1.5">
+                <Swords className="w-4 h-4 text-purple-400" />
+                <span>전술 군세 스폰 ({selectedDungeon.riftSpawnPattern})</span>
+              </div>
+              <div className="text-gray-400 text-[11px]">
+                16~24마리의 대규모 몬스터가 전술 패턴(세로 돌파 / 가로 횡대 / 대군세)으로 출현하여 관통 및 휩쓸기 쾌감을 선사합니다.
+              </div>
+            </div>
+
+            <div className="p-3 rounded-xl bg-iron-950/80 border border-purple-800/60 space-y-1">
+              <div className="text-yellow-300 font-bold flex items-center gap-1.5">
+                <Zap className="w-4 h-4 text-yellow-400" />
+                <span>동적 등반 & 하향 안착</span>
+              </div>
+              <div className="text-gray-400 text-[11px]">
+                퍼펙트 클리어 시 +3단계씩 고속 급상승하고, 실패 시 -1단계 하향되어 유저 스펙에 맞는 최적 파밍을 지원합니다.
+              </div>
+            </div>
+
+            <div className="p-3 rounded-xl bg-iron-950/80 border border-purple-800/60 space-y-1">
+              <div className="text-amber-300 font-bold flex items-center gap-1.5">
+                <Crown className="w-4 h-4 text-amber-400" />
+                <span>신화적 보물 잭팟 드랍</span>
+              </div>
+              <div className="text-gray-400 text-[11px]">
+                할배검, 바람살, 샤코 및 Ber, Jah, Zod 등 최고위 룬 드랍 시 화면 전체 골든 라이트 빔 잭팟 연출이 발동합니다.
+              </div>
+            </div>
+          </div>
+
+          {/* Launch Action */}
+          <div className="flex items-center justify-between pt-2">
+            <div className="text-xs text-gray-400 font-mono">
+              [Space] 키를 누르면 대균열 {selectedRiftTier}단계로 즉시 출격합니다.
+            </div>
+            <button
               onClick={() => {
-                if (unlocked) openDungeonDeploy(dungeon.id);
+                enterDungeon(`endless_rift_t${selectedRiftTier}`, maxDiff);
               }}
-              className={`p-2.5 sm:p-3.5 rounded-lg border-2 transition relative flex items-center justify-between gap-3 ${
-                !unlocked
-                  ? 'bg-iron-950/70 border-iron-850 opacity-60 cursor-not-allowed'
-                  : isSelected
-                  ? 'bg-gradient-to-r from-blood-950/90 via-iron-900 to-iron-900 border-brass-400 ring-2 ring-brass-400/60 shadow-[0_0_20px_rgba(251,191,36,0.28)] cursor-pointer'
-                  : 'bg-iron-900/80 border-iron-750 hover:border-iron-600 hover:bg-iron-850 cursor-pointer'
-              }`}
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-purple-500 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-cinzel font-black text-sm shadow-[0_0_20px_rgba(168,85,247,0.5)] transition transform active:scale-95 flex items-center gap-2 cursor-pointer"
             >
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center font-mono font-black text-sm flex-shrink-0 ${
-                  isSelected
-                    ? 'bg-brass-500 text-iron-950 shadow font-black'
-                    : unlocked
-                    ? 'bg-iron-950 text-amber-300 border border-iron-700 font-bold'
-                    : 'bg-iron-950 text-gray-600 border border-iron-850'
-                }`}>
-                  {unlocked ? idx + 1 : <Lock className="w-4 h-4 text-gray-500" />}
-                </div>
+              <Swords className="w-4 h-4" />
+              <span>대균열 출격 [Space]</span>
+              <ArrowRight className="w-4 h-4 animate-pulse" />
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Act Title Banner */}
+          <div className="text-xs font-cinzel font-bold text-gray-300 px-1 flex items-center justify-between border-b border-iron-800 pb-1">
+            <span>{ACT_NAMES[selectedAct as number]?.title} — 4대 원정 던전</span>
+            <span className="text-[10px] text-gray-400 font-mono">{ACT_NAMES[selectedAct as number]?.subtitle}</span>
+          </div>
 
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-bold text-xs sm:text-sm text-white truncate">
-                      {dungeon.name}
-                    </span>
-                    <span className="text-[9px] sm:text-[10px] font-mono px-1.5 py-0.5 rounded bg-iron-950 border border-iron-750 text-amber-300 font-bold">
-                      Lv.{dungeon.recommendedLevel} 권장
-                    </span>
-                    {clearCount > 0 && (
-                      <span className="text-[9px] sm:text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-950/80 border border-emerald-600 text-emerald-300 font-bold">
-                        클리어: {clearCount}회
+          {/* 4 Dungeons List (Clean & Compact with Zero Scrolling Needed) */}
+          <div className="space-y-2">
+            {currentActDungeons.map((dungeon, idx) => {
+              const unlocked = isDungeonUnlocked(dungeon.id, dungeonClears);
+              const isSelected = dungeon.id === selectedDungeon.id;
+              const clearCount = dungeonClears[dungeon.id] || 0;
+
+              return (
+                <div
+                  key={dungeon.id}
+                  onClick={() => {
+                    if (unlocked) openDungeonDeploy(dungeon.id);
+                  }}
+                  className={`p-2.5 sm:p-3.5 rounded-lg border-2 transition relative flex items-center justify-between gap-3 ${
+                    !unlocked
+                      ? 'bg-iron-950/70 border-iron-850 opacity-60 cursor-not-allowed'
+                      : isSelected
+                      ? 'bg-gradient-to-r from-blood-950/90 via-iron-900 to-iron-900 border-brass-400 ring-2 ring-brass-400/60 shadow-[0_0_20px_rgba(251,191,36,0.28)] cursor-pointer'
+                      : 'bg-iron-900/80 border-iron-750 hover:border-iron-600 hover:bg-iron-850 cursor-pointer'
+                  }`}
+                >
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center font-mono font-black text-sm flex-shrink-0 ${
+                      isSelected
+                        ? 'bg-brass-500 text-iron-950 shadow font-black'
+                        : unlocked
+                        ? 'bg-iron-950 text-amber-300 border border-iron-700 font-bold'
+                        : 'bg-iron-950 text-gray-600 border border-iron-850'
+                    }`}>
+                      {unlocked ? idx + 1 : <Lock className="w-4 h-4 text-gray-500" />}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-xs sm:text-sm text-white truncate">
+                          {dungeon.name}
+                        </span>
+                        <span className="text-[9px] sm:text-[10px] font-mono px-1.5 py-0.5 rounded bg-iron-950 border border-iron-750 text-amber-300 font-bold">
+                          Lv.{dungeon.recommendedLevel} 권장
+                        </span>
+                        {clearCount > 0 && (
+                          <span className="text-[9px] sm:text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-950/80 border border-emerald-600 text-emerald-300 font-bold">
+                            클리어: {clearCount}회
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[10px] sm:text-[11px] text-gray-400 truncate mt-0.5 font-mono">
+                        {dungeon.theme} · 출현: {dungeon.monsterSummary}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center flex-shrink-0">
+                    {unlocked ? (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openDungeonDeploy(dungeon.id);
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-blood-700 via-blood-600 to-amber-600 hover:from-blood-600 hover:to-amber-500 text-white font-black text-xs shadow transition transform active:scale-95 flex items-center gap-1 cursor-pointer"
+                      >
+                        <Swords className="w-3.5 h-3.5" />
+                        <span>출격 설정</span>
+                      </button>
+                    ) : (
+                      <span className="text-[10px] text-gray-500 font-mono font-bold">
+                        이전 장 클리어 필요
                       </span>
                     )}
                   </div>
-                  <div className="text-[10px] sm:text-[11px] text-gray-400 truncate mt-0.5 font-mono">
-                    {dungeon.theme} · 출현: {dungeon.monsterSummary}
-                  </div>
                 </div>
-              </div>
-
-              <div className="flex items-center flex-shrink-0">
-                {unlocked ? (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openDungeonDeploy(dungeon.id);
-                    }}
-                    className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-blood-700 via-blood-600 to-amber-600 hover:from-blood-600 hover:to-amber-500 text-white font-black text-xs shadow transition transform active:scale-95 flex items-center gap-1 cursor-pointer"
-                  >
-                    <Swords className="w-3.5 h-3.5" />
-                    <span>출격 설정</span>
-                  </button>
-                ) : (
-                  <span className="text-[10px] text-gray-500 font-mono font-bold">
-                    이전 장 클리어 필요
-                  </span>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+              );
+            })}
+          </div>
+        </>
+      )}
 
       {/* POPUP MODAL: Focused Difficulty Selection & Dungeon Launch (z-[60], sits above HUD and below global modals) */}
       {isDeployModalOpen && (

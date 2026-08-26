@@ -2,7 +2,7 @@ import React, { useMemo, useEffect } from 'react';
 import { useGame } from '../../state/gameStore';
 import { Trophy, Sparkles, BookOpen, Coins, Gem, ArrowRight, Flame, HelpCircle, Zap, ShieldCheck, Package, Lock, Swords, Crown } from 'lucide-react';
 import { D2_RUNES } from '../../data/gameData';
-import { getNextStoryDungeon } from '../../data/dungeons';
+import { getNextStoryDungeon, generateEndlessRiftDungeon } from '../../data/dungeons';
 import { isItemBetterWithThreshold, calculateItemScore } from '../../utils/itemScoring';
 import type { GameItem, EquipSlot } from '../../types/game';
 
@@ -12,6 +12,8 @@ export const DungeonVictoryModal: React.FC = () => {
     dungeonVictoryLoot,
     currentDungeon,
     currentDifficulty,
+    maxUnlockedDifficulty,
+    endlessRiftTier,
     closeVictoryModal,
     identifyAllVictoryLoot,
     enterDungeon,
@@ -25,21 +27,32 @@ export const DungeonVictoryModal: React.FC = () => {
 
   if (!isVictoryModalOpen || !dungeonVictoryLoot) return null;
 
+  const allIdentified = useMemo(() => {
+    return dungeonVictoryLoot.items.every(i => i.isIdentified !== false);
+  }, [dungeonVictoryLoot.items]);
+
   const hasUnidentified = dungeonVictoryLoot.items.some(i => i.isIdentified === false);
-  const allIdentified = !hasUnidentified;
+
   const legendariesCount = dungeonVictoryLoot.items.filter(
     i => i.isIdentified && (i.rarity === 'unique' || i.rarity === 'legendary' || i.rarity === 'set')
   ).length;
 
-  const nextStoryDungeon = getNextStoryDungeon(currentDungeon.id);
+  const isRift = Boolean(currentDungeon.isEndlessRift || currentDungeon.id.startsWith('endless_rift_'));
+  const nextStoryDungeon = isRift ? null : getNextStoryDungeon(currentDungeon.id);
   const isStoryProgression = nextStoryDungeon !== null;
 
-  const targetDungeon = isStoryProgression ? nextStoryDungeon : currentDungeon;
-  const targetDiff = isStoryProgression 
-    ? currentDifficulty 
-    : (dungeonVictoryLoot.nextDifficulty || (currentDifficulty + (dungeonVictoryLoot.advanceLevels || 1)));
+  const nextRiftTier = (currentDungeon.riftTier || endlessRiftTier) + (dungeonVictoryLoot.advanceLevels || 1);
+  const targetDungeon = isRift
+    ? generateEndlessRiftDungeon(nextRiftTier)
+    : (isStoryProgression ? nextStoryDungeon : currentDungeon);
 
-  const targetLabel = isStoryProgression
+  const targetDiff = isRift
+    ? Math.max(currentDifficulty, maxUnlockedDifficulty)
+    : (isStoryProgression ? currentDifficulty : (dungeonVictoryLoot.nextDifficulty || (currentDifficulty + (dungeonVictoryLoot.advanceLevels || 1))));
+
+  const targetLabel = isRift
+    ? `🌌 대균열 ${nextRiftTier}단계 진격 (Space)`
+    : isStoryProgression
     ? `다음 장 진격: [${nextStoryDungeon.name.split(':')[0]}]`
     : `전 막 정복! 상위 난이도: [${currentDungeon.name.split(':')[0]}] Lv.${targetDiff}`;
 
@@ -139,7 +152,9 @@ export const DungeonVictoryModal: React.FC = () => {
                 <span>{dungeonVictoryLoot.performanceGrade}</span>
               </div>
               <div className="text-[10px] sm:text-[11px] text-gray-300 mt-0.5">
-                {isStoryProgression ? (
+                {isRift ? (
+                  <span>무결점 전투 성적에 따라 대균열 <strong className="text-amber-300 font-black">[{nextRiftTier}단계]</strong>로 즉시 진격합니다! (티어 +{dungeonVictoryLoot.advanceLevels || 1} 급상승)</span>
+                ) : isStoryProgression && nextStoryDungeon ? (
                   <span>남은 체력 및 클리어 성적에 따라 다음 스토리 <strong className="text-amber-300 font-black">[{nextStoryDungeon.name.split(':')[0]}]</strong> 관문이 개방되었습니다!</span>
                 ) : (
                   <span>남은 체력 및 클리어 성적에 따라 다음 난이도 <strong className="text-amber-300 font-black">Lv.{dungeonVictoryLoot.nextDifficulty || targetDiff}</strong>가 즉시 해금되었습니다!</span>

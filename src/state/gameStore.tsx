@@ -2187,8 +2187,20 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       addLog(`⚠️ 가방이 거의 찼습니다 (${inventory.length}/60)`, 'system');
     }
 
-    const dungeon = DUNGEONS_DATA.find(d => d.id === targetDungeonId) || DUNGEONS_DATA[0];
-    const diffToUse = Math.max(1, difficulty || currentDifficulty || 1);
+    const isRift = targetDungeonId.startsWith('endless_rift_');
+    let dungeon: DungeonInfo;
+    if (isRift) {
+      const tierMatch = targetDungeonId.match(/endless_rift_t(\d+)/i);
+      const tier = tierMatch ? parseInt(tierMatch[1], 10) : endlessRiftTier;
+      dungeon = generateEndlessRiftDungeon(tier);
+    } else {
+      dungeon = DUNGEONS_DATA.find(d => d.id === targetDungeonId) || DUNGEONS_DATA[0];
+    }
+
+    // When entering Endless Rift, inherit the highest unlocked difficulty!
+    const diffToUse = isRift
+      ? Math.max(difficulty || 1, maxUnlockedDifficulty)
+      : Math.max(1, difficulty || currentDifficulty || 1);
     setCurrentDifficulty(diffToUse);
 
     const rolledRooms = prepareDungeonRun(dungeon);

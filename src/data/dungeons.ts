@@ -37,6 +37,7 @@ export const ALL_DUNGEON_IDS = Object.values(ACT_DUNGEON_GROUPS).flat();
 
 export function isDungeonUnlocked(dungeonId: string, dungeonClears: Record<string, number> = {}): boolean {
   if (!dungeonId) return true;
+  if (dungeonId.startsWith('endless_rift_')) return true;
   const index = ALL_DUNGEON_IDS.indexOf(dungeonId);
   if (index <= 0) return true; // First dungeon of Act 1 is always unlocked
 
@@ -989,7 +990,8 @@ export function createDungeonFormation(
     const baseRiftDef = Math.floor(endBaseDef * 1.15 * riftDefScale);
     const baseRiftDmg = Math.floor(endBaseDmg * 1.35 * riftDmgScale);
 
-    // Build tactical lane-depth map based on pattern
+    // Build tactical lane-depth map based on pattern (Scales mob count progressively with Tier)
+    const extraDepth = Math.min(2, Math.floor(tier / 8)); // Tier 8+: +1 depth, Tier 16+: +2 depth
     const spawnSlots: { l: number; d: number; isBoss?: boolean; isElite?: boolean }[] = [];
 
     if (roomType === 'boss') {
@@ -1001,40 +1003,47 @@ export function createDungeonFormation(
       spawnSlots.push({ l: 4, d: 0 }); spawnSlots.push({ l: 4, d: 1 });
       spawnSlots.push({ l: 1, d: 1 }); spawnSlots.push({ l: 2, d: 1 }); spawnSlots.push({ l: 3, d: 1 });
       spawnSlots.push({ l: 0, d: 2 }); spawnSlots.push({ l: 2, d: 2 }); spawnSlots.push({ l: 4, d: 2 });
+      if (extraDepth >= 1) {
+        spawnSlots.push({ l: 1, d: 2 }); spawnSlots.push({ l: 3, d: 2 });
+      }
+      if (extraDepth >= 2) {
+        spawnSlots.push({ l: 0, d: 3 }); spawnSlots.push({ l: 4, d: 3 });
+      }
     } else if (pattern === 'column_charge') {
-      // 🎯 Column Charge (세로 집중 돌파): L1 & L3 packed deep (0..4), L0, L2, L4 (0..1)
-      // Total 16 mobs! Encourages straight line pierce / cleave!
+      // 🎯 Column Charge (세로 집중 돌파): L1 & L3 packed deep (0..4+extra), L0, L2, L4 (0..1+extra)
+      // Total 16 -> 20 -> 24 mobs! Encourages straight line pierce / cleave!
       for (let l = 0; l < 5; l++) {
         const isFocus = (l === 1 || l === 3);
-        const maxD = isFocus ? 5 : 2;
+        const maxD = isFocus ? (5 + extraDepth) : (2 + extraDepth);
         for (let d = 0; d < maxD; d++) {
           const isElite = roomType === 'elite' && isFocus && d === 0;
           spawnSlots.push({ l, d, isElite });
         }
       }
     } else if (pattern === 'wide_wall') {
-      // 🌊 Wide Wall (가로 횡대 방어벽): All 5 lanes wide frontline (d=0..2)
-      // Total 15 mobs! Encourages horizontal sweep / whirlwind!
+      // 🌊 Wide Wall (가로 횡대 방어벽): All 5 lanes wide frontline (d=0..2+extra)
+      // Total 15 -> 20 -> 25 mobs! Encourages horizontal sweep / whirlwind!
       for (let l = 0; l < 5; l++) {
-        for (let d = 0; d < 3; d++) {
+        const maxD = 3 + extraDepth;
+        for (let d = 0; d < maxD; d++) {
           const isElite = roomType === 'elite' && (l === 1 || l === 3) && d === 0;
           spawnSlots.push({ l, d, isElite });
         }
       }
     } else if (pattern === 'pincer_flank') {
-      // 🦀 Pincer Flank (양익 협공): L0 & L4 deep (0..3), L2 center anchor (0..2), L1 & L3 (0..1)
-      // Total 15 mobs!
+      // 🦀 Pincer Flank (양익 협공): L0 & L4 deep (0..3+extra), L2 center anchor (0..2+extra), L1 & L3 (0..1+extra)
+      // Total 15 -> 20 -> 24 mobs!
       for (let l = 0; l < 5; l++) {
-        const depths = (l === 0 || l === 4) ? 4 : (l === 2) ? 3 : 2;
+        const depths = (l === 0 || l === 4) ? (4 + extraDepth) : (l === 2) ? (3 + extraDepth) : (2 + extraDepth);
         for (let d = 0; d < depths; d++) {
           const isElite = roomType === 'elite' && (l === 0 || l === 4) && d === 0;
           spawnSlots.push({ l, d, isElite });
         }
       }
     } else {
-      // 💥 Horde Swarm (대군세 스웜): 17~18 massive density for overkill chains!
+      // 💥 Horde Swarm (대군세 스웜): 17 -> 22 -> 27 massive density for overkill chains!
       for (let l = 0; l < 5; l++) {
-        const count = (l === 2 || l === 1 || l === 3) ? 4 : 3;
+        const count = ((l === 2 || l === 1 || l === 3) ? 4 : 3) + extraDepth;
         for (let d = 0; d < count; d++) {
           const isElite = roomType === 'elite' && (l === 1 || l === 3) && d === 0;
           spawnSlots.push({ l, d, isElite });
