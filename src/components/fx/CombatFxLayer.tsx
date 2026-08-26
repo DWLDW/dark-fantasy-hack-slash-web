@@ -231,10 +231,10 @@ const OverkillShockwave: React.FC<{ lane: number; damage?: number }> = ({ lane, 
     <div
       className="absolute pointer-events-none z-50 flex flex-col items-center justify-center"
       style={{
-        left: `${lane * 20 - 4}%`,
-        width: '28%',
-        top: '30%',
-        height: '50%'
+        left: `${lane * 20}%`,
+        width: '20%',
+        bottom: '6%',
+        height: '48%'
       }}
     >
       {/* 💥 Overkill Floating Badge */}
@@ -324,16 +324,16 @@ export const CombatFxLayer: React.FC = React.memo(() => {
         <div key={`flash-${strikeKey}`} className={`absolute inset-0 ${ELEMENT_FLASH[element] || ELEMENT_FLASH.physical}`} />
       )}
 
-      {/* 2. Vertical Cleave / Anime Diagonal Slashes (가르기 / 관통 종베기 검기) */}
+      {/* 2. Vertical Cleave / Anime Diagonal Slashes (가르기 / 관통 종베기 검기 - 몬스터 위치 직격) */}
       {showStrike && (kind === 'vertical' || kind === 'berserk') && (
         <div
           key={`v-${strikeKey}`}
           className="absolute"
           style={{
-            left: `${verticalLane * 20 - (isMassivePierce ? 4 : 2)}%`,
-            width: isMassivePierce ? '28%' : '24%',
-            top: isMassivePierce ? '5%' : '20%',
-            height: isMassivePierce ? '85%' : '60%',
+            left: `${verticalLane * 20}%`,
+            width: '20%',
+            bottom: '2%',
+            height: isMassivePierce ? '82%' : '58%',
             color: glow
           }}
         >
@@ -347,16 +347,16 @@ export const CombatFxLayer: React.FC = React.memo(() => {
         </div>
       )}
 
-      {/* 3. Cross Guillotine Slash (처형 십자 검기) */}
+      {/* 3. Cross Guillotine Slash (처형 십자 검기 - 몬스터 위치 직격) */}
       {showStrike && kind === 'cross' && (
         <div
           key={`c-${strikeKey}`}
           className="absolute"
           style={{
-            left: `${verticalLane * 20 - 3}%`,
-            width: '26%',
-            top: '20%',
-            height: '55%',
+            left: `${verticalLane * 20}%`,
+            width: '20%',
+            bottom: '4%',
+            height: '52%',
             color: glow
           }}
         >
@@ -364,16 +364,16 @@ export const CombatFxLayer: React.FC = React.memo(() => {
         </div>
       )}
 
-      {/* 4. Horizontal Sweep Crescent Aura (휩쓸기 3레인 부채꼴 횡베기 검기) */}
+      {/* 4. Horizontal Sweep Crescent Aura (휩쓸기 3레인 횡베기 검기 - 전열 몬스터 일제 베기) */}
       {showStrike && kind === 'horizontal-wide' && (
         <div
           key={`h-${strikeKey}`}
           className="absolute"
           style={{
-            left: `${Math.max(0, branchSpan.start * 20 - 2)}%`,
-            width: `${Math.min(100, branchSpan.count * 20 + 4)}%`,
-            top: '25%',
-            height: '45%',
+            left: `${branchSpan.start * 20}%`,
+            width: `${branchSpan.count * 20}%`,
+            bottom: '6%',
+            height: '46%',
             color: glow
           }}
         >
@@ -381,16 +381,16 @@ export const CombatFxLayer: React.FC = React.memo(() => {
         </div>
       )}
 
-      {/* 4.5 Shield Bash / War Cry Shockwave */}
+      {/* 4.5 Shield Bash / War Cry Shockwave (방패 강타 몬스터 직격 충격파) */}
       {showStrike && kind === 'shield' && (
         <div
           key={`s-${strikeKey}`}
           className="absolute"
           style={{
-            left: selectedSkill.route === 'radius' ? '5%' : `${verticalLane * 20 - 3}%`,
-            width: selectedSkill.route === 'radius' ? '90%' : '26%',
-            top: '20%',
-            height: '55%',
+            left: selectedSkill.route === 'radius' ? '0%' : `${verticalLane * 20}%`,
+            width: selectedSkill.route === 'radius' ? '100%' : '20%',
+            bottom: '4%',
+            height: '52%',
             color: glow
           }}
         >
@@ -398,16 +398,16 @@ export const CombatFxLayer: React.FC = React.memo(() => {
         </div>
       )}
 
-      {/* 5. Cyclone Whirlwind Arc (회전 폭풍 검기) */}
+      {/* 5. Cyclone Whirlwind Arc (회전 폭풍 검기 - 전 레인 몬스터 소용돌이) */}
       {showStrike && kind === 'whirl' && (
         <div
           key={`w-${strikeKey}`}
           className="absolute"
           style={{
-            left: '5%',
-            width: '90%',
-            top: '10%',
-            height: '80%',
+            left: '0%',
+            width: '100%',
+            bottom: '2%',
+            height: '75%',
             color: glow
           }}
         >
@@ -415,7 +415,7 @@ export const CombatFxLayer: React.FC = React.memo(() => {
         </div>
       )}
 
-      {/* 💥 6. Overkill Dedicated Shatter & Shockwave Explosion (최상단 z-50) */}
+      {/* 💥 6. Overkill Dedicated Shatter & Shockwave Explosion (몬스터 위치 직격 파열 폭발) */}
       {showStrike && overkillDmg && (
         <OverkillShockwave key={`overkill-${strikeKey}`} lane={overkillDmg.lane ?? playerLane} damage={overkillDmg.damage} />
       )}
