@@ -488,6 +488,18 @@ export const DungeonSelectView: React.FC = React.memo(() => {
                       <div className="text-[10px] sm:text-[11px] text-gray-400 truncate mt-0.5 font-mono">
                         {dungeon.theme} · 출현: {dungeon.monsterSummary}
                       </div>
+                      {/* Drop Highlights Chips */}
+                      <div className="flex items-center gap-1 mt-1 flex-wrap font-mono text-[9px]">
+                        <span className="px-1.5 py-0.2 rounded bg-amber-950/60 border border-amber-500/50 text-amber-300 font-bold">
+                          ★ 유니크 장비
+                        </span>
+                        <span className="px-1.5 py-0.2 rounded bg-purple-950/60 border border-purple-500/50 text-purple-300 font-bold">
+                          🔮 고대 룬
+                        </span>
+                        <span className="px-1.5 py-0.2 rounded bg-iron-950 border border-iron-750 text-gray-300">
+                          📦 보물·성소
+                        </span>
+                      </div>
                     </div>
                   </div>
 

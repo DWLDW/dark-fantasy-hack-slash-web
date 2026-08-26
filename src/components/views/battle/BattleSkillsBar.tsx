@@ -13,6 +13,14 @@ const SKILL_ICON: Record<string, React.ReactNode> = {
   war_cry: <Megaphone className="w-3 h-3" />
 };
 
+const SKILL_RANGE_DIAGRAM: Record<string, string> = {
+  single: '■',
+  branch: '■■■',
+  radius: '■■■■■',
+  line: '▲▲▲',
+  buff: '★'
+};
+
 const RUNE_TINT: Record<string, string> = {
   fire: 'from-red-950/80 via-orange-950/40 to-iron-950',
   cold: 'from-cyan-950/80 via-sky-950/40 to-iron-950',
@@ -81,17 +89,24 @@ export const BattleSkillsBar: React.FC = React.memo(() => {
               }`}
               title={unlocked ? `${skill.name} (클릭 시 조준, 재클릭 시 시전)` : `Lv.${skill.unlockLevel} 해금`}
             >
-              {/* Row 1: Name + Hotkey / Unlock Level */}
+              {/* Row 1: Name + Hotkey / Unlock Level + Range Diagram */}
               <div className="flex items-center justify-between text-xs sm:text-sm font-black font-cinzel leading-tight w-full">
                 <span className="truncate flex items-center gap-1">
                   <span className={isSelected ? 'text-amber-300' : 'text-brass-400 flex-shrink-0'}>{SKILL_ICON[skill.id]}</span>
                   <span className="truncate text-white font-bold">{unlocked ? skill.name.split(' ')[0] : '잠김'}</span>
                 </span>
-                <span className={`text-[9px] sm:text-[10px] font-mono font-black px-1 py-0.2 rounded flex-shrink-0 ${
-                  isSelected ? 'bg-amber-400 text-iron-950' : 'bg-iron-900 text-amber-400 border border-iron-800'
-                }`}>
-                  {unlocked ? `[${skill.hotkey}]` : `Lv.${skill.unlockLevel}`}
-                </span>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  {unlocked && (
+                    <span className="text-[8px] font-mono px-1 py-0.2 rounded bg-iron-900 text-amber-300/80 border border-iron-800 hidden sm:inline" title={`타격 범위: ${skill.route}`}>
+                      {SKILL_RANGE_DIAGRAM[skill.route] || '■'}
+                    </span>
+                  )}
+                  <span className={`text-[9px] sm:text-[10px] font-mono font-black px-1 py-0.2 rounded ${
+                    isSelected ? 'bg-amber-400 text-iron-950' : 'bg-iron-900 text-amber-400 border border-iron-800'
+                  }`}>
+                    {unlocked ? `[${skill.hotkey}]` : `Lv.${skill.unlockLevel}`}
+                  </span>
+                </div>
               </div>
 
               {/* Row 2: Damage & Rage Cost */}

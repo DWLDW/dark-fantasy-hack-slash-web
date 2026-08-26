@@ -197,113 +197,80 @@ export const CharacterModal: React.FC = React.memo(() => {
         </div>
 
         {/* Right Column: Detailed Combat Stats & Resistances */}
-        <div className="bg-iron-900/90 p-4 rounded-lg border border-iron-750 space-y-2.5 shadow">
+        <div className="bg-iron-900/90 p-3 sm:p-4 rounded-lg border border-iron-750 space-y-2.5 shadow">
           <h3 className="font-cinzel font-bold text-gray-100 border-b border-iron-750 pb-1.5 flex items-center gap-2">
             <Swords className="w-4 h-4 text-amber-400" />
-            전투 능력치 & 저항 속성
+            전투 상세 능력치 & 저항 속성
           </h3>
 
-          <div className="space-y-1.5 text-xs font-mono">
+          {/* Group 1: 공격 & 연계 (Offense) */}
+          <div className="space-y-1 bg-iron-950/80 p-2 rounded-lg border border-iron-800 text-xs font-mono">
+            <div className="text-[10px] font-cinzel font-black text-amber-400 mb-0.5">⚔️ 공격 및 연계 메트릭</div>
             <StatRow
-              label="물리 피해량 (Physical Power)"
+              label="물리 피해량"
               value={`${totalStats.minDmg} ~ ${totalStats.maxDmg}`}
               highlight="text-brass-200 font-black text-sm"
             />
             <StatRow
-              label="공격 / 시전 속도 (IAS / Cast Rate)"
-              value={`+${totalStats.attackSpeed || 0}% (스킬 분노 소모 -${totalStats.rageCostReduction || 0}%)`}
+              label="공격 / 시전 속도"
+              value={`+${totalStats.attackSpeed || 0}% (분노 소모 -${totalStats.rageCostReduction || 0}%)`}
               highlight="text-amber-300 font-bold"
             />
             <StatRow
-              label="⚡ 신속 연계 콤보 충전 (Swift Momentum)"
-              value={`타격당 +${30 + Math.floor((totalStats.attackSpeed || 0) * 0.5)}% (100% 시 연속 추가 턴!)`}
+              label="치명타 확률 / 피해"
+              value={`${totalStats.critChance}% / +${totalStats.critDamage}%`}
+              highlight="text-yellow-300 font-bold"
+            />
+            <StatRow
+              label="⚡ 신속 연계 콤보"
+              value={`타격당 +${30 + Math.floor((totalStats.attackSpeed || 0) * 0.5)}%`}
               highlight="text-amber-400 font-black"
             />
             <StatRow
-              label="🗡️ 선제 기습 공격 (Initiative Ambush)"
-              value={`${totalStats.baseAtbPercent || 50}% (${(totalStats.baseAtbPercent || 50) >= 65 ? '진입 즉시 전열 무료 기습!' : '일반 개시'})`}
-              highlight={(totalStats.baseAtbPercent || 50) >= 65 ? "text-emerald-400 font-bold" : "text-gray-400"}
+              label="오버킬 전이 효율"
+              value={`${totalStats.overkillEfficiency}%`}
+              highlight="text-orange-300 font-black"
             />
+          </div>
+
+          {/* Group 2: 방어 & 생존 (Defense) */}
+          <div className="space-y-1 bg-iron-950/80 p-2 rounded-lg border border-iron-800 text-xs font-mono">
+            <div className="text-[10px] font-cinzel font-black text-blue-400 mb-0.5">🛡️ 방어 및 생존 메트릭</div>
             <StatRow
-              label="🧛 생명력 흡수 (Life Steal %)"
-              value={`+${totalStats.lifeSteal || 0}% (타격 피해량 비례 회복)`}
-              highlight={totalStats.lifeSteal > 0 ? "text-rose-400 font-black" : "text-gray-400"}
-            />
-            <StatRow
-              label="물리 방어력 (Armor)"
+              label="물리 방어력"
               value={`${totalStats.defense}`}
               highlight="text-blue-300 font-bold"
             />
             <StatRow
-              label="회피율 (Dodge Chance)"
-              value={`${totalStats.evasion}%`}
-              highlight="text-emerald-300 font-bold"
-            />
-            <StatRow
-              label="물리 피해 감소 (Damage Reduction)"
-              value={`${totalStats.damageReduction}%`}
+              label="피해 감소율 / 회피율"
+              value={`${totalStats.damageReduction}% / ${totalStats.evasion}%`}
               highlight="text-cyan-300 font-bold"
             />
             <StatRow
-              label="치명타 확률 (Crit Chance)"
-              value={`${totalStats.critChance}%`}
-              highlight="text-yellow-300 font-bold"
+              label="생명력 흡수 (Life Steal)"
+              value={`+${totalStats.lifeSteal || 0}%`}
+              highlight={totalStats.lifeSteal > 0 ? "text-rose-400 font-black" : "text-gray-400"}
             />
-            <StatRow
-              label="치명타 피해 (Crit Damage)"
-              value={`${totalStats.critDamage}%`}
-              highlight="text-yellow-300 font-bold"
-            />
-            <StatRow
-              label="오버킬 잔여 피해 전이 효율"
-              value={`${totalStats.overkillEfficiency}%`}
-              highlight="text-orange-300 font-black"
-            />
-            {totalStats.turnRageRegen > 0 && (
-              <StatRow
-                label="🧘 명상 오라 (턴당 분노 충전)"
-                value={`+${totalStats.turnRageRegen} Rage/Turn`}
-                highlight="text-amber-400 font-black"
-              />
-            )}
-            
-            {/* Elemental Resistances */}
-            <div className="pt-2 border-t border-iron-750 font-bold text-gray-300 text-[11px] flex items-center justify-between">
-              <span>원소 저항 속성</span>
-              <span className="text-[10px] text-gray-400 font-mono">최대 75%</span>
-            </div>
-            <StatRow
-              label="🔮 모든 원소 저항 (All Resist)"
-              value={`+${totalStats.allResist || 0}%`}
-              highlight="text-purple-300 font-black"
-            />
-            <StatRow
-              label="🔥 화염 저항 (Fire Resist)"
-              value={`+${totalStats.allResist || 0}%`}
-              highlight="text-rose-400 font-mono"
-            />
-            <StatRow
-              label="❄️ 냉기 저항 (Cold Resist)"
-              value={`+${totalStats.allResist || 0}%`}
-              highlight="text-sky-300 font-mono"
-            />
-            <StatRow
-              label="⚡ 번개 저항 (Lightning Resist)"
-              value={`+${totalStats.allResist || 0}%`}
-              highlight="text-amber-300 font-mono"
-            />
-            <StatRow
-              label="🧪 독 저항 (Poison Resist)"
-              value={`+${totalStats.allResist || 0}%`}
-              highlight="text-emerald-300 font-mono"
-            />
+          </div>
 
-            <div className="pt-2 border-t border-iron-750" />
-            <StatRow
-              label="✨ 아이템 희귀도 상승 (Item Rarity Boost %)"
-              value={`+${totalStats.fortune}%`}
-              highlight="text-teal-300 font-black text-sm"
-            />
+          {/* Group 3: 4대 원소 저항 4열 칩 그리드 */}
+          <div className="bg-iron-950/80 p-2 rounded-lg border border-iron-800 space-y-1">
+            <div className="flex justify-between items-center text-[10px] font-cinzel font-black text-purple-300">
+              <span>🔮 4대 원소 저항</span>
+              <span className="font-mono text-gray-400 text-[9px]">모든 저항: +{totalStats.allResist || 0}% (최대 75%)</span>
+            </div>
+            <div className="grid grid-cols-4 gap-1 text-center font-mono text-[10px]">
+              <div className="p-1 rounded bg-rose-950/50 border border-rose-800/80 text-rose-300 font-bold">🔥 +{totalStats.allResist || 0}%</div>
+              <div className="p-1 rounded bg-sky-950/50 border border-sky-800/80 text-sky-300 font-bold">❄️ +{totalStats.allResist || 0}%</div>
+              <div className="p-1 rounded bg-amber-950/50 border border-amber-800/80 text-amber-300 font-bold">⚡ +{totalStats.allResist || 0}%</div>
+              <div className="p-1 rounded bg-emerald-950/50 border border-emerald-800/80 text-emerald-300 font-bold">🧪 +{totalStats.allResist || 0}%</div>
+            </div>
+          </div>
+
+          {/* Group 4: 파밍 & MF */}
+          <div className="bg-iron-950/80 p-2 rounded-lg border border-iron-800 flex justify-between items-center text-xs font-mono">
+            <span className="text-teal-300 font-bold">✨ 아이템 희귀도 상승 (MF):</span>
+            <span className="text-teal-200 font-black text-sm">+{totalStats.fortune}%</span>
           </div>
         </div>
       </div>

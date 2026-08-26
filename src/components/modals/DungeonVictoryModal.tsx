@@ -164,6 +164,27 @@ export const DungeonVictoryModal: React.FC = () => {
           )}
         </div>
 
+        {/* Combat Performance Record Summary */}
+        <div className="grid grid-cols-2 gap-2 font-mono text-center">
+          <div className="p-2 rounded-lg bg-iron-950/90 border border-amber-500/50 flex items-center justify-between px-3 shadow">
+            <span className="text-gray-400 text-xs flex items-center gap-1">
+              ⏱️ 클리어 타임
+            </span>
+            <span className="text-amber-300 font-black text-xs sm:text-sm">
+              01분 12초 <span className="text-[10px] text-emerald-400 font-bold">★ S랭크</span>
+            </span>
+          </div>
+
+          <div className="p-2 rounded-lg bg-iron-950/90 border border-red-500/50 flex items-center justify-between px-3 shadow">
+            <span className="text-gray-400 text-xs flex items-center gap-1">
+              🔥 최대 연쇄 콤보
+            </span>
+            <span className="text-red-400 font-black text-xs sm:text-sm">
+              x48 Chain <span className="text-[10px] text-amber-300 font-bold">+15% EXP</span>
+            </span>
+          </div>
+        </div>
+
         {/* Reward Currency Stats Bar */}
         <div className="grid grid-cols-3 gap-2 font-mono text-center">
           <div className="p-2 rounded-lg bg-iron-950 border border-yellow-600/60 flex flex-col items-center justify-center shadow">

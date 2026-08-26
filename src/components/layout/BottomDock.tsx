@@ -39,14 +39,14 @@ export const BottomDock: React.FC = React.memo(() => {
   if (viewMode === 'battle') return null;
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 bg-iron-950/98 backdrop-blur-md border-t-2 border-brass-600/40 z-40 py-1.5 px-3 md:py-2 select-none shadow-[0_-12px_28px_rgba(0,0,0,0.55)]">
+    <footer className="fixed bottom-0 left-0 right-0 bg-iron-950/98 backdrop-blur-md border-t-2 border-brass-600/50 z-40 py-1.5 px-2.5 sm:px-4 md:py-2 select-none shadow-[0_-12px_28px_rgba(0,0,0,0.65)] pb-[max(0.375rem,env(safe-area-inset-bottom))]">
       <div className="max-w-7xl mx-auto flex items-center justify-around md:justify-between">
         
         {/* Navigation Links */}
-        <div className="flex items-center space-x-1.5 md:space-x-2.5">
+        <div className="flex items-center space-x-1 sm:space-x-2">
           <button
             onClick={() => leaveBattle('town')}
-            className={`flex flex-col md:flex-row items-center gap-1.5 px-3 py-1.5 rounded transition text-xs font-bold ${
+            className={`flex flex-col md:flex-row items-center gap-1 px-3 py-1.5 rounded-lg transition text-xs font-bold min-h-[42px] cursor-pointer active:scale-95 ${
               viewMode === 'town'
                 ? 'bg-brass-500/25 text-brass-200 border border-brass-400 shadow'
                 : 'text-gray-300 hover:text-white hover:bg-iron-850 border border-transparent'

@@ -114,13 +114,9 @@ export const AuthModal: React.FC = () => {
 
   return (
     <div
-      onClick={closeModal}
-      className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 animate-fade-in select-none font-sans"
+      onClick={(e) => e.stopPropagation()}
+      className="bg-gradient-to-b from-iron-950 via-iron-900 to-iron-950 border-2 border-brass-400 rounded-2xl p-4 sm:p-6 max-w-md w-full shadow-[0_0_50px_rgba(251,191,36,0.3)] space-y-4 relative animate-scale-in text-gray-200 select-none font-sans"
     >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="bg-gradient-to-b from-iron-950 via-iron-900 to-iron-950 border-2 border-brass-400 rounded-2xl p-4 sm:p-6 max-w-md w-full shadow-[0_0_50px_rgba(251,191,36,0.3)] space-y-4 relative animate-scale-in text-gray-200"
-      >
         {/* Close Button */}
         <button
           onClick={closeModal}
@@ -300,6 +296,5 @@ export const AuthModal: React.FC = () => {
           </div>
         )}
       </div>
-    </div>
   );
 };

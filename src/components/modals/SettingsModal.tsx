@@ -121,7 +121,7 @@ export const SettingsModal: React.FC = () => {
 
           <button
             onClick={() => setIsMuted(!isMuted)}
-            className={`px-3 py-2 rounded-lg border text-xs font-bold font-mono flex items-center gap-1.5 transition ${
+            className={`px-3 py-2 rounded-lg border text-xs font-bold font-mono flex items-center gap-1.5 transition cursor-pointer ${
               isMuted
                 ? 'bg-blood-950/80 border-blood-600 text-blood-300 hover:bg-blood-900'
                 : 'bg-iron-800 border-iron-700 text-gray-200 hover:bg-iron-750'
@@ -130,6 +130,26 @@ export const SettingsModal: React.FC = () => {
             {isMuted ? <VolumeX className="w-4 h-4 text-blood-400" /> : <Volume2 className="w-4 h-4 text-emerald-400" />}
             <span>{isMuted ? '음소거 됨' : '음소거'}</span>
           </button>
+        </div>
+      </div>
+
+      {/* 3. Graphics & Combat FX Settings */}
+      <div className="space-y-2 bg-iron-900/90 p-3 sm:p-4 rounded-lg border border-iron-750 font-mono text-xs">
+        <h3 className="font-bold text-gray-300 flex items-center gap-1.5 uppercase">
+          <Settings className="w-4 h-4 text-cyan-400" />
+          <span>그래픽 및 전투 연출 옵션</span>
+        </h3>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+          <div className="p-2 rounded-lg bg-iron-950/80 border border-iron-800 flex items-center justify-between">
+            <span className="text-gray-300 text-[11px]">화면 타격 진동 (Screen Shake)</span>
+            <span className="text-emerald-400 font-bold text-[10px] px-1.5 py-0.2 rounded bg-emerald-950 border border-emerald-700">활성</span>
+          </div>
+
+          <div className="p-2 rounded-lg bg-iron-950/80 border border-iron-800 flex items-center justify-between">
+            <span className="text-gray-300 text-[11px]">아케이드 잭팟 롤러</span>
+            <span className="text-amber-400 font-bold text-[10px] px-1.5 py-0.2 rounded bg-amber-950 border border-amber-700">활성</span>
+          </div>
         </div>
       </div>
 

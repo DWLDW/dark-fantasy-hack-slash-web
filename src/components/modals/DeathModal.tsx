@@ -83,6 +83,18 @@ export const DeathModal: React.FC<DeathModalProps> = ({ isOpen, onConfirm }) => 
           <strong className="text-blood-400 font-bold">이번 원정에서 획득한 미확정 전리품(장비, 룬, 골드)을 잃었습니다.</strong>
         </p>
 
+        {/* Loss vs Preserved Infobox */}
+        <div className="grid grid-cols-2 gap-2 text-left text-[11px] font-mono">
+          <div className="p-2 rounded-lg bg-blood-950/70 border border-blood-800/80 text-blood-300">
+            <div className="font-bold text-blood-400 mb-0.5">❌ 손실된 항목:</div>
+            <div>이번 원정 미확정 전리품</div>
+          </div>
+          <div className="p-2 rounded-lg bg-iron-950/80 border border-emerald-800/60 text-emerald-300">
+            <div className="font-bold text-emerald-400 mb-0.5">🛡️ 안전 보존:</div>
+            <div>기존 장비, 레벨, 골드, EXP</div>
+          </div>
+        </div>
+
         {/* 💡 Survival Tip Guide Box */}
         <div className="p-3 bg-iron-900/90 rounded-xl border border-brass-600/60 text-left space-y-1.5 shadow">
           <div className="flex items-center justify-between">
@@ -103,24 +115,30 @@ export const DeathModal: React.FC<DeathModalProps> = ({ isOpen, onConfirm }) => 
           </p>
         </div>
 
-        {/* Revival Bonus Notice */}
-        <div className="p-2.5 bg-iron-950/80 rounded-lg border border-iron-800 text-[11px] font-mono text-gray-400 text-left flex items-center justify-between">
-          <span className="text-emerald-300">✓ 마을 복귀 시 체력 100% 완전 소생</span>
-          <span className="text-purple-300">✓ 물약 5개 자동 리필</span>
-        </div>
+        {/* Action Buttons: Return to Town vs Instant Retry */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+          <button
+            onClick={onConfirm}
+            className="w-full py-2.5 bg-iron-900 hover:bg-iron-800 border border-iron-700 text-gray-200 font-cinzel font-bold rounded-xl text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow transition transform active:scale-95 cursor-pointer"
+          >
+            <Home className="w-4 h-4 text-brass-400" />
+            <span>마을로 귀환</span>
+            <kbd className="px-1.5 py-0.2 rounded bg-iron-950 text-gray-400 text-[10px] font-mono border border-iron-800">
+              Esc
+            </kbd>
+          </button>
 
-        {/* Return Button */}
-        <button
-          onClick={onConfirm}
-          className="w-full py-3 bg-gradient-to-r from-blood-700 via-blood-600 to-blood-500 hover:from-blood-600 hover:to-blood-400 text-white font-cinzel font-black rounded-xl text-sm sm:text-base flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(220,38,38,0.5)] transition transform active:scale-95 cursor-pointer ring-1 ring-blood-400"
-        >
-          <Home className="w-4 h-4" />
-          <span>마을로 귀환하기</span>
-          <kbd className="px-1.5 py-0.5 rounded bg-blood-950 text-blood-200 text-[10px] font-mono border border-blood-400">
-            Space
-          </kbd>
-          <ArrowRight className="w-4 h-4 animate-pulse" />
-        </button>
+          <button
+            onClick={onConfirm}
+            className="w-full py-2.5 bg-gradient-to-r from-blood-700 via-blood-600 to-blood-500 hover:from-blood-600 hover:to-blood-400 text-white font-cinzel font-black rounded-xl text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-[0_0_20px_rgba(220,38,38,0.5)] transition transform active:scale-95 cursor-pointer ring-1 ring-blood-400"
+          >
+            <span>확인 후 부활</span>
+            <kbd className="px-1.5 py-0.2 rounded bg-blood-950 text-blood-200 text-[10px] font-mono border border-blood-400">
+              Space
+            </kbd>
+            <ArrowRight className="w-4 h-4 animate-pulse" />
+          </button>
+        </div>
       </div>
     </div>
   );

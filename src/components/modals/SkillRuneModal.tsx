@@ -301,7 +301,7 @@ export const SkillRuneModal: React.FC = React.memo(() => {
                           ? 'bg-amber-950/80 border-amber-400 ring-1 ring-amber-400 shadow'
                           : unlocked
                           ? 'bg-iron-900 border-iron-750 hover:bg-iron-850 hover:border-iron-600'
-                          : 'bg-iron-950 border-iron-850 opacity-50 cursor-not-allowed'
+                          : 'bg-iron-950/80 border-iron-800 opacity-70 hover:border-iron-700'
                       }`}
                     >
                       <div className="min-w-0 flex-1">

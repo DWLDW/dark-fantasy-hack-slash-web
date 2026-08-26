@@ -545,17 +545,17 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                     return (
                       <div
                         key={m.id}
-                        className={`w-full rounded-lg transition-all relative overflow-visible shadow flex-shrink-0 monster-token ${
-                          isBoss ? 'p-1.5 border-2' : 'p-1 border'
+                        className={`w-full p-1 sm:p-1.5 rounded-lg border text-left transition-all relative overflow-hidden select-none min-h-[56px] sm:min-h-[60px] flex flex-col justify-between ${
+                          isBoss ? 'border-2' : ''
                         } ${dIdx === 0 ? 'monster-token-front ring-1 ring-iron-700/60' : ''} ${
                           monsterDmgPopups.length > 0 ? 'monster-token-hit' : ''
                         } ${
                           isDying
-                            ? 'animate-death-shrink'
+                            ? 'animate-death-shrink opacity-0'
                             : isPredictedKill
-                            ? 'bg-gradient-to-r from-orange-600 via-rose-600 to-amber-500 border-amber-300 text-white ring-1 ring-amber-400 animate-pulse'
+                            ? 'bg-gradient-to-r from-orange-600 via-rose-600 to-amber-500 border-amber-300 text-white ring-2 ring-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.6)] animate-pulse'
                             : isTargeted
-                            ? 'bg-red-950/90 border border-red-500 ring-1 ring-red-500/80 text-red-100'
+                            ? 'bg-red-950/95 border-2 border-red-500 ring-2 ring-red-500/80 text-red-100 shadow-[0_0_12px_rgba(239,68,68,0.5)]'
                             : isBoss
                             ? isEnraged
                               ? 'animate-boss-enrage bg-gradient-to-b from-red-900 via-red-950 to-amber-950 text-amber-100 border-red-400 ring-2 ring-red-500/80 shadow-[0_0_20px_rgba(239,68,68,0.7)]'
@@ -571,11 +571,30 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                             : 'bg-iron-950/95 border-iron-800 text-gray-200'
                         } ${isOverkillResidual && !isDying ? 'animate-overkill-glow' : ''}`}
                       >
+                        {/* 🎯 Crosshair Aim Reticle Overlay on Target */}
+                        {isTargeted && !isDying && (
+                          <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center bg-red-500/10">
+                            <span className="text-[10px] font-black font-mono text-amber-300 drop-shadow-[0_0_6px_rgba(251,191,36,1)] px-1 py-0.2 rounded bg-black/60 border border-amber-400/70 animate-pulse">
+                              🎯 {isPredictedKill ? 'KILL' : `-${hitInfo ? hitInfo.damage : 0}`}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Constant Mini ATB Charge Line on Top Edge */}
                         {(() => {
                           const chg = m.intent?.chargePercent || 0;
-                          if (chg < 75 || m.hp <= 0 || isFrozen) return null;
-                          return (<span className="chargeGauge absolute -top-1.5 -right-1 z-20 px-1 py-0.2 rounded bg-red-600 text-white text-[9px] font-black border border-red-300 shadow animate-pulse">⚡{chg}%</span>);
+                          return (
+                            <div className="w-full h-0.5 bg-iron-950/90 absolute top-0 left-0 right-0 overflow-hidden z-10">
+                              <div
+                                className={`h-full transition-all duration-300 ${
+                                  chg >= 75 ? 'bg-gradient-to-r from-amber-400 to-red-500 animate-pulse' : 'bg-iron-600'
+                                }`}
+                                style={{ width: `${Math.min(100, chg)}%` }}
+                              />
+                            </div>
+                          );
                         })()}
+
                         {monsterDmgPopups.length > 0 && (
                           <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden rounded">
                             <div className="hit-spark" />
@@ -602,7 +621,7 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                           </div>
                         ))}
 
-                        {/* Monster Header: Portrait + Name + Rank */}
+                        {/* Monster Header: Portrait + Name + Depth/Rank Badge */}
                         <div className={`flex items-center justify-between leading-tight gap-1 ${
                           isBoss ? 'text-[10px] sm:text-xs' : 'text-[9px] sm:text-[10px]'
                         }`}>
@@ -623,34 +642,32 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                               {m.name}
                             </span>
                           </div>
-                          {isBoss ? (
-                            <span className={`font-mono text-[8px] font-black px-1 py-0.2 rounded flex-shrink-0 ${
-                              isEnraged ? 'bg-red-600 text-white animate-pulse' : 'bg-amber-600 text-iron-950'
-                            }`}>
-                              {isEnraged ? '광란' : 'BOSS'}
-                            </span>
-                          ) : isElite ? (
-                            <span className="font-mono text-[8px] font-black px-1 py-0.2 rounded bg-yellow-500 text-iron-950 flex-shrink-0">
-                              ELITE
-                            </span>
-                          ) : null}
+                          <span className="text-[8px] font-mono font-black px-1 rounded bg-iron-950 text-gray-400 border border-iron-800 flex-shrink-0">
+                            D{dIdx}
+                          </span>
                         </div>
 
-                        {/* HP Bar (Thicker & Higher Contrast) */}
-                        <div className={`w-full bg-iron-950 rounded-full overflow-hidden border border-iron-750 my-0.5 hp-bar-shell ${
+                        {/* HP Bar with Prediction Ghost Layer */}
+                        <div className={`w-full bg-iron-950 rounded-full overflow-hidden border border-iron-750 my-0.5 hp-bar-shell relative ${
                           isBoss ? 'h-2.5 sm:h-3' : 'h-1.5 sm:h-2'
                         }`}>
+                          {/* Ghost Damage Bar */}
+                          {isTargeted && (
+                            <div
+                              className="absolute top-0 bottom-0 left-0 bg-red-400/50 transition-all duration-200"
+                              style={{ width: `${Math.max(0, Math.min(100, (m.hp / m.maxHp) * 100))}%` }}
+                            />
+                          )}
+                          {/* Actual / Expected Remaining Bar */}
                           <div
-                            className={`h-full transition-all duration-200 hp-bar-fill ${
+                            className={`h-full transition-all duration-200 hp-bar-fill relative ${
                               isBoss
                                 ? isEnraged
                                   ? 'bg-gradient-to-r from-red-500 via-amber-500 to-red-500 animate-boss-hp-shimmer'
                                   : 'bg-gradient-to-r from-red-600 via-rose-500 to-amber-400'
                                 : m.hp / m.maxHp < 0.25
                                 ? 'bg-red-500'
-                                : m.hp / m.maxHp < 0.5
-                                ? 'bg-orange-500'
-                                : 'bg-gradient-to-r from-blood-700 via-rose-500 to-red-400'
+                                : 'bg-gradient-to-r from-blood-600 via-red-500 to-amber-400'
                             }`}
                             style={{ width: `${Math.max(0, Math.min(100, (m.hp / m.maxHp) * 100))}%` }}
                           />

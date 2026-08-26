@@ -232,16 +232,18 @@ export const BattleStatusDock: React.FC<BattleStatusDockProps> = React.memo(({
                   key={item.id}
                   onClick={() => useConsumable(item.id)}
                   disabled={item.count <= 0}
-                  className={`p-0.5 sm:p-1 rounded border flex flex-col items-center justify-center transition shadow-sm cursor-pointer ${
+                  className={`p-1 rounded-lg border flex flex-col items-center justify-between transition-all shadow cursor-pointer min-h-[36px] sm:min-h-[40px] ${
                     item.count > 0
-                      ? 'bg-iron-900 border-iron-750 text-gray-100 hover:border-amber-400 hover:bg-iron-850 active:scale-95'
-                      : 'bg-iron-950 text-gray-600 border-iron-900 opacity-40 cursor-not-allowed'
+                      ? 'bg-iron-900/90 border-brass-600/60 text-gray-100 hover:border-amber-400 hover:bg-iron-850 active:scale-95'
+                      : 'bg-iron-950 text-gray-600 border-iron-900 opacity-35 cursor-not-allowed'
                   }`}
                   title={`${item.name} [${item.hotkey}]`}
                 >
-                  <div className="flex items-center justify-between w-full text-[8px] font-black leading-none">
-                    <span className="text-amber-400">{item.hotkey}</span>
-                    <span className={item.count > 0 ? 'text-amber-300' : 'text-gray-600'}>x{item.count}</span>
+                  <div className="flex items-center justify-between w-full text-[8px] font-mono font-black leading-none">
+                    <span className="text-amber-400">[{item.hotkey}]</span>
+                    <span className={`px-1 py-0.2 rounded ${item.count > 0 ? 'bg-amber-950 text-amber-300 border border-amber-600/50' : 'text-gray-600'}`}>
+                      x{item.count}
+                    </span>
                   </div>
                   <div className="text-[9px] font-bold text-gray-200 truncate flex items-center gap-0.5 mt-0.5 leading-none">
                     <span>{icon}</span>
