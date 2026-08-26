@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Shield, Sword, Lock, Unlock, Package, ArrowLeftRight } from 'lucide-react';
+import { Sparkles, Shield, Sword, Lock, Unlock, Package, ArrowLeftRight, Download, Upload } from 'lucide-react';
 import { GameItem } from '../../../types/game';
 import { SET_DEFINITIONS } from '../../../data/setItems';
 
@@ -24,6 +24,19 @@ const defaultGetRarityBadge = (rarity: GameItem['rarity']) => {
   }
 };
 
+const SLOT_LABEL: Record<string, string> = {
+  weapon: '무기 (Weapon)',
+  armor: '갑옷 (Armor)',
+  shield: '방패 (Shield)',
+  helm: '투구 (Helm)',
+  gloves: '장갑 (Gloves)',
+  boots: '신발 (Boots)',
+  ring: '반지 (Ring)',
+  ring1: '반지 1 (Ring)',
+  ring2: '반지 2 (Ring)',
+  amulet: '목걸이 (Amulet)'
+};
+
 export const ItemDetailCard: React.FC<ItemDetailCardProps> = React.memo(({
   item,
   getRarityBadge = defaultGetRarityBadge,
@@ -33,23 +46,25 @@ export const ItemDetailCard: React.FC<ItemDetailCardProps> = React.memo(({
   isInStash = false
 }) => {
   const isLocked = Boolean(item.isLocked);
+  const slotText = SLOT_LABEL[item.slot] || item.slot;
 
   return (
-    <div className="bg-iron-900/90 p-3 rounded-lg border-2 border-brass-500/80 shadow-lg space-y-2">
-      {/* Header: Name, Slot, Tier & Badges */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-iron-750 pb-1.5">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-brass-400 animate-pulse"></span>
+    <div className="bg-iron-900/95 p-3 sm:p-3.5 rounded-xl border-2 border-brass-500/80 shadow-xl space-y-2.5 font-sans select-none text-gray-200">
+      
+      {/* Header: Name, Badges & Icon Action Controls */}
+      <div className="flex items-start justify-between gap-2 border-b border-iron-750 pb-2">
+        <div className="space-y-1 min-w-0 flex-1">
+          {/* Item Name */}
+          <div className="flex items-center gap-1.5 flex-wrap">
             <span
-              className="font-cinzel font-black text-sm sm:text-base tracking-wide flex items-center gap-1.5"
+              className="font-cinzel font-black text-sm sm:text-base tracking-wide flex items-center gap-1.5 truncate"
               style={{
                 color:
                   item.rarity === 'runeword'
                     ? '#fcd34d'
                     : item.rarity === 'set'
                     ? '#34d399'
-                    : item.rarity === 'unique'
+                    : item.rarity === 'unique' || item.rarity === 'legendary'
                     ? '#fb923c'
                     : item.rarity === 'rare'
                     ? '#facc15'
@@ -59,87 +74,73 @@ export const ItemDetailCard: React.FC<ItemDetailCardProps> = React.memo(({
               }}
             >
               <span>{item.name}</span>
-              {isLocked && (
-                <span className="text-amber-400 text-xs bg-amber-950/80 px-1.5 py-0.5 rounded border border-amber-400 flex items-center gap-0.5 font-mono">
-                  <Lock className="w-3 h-3" /> 잠금됨
-                </span>
-              )}
             </span>
+
+            {isLocked && (
+              <span className="text-amber-400 text-[10px] bg-amber-950/90 px-1.5 py-0.2 rounded border border-amber-400 flex items-center gap-0.5 font-mono font-bold shadow">
+                <Lock className="w-3 h-3 text-amber-400" /> 잠금됨
+              </span>
+            )}
           </div>
-          <div className="flex items-center gap-1.5 text-[10px] text-gray-400 mt-0.5 flex-wrap">
+
+          {/* Clean Property Badges Row (No redundant [고대 룬워드]) */}
+          <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-mono flex-wrap">
             {getRarityBadge(item.rarity)}
+            <span className="text-gray-300 font-bold bg-iron-950 px-1.5 py-0.5 rounded border border-iron-750">
+              {slotText}
+            </span>
+            {item.requiredLevel && (
+              <span className="text-orange-300 font-bold bg-orange-950/80 px-1.5 py-0.5 rounded border border-orange-700">
+                Lv.{item.requiredLevel} 요구
+              </span>
+            )}
             {item.setName && (
-              <span className="text-emerald-300 font-bold bg-emerald-950/80 px-1 py-0.5 rounded border border-emerald-600">
+              <span className="text-emerald-300 font-bold bg-emerald-950/80 px-1.5 py-0.5 rounded border border-emerald-600">
                 세트: {item.setName}
               </span>
             )}
-            {item.requiredLevel && (
-              <span className="text-orange-300 font-bold bg-orange-950/80 px-1 py-0.5 rounded border border-orange-700">
-                요구 레벨: Lv.{item.requiredLevel}
-              </span>
-            )}
-            <span className="uppercase text-amber-400 font-bold bg-iron-950 px-1 py-0.5 rounded border border-iron-700">
+            <span className="uppercase text-amber-400 font-bold bg-iron-950 px-1 py-0.5 rounded border border-iron-750">
               {item.tier || 'NORMAL'}
             </span>
-            <span className="text-gray-300 font-mono">
-              [{item.slot === 'weapon'
-                ? '무기'
-                : item.slot === 'armor'
-                ? '갑옷'
-                : item.slot === 'shield'
-                ? '방패'
-                : item.slot === 'helm'
-                ? '투구'
-                : item.slot === 'ring1' || item.slot === 'ring2' || item.slot === 'ring'
-                ? '반지'
-                : item.slot === 'amulet'
-                ? '목걸이'
-                : item.slot}]
-            </span>
             {item.sockets ? (
-              <span className="text-purple-300 font-bold bg-purple-950/80 px-1 rounded border border-purple-700">
+              <span className="text-purple-300 font-bold bg-purple-950/80 px-1.5 py-0.5 rounded border border-purple-700">
                 {item.socketedRunes?.length || 0}/{item.sockets} 소켓
               </span>
             ) : null}
-            {item.isRuneWord && <span className="text-amber-300 font-black">[고대 룬워드]</span>}
           </div>
         </div>
 
-        {/* Action Controls & Primary Core Stat Badge */}
+        {/* Right: Icon-Only Action Buttons & Core Stat Badge */}
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          {/* Lock / Unlock Toggle Button */}
+          {/* Icon-Only Lock Toggle Button */}
           {onToggleLock && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onToggleLock(item.id);
               }}
-              className={`px-2 py-1 rounded text-xs font-mono font-bold flex items-center gap-1 transition cursor-pointer border ${
+              className={`w-8 h-8 rounded-lg flex items-center justify-center transition cursor-pointer border shadow ${
                 isLocked
-                  ? 'bg-amber-950 text-amber-300 border-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.4)]'
+                  ? 'bg-amber-950 text-amber-300 border-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.5)]'
                   : 'bg-iron-950 text-gray-400 border-iron-750 hover:text-white hover:border-gray-500'
               }`}
-              title={isLocked ? "잠금을 해제합니다 [L]" : "아이템을 잠금하여 실수 판매나 소실을 방지합니다 [L]"}
+              title={isLocked ? "아이템 잠금 해제 [L]" : "아이템 잠금 (판매/소실 방지) [L]"}
             >
-              {isLocked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : <Unlock className="w-3.5 h-3.5 text-gray-400" />}
-              <span>{isLocked ? '잠금 해제' : '아이템 잠금'}</span>
-              <kbd className="text-[9px] font-mono px-1 rounded bg-black/40 text-amber-300/80 border border-iron-750">L</kbd>
+              {isLocked ? <Lock className="w-4 h-4 text-amber-400" /> : <Unlock className="w-4 h-4 text-gray-400" />}
             </button>
           )}
 
-          {/* Stash Deposit / Withdraw Action */}
+          {/* Icon-Only Stash Deposit / Withdraw Button */}
           {isInStash && onWithdraw && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onWithdraw(item.id);
               }}
-              className="px-2.5 py-1 rounded bg-indigo-900 hover:bg-indigo-800 text-indigo-100 border border-indigo-400 font-bold text-xs flex items-center gap-1 shadow transition cursor-pointer"
-              title="보관함에서 인벤토리로 꺼냅니다 [D]"
+              className="w-8 h-8 rounded-lg bg-indigo-900 hover:bg-indigo-800 text-indigo-100 border border-indigo-400 flex items-center justify-center shadow transition cursor-pointer"
+              title="보관함에서 가방으로 꺼내기 [D]"
             >
-              <Package className="w-3.5 h-3.5" />
-              <span>꺼내기</span>
-              <kbd className="text-[9px] font-mono px-1 rounded bg-indigo-950 text-indigo-200 border border-indigo-500/60">D</kbd>
+              <Upload className="w-4 h-4 text-indigo-200" />
             </button>
           )}
 
@@ -149,28 +150,26 @@ export const ItemDetailCard: React.FC<ItemDetailCardProps> = React.memo(({
                 e.stopPropagation();
                 onDeposit(item.id);
               }}
-              className="px-2.5 py-1 rounded bg-iron-950 hover:bg-iron-800 text-gray-200 border border-iron-700 hover:border-indigo-400 font-bold text-xs flex items-center gap-1 shadow transition cursor-pointer"
-              title="인벤토리에서 모험가 보관함(Stash)으로 보관합니다 [D]"
+              className="w-8 h-8 rounded-lg bg-iron-950 hover:bg-iron-800 text-gray-200 border border-iron-700 hover:border-indigo-400 flex items-center justify-center shadow transition cursor-pointer"
+              title="가방에서 모험가 보관함(Stash)으로 보관 [D]"
             >
-              <Package className="w-3.5 h-3.5 text-indigo-400" />
-              <span>보관</span>
-              <kbd className="text-[9px] font-mono px-1 rounded bg-black/50 text-indigo-300 border border-indigo-600/50">D</kbd>
+              <Download className="w-4 h-4 text-indigo-400" />
             </button>
           )}
 
-          {/* Primary Core Stat Badge */}
+          {/* Core Main Stat Header Badge */}
           {item.slot === 'weapon' && (
-            <div className="bg-iron-950 px-2.5 py-1 rounded border border-amber-500/70 shadow text-right">
+            <div className="bg-iron-950 px-2.5 py-1 rounded-lg border border-amber-500/70 shadow text-right min-w-[70px]">
               <div className="text-[9px] text-gray-400 font-mono">기본 공격력</div>
-              <div className="text-sm sm:text-base font-cinzel font-black text-amber-300">
-                ⚔️ {item.stats.minDmg || 0} ~ {item.stats.maxDmg || 0}
+              <div className="text-xs sm:text-sm font-cinzel font-black text-amber-300">
+                ⚔️ {item.stats.minDmg || 0}~{item.stats.maxDmg || 0}
               </div>
             </div>
           )}
           {(item.slot === 'armor' || item.slot === 'shield' || item.slot === 'helm') && (
-            <div className="bg-iron-950 px-2.5 py-1 rounded border border-blue-500/70 shadow text-right">
+            <div className="bg-iron-950 px-2.5 py-1 rounded-lg border border-blue-500/70 shadow text-right min-w-[70px]">
               <div className="text-[9px] text-gray-400 font-mono">기본 방어력</div>
-              <div className="text-sm sm:text-base font-cinzel font-black text-blue-300">
+              <div className="text-xs sm:text-sm font-cinzel font-black text-blue-300">
                 🛡️ +{item.stats.defense || 0}
               </div>
             </div>
@@ -178,25 +177,8 @@ export const ItemDetailCard: React.FC<ItemDetailCardProps> = React.memo(({
         </div>
       </div>
 
-      {/* Socketed Runes & RuneWord Details Banner */}
-      {item.socketedRunes && item.socketedRunes.length > 0 && (
-        <div className="p-2 bg-gradient-to-r from-purple-950/70 via-iron-900 to-amber-950/70 rounded border border-purple-500/70 text-[11px] space-y-1 shadow">
-          <div className="flex items-center justify-between flex-wrap gap-1">
-            <div className="flex items-center gap-1.5 text-purple-300 font-bold font-mono">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              <span>각인된 룬: [{item.socketedRunes.join(' + ')}]</span>
-            </div>
-            {item.isRuneWord && (
-              <span className="text-amber-300 font-black px-1.5 py-0.5 rounded bg-amber-950/80 border border-amber-400/70 font-mono animate-pulse">
-                ❖ [{item.runeWordName || item.name}] 룬워드 발동!
-              </span>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Full Detailed Stats Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 pt-1 text-[11px] font-mono">
+      {/* 1. Full Detailed Stats Grid (Primary Attributes) */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-[11px] font-mono">
         {item.stats.minDmg !== undefined && (
           <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between text-amber-200">
             <span>⚔️ 최소 공격력</span>
@@ -295,35 +277,54 @@ export const ItemDetailCard: React.FC<ItemDetailCardProps> = React.memo(({
         )}
       </div>
 
-      {/* Special Effects & Affixes */}
+      {/* 2. Special Effects & Unique Affixes */}
       {item.specialEffect && (
-        <div className="p-1.5 bg-amber-950/40 rounded border border-amber-600/80 text-[11px] text-amber-300">
-          <span className="font-black text-amber-400">★ [고유 효과]: </span>
-          {item.specialEffect}
+        <div className="p-2 bg-amber-950/50 rounded-lg border border-amber-600/80 text-[11px] text-amber-300 space-y-0.5">
+          <div className="font-black text-amber-400 flex items-center gap-1">
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <span>고유 특수 효과</span>
+          </div>
+          <p className="leading-relaxed font-mono">{item.specialEffect}</p>
         </div>
       )}
 
-      {/* Set Items & Bonuses Section */}
+      {/* 3. Socketed Runes & RuneWord Details (Now placed below stats as requested!) */}
+      {item.socketedRunes && item.socketedRunes.length > 0 && (
+        <div className="p-2 bg-gradient-to-r from-purple-950/80 via-iron-900 to-amber-950/80 rounded-lg border border-purple-500/70 text-[11px] space-y-1 shadow">
+          <div className="flex items-center justify-between flex-wrap gap-1">
+            <div className="flex items-center gap-1.5 text-purple-300 font-bold font-mono">
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span>각인된 룬 목록: [{item.socketedRunes.join(' + ')}]</span>
+            </div>
+            {item.isRuneWord && (
+              <span className="text-amber-300 font-black px-1.5 py-0.5 rounded bg-amber-950/80 border border-amber-400 font-mono animate-pulse">
+                ❖ [{item.runeWordName || item.name}] 룬워드 완성
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 4. Set Items & Bonuses Section */}
       {item.setName && SET_DEFINITIONS[item.setName] && (
-        <div className="p-2 bg-emerald-950/40 rounded border border-emerald-600/80 text-[11px] space-y-1.5">
+        <div className="p-2 bg-emerald-950/40 rounded-lg border border-emerald-600/80 text-[11px] space-y-1.5">
           <div className="flex items-center justify-between text-emerald-300 font-bold border-b border-emerald-800/80 pb-1">
             <span>🌿 [{item.setName}] 세트 구성품</span>
             <span className="text-[10px] text-emerald-400/80">({SET_DEFINITIONS[item.setName].totalPieces}부위)</span>
           </div>
           <div className="space-y-0.5 text-[10px] font-mono">
             {SET_DEFINITIONS[item.setName].pieceNames.map((pName, pIdx) => {
-              const isThisItem = item.name.includes(pName.split(' ')[0]);
+              const isEquippedPiece = pName === item.name;
               return (
-                <div key={pIdx} className={isThisItem ? 'text-emerald-300 font-black' : 'text-gray-400'}>
-                  {isThisItem ? '● ' : '○ '} {pName}
+                <div key={pIdx} className={isEquippedPiece ? 'text-emerald-300 font-bold' : 'text-gray-500'}>
+                  • {pName} {isEquippedPiece && '✓ (장착중)'}
                 </div>
               );
             })}
           </div>
-          <div className="pt-1 border-t border-emerald-800/60 space-y-0.5">
-            <div className="text-[10px] font-bold text-emerald-400">★ 세트 보너스 효과:</div>
+          <div className="border-t border-emerald-800/80 pt-1 space-y-0.5 text-[10px] font-mono">
             {SET_DEFINITIONS[item.setName].bonuses.map((b, bIdx) => (
-              <div key={bIdx} className="text-[10px] text-emerald-200/90 font-mono">
+              <div key={bIdx} className="text-emerald-200">
                 ({b.piecesRequired}세트) {b.description}
               </div>
             ))}
@@ -331,24 +332,15 @@ export const ItemDetailCard: React.FC<ItemDetailCardProps> = React.memo(({
         </div>
       )}
 
-      {item.subAffixes && item.subAffixes.length > 0 && (
-        <div className="p-1.5 bg-blue-950/40 rounded border border-blue-700/60 text-[11px] text-blue-300 flex flex-wrap items-center gap-1.5">
-          <span className="font-bold text-blue-400 flex-shrink-0">🔮 [추가 접사 옵션]:</span>
-          {item.subAffixes.map((aff, idx) => (
-            <span key={idx} className="bg-iron-950 px-1.5 py-0.5 rounded border border-blue-600/60 text-[10px] text-blue-200 font-bold">
-              {aff.label}
-            </span>
-          ))}
-        </div>
-      )}
-
-      {/* Flavor Description */}
+      {/* 5. Description & Flavor Text */}
       {item.description && (
-        <p className="text-[10px] sm:text-[11px] text-gray-400 italic pt-0.5">
+        <div className="text-[10px] text-gray-400 italic bg-iron-950/60 p-1.5 rounded border border-iron-800 leading-relaxed font-mono">
           "{item.description}"
-        </p>
+        </div>
       )}
     </div>
   );
 });
+
 ItemDetailCard.displayName = 'ItemDetailCard';
+

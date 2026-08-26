@@ -7,7 +7,7 @@ import { POTION_CAPACITY_TIERS, getPotionCapacityUpgradeCost, getPotionHealingUp
 import { GameItem } from '../../types/game';
 import { ACHIEVEMENTS } from '../../data/achievements';
 import { isDungeonUnlocked, getHighestUnlockedDungeon } from '../../data/dungeons';
-import { Box, Home, X, Sparkles, Dices, BookOpen, ArrowRight, Shield, Compass, Hammer, Trophy, Zap, Package } from 'lucide-react';
+import { Box, Home, X, ArrowLeft, Sparkles, Dices, BookOpen, ArrowRight, Shield, Compass, Hammer, Trophy, Zap, Package } from 'lucide-react';
 
 export const TownView: React.FC = React.memo(() => {
   const {
@@ -39,6 +39,13 @@ export const TownView: React.FC = React.memo(() => {
   const [activeFacility, setActiveFacility] = useState<'cain' | 'gamble' | 'runewords' | 'cube'>('cain');
   const [gambleFeedback, setGambleFeedback] = useState<{ item: GameItem; isHighRarity: boolean; cost: number } | null>(null);
   const [identifiedHistory, setIdentifiedHistory] = useState<GameItem[]>([]);
+  const [isFacilityModalOpen, setIsFacilityModalOpen] = useState<boolean>(false);
+  const [hoveredFacility, setHoveredFacility] = useState<string | null>(null);
+
+  const handleOpenFacility = (facility: 'cain' | 'gamble' | 'runewords' | 'cube') => {
+    setActiveFacility(facility);
+    setIsFacilityModalOpen(true);
+  };
 
   const handleIdentifyAll = () => {
     const identified = identifyAllItems();
@@ -79,11 +86,11 @@ export const TownView: React.FC = React.memo(() => {
   const unidentifiedCount = inventory.filter(i => i.isIdentified === false).length;
 
   return (
-    <div className="max-w-7xl mx-auto p-2 sm:p-4 md:p-6 space-y-3 pb-24 sm:pb-28 select-none overflow-x-hidden font-sans">
+    <div className="max-w-7xl mx-auto p-2 sm:p-4 space-y-3 pb-24 sm:pb-28 select-none overflow-x-hidden font-sans">
       
-{/* 1. Center Interactive Dark Fantasy Town Map Canvas */}
+      {/* 1. Center Interactive Dark Fantasy Town Map Canvas */}
       <TownMapCanvas
-        onOpenFacility={(fac) => setActiveFacility(fac)}
+        onOpenFacility={(fac) => handleOpenFacility(fac)}
         unidentifiedCount={unidentifiedCount}
         onDeploy={() => enterDungeon(lastDungeon.id, autoDeployDiff)}
         onWorldMap={() => setViewMode('dungeon_select')}
@@ -92,7 +99,65 @@ export const TownView: React.FC = React.memo(() => {
         playerLevel={playerStats.level}
       />
 
-      {/* 1.5. Primary Expedition Action Bar */}
+      {/* 2. 4 Interactive Facility Cards Navigation */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-2.5">
+        <button
+          onClick={() => handleOpenFacility('cain')}
+          className={`p-2.5 sm:p-3 rounded-xl border-2 text-left transition cursor-pointer flex items-center gap-2.5 ${activeFacility === 'cain' && isFacilityModalOpen ? 'bg-blue-950/90 border-brass-400 ring-2 ring-brass-400/60 shadow-[0_0_15px_rgba(251,191,36,0.3)]' : 'bg-iron-900/90 border-iron-750 hover:border-iron-600 hover:bg-iron-850'}`}
+        >
+          <div className="w-8 h-8 rounded-lg bg-blue-950 border border-blue-500 flex items-center justify-center text-blue-400 flex-shrink-0">
+            <BookOpen className="w-4 h-4" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center justify-between">
+              <span className="font-cinzel font-black text-xs sm:text-sm text-white truncate">데커드 케인</span>
+              {unidentifiedCount > 0 && <span className="px-1.5 py-0.2 bg-blood-600 text-white rounded-full text-[9px] font-mono font-bold animate-pulse">{unidentifiedCount}개</span>}
+            </div>
+            <div className="text-[10px] text-gray-400 font-mono truncate">장비 무료 감정</div>
+          </div>
+        </button>
+
+        <button
+          onClick={() => handleOpenFacility('gamble')}
+          className={`p-2.5 sm:p-3 rounded-xl border-2 text-left transition cursor-pointer flex items-center gap-2.5 ${activeFacility === 'gamble' && isFacilityModalOpen ? 'bg-amber-950/90 border-brass-400 ring-2 ring-brass-400/60 shadow-[0_0_15px_rgba(251,191,36,0.3)]' : 'bg-iron-900/90 border-iron-750 hover:border-iron-600 hover:bg-iron-850'}`}
+        >
+          <div className="w-8 h-8 rounded-lg bg-amber-950 border border-amber-500 flex items-center justify-center text-yellow-400 flex-shrink-0">
+            <Dices className="w-4 h-4" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="font-cinzel font-black text-xs sm:text-sm text-white truncate">기드의 암시장</div>
+            <div className="text-[10px] text-gray-400 font-mono truncate">8대 부위 도박</div>
+          </div>
+        </button>
+
+        <button
+          onClick={() => handleOpenFacility('runewords')}
+          className={`p-2.5 sm:p-3 rounded-xl border-2 text-left transition cursor-pointer flex items-center gap-2.5 ${activeFacility === 'runewords' && isFacilityModalOpen ? 'bg-purple-950/90 border-brass-400 ring-2 ring-brass-400/60 shadow-[0_0_15px_rgba(251,191,36,0.3)]' : 'bg-iron-900/90 border-iron-750 hover:border-iron-600 hover:bg-iron-850'}`}
+        >
+          <div className="w-8 h-8 rounded-lg bg-purple-950 border border-purple-500 flex items-center justify-center text-purple-400 flex-shrink-0">
+            <Sparkles className="w-4 h-4" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="font-cinzel font-black text-xs sm:text-sm text-white truncate">룬워드 공방</div>
+            <div className="text-[10px] text-gray-400 font-mono truncate">소켓 룬워드 제련</div>
+          </div>
+        </button>
+
+        <button
+          onClick={() => handleOpenFacility('cube')}
+          className={`p-2.5 sm:p-3 rounded-xl border-2 text-left transition cursor-pointer flex items-center gap-2.5 ${activeFacility === 'cube' && isFacilityModalOpen ? 'bg-emerald-950/90 border-brass-400 ring-2 ring-brass-400/60 shadow-[0_0_15px_rgba(251,191,36,0.3)]' : 'bg-iron-900/90 border-iron-750 hover:border-iron-600 hover:bg-iron-850'}`}
+        >
+          <div className="w-8 h-8 rounded-lg bg-emerald-950 border border-emerald-500 flex items-center justify-center text-emerald-400 flex-shrink-0">
+            <Box className="w-4 h-4" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="font-cinzel font-black text-xs sm:text-sm text-white truncate">호라드릭 연구소</div>
+            <div className="text-[10px] text-gray-400 font-mono truncate">30레벨 연구·합성</div>
+          </div>
+        </button>
+      </div>
+
+      {/* 3. Primary Action & Expedition Bar */}
       <div className="p-3 bg-iron-950 border-2 border-brass-600/50 rounded-xl flex items-center justify-between gap-2 flex-wrap shadow-xl">
         <div className="flex items-center gap-2 font-mono text-xs text-gray-300">
           <div className="w-7 h-7 rounded bg-iron-900 border border-brass-500/60 flex items-center justify-center text-amber-400 font-black">
@@ -106,8 +171,6 @@ export const TownView: React.FC = React.memo(() => {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap flex-shrink-0">
-          
-
           <button
             onClick={() => openModal('inventory')}
             className="px-3 py-1.5 bg-iron-900 hover:bg-iron-800 border border-iron-750 text-gray-200 hover:text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition shadow cursor-pointer min-h-[38px]"
@@ -115,17 +178,6 @@ export const TownView: React.FC = React.memo(() => {
           >
             <Package className="w-4 h-4 text-indigo-400" />
             <span>가방·보관함 [I]</span>
-          </button>
-
-          <button
-            onClick={() => openModal('achievement')}
-            className="px-3 py-1.5 bg-iron-900 hover:bg-iron-800 border border-amber-500/70 hover:border-amber-400 text-amber-300 hover:text-amber-100 rounded-lg text-xs font-bold flex items-center gap-1.5 transition shadow relative cursor-pointer min-h-[38px]"
-          >
-            <Trophy className="w-3.5 h-3.5 text-amber-400" />
-            <span>업적</span>
-            {ACHIEVEMENTS.some(a => a.condition(achievementStats) && !claimedAchievements.includes(a.id)) && (
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping absolute -top-1 -right-1" />
-            )}
           </button>
 
           <button
@@ -148,191 +200,71 @@ export const TownView: React.FC = React.memo(() => {
         </div>
       </div>
 
-      {/* 2. Main Facilities & Management (3-Column Desktop / Streamlined 1-Page Mobile Layout) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
-        
-        {/* Left Column (3 Cols Desktop Only): Quick Gear & Combat Specs (Hidden on Mobile to ensure Zero-Scroll) */}
-        <div className="hidden lg:flex lg:col-span-3 bg-iron-900/90 p-3 sm:p-4 rounded-xl border-2 border-brass-600/35 flex-col justify-between space-y-3 shadow-[0_0_22px_rgba(222,178,67,0.12)] ui-ornate">
-          <div>
-            <div className="flex justify-between items-center border-b border-iron-750 pb-2 mb-2.5">
-              <h2 className="font-cinzel font-bold text-gray-100 text-xs sm:text-sm flex items-center gap-1.5">
-                <Shield className="w-4 h-4 text-brass-400" />
-                장착 장비 & 세트 효과
-              </h2>
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={autoEquipBestItems}
-                  className="text-[10px] text-amber-300 font-bold font-mono bg-iron-950 px-1.5 py-0.5 rounded border border-amber-500/70 hover:border-amber-400 hover:text-white cursor-pointer flex items-center gap-0.5"
-                  title="공격력+체력 기준 최적 장비 자동 일괄 장착"
-                >
-                  <Zap className="w-3 h-3 fill-amber-300" />
-                  <span>일괄 장착</span>
-                </button>
-                <button
-                  onClick={() => openModal('inventory')}
-                  className="text-xs text-brass-300 font-bold hover:underline font-mono bg-iron-950 px-2 py-0.5 rounded border border-iron-700 cursor-pointer"
-                >
-                  [I] 가방
-                </button>
-              </div>
-            </div>
-
-            {/* Quick Equipment List */}
-            <div className="space-y-1.5 text-xs font-mono">
-              <div className="p-2 bg-iron-950 rounded border border-iron-750">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-400">무기:</span>
-                  <span className={equipment.weapon?.isRuneWord ? 'text-amber-300 font-black text-xs truncate' : 'text-gray-100 font-bold truncate'}>
-                    {equipment.weapon?.name || '맨손'}
-                  </span>
-                </div>
-                {equipment.weapon?.socketedRunes && (
-                  <div className="text-[10px] text-purple-300 font-bold mt-0.5 bg-iron-900 px-1.5 py-0.5 rounded border border-iron-800">
-                    소켓: [{equipment.weapon.socketedRunes.join(' + ')}]
-                  </div>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-1.5">
-                <div className="p-1.5 bg-iron-950 rounded border border-iron-750">
-                  <span className="text-gray-400 block text-[10px]">투구:</span>
-                  <span className={equipment.helm?.rarity === 'set' ? 'text-emerald-300 font-bold truncate block' : equipment.helm?.rarity === 'unique' ? 'text-orange-400 font-bold truncate block' : 'text-gray-200 font-medium truncate block'}>
-                    {equipment.helm?.name || '없음'}
-                  </span>
-                </div>
-                <div className="p-1.5 bg-iron-950 rounded border border-iron-750">
-                  <span className="text-gray-400 block text-[10px]">방패:</span>
-                  <span className={equipment.shield?.rarity === 'set' ? 'text-emerald-300 font-bold truncate block' : equipment.shield?.rarity === 'unique' ? 'text-orange-400 font-bold truncate block' : 'text-gray-200 font-medium truncate block'}>
-                    {equipment.shield?.name || '없음'}
-                  </span>
-                </div>
-              </div>
-
-              <div className="p-2 bg-iron-950 rounded border border-iron-750">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-400">갑옷:</span>
-                  <span className={equipment.armor?.isRuneWord ? 'text-amber-300 font-black text-xs truncate' : equipment.armor?.rarity === 'set' ? 'text-emerald-300 font-bold truncate' : 'text-gray-100 font-bold truncate'}>
-                    {equipment.armor?.name || '없음'}
-                  </span>
-                </div>
-                {equipment.armor?.socketedRunes && (
-                  <div className="text-[10px] text-purple-300 font-bold mt-0.5 bg-iron-900 px-1.5 py-0.5 rounded border border-iron-800">
-                    소켓: [{equipment.armor.socketedRunes.join(' + ')}]
-                  </div>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-1.5">
-                <div className="p-1.5 bg-iron-950 rounded border border-iron-750">
-                  <span className="text-gray-400 block text-[10px]">장갑:</span>
-                  <span className={equipment.gloves?.rarity === 'set' ? 'text-emerald-300 font-bold truncate block' : equipment.gloves?.rarity === 'unique' ? 'text-orange-400 font-bold truncate block' : 'text-gray-200 font-medium truncate block'}>
-                    {equipment.gloves?.name || '없음'}
-                  </span>
-                </div>
-                <div className="p-1.5 bg-iron-950 rounded border border-iron-750">
-                  <span className="text-gray-400 block text-[10px]">신발:</span>
-                  <span className={equipment.boots?.rarity === 'set' ? 'text-emerald-300 font-bold truncate block' : equipment.boots?.rarity === 'unique' ? 'text-orange-400 font-bold truncate block' : 'text-gray-200 font-medium truncate block'}>
-                    {equipment.boots?.name || '없음'}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Combat Specs */}
-            <div className="mt-3 pt-2.5 border-t border-iron-750 text-xs font-mono space-y-1">
-              <div className="flex justify-between">
-                <span className="text-gray-400 font-medium">물리 위력:</span>
-                <span className="text-brass-200 font-black">{totalStats.minDmg} ~ {totalStats.maxDmg}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400 font-medium">공격 속도:</span>
-                <span className="text-amber-300 font-bold">+{totalStats.attackSpeed || 0}%</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400 font-medium">물리 방어:</span>
-                <span className="text-blue-300 font-bold">{totalStats.defense}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400 font-medium">아이템 희귀도:</span>
-                <span className="text-purple-300 font-black">+{totalStats.fortune}%</span>
-              </div>
-            </div>
-          </div>
-
-          <button
-            onClick={() => openModal('character')}
-            className="w-full py-2 bg-iron-850 hover:bg-iron-800 text-gray-100 hover:text-white border border-iron-700 rounded-lg text-xs font-bold transition shadow cursor-pointer"
+      {/* 4. INDEPENDENT FACILITY MODAL WORKSPACE */}
+      {isFacilityModalOpen && (
+        <div
+          onClick={() => setIsFacilityModalOpen(false)}
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-none flex items-center justify-center p-2.5 sm:p-4 animate-fade-in font-sans"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-iron-950 border-2 border-brass-500 rounded-2xl p-3 sm:p-5 max-w-4xl w-full max-h-[90dvh] flex flex-col shadow-2xl space-y-3 relative animate-scale-in text-gray-200 select-none overflow-hidden"
           >
-            [C] 캐릭터 스탯 상세
-          </button>
-        </div>
+            {/* Modal Header & Facility Switcher */}
+            <div className="flex items-center justify-between border-b border-iron-750 pb-2.5 flex-shrink-0 flex-wrap gap-2">
+              <div className="flex items-center gap-2.5">
+                <button
+                  onClick={() => setIsFacilityModalOpen(false)}
+                  className="px-3 py-1.5 bg-iron-900 hover:bg-iron-800 border border-iron-750 hover:border-amber-400 text-gray-200 hover:text-white rounded-lg text-xs font-mono font-bold transition flex items-center gap-1.5 shadow cursor-pointer"
+                  title="마을 타운맵으로 돌아갑니다 [Esc]"
+                >
+                  <ArrowLeft className="w-4 h-4 text-amber-400" />
+                  <span>뒤로가기</span>
+                </button>
 
-        {/* Center Column (5 Cols Desktop / Full Width on Mobile): Four Core Town Facilities */}
-        <div className="w-full lg:col-span-5 bg-iron-900/90 p-3 sm:p-4 rounded-xl border-2 border-brass-600/30 flex flex-col shadow-[0_0_22px_rgba(222,178,67,0.1)] min-h-[420px] ui-ornate">
-          
-          {/* Facility Navigation Tabs (Tier 3: Dark Inset Active Tabs) */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pb-3 border-b border-iron-750">
-            {/* 1. DECKARD CAIN */}
-            <button
-              data-tutorial="cain"
-              onClick={() => setActiveFacility('cain')}
-              className={`py-2 px-1 rounded-lg text-xs flex items-center justify-center gap-1 transition relative cursor-pointer ${
-                activeFacility === 'cain'
-                  ? 'bg-iron-850 text-brass-200 border-2 border-brass-400 shadow-inner font-black'
-                  : 'bg-iron-950 text-gray-400 hover:bg-iron-900 hover:text-white border border-iron-800 font-medium'
-              }`}
-            >
-              <div className="w-7 h-7 rounded bg-blue-950/80 border border-blue-500/60 flex items-center justify-center text-blue-400 flex-shrink-0"><BookOpen className="w-4 h-4" /></div><div className="text-left min-w-0"><div className="font-cinzel font-bold text-white text-xs truncate">데커드 케인</div><div className="text-[9px] text-gray-400 font-mono truncate">장비 무료 감정</div></div>
-              {unidentifiedCount > 0 && (
-                <span className="absolute -top-1 -right-1 px-1.5 py-0.5 bg-blood-500 text-white rounded-full text-[9px] font-mono font-black animate-pulse shadow">
-                  {unidentifiedCount}
-                </span>
-              )}
-            </button>
+                <div className="grid grid-cols-4 gap-1 font-mono text-xs">
+                  <button
+                    onClick={() => setActiveFacility('cain')}
+                    className={`px-2.5 py-1 rounded-lg border font-bold transition flex items-center gap-1 ${activeFacility === 'cain' ? 'bg-blue-950 border-blue-400 text-blue-200 ring-1 ring-blue-400' : 'bg-iron-900 border-iron-800 text-gray-400'}`}
+                  >
+                    <BookOpen className="w-3.5 h-3.5" />
+                    <span>케인</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveFacility('gamble')}
+                    className={`px-2.5 py-1 rounded-lg border font-bold transition flex items-center gap-1 ${activeFacility === 'gamble' ? 'bg-amber-950 border-amber-400 text-amber-200 ring-1 ring-amber-400' : 'bg-iron-900 border-iron-800 text-gray-400'}`}
+                  >
+                    <Dices className="w-3.5 h-3.5" />
+                    <span>기드</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveFacility('runewords')}
+                    className={`px-2.5 py-1 rounded-lg border font-bold transition flex items-center gap-1 ${activeFacility === 'runewords' ? 'bg-purple-950 border-purple-400 text-purple-200 ring-1 ring-purple-400' : 'bg-iron-900 border-iron-800 text-gray-400'}`}
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>룬워드</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveFacility('cube')}
+                    className={`px-2.5 py-1 rounded-lg border font-bold transition flex items-center gap-1 ${activeFacility === 'cube' ? 'bg-emerald-950 border-emerald-400 text-emerald-200 ring-1 ring-emerald-400' : 'bg-iron-900 border-iron-800 text-gray-400'}`}
+                  >
+                    <Box className="w-3.5 h-3.5" />
+                    <span>큐브</span>
+                  </button>
+                </div>
+              </div>
 
-            {/* 2. GHEED GAMBLE */}
-            <button
-              data-tutorial="gheed"
-              onClick={() => setActiveFacility('gamble')}
-              className={`py-2 px-1 rounded-lg text-xs flex items-center justify-center gap-1 transition cursor-pointer ${
-                activeFacility === 'gamble'
-                  ? 'bg-iron-850 text-brass-200 border-2 border-brass-400 shadow-inner font-black'
-                  : 'bg-iron-950 text-gray-400 hover:bg-iron-900 hover:text-white border border-iron-800 font-medium'
-              }`}
-            >
-              <div className="w-7 h-7 rounded bg-yellow-950/80 border border-yellow-500/60 flex items-center justify-center text-yellow-400 flex-shrink-0"><Dices className="w-4 h-4" /></div><div className="text-left min-w-0"><div className="font-cinzel font-bold text-white text-xs truncate">기드의 암시장</div><div className="text-[9px] text-gray-400 font-mono truncate">신비한 장비 도박</div></div>
-            </button>
+              <button
+                onClick={() => setIsFacilityModalOpen(false)}
+                className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-iron-800 transition cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-            {/* 3. RUNEWORDS */}
-            <button
-              data-tutorial="runewords"
-              onClick={() => setActiveFacility('runewords')}
-              className={`py-2 px-1 rounded-lg text-xs flex items-center justify-center gap-1 transition cursor-pointer ${
-                activeFacility === 'runewords'
-                  ? 'bg-iron-850 text-brass-200 border-2 border-brass-400 shadow-inner font-black'
-                  : 'bg-iron-950 text-gray-400 hover:bg-iron-900 hover:text-white border border-iron-800 font-medium'
-              }`}
-            >
-              <div className="w-7 h-7 rounded bg-purple-950/80 border border-purple-500/60 flex items-center justify-center text-purple-400 flex-shrink-0"><Sparkles className="w-4 h-4" /></div><div className="text-left min-w-0"><div className="font-cinzel font-bold text-white text-xs truncate">룬워드 공방</div><div className="text-[9px] text-gray-400 font-mono truncate">소켓 룬워드 제련</div></div>
-            </button>
-
-            {/* 4. HORADRIC CUBE & LAB */}
-            <button
-              onClick={() => setActiveFacility('cube')}
-              className={`py-2 px-1 rounded-lg text-xs flex items-center justify-center gap-1 transition cursor-pointer ${
-                activeFacility === 'cube'
-                  ? 'bg-iron-850 text-brass-200 border-2 border-brass-400 shadow-inner font-black'
-                  : 'bg-iron-950 text-gray-400 hover:bg-iron-900 hover:text-white border border-iron-800 font-medium'
-              }`}
-            >
-              <div className="w-7 h-7 rounded bg-emerald-950/80 border border-emerald-500/60 flex items-center justify-center text-emerald-400 flex-shrink-0"><Box className="w-4 h-4" /></div><div className="text-left min-w-0"><div className="font-cinzel font-bold text-white text-xs truncate">호라드릭 연구소</div><div className="text-[9px] text-gray-400 font-mono truncate">30레벨 연구·합성</div></div>
-            </button>
-          </div>
-
-          {/* Facility Content Views */}
-          <div className="flex-1 py-2.5">
-            
-            {/* 1. DECKARD CAIN (식별소) */}
+            {/* Modal Body: Pure Active Facility Workspace */}
+            <div className="flex-1 overflow-y-auto pr-1 sm:pr-2 space-y-3">
+{/* 1. DECKARD CAIN (식별소) */}
             {activeFacility === 'cain' && (
               <div className="space-y-3.5 text-xs text-center py-1 animate-fade-in">
                 <div className="text-sm sm:text-base font-cinzel text-brass-200 font-black flex items-center justify-center gap-2">
@@ -825,6 +757,8 @@ export const TownView: React.FC = React.memo(() => {
             )}
 
             {/* 4. HORADRIC CUBE & LAB (호라드릭 큐브 & 영구 편의 연구소) */}
+
+            {/* 4. HORADRIC CUBE & LAB */}
             {activeFacility === 'cube' && (
               <div className="space-y-3 text-xs animate-fade-in">
                 
@@ -984,64 +918,24 @@ export const TownView: React.FC = React.memo(() => {
                 </div>
               </div>
             )}
+            </div>
 
+            {/* Modal Bottom Footer */}
+            <div className="pt-2 border-t border-iron-800 flex items-center justify-between flex-shrink-0 text-xs font-mono">
+              <span className="text-[11px] text-gray-400">단축키 [Esc] 키로 닫기</span>
+              <button
+                onClick={() => setIsFacilityModalOpen(false)}
+                className="px-4 py-1.5 bg-iron-900 hover:bg-iron-800 border border-iron-700 hover:border-amber-400 text-gray-200 hover:text-white rounded-lg font-bold transition cursor-pointer flex items-center gap-1.5"
+              >
+                <ArrowLeft className="w-3.5 h-3.5 text-amber-400" />
+                <span>마을 타운맵으로 복귀 [Esc]</span>
+              </button>
+            </div>
           </div>
         </div>
-
-        {/* Right Column (4 Cols Desktop Only): 33 D2 Rune Vault (Hidden on Mobile to ensure Zero-Scroll) */}
-        <div className="hidden lg:flex lg:col-span-4 bg-iron-900/90 p-3 sm:p-4 rounded-xl border-2 border-amber-700/35 flex-col space-y-2.5 shadow-[0_0_22px_rgba(180,83,9,0.12)] ui-ornate">
-          <div className="flex justify-between items-center border-b border-iron-750 pb-2">
-            <h3 className="font-cinzel font-bold text-gray-100 text-xs sm:text-sm flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-purple-400" />
-              <span>룬 전용 보관함 (Vault)</span>
-            </h3>
-            <span className="text-[10px] text-gray-400 font-mono">3개 ➔ 상위 룬 합성</span>
-          </div>
-
-          <div className="grid grid-cols-4 gap-1.5 max-h-[360px] overflow-y-auto pr-1">
-            {Object.entries(D2_RUNES).map(([rKey, rDef]) => {
-              const count = runesVault[rKey] || 0;
-              const canTransmute = count >= 3;
-
-              return (
-                <div
-                  key={rKey}
-                  className={`p-1.5 rounded border text-center font-mono text-[11px] transition flex flex-col justify-between ${
-                    count > 0
-                      ? 'bg-purple-950/40 border-purple-500/70 text-purple-200 shadow-sm'
-                      : 'bg-iron-950/60 border-iron-800 text-gray-600'
-                  }`}
-                >
-                  <div className="flex items-center justify-between text-[10px]">
-                    <span className="text-gray-500">#{rDef.number}</span>
-                    <span className="font-bold text-gray-300">{rKey}</span>
-                  </div>
-                  
-                  <div className={`my-1 font-black text-xs md:text-sm ${count > 0 ? 'text-amber-300' : 'text-gray-600'}`}>
-                    x{count}
-                  </div>
-
-                  {canTransmute ? (
-                    <button
-                      onClick={() => transmuteRunesInVault(rKey)}
-                      className="w-full py-0.5 bg-gradient-to-r from-purple-600 to-indigo-500 hover:from-purple-500 hover:to-indigo-400 text-white rounded text-[10px] font-bold shadow transition animate-pulse cursor-pointer"
-                      title={`[${rKey} 룬] 3개를 상위 룬 1개로 연성합니다`}
-                    >
-                      3:1 합성
-                    </button>
-                  ) : (
-                    <div className="text-[9px] text-gray-600">합성 대기</div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-      </div>
+      )}
     </div>
   );
 });
 
 TownView.displayName = 'TownView';
-

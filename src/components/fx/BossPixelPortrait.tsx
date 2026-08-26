@@ -28,28 +28,31 @@ export const BossPixelPortrait: React.FC<BossPixelPortraitProps> = ({
   const normName = name.toLowerCase();
 
   // Identify boss image path
-  let imageSrc = '/images/bosses/general.jpg';
+  let imageBase = 'general';
   let bossTitle = '대악마 군주';
 
   if (normName.includes('디아블로') || normName.includes('diablo') || signatureKey === 'red_lightning_hose') {
-    imageSrc = '/images/bosses/diablo.jpg';
+    imageBase = 'diablo';
     bossTitle = '공포의 군주 디아블로';
   } else if (normName.includes('바알') || normName.includes('baal') || signatureKey === 'vile_clone_burn') {
-    imageSrc = '/images/bosses/baal.jpg';
+    imageBase = 'baal';
     bossTitle = '파멸의 군주 바알';
   } else if (normName.includes('메피스토') || normName.includes('mephisto')) {
-    imageSrc = '/images/bosses/mephisto.jpg';
+    imageBase = 'mephisto';
     bossTitle = '증오의 군주 메피스토';
   } else if (normName.includes('두리엘') || normName.includes('duriel') || signatureKey === 'holy_freeze_charge') {
-    imageSrc = '/images/bosses/duriel.jpg';
+    imageBase = 'duriel';
     bossTitle = '고통의 대공 두리엘';
   } else if (normName.includes('안다리엘') || normName.includes('andariel') || signatureKey === 'poison_nova') {
-    imageSrc = '/images/bosses/andariel.jpg';
+    imageBase = 'andariel';
     bossTitle = '고뇌의 여왕 안다리엘';
   } else if (normName.includes('이주얼') || normName.includes('izual') || normName.includes('천사')) {
-    imageSrc = '/images/bosses/general.jpg';
+    imageBase = 'general';
     bossTitle = '타락천사 이주얼';
   }
+
+  const webpSrc = `/images/bosses/${imageBase}.webp`;
+  const jpgSrc = `/images/bosses/${imageBase}.jpg`;
 
   return (
     <div
@@ -91,14 +94,19 @@ export const BossPixelPortrait: React.FC<BossPixelPortraitProps> = ({
           ? 'border-amber-400 ring-2 ring-amber-300 shadow-[0_0_20px_rgba(251,191,36,0.7)]'
           : 'border-iron-700 bg-iron-950 shadow-black'
       }`}>
-        <img
-          src={imageSrc}
-          alt={bossTitle}
-          className={`w-full h-full object-cover filter transition-all duration-300 ${
-            isEnraged ? 'brightness-110 contrast-125' : 'brightness-95 contrast-110'
-          }`}
-          style={{ imageRendering: 'pixelated' }}
-        />
+        <picture>
+          <source srcSet={webpSrc} type="image/webp" />
+          <img
+            src={jpgSrc}
+            alt={bossTitle}
+            loading="eager"
+            decoding="async"
+            className={`w-full h-full object-cover filter transition-all duration-300 ${
+              isEnraged ? 'brightness-110 contrast-125' : 'brightness-95 contrast-110'
+            }`}
+            style={{ imageRendering: 'pixelated' }}
+          />
+        </picture>
 
         {/* Inner Vignette / Dark Gothic Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />

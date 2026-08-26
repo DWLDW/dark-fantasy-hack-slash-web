@@ -23,12 +23,17 @@ export const TownMapCanvas: React.FC<TownMapCanvasProps> = React.memo(({
   return (
     <div className="relative rounded-2xl overflow-hidden border-2 border-brass-600/80 shadow-[0_0_50px_rgba(0,0,0,0.9)] bg-iron-950 aspect-[4/3] sm:aspect-[16/10] max-h-[64vh] w-full select-none font-sans">
       {/* 1. Town Map Artwork Layer */}
-      <img
-        src="/images/town_map.png"
-        alt="로그 캠프 타운맵"
-        className="w-full h-full object-cover object-center contrast-110 brightness-95 transform scale-[1.01] pointer-events-none"
-        draggable={false}
-      />
+      <picture>
+        <source srcSet="/images/town_map.webp" type="image/webp" />
+        <img
+          src="/images/town_map.png"
+          alt="로그 캠프 타운맵"
+          loading="eager"
+          decoding="async"
+          className="w-full h-full object-cover object-center contrast-110 brightness-95 transform scale-[1.01] pointer-events-none"
+          draggable={false}
+        />
+      </picture>
 
       {/* 2. Atmospheric Vignette & Embers Overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-iron-950 via-transparent to-black/60 pointer-events-none" />

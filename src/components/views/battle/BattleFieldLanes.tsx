@@ -22,6 +22,7 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
     selectedSkill,
     preview,
     floatingDamages,
+    roomCombatStats,
     currentDungeon,
     currentRoomId,
     roomEventClaimed,
@@ -161,6 +162,32 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                     </span>
                   )}
                 </div>
+
+                {/* 📊 DPT Combat Efficiency Analysis Banner */}
+                {roomCombatStats && roomCombatStats.totalDamage > 0 && (
+                  <div className="w-full bg-iron-950/95 border border-brass-500/60 rounded-xl p-2 sm:p-2.5 shadow-lg flex items-center justify-around gap-2 text-center font-mono animate-fade-in">
+                    <div>
+                      <div className="text-[9px] sm:text-[10px] text-gray-400 font-bold uppercase">⚔️ 턴당 피해 (DPT)</div>
+                      <div className="text-sm sm:text-base font-black text-amber-300 drop-shadow">
+                        {roomCombatStats.dpt.toLocaleString()} <span className="text-[10px] text-amber-200/80">/턴</span>
+                      </div>
+                    </div>
+                    <div className="h-6 w-px bg-iron-800" />
+                    <div>
+                      <div className="text-[9px] sm:text-[10px] text-gray-400 font-bold uppercase">💥 총 가한 피해</div>
+                      <div className="text-xs sm:text-sm font-black text-orange-200">
+                        {roomCombatStats.totalDamage.toLocaleString()}
+                      </div>
+                    </div>
+                    <div className="h-6 w-px bg-iron-800" />
+                    <div>
+                      <div className="text-[9px] sm:text-[10px] text-gray-400 font-bold uppercase">⚡ 실 전투 턴수</div>
+                      <div className="text-xs sm:text-sm font-black text-cyan-300">
+                        {roomCombatStats.turns}턴
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Dropped Items Grid (Clickable to Equip immediately) */}
@@ -344,9 +371,33 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
               </div>
             </div>
           ) : (
-            <div className="text-center space-y-0.5 py-1">
+            <div className="text-center space-y-1.5 py-1 w-full max-w-md">
               <div className="text-lg animate-bounce">⚔️</div>
               <h3 className="font-cinzel font-black text-xs sm:text-sm text-amber-200">구역 소탕 완료</h3>
+              {roomCombatStats && roomCombatStats.totalDamage > 0 && (
+                <div className="w-full bg-iron-950/95 border border-brass-500/60 rounded-xl p-2 shadow-lg flex items-center justify-around gap-2 text-center font-mono animate-fade-in my-1">
+                  <div>
+                    <div className="text-[9px] text-gray-400 font-bold uppercase">⚔️ 턴당 피해 (DPT)</div>
+                    <div className="text-sm font-black text-amber-300">
+                      {roomCombatStats.dpt.toLocaleString()} <span className="text-[9px] text-amber-200/80">/턴</span>
+                    </div>
+                  </div>
+                  <div className="h-5 w-px bg-iron-800" />
+                  <div>
+                    <div className="text-[9px] text-gray-400 font-bold uppercase">💥 총 피해</div>
+                    <div className="text-xs font-black text-orange-200">
+                      {roomCombatStats.totalDamage.toLocaleString()}
+                    </div>
+                  </div>
+                  <div className="h-5 w-px bg-iron-800" />
+                  <div>
+                    <div className="text-[9px] text-gray-400 font-bold uppercase">⚡ 실 전투</div>
+                    <div className="text-xs font-black text-cyan-300">
+                      {roomCombatStats.turns}턴
+                    </div>
+                  </div>
+                </div>
+              )}
               <p className="text-[10px] text-gray-400 font-mono">
                 [Space] 키를 눌러 다음 방으로 이동하세요.
               </p>

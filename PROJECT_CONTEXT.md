@@ -59,7 +59,12 @@ Dragon Quest 식 턴제 전투 기반 + Diablo II 식 오버킬 체인, 룬워�
 - ⚡ **공격 딜레이 초압축 (0.2초대 쾌속 연속 타격)**:
   - 타격 시퀀스 인터벌(`hitStepDuration`)을 12~25ms로 압축하여 다단히트도 120ms 내에 파파박 타격 완료.
   - 적 턴 반격 대기시간(`counterAttackTimerRef`)을 기존 700ms ➔ **180ms**로 대폭 단축하여 스페이스바/스킬 연타 시 딜레이 없는 쾌속 액션 구현.
-- 👹 **전장 직격 GPU 가속 보스 궁극기 VFX (`BossUltimateFxLayer.tsx`)**:
-  - 디아블로 붉은 번개 지옥불 레이저 빔 (`RedLightningBeam`), 안다리엘 3중 맹독 확산 파동 링 (`PoisonNovaWaves`), 두리엘 빙결 파쇄 쇄도 (`FreezeChargeShatter`), 바알 공허 차원 균열 (`VoidAbyssRift`).
-  - Pure CSS GPU 가속(`transform: translate3d`, `opacity`, `will-change`)을 통해 모바일/PC 모두에서 발열과 렉 없이 60fps 무지연 렌더링 보장.
+### 7. 보스 포트레이트 & 전역 에셋 98% 초경량화 최적화 (`optimize_images.js`)
+- 🖼️ **보스 포트레이트 4.6MB ➔ 98KB (97.9% 용량 다이어트)**:
+  - 1024x1024 비압축 고용량 JPG(파일당 600KB~1MB)를 256x256 WebP/최적화 JPG로 전면 리사이징 및 압축.
+  - `andariel` (12KB), `diablo` (12KB), `general` (12KB), `baal` (17KB), `duriel` (22KB), `mephisto` (21KB)로 축소하여 보스방 진입 시 0.01초 만에 즉각 렌더링.
+- 🏞️ **마을 맵 & 배경 이미지 5.3MB ➔ 360KB (93% 절감)**:
+  - `town_map.png` 및 `town_bg.png`를 고품질 WebP로 압축하여 모바일 첫 로딩 속도 획기적 개선.
+- 🖼️ **`<picture>` 태그 기반 WebP 우선 로딩**:
+  - 최신 브라우저에서는 초경량 WebP를 로드하고, 구형 브라우저는 최적화 JPG로 자동 폴백.
 

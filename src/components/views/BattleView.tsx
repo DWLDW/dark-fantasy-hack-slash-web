@@ -110,7 +110,7 @@ export const BattleView: React.FC = React.memo(() => {
     : '';
 
   return (
-    <div className={`w-full h-full flex flex-col justify-between transition-colors duration-500 rounded-xl p-1 sm:p-1.5 ${actTheme.bgGradient} ${strikeShake} overflow-hidden select-none font-sans relative`}>
+    <div className={`w-full max-w-6xl mx-auto h-[calc(100dvh-54px)] sm:h-[calc(100dvh-58px)] flex flex-col justify-between transition-colors duration-500 rounded-xl p-1 sm:p-2 ${actTheme.bgGradient} ${strikeShake} overflow-hidden select-none font-sans relative`}>
       {/* Low HP Red Vignette Screen Pulse */}
       {isLowHp && (
         <div className="fixed inset-0 pointer-events-none border-4 sm:border-8 border-blood-600/50 shadow-[inset_0_0_60px_rgba(239,68,68,0.5)] z-30 animate-pulse" />

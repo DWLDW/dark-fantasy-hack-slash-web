@@ -30,6 +30,7 @@ export interface CalculatedTotalStats {
   rageCostReduction: number;
   baseAtbPercent: number;
   runeBonusHp: number;
+  totalBonusHp: number;
   activeSetBonuses: { setName: string; count: number; description: string }[];
 }
 
@@ -63,6 +64,7 @@ export function calculateTotalStats(
   let baseAtbPercent = 50;
   let allResist = 0;
   let runeBonusHp = 0;
+  let totalBonusHp = 0;
 
   const equippedSetCounts: Record<string, number> = {};
 
@@ -86,6 +88,8 @@ export function calculateTotalStats(
     if (item.stats.lifeSteal) lifeSteal += item.stats.lifeSteal;
     if (item.stats.attackSpeed) attackSpeed += item.stats.attackSpeed;
     if (item.stats.allResist) allResist += item.stats.allResist;
+    if (item.stats.hp) totalBonusHp += item.stats.hp;
+    if (item.stats.shield) defense += Math.floor(item.stats.shield * 0.5);
 
     if (item.slot === 'weapon' && item.baseAtbPercent) {
       baseAtbPercent = item.baseAtbPercent;
@@ -118,7 +122,7 @@ export function calculateTotalStats(
           if (bonus.con) con += bonus.con;
           if (bonus.int) int += bonus.int;
           if (bonus.wis) wis += bonus.wis;
-          if (bonus.hp) runeBonusHp += bonus.hp;
+          if (bonus.hp) { runeBonusHp += bonus.hp; totalBonusHp += bonus.hp; }
           if (bonus.fortune) fortune += bonus.fortune;
           if (bonus.allResist) allResist += bonus.allResist;
           if (bonus.critChance) critChance += bonus.critChance;
@@ -155,6 +159,7 @@ export function calculateTotalStats(
         if (b.stats.evasion) evasion = Math.min(75, evasion + b.stats.evasion);
         if (b.stats.damageReduction) damageReduction = Math.min(50, damageReduction + b.stats.damageReduction);
         if (b.stats.critChance) critChance += b.stats.critChance;
+        if (b.stats.hp) totalBonusHp += b.stats.hp;
         if (b.stats.overkillEfficiency) overkillEfficiency += b.stats.overkillEfficiency;
       }
     });
@@ -231,6 +236,8 @@ export function calculateTotalStats(
   const speedAtbBonus = Math.floor(attackSpeed * 0.25);
   const finalAtb = Math.min(85, Math.max(baseAtbPercent, baseAtbPercent + speedAtbBonus));
 
+  allResist = Math.min(75, allResist + Math.floor((int + wis) * 0.35));
+
   return {
     str,
     dex,
@@ -254,6 +261,7 @@ export function calculateTotalStats(
     rageCostReduction: Math.floor(finalRageCostReduction),
     baseAtbPercent: finalAtb,
     runeBonusHp: Math.floor(runeBonusHp),
+    totalBonusHp,
     activeSetBonuses
   };
 }

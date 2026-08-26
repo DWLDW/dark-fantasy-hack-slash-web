@@ -159,6 +159,7 @@ interface GameContextType {
   selectSkillOrExecute: (skill: Skill) => void;
   executeAttack: () => void;
   lastAttackSummary: AttackSummaryEvent | null;
+  roomCombatStats: { totalDamage: number; turns: number; dpt: number } | null;
   extraTurnEvent: ExtraTurnEvent | null;
   bossUltimateFxEvent: BossUltimateFxEvent | null;
   useConsumable: (hotkeyOrId: string) => void;
@@ -413,6 +414,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const [lastAttackSummary, setLastAttackSummary] = useState<AttackSummaryEvent | null>(null);
+  const [roomCombatStats, setRoomCombatStats] = useState<{ totalDamage: number; turns: number; dpt: number } | null>(null);
+  const roomDamageRef = useRef<number>(0);
+  const roomTurnsRef = useRef<number>(0);
   const [extraTurnEvent, setExtraTurnEvent] = useState<ExtraTurnEvent | null>(null);
   const [bossUltimateFxEvent, setBossUltimateFxEvent] = useState<BossUltimateFxEvent | null>(null);
 
@@ -975,14 +979,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return calculateTotalStats(playerStats, equipment, tempBuffs, dungeonBuffs, passiveLevels);
   }, [playerStats, equipment, tempBuffs, dungeonBuffs, passiveLevels]);
 
-  // Socketed rune HP bonuses (e.g. Tir armor +15 HP) feed into maxHp
+  // Item, Rune and Vitality HP bonuses feed 100% into player maxHp
   useEffect(() => {
     setPlayerStats(prev => {
-      const targetMaxHp = 120 + (prev.level - 1) * 25 + prev.con * 5 + totalStats.runeBonusHp;
+      const targetMaxHp = 120 + (prev.level - 1) * 25 + totalStats.con * 5 + (totalStats.totalBonusHp || 0);
       if (Math.abs((prev.maxHp || 0) - targetMaxHp) < 1) return prev;
       return { ...prev, maxHp: Math.max(prev.hp, targetMaxHp), hp: Math.min(prev.hp, targetMaxHp) };
     });
-  }, [totalStats.runeBonusHp]);
+  }, [totalStats.totalBonusHp, totalStats.con]);
 
   // Active Skill with equipped Skill Rune and invested Skill Level
   const effectiveSkill: Skill = useMemo(() => {
@@ -1097,6 +1101,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       attackMonsters,
       false
     );
+
+        roomDamageRef.current += result.totalDamage;
+    roomTurnsRef.current += 1;
+    const currentRoomDpt = Math.round(roomDamageRef.current / Math.max(1, roomTurnsRef.current));
+    setRoomCombatStats({ totalDamage: roomDamageRef.current, turns: roomTurnsRef.current, dpt: currentRoomDpt });
 
     // 🎰 Trigger Arcade Jackpot Total Damage Roulette Event
     setLastAttackSummary({
@@ -1925,6 +1934,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const enterDungeon = (dungeonId: string, difficulty?: number) => {
+    roomDamageRef.current = 0;
+    roomTurnsRef.current = 0;
+    setRoomCombatStats(null);
     let targetDungeonId = dungeonId;
 
     // Verify dungeon lock state, fallback to highest unlocked dungeon if target is locked
@@ -2029,6 +2041,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const selectNextRoom = (roomId: number) => {
+    roomDamageRef.current = 0;
+    roomTurnsRef.current = 0;
+    setRoomCombatStats(null);
     setRoomEventClaimed(false);
     setLatestRoomLootEvent(null);
     setPendingExitRoomId(null);
@@ -2662,6 +2677,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     selectSkillOrExecute,
     executeAttack,
     lastAttackSummary,
+    roomCombatStats,
     extraTurnEvent,
     bossUltimateFxEvent,
     triggerAttackOrSmartTarget,
@@ -2792,6 +2808,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     skillLevels,
     passiveLevels,
     lastAttackSummary,
+    roomCombatStats,
     extraTurnEvent,
     bossUltimateFxEvent
   ]);

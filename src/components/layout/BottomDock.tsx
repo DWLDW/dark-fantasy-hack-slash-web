@@ -35,6 +35,9 @@ export const BottomDock: React.FC = React.memo(() => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activeModal, openModal, closeModal]);
 
+  // Hide BottomDock in battle mode so combat gauges and skills are never covered
+  if (viewMode === 'battle') return null;
+
   return (
     <footer className="fixed bottom-0 left-0 right-0 bg-iron-950/98 backdrop-blur-md border-t-2 border-brass-600/40 z-40 py-1.5 px-3 md:py-2 select-none shadow-[0_-12px_28px_rgba(0,0,0,0.55)]">
       <div className="max-w-7xl mx-auto flex items-center justify-around md:justify-between">
@@ -56,7 +59,7 @@ export const BottomDock: React.FC = React.memo(() => {
           <button
             onClick={() => leaveBattle('dungeon_select')}
             className={`flex flex-col md:flex-row items-center gap-1.5 px-3 py-1.5 rounded transition text-xs font-bold ${
-              viewMode === 'dungeon_select' || viewMode === 'battle'
+              viewMode === 'dungeon_select'
                 ? 'bg-blood-950/60 text-blood-200 border border-blood-500 shadow'
                 : 'text-gray-300 hover:text-white hover:bg-iron-850 border border-transparent'
             }`}

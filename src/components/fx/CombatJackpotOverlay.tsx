@@ -64,7 +64,7 @@ export const CombatJackpotOverlay: React.FC<CombatJackpotOverlayProps> = React.m
   const isBigHit = activeEvent.totalDamage >= 300 || activeEvent.isCrit;
 
   return (
-    <div className="absolute inset-0 pointer-events-none z-40 flex flex-col items-center justify-center select-none overflow-hidden" aria-hidden>
+    <div className="absolute inset-0 pointer-events-none z-[60] flex flex-col items-center justify-center select-none overflow-visible" aria-hidden>
       
       {/* 💥 Main Center Jackpot Popup Banner */}
       <div
@@ -107,9 +107,9 @@ export const CombatJackpotOverlay: React.FC<CombatJackpotOverlayProps> = React.m
           <div
             className={`font-mono font-black tracking-tight drop-shadow-[0_4px_12px_rgba(0,0,0,1)] ${
               activeEvent.isCrit
-                ? 'text-3xl sm:text-5xl text-transparent bg-clip-text bg-gradient-to-b from-yellow-100 via-amber-300 to-orange-500 filter drop-shadow-[0_0_25px_rgba(251,191,36,0.9)]'
+                ? 'text-3xl sm:text-5xl text-amber-300 drop-shadow-[0_4px_16px_rgba(0,0,0,1)]'
                 : isBigHit
-                ? 'text-2xl sm:text-4xl text-transparent bg-clip-text bg-gradient-to-b from-white via-orange-300 to-red-500 filter drop-shadow-[0_0_18px_rgba(239,68,68,0.8)]'
+                ? 'text-2xl sm:text-4xl text-orange-300 drop-shadow-[0_4px_16px_rgba(0,0,0,1)]'
                 : 'text-xl sm:text-3xl text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]'
             }`}
           >
