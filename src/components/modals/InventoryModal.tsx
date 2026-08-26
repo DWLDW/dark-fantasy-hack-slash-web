@@ -598,11 +598,13 @@ export const InventoryModal: React.FC = () => {
                         </div>
                       )}
 
-                      {/* 1. Selected Item Full Detail Card (Always shown on top) */}
+                      {/* 1. Selected Item Full Detail Card (With Top Lock, Stash & Clean Sell Buttons) */}
                       <ItemDetailCard
                         item={selectedItem}
                         onToggleLock={toggleItemLock}
                         onDeposit={depositToStash}
+                        onSell={handleSingleSell}
+                        sellPrice={getItemSellPrice ? getItemSellPrice(selectedItem) : selectedItem.value || 5}
                         isInStash={false}
                       />
 
@@ -622,13 +624,13 @@ export const InventoryModal: React.FC = () => {
                     </>
                   )}
 
-                  {/* Bottom Actions: Equip / Identify / Single Sell / Lock */}
-                  <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-iron-750">
-                    <div className="flex items-center gap-2">
+                  {/* Compact Bottom Actions: Equip / Identify Only */}
+                  <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-iron-750">
+                    <div className="flex items-center gap-2 w-full">
                       {!isCombatMode && selectedItem.isIdentified !== false && (
                         <button
                           onClick={() => handleEquip(selectedItem)}
-                          className="px-4 py-1.5 rounded-lg text-xs font-black transition flex items-center gap-1.5 border shadow bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-iron-950 border-amber-300 ring-1 ring-amber-300 cursor-pointer"
+                          className="flex-1 py-1.5 rounded-lg text-xs font-black transition flex items-center justify-center gap-1.5 border shadow bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-iron-950 border-amber-300 ring-1 ring-amber-300 cursor-pointer"
                         >
                           <Sword className="w-3.5 h-3.5" />
                           <span>장착하기</span>
@@ -640,58 +642,12 @@ export const InventoryModal: React.FC = () => {
                       {selectedItem.isIdentified === false && (
                         <button
                           onClick={() => identifyItem(selectedItem.id)}
-                          className="px-3.5 py-1.5 rounded-lg text-xs font-black transition flex items-center gap-1.5 border shadow bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-500 hover:to-rose-400 text-white border-red-400 animate-pulse cursor-pointer"
+                          className="flex-1 py-1.5 rounded-lg text-xs font-black transition flex items-center justify-center gap-1.5 border shadow bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-500 hover:to-rose-400 text-white border-red-400 animate-pulse cursor-pointer"
                         >
                           <Sparkles className="w-3.5 h-3.5" />
                           <span>주문서로 식별</span>
                         </button>
                       )}
-
-                      {/* Stash Deposit */}
-                      {selectedItem.slot !== 'rune' && selectedItem.slot !== 'consumable' && (
-                        <button
-                          onClick={() => depositToStash(selectedItem.id)}
-                          className="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 border bg-iron-950 text-indigo-300 border-indigo-600/70 hover:bg-indigo-950/60 cursor-pointer shadow"
-                          title="보관함(Stash)으로 옮깁니다 [D]"
-                        >
-                          <Package className="w-3.5 h-3.5" />
-                          <span>보관함에 넣기</span>
-                          <kbd className="text-[9px] font-mono px-1 rounded bg-black/50 text-indigo-300 border border-indigo-600/50">D</kbd>
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      {/* Lock Toggle Button */}
-                      <button
-                        onClick={() => toggleItemLock(selectedItem.id)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 border cursor-pointer ${
-                          selectedItem.isLocked
-                            ? 'bg-amber-950 text-amber-300 border-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.4)]'
-                            : 'bg-iron-950 text-gray-400 border-iron-750 hover:text-white'
-                        }`}
-                        title={selectedItem.isLocked ? "잠금을 해제합니다 [L]" : "아이템을 잠금하여 판매/소실을 방지합니다 [L]"}
-                      >
-                        {selectedItem.isLocked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : <Unlock className="w-3.5 h-3.5 text-gray-400" />}
-                        <span>{selectedItem.isLocked ? '잠금 해제' : '아이템 잠금'}</span>
-                        <kbd className="text-[9px] font-mono px-1 rounded bg-black/40 text-amber-300/80 border border-iron-750">L</kbd>
-                      </button>
-
-                      {/* Individual Sell */}
-                      <button
-                        onClick={() => handleSingleSell(selectedItem)}
-                        disabled={Boolean(selectedItem.isLocked)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 border ${
-                          selectedItem.isLocked
-                            ? 'bg-iron-950 text-gray-600 border-iron-850 cursor-not-allowed opacity-50'
-                            : 'bg-iron-950 text-amber-400 border-amber-700/60 hover:bg-amber-950/40 hover:border-amber-400 cursor-pointer'
-                        }`}
-                        title={selectedItem.isLocked ? "잠금된 아이템은 판매할 수 없습니다" : "이 아이템을 상점에 판매합니다 [S]"}
-                      >
-                        <Coins className="w-3.5 h-3.5" />
-                        <span>개별 판매 (+{(getItemSellPrice ? getItemSellPrice(selectedItem) : selectedItem.value || 5).toLocaleString()}G)</span>
-                        <kbd className="text-[9px] font-mono px-1 rounded bg-black/40 text-amber-300/80 border border-amber-600/50">S</kbd>
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -804,30 +760,17 @@ export const InventoryModal: React.FC = () => {
                   />
 
                   {/* Stash Action Bar */}
-                  <div className="flex items-center justify-between gap-2 p-2 bg-iron-900 rounded-lg border border-iron-750">
+                  <div className="flex items-center gap-2 pt-1.5 border-t border-iron-750">
                     <button
                       onClick={() => {
                         withdrawFromStash(selectedItem.id);
                         setSelectedItem(null);
                       }}
-                      className="px-4 py-1.5 rounded-lg text-xs font-black transition flex items-center gap-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow cursor-pointer flex-1 justify-center"
+                      className="w-full py-1.5 rounded-lg text-xs font-black transition flex items-center justify-center gap-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow cursor-pointer"
                     >
                       <Package className="w-4 h-4" />
                       <span>소지품으로 꺼내기</span>
                       <kbd className="text-[9px] font-mono px-1 rounded bg-black/40 text-indigo-200 border border-indigo-400/50">D/Enter</kbd>
-                    </button>
-
-                    <button
-                      onClick={() => toggleItemLock(selectedItem.id)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 border cursor-pointer ${
-                        selectedItem.isLocked
-                          ? 'bg-amber-950 text-amber-300 border-amber-400'
-                          : 'bg-iron-950 text-gray-400 border-iron-750 hover:text-white'
-                      }`}
-                    >
-                      {selectedItem.isLocked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : <Unlock className="w-3.5 h-3.5 text-gray-400" />}
-                      <span>{selectedItem.isLocked ? '잠금 해제' : '아이템 잠금'}</span>
-                      <kbd className="text-[9px] font-mono px-1 rounded bg-black/40 text-amber-300/80 border border-iron-750">L</kbd>
                     </button>
                   </div>
                 </div>

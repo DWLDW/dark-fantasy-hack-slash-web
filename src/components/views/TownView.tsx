@@ -703,9 +703,57 @@ export const TownView: React.FC = React.memo(() => {
                               })}
                             </div>
 
-                            <p className="text-[10px] text-gray-400 leading-tight pt-1">
-                              {recipe.specialEffect || recipe.description}
-                            </p>
+                            {/* Core Stat Badges Preview */}
+                            <div className="flex flex-wrap gap-1 pt-1">
+                              {recipe.enhancedDamage && (
+                                <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border text-amber-300 border-amber-600/60 bg-amber-950/60">
+                                  피해 +{recipe.enhancedDamage}%
+                                </span>
+                              )}
+                              {recipe.enhancedDefense && (
+                                <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border text-blue-300 border-blue-600/60 bg-blue-950/60">
+                                  방어 +{recipe.enhancedDefense}%
+                                </span>
+                              )}
+                              {recipe.bonusStats?.minDmg || recipe.bonusStats?.maxDmg ? (
+                                <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border text-amber-200 border-amber-600/50 bg-amber-950/40">
+                                  공격력 +{recipe.bonusStats.minDmg || 0}~{recipe.bonusStats.maxDmg || 0}
+                                </span>
+                              ) : null}
+                              {recipe.bonusStats?.defense && (
+                                <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border text-blue-200 border-blue-600/50 bg-blue-950/40">
+                                  방어력 +{recipe.bonusStats.defense}
+                                </span>
+                              )}
+                              {recipe.bonusStats?.allResist && (
+                                <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border text-emerald-300 border-emerald-600/60 bg-emerald-950/60">
+                                  모든저항 +{recipe.bonusStats.allResist}%
+                                </span>
+                              )}
+                              {recipe.bonusStats?.attackSpeed && (
+                                <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border text-yellow-300 border-yellow-600/60 bg-yellow-950/60">
+                                  공속 +{recipe.bonusStats.attackSpeed}%
+                                </span>
+                              )}
+                              {recipe.bonusStats?.critChance && (
+                                <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border text-rose-300 border-rose-600/60 bg-rose-950/60">
+                                  치명타 +{recipe.bonusStats.critChance}%
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Special Effect Text */}
+                            {recipe.specialEffect && (
+                              <div className="text-[10px] text-amber-200/90 leading-tight pt-0.5 font-medium">
+                                ✨ {recipe.specialEffect}
+                              </div>
+                            )}
+
+                            {recipe.description && (
+                              <p className="text-[9px] text-gray-400 italic leading-snug pt-0.5">
+                                {recipe.description}
+                              </p>
+                            )}
                           </div>
 
                           {/* Action Buttons */}

@@ -9,6 +9,8 @@ export interface ItemDetailCardProps {
   onToggleLock?: (itemId: string) => void;
   onDeposit?: (itemId: string) => void;
   onWithdraw?: (itemId: string) => void;
+  onSell?: (item: GameItem) => void;
+  sellPrice?: number;
   isInStash?: boolean;
 }
 
@@ -43,6 +45,8 @@ export const ItemDetailCard: React.FC<ItemDetailCardProps> = React.memo(({
   onToggleLock,
   onDeposit,
   onWithdraw,
+  onSell,
+  sellPrice,
   isInStash = false
 }) => {
   const isLocked = Boolean(item.isLocked);
@@ -110,7 +114,7 @@ export const ItemDetailCard: React.FC<ItemDetailCardProps> = React.memo(({
           </div>
         </div>
 
-        {/* Right: Icon-Only Action Buttons & Core Stat Badge */}
+        {/* Right: Action Buttons & Core Stat Badge */}
         <div className="flex items-center gap-1.5 flex-shrink-0">
           {/* Icon-Only Lock Toggle Button */}
           {onToggleLock && (
@@ -154,6 +158,25 @@ export const ItemDetailCard: React.FC<ItemDetailCardProps> = React.memo(({
               title="가방에서 모험가 보관함(Stash)으로 보관 [D]"
             >
               <Download className="w-4 h-4 text-indigo-400" />
+            </button>
+          )}
+
+          {/* Text-Only Clean Sell Button (No Icon, Upper Header Placement) */}
+          {!isInStash && onSell && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!isLocked) onSell(item);
+              }}
+              disabled={isLocked}
+              className={`h-8 px-2.5 rounded-lg text-xs font-bold font-mono transition flex items-center justify-center border shadow cursor-pointer ${
+                isLocked
+                  ? 'bg-iron-950 text-gray-600 border-iron-800 cursor-not-allowed opacity-50'
+                  : 'bg-amber-950/80 text-amber-300 border-amber-600/80 hover:bg-amber-900 hover:border-amber-400 hover:text-amber-200'
+              }`}
+              title={isLocked ? "잠금된 아이템은 판매할 수 없습니다" : `상점에 판매 (+${(sellPrice ?? item.value ?? 5).toLocaleString()}G) [S]`}
+            >
+              판매 ({sellPrice ? `${sellPrice.toLocaleString()}G` : `${(item.value || 5).toLocaleString()}G`})
             </button>
           )}
 
