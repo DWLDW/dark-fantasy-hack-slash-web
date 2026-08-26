@@ -149,6 +149,10 @@ export interface DungeonInfo {
   bestClearTime: string;
   maxChainRecord: number;
   rooms: DungeonRoom[];
+  isEndlessRift?: boolean;
+  riftTier?: number;
+  riftActTheme?: number; // 1..5 for dynamic background & audio
+  riftSpawnPattern?: 'standard' | 'column_charge' | 'wide_wall' | 'pincer_flank' | 'horde_swarm';
 }
 
 export type MonsterRank = 'normal' | 'champion' | 'elite' | 'boss';
@@ -245,6 +249,8 @@ export interface RoomLootEvent {
   count?: number;
   buffName?: string;
   buffDesc?: string;
+  isGodlyDrop?: boolean;
+  godlyItemNames?: string[];
 }
 
 export interface TownUpgrades {

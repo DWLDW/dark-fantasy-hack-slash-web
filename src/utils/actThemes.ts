@@ -113,7 +113,10 @@ export function getActNumberFromDungeonId(dungeonId?: string): number {
   return 1;
 }
 
-export function getActTheme(dungeonId?: string): ActTheme {
+export function getActTheme(dungeonId?: string, overrideAct?: number): ActTheme {
+  if (overrideAct && overrideAct >= 1 && overrideAct <= 5) {
+    return ACT_THEMES[overrideAct] || ACT_THEMES[1];
+  }
   const actNum = getActNumberFromDungeonId(dungeonId);
   return ACT_THEMES[actNum] || ACT_THEMES[1];
 }

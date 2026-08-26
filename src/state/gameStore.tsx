@@ -36,13 +36,14 @@ import { calculateRuneWordItem, craftRuneWordHelper, craftRuneWordWithTransmuteH
 import { upgradeSkillHelper, upgradePassiveHelper, resetSkillPointsHelper, getEffectiveSkill, calculateResetShardCost } from './helpers/skillManager';
 import { getItemSellPrice, bulkSellHelper, socketRuneHelper, cubeTransmuteHelper, POTION_CAPACITY_TIERS, getPotionCapacityUpgradeCost, getPotionHealingUpgradeCost, getConsumablePowerUpgradeCost, getGambleLevelUpgradeCost } from './helpers/cubeCraftingHelper';
 import { claimTreasureHelper, claimRuneAltarHelper, createShrineBuff, generateVictoryLoot, prepareDungeonRun, makeFirstClearSteelBase, generateRoomClearLoot } from './helpers/dungeonEventHelper';
-import { isActUnlocked, isDungeonUnlocked, getHighestUnlockedDungeon, getNextStoryDungeon } from '../data/dungeons';
+import { isActUnlocked, isDungeonUnlocked, getHighestUnlockedDungeon, getNextStoryDungeon, generateEndlessRiftDungeon } from '../data/dungeons';
 import { findBestEquipmentPlan } from '../utils/itemScoring';
 import { WARRIOR_SKILLS, ALL_AVAILABLE_SKILLS, DEFAULT_EQUIPPED_SLOTS, getSkillById, isSkillUnlocked } from '../data/skills';
 import { calculateAttackGains, compressLaneSurvivors, resolveHordeCounterAttack } from './helpers/combatActionHelper';
 import { AttackSummaryEvent } from '../components/fx/CombatJackpotOverlay';
 import { ExtraTurnEvent } from '../components/fx/ExtraTurnCutin';
 import { BossUltimateFxEvent } from '../components/fx/BossUltimateFxLayer';
+import { isGodlyDropItem } from '../components/fx/GodlyDropJackpot';
 import {
   SAVE_KEY,
   getInitialSave,
@@ -261,6 +262,12 @@ interface GameContextType {
   completeTutorial: () => void;
   setTutorialStep: (step: number) => void;
 
+  // Endless Rift & Godly Drops
+  endlessRiftTier: number;
+  setEndlessRiftTier: (tier: number) => void;
+  latestGodlyDrop: { name: string; type: 'item' | 'rune'; title?: string } | null;
+  clearLatestGodlyDrop: () => void;
+  
   // Achievement System
   achievementStats: AchievementStats;
   claimedAchievements: string[];
@@ -323,6 +330,29 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [maxUnlockedDifficulty, setMaxUnlockedDifficulty] = useState<number>(() => savedData?.maxUnlockedDifficulty || 1);
   const [latestRoomLootEvent, setLatestRoomLootEvent] = useState<RoomLootEvent | null>(null);
   const clearLatestRoomLootEvent = () => setLatestRoomLootEvent(null);
+
+  // 🌌 Endless Rift State (Tier 1 ~ 100+)
+  const [endlessRiftTier, setEndlessRiftTier] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem('d2_endless_rift_tier');
+      return saved ? Math.max(1, parseInt(saved, 10)) : 1;
+    } catch {
+      return 1;
+    }
+  });
+
+  const updateEndlessRiftTier = useCallback((tier: number) => {
+    const safe = Math.max(1, tier);
+    setEndlessRiftTier(safe);
+    try {
+      localStorage.setItem('d2_endless_rift_tier', String(safe));
+    } catch {}
+  }, []);
+
+  // 🌟 Godly Mythic Item Drop Jackpot State
+  const [latestGodlyDrop, setLatestGodlyDrop] = useState<{ name: string; type: 'item' | 'rune'; title?: string } | null>(null);
+  const clearLatestGodlyDrop = useCallback(() => setLatestGodlyDrop(null), []);
+
   const [townUpgrades, setTownUpgrades] = useState<TownUpgrades>(() => savedData?.townUpgrades || DEFAULT_TOWN_UPGRADES);
   const [hasSeenTutorial, setHasSeenTutorial] = useState<boolean>(() => savedData?.hasSeenTutorial ?? false);
   const [isTutorialOpen, setIsTutorialOpen] = useState<boolean>(false);
@@ -1378,6 +1408,30 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
               return copy;
             });
 
+            // Check for Godly Mythic Drops (The Grandfather, High Runes, etc.)
+            const godlyItem = victory.items.find(i => isGodlyDropItem(i.name));
+            const godlyRune = Object.keys(victory.runes).find(r => isGodlyDropItem(undefined, r));
+            if (godlyItem) {
+              setLatestGodlyDrop({ name: godlyItem.name, type: 'item', title: '🌟 신화적 전설의 보물 드랍! 🌟' });
+            } else if (godlyRune) {
+              setLatestGodlyDrop({ name: godlyRune, type: 'rune', title: '🔮 최고위 하이 룬 드랍! 🔮' });
+            }
+
+            // Dynamic Endless Rift Tier Progression Calculation
+            let nextDungeon = getNextStoryDungeon(currentDungeon.id, currentDungeon.riftTier || endlessRiftTier);
+            if (currentDungeon.isEndlessRift || currentDungeon.id.startsWith('endless_rift_')) {
+              const grade = victory.performanceGrade;
+              const advance = grade === 'S+' || grade === 'S' ? 3 : grade === 'A' ? 2 : 1;
+              const newTier = (currentDungeon.riftTier || endlessRiftTier) + advance;
+              updateEndlessRiftTier(newTier);
+              nextDungeon = generateEndlessRiftDungeon(newTier, currentDungeon.riftActTheme);
+              if (advance >= 3) {
+                addLog(`⚡ [퍼펙트 등반!] 압도적인 무결점 전투로 대균열 +${advance}단계 급상승 ➔ [${newTier}단계] 돌파!`, 'system');
+              } else if (advance === 2) {
+                addLog(`⚡ [쾌속 등반!] 대균열 +${advance}단계 상승 ➔ [${newTier}단계] 돌파!`, 'system');
+              }
+            }
+
             setDungeonVictoryLoot({
               gold: victory.gold,
               shards: victory.shards,
@@ -1389,9 +1443,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
               performanceGrade: victory.performanceGrade
             });
 
-            const nextStoryDungeon = getNextStoryDungeon(currentDungeon.id);
-            if (nextStoryDungeon) {
-              setCurrentDungeon(nextStoryDungeon);
+            if (nextDungeon) {
+              setCurrentDungeon(nextDungeon);
             }
 
             setIsVictoryModalOpen(true);
@@ -1416,13 +1469,24 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (drop.runeName) {
               setRunesVault(prev => ({ ...prev, [drop.runeName!]: (prev[drop.runeName!] || 0) + 1 }));
             }
+
+            // Check Godly drop in regular room clear
+            const roomGodlyItem = drop.items.find(i => isGodlyDropItem(i.name));
+            if (roomGodlyItem) {
+              setLatestGodlyDrop({ name: roomGodlyItem.name, type: 'item', title: '🌟 신화적 전설의 보물 발견! 🌟' });
+            } else if (drop.runeName && isGodlyDropItem(undefined, drop.runeName)) {
+              setLatestGodlyDrop({ name: drop.runeName, type: 'rune', title: '🔮 최고위 하이 룬 획득! 🔮' });
+            }
+
             setLatestRoomLootEvent({
               type: 'combat',
               title: currentRoom.type === 'elite' ? '엘리트 처치 전리품' : '소탕 전리품',
               gold: drop.gold,
               items: drop.items,
               runeName: drop.runeName,
-              count: drop.runeName ? 1 : undefined
+              count: drop.runeName ? 1 : undefined,
+              isGodlyDrop: Boolean(roomGodlyItem || (drop.runeName && isGodlyDropItem(undefined, drop.runeName))),
+              godlyItemNames: roomGodlyItem ? [roomGodlyItem.name] : drop.runeName ? [`${drop.runeName} 룬`] : undefined
             });
           }
           addLog('🏆 룸의 모든 적을 소탕했습니다. ←/→ 로 길을 고르고 [Space]로 진행하세요.', 'loot');
@@ -1802,6 +1866,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setIsAttacking(false);
             setIsDeathModalOpen(true);
             setPlayerStats(prev => ({ ...prev, hp: 0, rage: 0, shield: 0, shieldLayers: [] }));
+
+            if (currentDungeon.isEndlessRift || currentDungeon.id.startsWith('endless_rift_')) {
+              const currentTier = currentDungeon.riftTier || endlessRiftTier;
+              const downgradedTier = Math.max(1, currentTier - 1);
+              updateEndlessRiftTier(downgradedTier);
+              setCurrentDungeon(generateEndlessRiftDungeon(downgradedTier));
+              addLog(`💀 [대균열 도전 실패] 안정적인 성장 파밍을 위해 대균열 난이도가 [${downgradedTier}단계]로 자동 조정되었습니다.`, 'system');
+            }
           } else {
             setPlayerStats(prev => ({
               ...prev,
@@ -2899,6 +2971,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     claimedAchievements,
     claimAchievementReward,
     claimAllAchievementRewards,
+    endlessRiftTier,
+    setEndlessRiftTier: updateEndlessRiftTier,
+    latestGodlyDrop,
+    clearLatestGodlyDrop,
     hasSeenTutorial,
     isTutorialOpen,
     tutorialStep,
@@ -2962,7 +3038,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     lastAttackSummary,
     roomCombatStats,
     extraTurnEvent,
-    bossUltimateFxEvent
+    bossUltimateFxEvent,
+    endlessRiftTier,
+    updateEndlessRiftTier,
+    latestGodlyDrop,
+    clearLatestGodlyDrop
   ]);
 
   return (

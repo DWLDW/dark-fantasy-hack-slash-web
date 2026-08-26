@@ -9,6 +9,7 @@ import { MonsterPortrait } from '../../fx/MonsterPortrait';
 import { CombatFxLayer } from '../../fx/CombatFxLayer';
 import { AtmosphereLayer } from '../../fx/AtmosphereLayer';
 import { PlayerChampion } from '../../fx/PlayerChampion';
+import { GodlyDropJackpot } from '../../fx/GodlyDropJackpot';
 
 interface BattleFieldLanesProps {
   dyingMonsterIds: Set<string>;
@@ -33,6 +34,8 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
     setSelectedShrineType,
     cycleShrineSelection,
     latestRoomLootEvent,
+    latestGodlyDrop,
+    clearLatestGodlyDrop,
     equipItem,
     equipment,
     isAttacking
@@ -41,7 +44,7 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
   const totalMonsters = monsters.length;
   const isCleared = totalMonsters === 0;
   const currentRoom = currentDungeon.rooms.find(r => r.id === currentRoomId);
-  const actTheme = useMemo(() => getActTheme(currentDungeon.id), [currentDungeon.id]);
+  const actTheme = useMemo(() => getActTheme(currentDungeon.id, currentDungeon.riftActTheme), [currentDungeon.id, currentDungeon.riftActTheme]);
 
   // Dedicated Shrine Keyboard Listener
   useEffect(() => {
@@ -134,6 +137,14 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
         </picture>
       )}
       <AtmosphereLayer act={actTheme.act} theme={actTheme} />
+      {latestGodlyDrop && (
+        <GodlyDropJackpot
+          title={latestGodlyDrop.title}
+          name={latestGodlyDrop.name}
+          type={latestGodlyDrop.type}
+          onDismiss={clearLatestGodlyDrop}
+        />
+      )}
       {!isCleared && <CombatFxLayer />}
       {isCleared ? (
         <div className="w-full h-full flex flex-col justify-center items-center relative z-20 p-1 sm:p-2">
@@ -275,7 +286,7 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                 </div>
               ) : (
                 <p className="text-xs sm:text-sm text-emerald-400 font-mono font-bold">
-                  ✓ 모든 보상이 안전하게 수령되었습니다.
+                  ✓ 이번 방의 모든 전리품을 획득했습니다! (원정 완료 시 안전 귀환)
                 </p>
               )}
 

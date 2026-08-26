@@ -89,13 +89,79 @@ export function getHighestUnlockedDungeon(dungeonClears: Record<string, number> 
   return DUNGEONS_DATA[0];
 }
 
-export function getNextStoryDungeon(currentDungeonId: string): DungeonInfo | null {
-  const currentIndex = ALL_DUNGEON_IDS.indexOf(currentDungeonId);
-  if (currentIndex === -1 || currentIndex >= ALL_DUNGEON_IDS.length - 1) {
-    return null; // All story chapters completed or not found
+export function generateEndlessRiftDungeon(tier: number = 1, previousActTheme?: number): DungeonInfo {
+  const safeTier = Math.max(1, tier);
+  // Pick random act theme (1..5) different from previous
+  const availableThemes = [1, 2, 3, 4, 5].filter(t => t !== previousActTheme);
+  const randomAct = availableThemes[Math.floor(Math.random() * availableThemes.length)] || ((safeTier % 5) + 1);
+
+  const patterns: ('column_charge' | 'wide_wall' | 'pincer_flank' | 'horde_swarm')[] = [
+    'column_charge',
+    'wide_wall',
+    'pincer_flank',
+    'horde_swarm'
+  ];
+  const spawnPattern = patterns[(safeTier - 1) % patterns.length];
+
+  const recLevel = 80 + Math.floor((safeTier - 1) * 2.5);
+  const difficultyLabel: DungeonInfo['difficulty'] =
+    safeTier <= 5 ? '쉬움' : safeTier <= 15 ? '보통' : safeTier <= 30 ? '어려움' : '지옥';
+
+  const actNames = ['', '카타콤 심연', '사막 황금석묘', '자카룸 맹독사원', '혼돈의 용암성역', '세계석 혹한정상'];
+
+  return {
+    id: `endless_rift_t${safeTier}`,
+    name: `🌌 대균열 ${safeTier}단계 (Rift Tier ${safeTier})`,
+    theme: `[Act ${randomAct} ${actNames[randomAct]}] 차원 왜곡 전장 · ${
+      spawnPattern === 'column_charge'
+        ? '세로 돌파 군세 (관통 추천)'
+        : spawnPattern === 'wide_wall'
+        ? '가로 횡대 군세 (휩쓸기 추천)'
+        : spawnPattern === 'pincer_flank'
+        ? '양익 협공 군세'
+        : '초거대 대군세 스웜'
+    }`,
+    recommendedLevel: recLevel,
+    difficulty: difficultyLabel,
+    elementalInfo: '모든 속성 복합 저항 & 전술적 군세 돌파',
+    monsterSummary: `대균열 왜곡 정예, 수호자 대악마, 전술 군세 (${spawnPattern})`,
+    bestClearTime: '--:--',
+    maxChainRecord: 0,
+    isEndlessRift: true,
+    riftTier: safeTier,
+    riftActTheme: randomAct,
+    riftSpawnPattern: spawnPattern,
+    dropItems: [],
+    rooms: [
+      { id: 1, type: 'start', title: `차원 왜곡 관문 (Tier ${safeTier})`, cleared: true, current: false, connections: [2], revealed: true },
+      { id: 2, type: 'normal', title: `균열 선봉 전초 (전술 룸)`, cleared: false, current: false, connections: [3], revealed: false },
+      { id: 3, type: 'elite', title: `균열 정예 집결지`, cleared: false, current: false, connections: [4], revealed: false },
+      { id: 4, type: 'treasure', title: `차원의 고대 보물함`, cleared: false, current: false, connections: [5], revealed: false, rewardDesc: '신화적 고대 전리품' },
+      { id: 5, type: safeTier % 2 === 0 ? 'rune' : 'shrine', title: safeTier % 2 === 0 ? '대악마 룬 제단' : '차원의 성소', cleared: false, current: false, connections: [6], revealed: false, rewardDesc: '고급 룬 또는 강력한 축복' },
+      { id: 6, type: 'boss', title: `균열 수호자 알현실`, cleared: false, current: false, connections: [], revealed: false, rewardDesc: '대균열 수호자 신화 드랍' }
+    ]
+  };
+}
+
+export function getNextStoryDungeon(currentDungeonId: string, currentTier: number = 1): DungeonInfo | null {
+  // If in endless rift, increment tier
+  if (currentDungeonId.startsWith('endless_rift_')) {
+    const nextTier = currentTier + 1;
+    return generateEndlessRiftDungeon(nextTier);
   }
+
+  const currentIndex = ALL_DUNGEON_IDS.indexOf(currentDungeonId);
+  if (currentIndex === -1) {
+    return generateEndlessRiftDungeon(1);
+  }
+  
+  // If final act 5 boss is beaten, automatically transition to Endless Rift Tier 1
+  if (currentIndex >= ALL_DUNGEON_IDS.length - 1) {
+    return generateEndlessRiftDungeon(1);
+  }
+
   const nextId = ALL_DUNGEON_IDS[currentIndex + 1];
-  return DUNGEONS_DATA.find(d => d.id === nextId) || null;
+  return DUNGEONS_DATA.find(d => d.id === nextId) || generateEndlessRiftDungeon(1);
 }
 
 function create6RoomGraph(themeTitles: {
@@ -896,7 +962,141 @@ export function createDungeonFormation(
     ? Math.max(2, Math.floor(2 + recLv * 0.45))
     : Math.floor(5 + recLv * 0.65);
 
-  // 5 Lanes x 3 depths = 15 monsters (compact vertical height)
+  // 🌌 ENDLESS RIFT TACTICAL FORMATION GENERATION
+  if (dungeon.isEndlessRift || dungeonId.startsWith('endless_rift_')) {
+    const tierMatch = dungeonId.match(/endless_rift_t(\d+)/i);
+    const tier = tierMatch ? parseInt(tierMatch[1], 10) : (dungeon.riftTier || 1);
+    const riftRecLv = 80 + Math.floor((tier - 1) * 2.5);
+    const actThemeNum = dungeon.riftActTheme || ((tier % 5) + 1);
+    const pattern = dungeon.riftSpawnPattern || 'column_charge';
+
+    // Pick act theme roster based on random rift act theme
+    const actKey = actThemeNum === 1 ? 'act1_4_catacombs' : actThemeNum === 2 ? 'act2_4_tomb' : actThemeNum === 3 ? 'act3_4_durance' : actThemeNum === 4 ? 'act4_4_altar' : 'act5_4_throne';
+    const riftRoster = DUNGEON_MONSTER_TEMPLATES[actKey] || DUNGEON_MONSTER_TEMPLATES['act5_4_throne'];
+    const riftBossMeta = BOSS_METADATA_TABLE[actKey] || BOSS_METADATA_TABLE['act5_4_throne'];
+
+    // Base stats scaled to end-game level
+    const endBaseHp = Math.floor(40 + riftRecLv * 7.5 + Math.pow(riftRecLv / 10, 1.5) * 10);
+    const endBaseDef = Math.floor(4 + riftRecLv * 0.85);
+    const endBaseDmg = Math.floor(5 + riftRecLv * 0.65);
+
+    // Endless Rift Tier scaling: progressive exponential growth
+    const riftHpScale = 1 + (tier * 0.15) + Math.pow(tier / 12, 1.5);
+    const riftDefScale = 1 + (tier * 0.08);
+    const riftDmgScale = 1 + (tier * 0.12) + (tier * 0.01);
+
+    const baseRiftHp = Math.floor(endBaseHp * 1.5 * riftHpScale);
+    const baseRiftDef = Math.floor(endBaseDef * 1.15 * riftDefScale);
+    const baseRiftDmg = Math.floor(endBaseDmg * 1.35 * riftDmgScale);
+
+    // Build tactical lane-depth map based on pattern
+    const spawnSlots: { l: number; d: number; isBoss?: boolean; isElite?: boolean }[] = [];
+
+    if (roomType === 'boss') {
+      // Boss Room: Guardian Boss at center (L2, D0), Elites at L1, L3, and minions supporting
+      spawnSlots.push({ l: 2, d: 0, isBoss: true });
+      spawnSlots.push({ l: 1, d: 0, isElite: true });
+      spawnSlots.push({ l: 3, d: 0, isElite: true });
+      spawnSlots.push({ l: 0, d: 0 }); spawnSlots.push({ l: 0, d: 1 });
+      spawnSlots.push({ l: 4, d: 0 }); spawnSlots.push({ l: 4, d: 1 });
+      spawnSlots.push({ l: 1, d: 1 }); spawnSlots.push({ l: 2, d: 1 }); spawnSlots.push({ l: 3, d: 1 });
+      spawnSlots.push({ l: 0, d: 2 }); spawnSlots.push({ l: 2, d: 2 }); spawnSlots.push({ l: 4, d: 2 });
+    } else if (pattern === 'column_charge') {
+      // 🎯 Column Charge (세로 집중 돌파): L1 & L3 packed deep (0..4), L0, L2, L4 (0..1)
+      // Total 16 mobs! Encourages straight line pierce / cleave!
+      for (let l = 0; l < 5; l++) {
+        const isFocus = (l === 1 || l === 3);
+        const maxD = isFocus ? 5 : 2;
+        for (let d = 0; d < maxD; d++) {
+          const isElite = roomType === 'elite' && isFocus && d === 0;
+          spawnSlots.push({ l, d, isElite });
+        }
+      }
+    } else if (pattern === 'wide_wall') {
+      // 🌊 Wide Wall (가로 횡대 방어벽): All 5 lanes wide frontline (d=0..2)
+      // Total 15 mobs! Encourages horizontal sweep / whirlwind!
+      for (let l = 0; l < 5; l++) {
+        for (let d = 0; d < 3; d++) {
+          const isElite = roomType === 'elite' && (l === 1 || l === 3) && d === 0;
+          spawnSlots.push({ l, d, isElite });
+        }
+      }
+    } else if (pattern === 'pincer_flank') {
+      // 🦀 Pincer Flank (양익 협공): L0 & L4 deep (0..3), L2 center anchor (0..2), L1 & L3 (0..1)
+      // Total 15 mobs!
+      for (let l = 0; l < 5; l++) {
+        const depths = (l === 0 || l === 4) ? 4 : (l === 2) ? 3 : 2;
+        for (let d = 0; d < depths; d++) {
+          const isElite = roomType === 'elite' && (l === 0 || l === 4) && d === 0;
+          spawnSlots.push({ l, d, isElite });
+        }
+      }
+    } else {
+      // 💥 Horde Swarm (대군세 스웜): 17~18 massive density for overkill chains!
+      for (let l = 0; l < 5; l++) {
+        const count = (l === 2 || l === 1 || l === 3) ? 4 : 3;
+        for (let d = 0; d < count; d++) {
+          const isElite = roomType === 'elite' && (l === 1 || l === 3) && d === 0;
+          spawnSlots.push({ l, d, isElite });
+        }
+      }
+    }
+
+    for (const slot of spawnSlots) {
+      let mHp = baseRiftHp;
+      let mDef = baseRiftDef;
+      let mDmg = baseRiftDmg;
+
+      const template = slot.d === 0 ? riftRoster.frontline : slot.d === 1 ? riftRoster.midline : riftRoster.backline;
+      let mName = template.name;
+      let mIcon = template.icon;
+      let rank: 'normal' | 'elite' | 'boss' = 'normal';
+
+      if (slot.isBoss) {
+        mHp = Math.floor(baseRiftHp * 9.5);
+        mDef = Math.floor(baseRiftDef * 1.5);
+        mDmg = Math.floor(baseRiftDmg * 2.6);
+        mName = `🌌 [균열 수호자] ${riftBossMeta.name}`;
+        mIcon = riftBossMeta.icon;
+        rank = 'boss';
+      } else if (slot.isElite) {
+        mHp = Math.floor(baseRiftHp * 3.8);
+        mDef = Math.floor(baseRiftDef * 1.3);
+        mDmg = Math.floor(baseRiftDmg * 1.8);
+        mName = `⭐ ${riftRoster.elite.name}`;
+        mIcon = riftRoster.elite.icon;
+        rank = 'elite';
+      } else if (slot.d === 0) {
+        mHp = Math.floor(mHp * 1.25);
+        mDef = mDef + 3;
+      }
+
+      monsters.push({
+        id: `${dungeonId}_l${slot.l}_d${slot.d}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        name: mName,
+        hp: Math.max(1, mHp),
+        maxHp: Math.max(1, mHp),
+        defense: Math.max(0, mDef),
+        rank,
+        lane: slot.l,
+        depth: slot.d,
+        intent: {
+          type: 'attack',
+          damage: Math.max(1, mDmg),
+          targetLane: slot.l,
+          chargePercent: slot.isBoss ? 25 : 35 + ((slot.l * 7 + slot.d * 13) % 35)
+        },
+        bossGimmick: slot.isBoss ? `${riftBossMeta.gimmickTitle}: ${riftBossMeta.gimmickDesc}` : undefined,
+        bossSignatureKey: slot.isBoss ? riftBossMeta.signatureKey : undefined,
+        element: slot.isBoss ? riftBossMeta.element : undefined,
+        icon: mIcon
+      });
+    }
+
+    return monsters;
+  }
+
+  // 5 Lanes x 3 depths = 15 monsters (standard story dungeons)
   const depthsPerLane = 3;
 
   for (let l = 0; l < 5; l++) {
