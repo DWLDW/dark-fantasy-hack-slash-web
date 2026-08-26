@@ -39,6 +39,7 @@ import { claimTreasureHelper, claimRuneAltarHelper, createShrineBuff, generateVi
 import { isActUnlocked, isDungeonUnlocked, getHighestUnlockedDungeon, getNextStoryDungeon, generateEndlessRiftDungeon } from '../data/dungeons';
 import { findBestEquipmentPlan } from '../utils/itemScoring';
 import { WARRIOR_SKILLS, ALL_AVAILABLE_SKILLS, DEFAULT_EQUIPPED_SLOTS, getSkillById, isSkillUnlocked } from '../data/skills';
+import { WARRIOR_PASSIVE_SKILLS } from '../data/passiveSkills';
 import { calculateAttackGains, compressLaneSurvivors, resolveHordeCounterAttack } from './helpers/combatActionHelper';
 import { AttackSummaryEvent } from '../components/fx/CombatJackpotOverlay';
 import { ExtraTurnEvent } from '../components/fx/ExtraTurnCutin';
@@ -1037,6 +1038,21 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setTimeout(() => setIsLevelUpAnimated(false), 4500);
 
         addLog(`🌟 LEVEL UP! 레벨 ${currentLevel} 달성! (스탯 포인트 +${statPointsGained}P, 스킬 포인트 +${skillPointsGained}P 획득 & HP/마나 완전 회복!)`, 'loot');
+
+        // Check for newly unlocked active skills
+        ALL_AVAILABLE_SKILLS.forEach(skill => {
+          const reqLv = skill.unlockLevel ?? 1;
+          if (reqLv > prev.level && reqLv <= currentLevel) {
+            addLog(`⚔️ [신규 액티브 스킬 해금] '${skill.name}' 습득! [K] 키를 눌러 스킬북에서 슬롯에 장착하세요!`, 'chain');
+          }
+        });
+
+        // Check for newly unlocked passive skills
+        WARRIOR_PASSIVE_SKILLS.forEach(passive => {
+          if (passive.unlockLevel > prev.level && passive.unlockLevel <= currentLevel) {
+            addLog(`🧬 [신규 패시브 스킬 해금] '${passive.name}' 습득! [K] 키를 눌러 패시브 마스터리를 강화하세요!`, 'chain');
+          }
+        });
         const newMaxHp = 120 + (currentLevel - 1) * 25 + prev.con * 5;
         const newMaxMana = 40 + (currentLevel - 1) * 8 + prev.int * 3;
         return {

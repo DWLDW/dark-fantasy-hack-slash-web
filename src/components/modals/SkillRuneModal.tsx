@@ -73,7 +73,7 @@ export const SkillRuneModal: React.FC = React.memo(() => {
   const activeRuneId = skillRunes[selectedSkill.id] || selectedSkill.activeRuneId;
   const currentRune = SKILL_RUNES_DATA.find(r => r.id === activeRuneId);
   const currentSkillLv = skillLevels[selectedSkill.id] || 1;
-  const maxSkillLv = selectedSkill.maxLevel || 30;
+  const maxSkillLv = selectedSkill.maxLevel || 20;
   const levelDamageBonus = (currentSkillLv - 1) * 15;
   const isSelectedUnlocked = isSkillUnlocked(selectedSkill.id, playerStats.level);
 

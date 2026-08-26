@@ -44,18 +44,25 @@ export function calculateAttackGains(
     : rawRageGained;
 
   const effectiveDamageForHeal = Math.max(result.appliedDamage, Math.min(result.totalDamage, result.appliedDamage * 1.5));
-  const skillHeal = effectiveSkill.lifeStealPercent
-    ? Math.floor(effectiveDamageForHeal * (effectiveSkill.lifeStealPercent / 100))
-    : 0;
+  
+  // 🧛 Balanced Life Steal Caps (Prevents unkillable full-heal exploits while keeping satisfying sustain)
   const itemHeal = itemLifeSteal > 0
-    ? Math.floor(effectiveDamageForHeal * (itemLifeSteal / 100))
+    ? Math.min(Math.floor(playerMaxHp * 0.10), Math.floor(effectiveDamageForHeal * (itemLifeSteal / 100)))
     : 0;
-  const voidHeal = effectiveSkill.activeRuneId === 'rune_void' ? result.chainCount * 25 : 0;
-  const totalHpHealed = skillHeal + itemHeal + voidHeal;
 
-  // Shield Bash generated shield (25% max HP + 60% defense)
+  const skillHeal = effectiveSkill.lifeStealPercent
+    ? Math.min(Math.floor(playerMaxHp * 0.12), Math.floor(effectiveDamageForHeal * (effectiveSkill.lifeStealPercent / 100)))
+    : 0;
+
+  const voidHeal = effectiveSkill.activeRuneId === 'rune_void'
+    ? Math.min(Math.floor(playerMaxHp * 0.08), result.chainCount * Math.max(5, Math.floor(playerMaxHp * 0.02)))
+    : 0;
+
+  const totalHpHealed = Math.min(Math.floor(playerMaxHp * 0.20), skillHeal + itemHeal + voidHeal);
+
+  // Shield Bash generated shield (20% max HP + 50% defense)
   const shieldGained = effectiveSkill.id === 'shield_bash'
-    ? Math.floor(playerMaxHp * 0.25 + totalDefense * 0.6)
+    ? Math.floor(playerMaxHp * 0.20 + totalDefense * 0.5)
     : 0;
 
   const gainedGold = result.chainCount * 25 + (result.stopperId ? 100 : 0);

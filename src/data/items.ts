@@ -455,8 +455,8 @@ export const GAME_ITEMS_POOL: GameItem[] = [
     tier: 'exceptional',
     slot: 'helm',
     isIdentified: false,
-    stats: { defense: 220, lifeSteal: 8, damageReduction: 20 },
-    specialEffect: '타격 시 생명력/마나 8% 흡수, 물리 피해 20% 감소, 마법 피해 감소 15',
+    stats: { defense: 220, lifeSteal: 5, damageReduction: 15 },
+    specialEffect: '타격 시 생명력/마나 5% 흡수, 물리 피해 15% 감소',
     value: 5500,
     icon: 'HardHat',
     description: '흡혈과 물리 피해 감소를 동시에 제공하는 전설적인 방어 투구.'
@@ -469,8 +469,8 @@ export const GAME_ITEMS_POOL: GameItem[] = [
     tier: 'elite',
     slot: 'helm',
     isIdentified: false,
-    stats: { defense: 360, str: 20, dex: 20, con: 20, allResist: 30, lifeSteal: 6 },
-    specialEffect: '모든 스킬 레벨 +2, 모든 저항 +30%, 생명력 흡수 6%, 타격 회복 속도 +30%',
+    stats: { defense: 360, str: 20, dex: 20, con: 20, allResist: 30, lifeSteal: 4 },
+    specialEffect: '모든 스킬 레벨 +2, 모든 저항 +30%, 생명력 흡수 4%, 타격 회복 속도 +30%',
     value: 8000,
     icon: 'HardHat',
     description: '야만용사들의 영원한 교복. 공방 모든 면에서 완벽한 능력치를 제공합니다.'
@@ -497,8 +497,8 @@ export const GAME_ITEMS_POOL: GameItem[] = [
     tier: 'elite',
     slot: 'helm',
     isIdentified: false,
-    stats: { defense: 380, str: 30, attackSpeed: 20, lifeSteal: 10, allResist: 15 },
-    specialEffect: '모든 스킬 레벨 +2, 공격 속도 +20%, 힘 +30, 생명력 흡수 10%, 독 저항 +70%',
+    stats: { defense: 380, str: 30, attackSpeed: 20, lifeSteal: 6, allResist: 15 },
+    specialEffect: '모든 스킬 레벨 +2, 공격 속도 +20%, 힘 +30, 생명력 흡수 6%, 독 저항 +70%',
     value: 13000,
     icon: 'HardHat',
     description: '고뇌의 여제 안다리엘의 저주받은 투구. 강력한 공격 속도와 힘을 뿜어냅니다.'
@@ -660,8 +660,8 @@ export const GAME_ITEMS_POOL: GameItem[] = [
     tier: 'elite',
     slot: 'gloves',
     isIdentified: false,
-    stats: { defense: 145, str: 15, lifeSteal: 10, overkillEfficiency: 25 },
-    specialEffect: '타격 시 5% 확률 생명력 추출(Life Tap) 발동, 생명력 흡수 10%, 상처 악화 25%',
+    stats: { defense: 145, str: 15, lifeSteal: 6, overkillEfficiency: 25 },
+    specialEffect: '타격 시 5% 확률 생명력 추출(Life Tap) 발동, 생명력 흡수 6%, 상처 악화 25%',
     value: 8500,
     icon: 'Sparkles',
     description: '적의 생명력을 빨아들여 영원히 죽지 않는 불사의 전투 장갑 (뱀파장).'
@@ -1200,11 +1200,11 @@ export const GAME_ITEMS_POOL: GameItem[] = [
     requiredLevel: 69,
     speedCategory: 'fast',
     baseAtbPercent: 65,
-    stats: { minDmg: 85, maxDmg: 165, hp: 80, lifeSteal: 12, damageReduction: 10 },
+    stats: { minDmg: 85, maxDmg: 165, hp: 80, lifeSteal: 6, damageReduction: 10 },
     value: 6500,
     icon: 'Sword',
     description: '심연의 파멸을 부르는 대검. 막대한 생명력과 흡혈을 제공합니다.',
-    specialEffect: '생명력 +80 및 적 타격 시 생명력 12% 흡수'
+    specialEffect: '생명력 +80 및 적 타격 시 생명력 6% 흡수'
   },
   {
     id: 'u_lightsabre',
@@ -1267,18 +1267,18 @@ export const GAME_ITEMS_POOL: GameItem[] = [
     specialEffect: '모든 원소 저항 +50% 및 올스탯 +20 부여'
   },
   {
-    id: 'u_vampire_gaze',
+    id: 'u_vampire_gaze_elite',
     name: '뱀파이어 게이즈 (Vampire Gaze)',
     baseItemName: '그림 헬름',
     rarity: 'unique',
     tier: 'exceptional',
     slot: 'helm',
     requiredLevel: 41,
-    stats: { defense: 65, lifeSteal: 10, damageReduction: 20, evasion: 10 },
+    stats: { defense: 65, lifeSteal: 5, damageReduction: 15, evasion: 10 },
     value: 4200,
     icon: 'HardHat',
     description: '흡혈귀의 안광이 서린 해골 투구. 생명력 흡수와 탁월한 피해 감소율을 제공합니다.',
-    specialEffect: '생명력 흡수 +10% 및 물리 피해 감소 +20%'
+    specialEffect: '생명력 흡수 +5% 및 물리 피해 감소 +15%'
   },
   {
     id: 'u_crown_of_ages',

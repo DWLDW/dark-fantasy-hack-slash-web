@@ -1,4 +1,4 @@
-﻿// 1. Diablo II Runes Definition (El to Zod - Complete 33 Runes)
+// 1. Diablo II Runes Definition (El to Zod - Complete 33 Runes)
 export interface D2RuneDef {
   id: string;
   name: string;
@@ -20,7 +20,7 @@ export const D2_RUNES: Record<string, D2RuneDef> = {
   Ral: { id: 'Ral', name: '랄 (Ral) 룬', number: 8, weaponBonus: '화염 피해 5~30 추가', armorBonus: '화염 저항 +35%', statsWeapon: { minDmg: 5, maxDmg: 30 }, statsArmor: { defense: 20, allResist: 10 } },
   Ort: { id: 'Ort', name: '오르트 (Ort) 룬', number: 9, weaponBonus: '번개 피해 1~50 추가', armorBonus: '번개 저항 +35%', statsWeapon: { minDmg: 1, maxDmg: 50 }, statsArmor: { defense: 20, allResist: 10 } },
   Thul: { id: 'Thul', name: '주울 (Thul) 룬', number: 10, weaponBonus: '냉기 피해 3~14, 빙결', armorBonus: '냉기 저항 +35%', statsWeapon: { minDmg: 3, maxDmg: 14, overkillEfficiency: 10 }, statsArmor: { defense: 20, allResist: 10 } },
-  Amn: { id: 'Amn', name: '앰 (Amn) 룬', number: 11, weaponBonus: '타격 시 생명력 7% 흡수', armorBonus: '공격자에게 피해 14 반사', statsWeapon: { lifeSteal: 7 }, statsArmor: { defense: 25 } },
+  Amn: { id: 'Amn', name: '앰 (Amn) 룬', number: 11, weaponBonus: '타격 시 생명력 4% 흡수', armorBonus: '공격자에게 피해 14 반사', statsWeapon: { lifeSteal: 4 }, statsArmor: { defense: 25 } },
   Sol: { id: 'Sol', name: '솔 (Sol) 룬', number: 12, weaponBonus: '최소 대미지 +9', armorBonus: '받는 피해 7 감소', statsWeapon: { minDmg: 9 }, statsArmor: { defense: 35 } },
   Shael: { id: 'Shael', name: '샤엘 (Shael) 룬', number: 13, weaponBonus: '공격 속도 +20%', armorBonus: '타격 회복 속도 +20%', statsWeapon: { attackSpeed: 20, critChance: 8, overkillEfficiency: 15 }, statsArmor: { defense: 30 } },
   Dol: { id: 'Dol', name: '돌 (Dol) 룬', number: 14, weaponBonus: '적중 시 몬스터 도주 25%', armorBonus: '생명력 회복 +7', statsWeapon: { minDmg: 10, maxDmg: 15 }, statsArmor: { hp: 50 } },
@@ -35,7 +35,7 @@ export const D2_RUNES: Record<string, D2RuneDef> = {
   Mal: { id: 'Mal', name: '말 (Mal) 룬', number: 23, weaponBonus: '괴물 회복 저지', armorBonus: '마법 피해 7 감소', statsWeapon: { minDmg: 25, maxDmg: 35 }, statsArmor: { defense: 70 } },
   Ist: { id: 'Ist', name: '이스트 (Ist) 룬', number: 24, weaponBonus: '매직 아이템 발견 확률 +30%', armorBonus: '매직 아이템 발견 확률 +25%', statsWeapon: { fortune: 30 }, statsArmor: { fortune: 25 } },
   Gul: { id: 'Gul', name: '굴 (Gul) 룬', number: 25, weaponBonus: '공격 등급 +20%', armorBonus: '최대 독 저항 +5%', statsWeapon: { critChance: 12 }, statsArmor: { defense: 80 } },
-  Vex: { id: 'Vex', name: '벡스 (Vex) 룬', number: 26, weaponBonus: '타격 시 마나/분노 7% 흡수', armorBonus: '최대 화염 저항 +5%', statsWeapon: { minDmg: 30, maxDmg: 50, lifeSteal: 7 }, statsArmor: { defense: 90, allResist: 15 } },
+  Vex: { id: 'Vex', name: '벡스 (Vex) 룬', number: 26, weaponBonus: '타격 시 마나/분노 4% 흡수', armorBonus: '최대 화염 저항 +5%', statsWeapon: { minDmg: 30, maxDmg: 50, lifeSteal: 4 }, statsArmor: { defense: 90, allResist: 15 } },
   Ohm: { id: 'Ohm', name: '옴 (Ohm) 룬', number: 27, weaponBonus: '피해량 +50% 증가', armorBonus: '최대 냉기 저항 +5%', statsWeapon: { minDmg: 40, maxDmg: 70 }, statsArmor: { defense: 100 } },
   Lo: { id: 'Lo', name: '로 (Lo) 룬', number: 28, weaponBonus: '치명적 공격 20% (Deadly Strike)', armorBonus: '최대 번개 저항 +5%', statsWeapon: { critChance: 20, critDamage: 50 }, statsArmor: { defense: 120 } },
   Sur: { id: 'Sur', name: '수르 (Sur) 룬', number: 29, weaponBonus: '목표물 시야 차단 (실명)', armorBonus: '최대 마나/분노 +5%', statsWeapon: { minDmg: 50, maxDmg: 80 }, statsArmor: { hp: 100 } },

@@ -1,4 +1,4 @@
-﻿import { RuneWordRecipe } from '../types/game';
+import { RuneWordRecipe } from '../types/game';
 
 export const RUNEWORD_RECIPES: RuneWordRecipe[] = [
   // --- Early Game (Acts 1-2) ---
@@ -233,8 +233,8 @@ export const RUNEWORD_RECIPES: RuneWordRecipe[] = [
     allowedSlot: 'weapon',
     requiredSockets: 6,
     enhancedDamage: 350,
-    bonusStats: { minDmg: 260, maxDmg: 450, attackSpeed: 60, str: 30, dex: 30, con: 30, overkillEfficiency: 60, lifeSteal: 15 },
-    specialEffect: '파괴 불가(Indestructible), 공격 속도 +60%, 모든 능력치 +30, 생명력/분노 15% 흡수',
+    bonusStats: { minDmg: 260, maxDmg: 450, attackSpeed: 60, str: 30, dex: 30, con: 30, overkillEfficiency: 60, lifeSteal: 7 },
+    specialEffect: '파괴 불가(Indestructible), 공격 속도 +60%, 모든 능력치 +30, 생명력/분노 7% 흡수',
     description: '[Vex + Hel + El + Eld + Zod + Eth] 6개 룬의 궁극 합일, 불멸의 파괴신이 깃든 절대 무기.'
   }
 ];

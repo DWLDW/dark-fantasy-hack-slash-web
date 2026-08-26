@@ -25,8 +25,8 @@ export const SET_DEFINITIONS: Record<string, SetDefinition> = {
     bonuses: [
       {
         piecesRequired: 2,
-        description: '방어력 +100, 생명력 흡수(Life Steal) +10%',
-        stats: { defense: 100, lifeSteal: 10 }
+        description: '방어력 +100, 생명력 흡수(Life Steal) +5%',
+        stats: { defense: 100, lifeSteal: 5 }
       },
       {
         piecesRequired: 3,

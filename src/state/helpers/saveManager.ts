@@ -3,7 +3,12 @@ import { PlayerStats, GameItem, ConsumableItem, DungeonInfo, AchievementStats, T
 export const SAVE_KEY = 'DARK_FANTASY_SAVE_V1';
 
 export function calculateMaxExp(level: number): number {
-  return Math.floor(100 * Math.pow(1.20, level - 1) + 25 * level);
+  if (level <= 1) return 180;
+  if (level <= 15) {
+    return Math.floor(180 * Math.pow(1.14, level - 1) + 35 * (level - 1));
+  }
+  const baseAt15 = 180 * Math.pow(1.14, 14) + 35 * 14;
+  return Math.floor(baseAt15 * Math.pow(1.115, level - 15) + 110 * (level - 15));
 }
 
 export const DEFAULT_RUNES_VAULT: Record<string, number> = {
@@ -13,7 +18,7 @@ export const DEFAULT_RUNES_VAULT: Record<string, number> = {
 export const DEFAULT_PLAYER_STATS: PlayerStats = {
   level: 1,
   exp: 0,
-  maxExp: 125,
+  maxExp: 180,
   hp: 120,
   maxHp: 120,
   rage: 0,

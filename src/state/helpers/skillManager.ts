@@ -19,7 +19,7 @@ export function upgradeSkillHelper(
     return { success: false, message: '사용 가능한 스킬 포인트가 부족합니다!' };
   }
   const skill = ALL_AVAILABLE_SKILLS.find(s => s.id === skillId);
-  const maxLv = skill?.maxLevel || 30;
+  const maxLv = skill?.maxLevel || 20;
   const currentLv = currentLevels[skillId] || 1;
 
   if (currentLv >= maxLv) {

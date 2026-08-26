@@ -45,10 +45,10 @@ export const SKILL_RUNES_DATA: SkillRune[] = [
     id: 'rune_void',
     name: '공허 영혼흡수 (Void Devour)',
     element: 'void',
-    description: '모든 분노 생성량이 20% 증가(올림 처리)하며, 처치 시 생명력을 추가 흡수합니다.',
+    description: '모든 분노 생성량이 15% 증가(올림 처리)하며, 처치 시 생명력을 추가 흡수합니다.',
     damageBonusPercent: 20,
     overkillBonusPercent: 20,
-    specialEffectName: '분노 생성량 +20% 올림 증폭 & 영혼 흡혈',
+    specialEffectName: '분노 생성량 +15% 올림 증폭 & 영혼 흡혈',
     color: '#c084fc'
   }
 ];
@@ -58,14 +58,14 @@ export const ALL_AVAILABLE_SKILLS: Skill[] = [
     id: 'slash',
     name: '가르기 (Slash)',
     level: 1,
-    maxLevel: 30,
+    maxLevel: 20,
     rageCost: 0,
     manaCost: 0,
     damageMultiplier: 1.2,
     overkillEfficiency: 0.50,
-    rageGainPerHit: 15,
+    rageGainPerHit: 12,
     route: 'single',
-    description: '기본 단일 타격. 명중 시 분노를 +15 획득하며 전방의 적에게 빠른 물리 피해를 입힙니다.',
+    description: '기본 단일 타격. 명중 시 분노를 +12 획득하며 전방의 적에게 빠른 물리 피해를 입힙니다.',
     icon: 'Swords',
     hotkey: 'Q',
     activeRuneId: 'rune_fire',
@@ -76,14 +76,14 @@ export const ALL_AVAILABLE_SKILLS: Skill[] = [
     id: 'cleave',
     name: '휩쓸기 (Cleave)',
     level: 1,
-    maxLevel: 30,
+    maxLevel: 20,
     rageCost: 15,
     manaCost: 0,
     damageMultiplier: 1.6,
     overkillEfficiency: 0.85,
-    rageGainPerHit: 5,
+    rageGainPerHit: 4,
     route: 'branch',
-    description: '현재 레인과 인접한 좌우 레인(총 3레인)의 최전방 적들을 동시에 베어냅니다. (타격당 분노 +5)',
+    description: '현재 레인과 인접한 좌우 레인(총 3레인)의 최전방 적들을 동시에 베어냅니다. (타격당 분노 +4)',
     icon: 'Zap',
     hotkey: 'W',
     activeRuneId: 'rune_lightning',
@@ -94,12 +94,12 @@ export const ALL_AVAILABLE_SKILLS: Skill[] = [
     id: 'shield_bash',
     name: '방패 강타 (Shield Bash)',
     level: 1,
-    maxLevel: 30,
+    maxLevel: 20,
     rageCost: 10,
     manaCost: 0,
     damageMultiplier: 1.3,
     overkillEfficiency: 0.40,
-    rageGainPerHit: 5,
+    rageGainPerHit: 4,
     route: 'single',
     description: '방패로 전방 적을 강타하여 피해를 입히고 자신의 방어력의 100%만큼 보호막(Shield)을 생성합니다. (보스 저지 게이지 250% 파괴)',
     icon: 'Shield',
@@ -112,7 +112,7 @@ export const ALL_AVAILABLE_SKILLS: Skill[] = [
     id: 'execute',
     name: '처형 (Execute)',
     level: 1,
-    maxLevel: 30,
+    maxLevel: 20,
     rageCost: 20,
     manaCost: 0,
     damageMultiplier: 2.2,
@@ -130,14 +130,14 @@ export const ALL_AVAILABLE_SKILLS: Skill[] = [
     id: 'whirlwind',
     name: '휠윈드 (Whirlwind)',
     level: 1,
-    maxLevel: 30,
+    maxLevel: 20,
     rageCost: 35,
     manaCost: 0,
     damageMultiplier: 1.3,
     overkillEfficiency: 0.80,
-    rageGainPerHit: 4,
+    rageGainPerHit: 3,
     route: 'radius',
-    description: '무기를 휘두르며 전장의 5개 모든 레인 최전방 적들을 동시에 폭풍처럼 회전 타격합니다. (타격당 분노 +4)',
+    description: '무기를 휘두르며 전장의 5개 모든 레인 최전방 적들을 동시에 폭풍처럼 회전 타격합니다. (타격당 분노 +3)',
     icon: 'RotateCw',
     hotkey: 'R',
     activeRuneId: 'rune_fire',
@@ -148,7 +148,7 @@ export const ALL_AVAILABLE_SKILLS: Skill[] = [
     id: 'berserk',
     name: '광전사의 진노 (Berserk)',
     level: 1,
-    maxLevel: 30,
+    maxLevel: 20,
     rageCost: 25,
     manaCost: 0,
     damageMultiplier: 2.8,
@@ -166,93 +166,57 @@ export const ALL_AVAILABLE_SKILLS: Skill[] = [
     id: 'war_cry',
     name: '전장의 함성 (War Cry)',
     level: 1,
-    maxLevel: 30,
+    maxLevel: 20,
     rageCost: 10,
     manaCost: 0,
     damageMultiplier: 1.4,
     overkillEfficiency: 0.70,
-    rageGainPerHit: 10,
+    rageGainPerHit: 8,
     route: 'radius',
-    description: '포효를 내질러 전 레인 적들에게 충격을 주고 타격당 분노 +10을 획득합니다. (분노 소모 10, 최대 3타격 분노 생성)',
+    description: '포효를 내질러 전 레인 적들에게 충격을 주고 타격당 분노 +8을 획득합니다. (분노 소모 10, 최대 3타격 분노 생성)',
     icon: 'Activity',
     hotkey: 'R',
     activeRuneId: 'rune_void',
     unlockLevel: 25,
-    hitCount: 10
+    hitCount: 5
   }
 ];
 
-export const DEFAULT_EQUIPPED_SLOTS: Record<'Q' | 'W' | 'E' | 'R', string> = {
+export const WARRIOR_SKILLS: Skill[] = ALL_AVAILABLE_SKILLS;
+
+export const DEFAULT_EQUIPPED_SLOTS: Record<string, string> = {
   Q: 'slash',
   W: 'cleave',
   E: 'execute',
   R: 'whirlwind'
 };
 
-export const WARRIOR_SKILLS: Skill[] = [
-  ALL_AVAILABLE_SKILLS.find(s => s.id === 'slash')!,
-  ALL_AVAILABLE_SKILLS.find(s => s.id === 'cleave')!,
-  ALL_AVAILABLE_SKILLS.find(s => s.id === 'execute')!,
-  ALL_AVAILABLE_SKILLS.find(s => s.id === 'whirlwind')!
-];
-
 export function getSkillById(id: string): Skill | undefined {
   return ALL_AVAILABLE_SKILLS.find(s => s.id === id);
 }
 
-export function getSkillUnlockLevel(skillId: string): number {
-  const skill = ALL_AVAILABLE_SKILLS.find(s => s.id === skillId);
-  return skill?.unlockLevel ?? 1;
-}
-
 export function isSkillUnlocked(skillId: string, playerLevel: number): boolean {
-  return playerLevel >= getSkillUnlockLevel(skillId);
+  const s = getSkillById(skillId);
+  return s ? playerLevel >= (s.unlockLevel ?? 1) : false;
 }
 
 export function getSkillDamageText(
   skill: Skill,
-  totalStats: { minDmg?: number; maxDmg?: number },
+  totalStats?: any,
   level: number = 1,
   runeId?: string | null
 ): string {
-  const minD = Math.max(1, totalStats.minDmg || 10);
-  const maxD = Math.max(minD, totalStats.maxDmg || 15);
-  const avgD = Math.round((minD + maxD) / 2);
+  const rune = SKILL_RUNES_DATA.find(r => r.id === (runeId || skill.activeRuneId));
+  const runeBonus = rune?.damageBonusPercent || 0;
+  const levelBonus = (level - 1) * 15;
+  const baseMult = skill.damageMultiplier || 1.0;
+  const totalPercent = Math.round((baseMult * 100) + levelBonus + runeBonus);
 
-  const levelMult = 1 + (level - 1) * 0.15;
-  const activeRune = runeId ? SKILL_RUNES_DATA.find(r => r.id === runeId) : null;
-  const runeDmgBonus = 1 + (activeRune?.damageBonusPercent || 0) / 100;
-  const totalMult = skill.damageMultiplier * levelMult * runeDmgBonus;
+  if (totalStats && (totalStats.minDamage || totalStats.maxDamage)) {
+    const minD = Math.floor((totalStats.minDamage || 1) * (totalPercent / 100));
+    const maxD = Math.floor((totalStats.maxDamage || totalStats.minDamage || 1) * (totalPercent / 100));
+    return `${totalPercent}% (${minD}~${maxD})`;
+  }
 
-  const dmgAvg = Math.floor(avgD * totalMult);
-  const percentStr = Math.round(totalMult * 100) + '%';
-
-  const hitSuffix = skill.hitCount && skill.hitCount > 1 ? ` x${skill.hitCount}` : '';
-  const shieldSuffix = skill.id === 'shield_bash' ? ' 🛡️' : '';
-
-  return `${percentStr}(${dmgAvg})${hitSuffix}${shieldSuffix}`;
-}
-
-export function getSkillDamageRangeDetail(
-  skill: Skill,
-  totalStats: { minDmg?: number; maxDmg?: number },
-  level: number = 1,
-  runeId?: string | null
-): { percent: number; minDamage: number; maxDamage: number; avgDamage: number; hitCount: number } {
-  const minD = Math.max(1, totalStats.minDmg || 10);
-  const maxD = Math.max(minD, totalStats.maxDmg || 15);
-  const avgD = Math.round((minD + maxD) / 2);
-
-  const levelMult = 1 + (level - 1) * 0.15;
-  const activeRune = runeId ? SKILL_RUNES_DATA.find(r => r.id === runeId) : null;
-  const runeDmgBonus = 1 + (activeRune?.damageBonusPercent || 0) / 100;
-  const totalMult = skill.damageMultiplier * levelMult * runeDmgBonus;
-
-  return {
-    percent: Math.round(totalMult * 100),
-    minDamage: Math.floor(minD * totalMult),
-    maxDamage: Math.floor(maxD * totalMult),
-    avgDamage: Math.floor(avgD * totalMult),
-    hitCount: skill.hitCount || 1
-  };
+  return `${totalPercent}%`;
 }

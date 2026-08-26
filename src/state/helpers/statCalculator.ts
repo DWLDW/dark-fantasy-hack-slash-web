@@ -181,52 +181,52 @@ export function calculateTotalStats(
   minDmg += Math.floor(str * 1.5);
   maxDmg += Math.floor(str * 2.0);
 
-  // 🧬 WARRIOR PASSIVE SKILLS BONUSES
-  const wmLevel = passiveLevels['weapon_mastery'] || 0;
+  // 🧬 WARRIOR PASSIVE SKILLS BONUSES (Max Level 10)
+  const wmLevel = Math.min(10, passiveLevels['weapon_mastery'] || 0);
   if (wmLevel > 0) {
-    const wmMult = 1 + wmLevel * 0.04;
+    const wmMult = 1 + wmLevel * 0.06;
     minDmg = Math.floor(minDmg * wmMult);
     maxDmg = Math.floor(maxDmg * wmMult);
   }
 
-  const isLevel = passiveLevels['iron_skin'] || 0;
+  const isLevel = Math.min(10, passiveLevels['iron_skin'] || 0);
   if (isLevel > 0) {
-    defense = Math.floor(defense * (1 + isLevel * 0.05));
-    damageReduction = Math.min(50, damageReduction + isLevel * 1);
+    defense = Math.floor(defense * (1 + isLevel * 0.08));
+    damageReduction = Math.min(50, damageReduction + isLevel * 1.5);
   }
 
-  const dsLevel = passiveLevels['deadly_strike'] || 0;
+  const dsLevel = Math.min(10, passiveLevels['deadly_strike'] || 0);
   if (dsLevel > 0) {
-    critChance += dsLevel * 1.5;
-    critDamage += dsLevel * 5;
+    critChance += dsLevel * 2.5;
+    critDamage += dsLevel * 8;
   }
 
-  const btLevel = passiveLevels['bloodthirst'] || 0;
+  const btLevel = Math.min(10, passiveLevels['bloodthirst'] || 0);
   if (btLevel > 0) {
-    lifeSteal += btLevel * 1;
+    lifeSteal += btLevel * 0.6;
   }
 
-  const brLevel = passiveLevels['berserker_rage'] || 0;
+  const brLevel = Math.min(10, passiveLevels['berserker_rage'] || 0);
   if (brLevel > 0) {
-    turnRageRegen += brLevel * 2;
+    turnRageRegen += brLevel * 1;
   }
 
-  const ocLevel = passiveLevels['overkill_crusher'] || 0;
+  const ocLevel = Math.min(10, passiveLevels['overkill_crusher'] || 0);
   if (ocLevel > 0) {
-    overkillEfficiency += ocLevel * 4;
-    const ocMult = 1 + ocLevel * 0.03;
+    overkillEfficiency += ocLevel * 6;
+    const ocMult = 1 + ocLevel * 0.05;
     minDmg = Math.floor(minDmg * ocMult);
     maxDmg = Math.floor(maxDmg * ocMult);
   }
 
-  const eaLevel = passiveLevels['elemental_attunement'] || 0;
+  const eaLevel = Math.min(10, passiveLevels['elemental_attunement'] || 0);
   if (eaLevel > 0) {
-    allResist += eaLevel * 2;
+    allResist += eaLevel * 3;
   }
 
-  const tjLevel = passiveLevels['titan_juggernaut'] || 0;
+  const tjLevel = Math.min(10, passiveLevels['titan_juggernaut'] || 0);
   if (tjLevel > 0) {
-    runeBonusHp += Math.floor((playerStats.maxHp || 100) * (tjLevel * 0.05));
+    runeBonusHp += Math.floor((playerStats.maxHp || 100) * (tjLevel * 0.08));
   }
 
   // Attack Speed = Cast Rate: reduces skill Rage cost by up to 35%
