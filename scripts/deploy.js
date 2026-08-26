@@ -181,10 +181,11 @@ async function main() {
 
     if (code === 0 && remoteOutput.includes('DEPLOY_COMPLETE_SUCCESS')) {
       console.log('\n====================================================');
-      console.log('🎉 DEPLOYMENT SUCCESSFUL!');
+      console.log('🎉 DEPLOYMENT SUCCESSFUL (HTTPS SSL SECURED)!');
       console.log('====================================================');
-      console.log(`🌐 Live Game URL: http://${SERVER_HOST}`);
-      console.log('누구나 위 주소로 웹 브라우저에서 즉시 접속하여 플레이할 수 있습니다!');
+      console.log(`🔒 Live Secure Game URL: https://193.122.127.129.sslip.io`);
+      console.log(`🌐 Live IP Game URL: http://${SERVER_HOST} (Auto redirects to HTTPS)`);
+      console.log('누구나 위 보안 주소로 모든 모바일/PC 브라우저에서 안전하게 접속 가능합니다!');
     } else {
       console.error('❌ Remote deployment failed:', remoteOutput);
       process.exit(1);

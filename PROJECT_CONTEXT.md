@@ -112,3 +112,20 @@ Dragon Quest 식 턴제 전투 기반 + Diablo II 식 오버킬 체인, 룬워�
 - 📦 **던전 방 클리어 전리품 오해 문구 교정**:
   - 기존의 오해 소지가 있던 "✓ 모든 보상이 안전하게 수령되었습니다." 문구를 던전 룰에 맞게 **"✓ 이번 방의 모든 전리품을 획득했습니다! (원정 완료 시 안전 귀환)"**으로 명확히 수정.
 
+### 13. HTTPS SSL 공식 인증서 적용 & ID/비밀번호 회원가입/로그인 및 클라우드 세이브 동기화 (`server/index.js`, `authApi.ts`, `AuthModal.tsx`, `gameStore.tsx`, `SettingsModal.tsx`, `TopHUD.tsx`)
+- 🔒 **HTTPS (SSL/TLS Let's Encrypt) 보안 연결 완벽 적용 (브라우저 보안 경고 영구 소멸)**:
+  - 공인 도메인 `193.122.127.129.sslip.io`에 공식 신뢰 Let's Encrypt SSL 인증서를 발급받아 Nginx 443(HTTPS) 포트에 바인딩.
+  - HTTP(80) 접속 시 HTTPS(443)로 301 영구 자동 리다이렉트.
+  - 모든 PC 및 모바일 브라우저(Chrome, Safari, Whale 등)에서 **보안 에러/주의 요함 경고가 100% 소멸하고 안전한 자물쇠(🔒) 마크**가 표출.
+- 👤 **ID / 비밀번호 회원가입 & 로그인 시스템 (Node.js 백엔드 API 데몬 구축)**:
+  - 서버 데몬(`server/index.js`, systemd `dark-fantasy-backend.service`)을 구축하여 `/api/auth/register`, `/api/auth/login`, `/api/save/load`, `/api/save/sync` 엔드포인트 운영.
+  - `crypto.pbkdf2Sync` 기반 안전한 단방향 비밀번호 해싱 및 세션 토큰 관리.
+- ☁️ **멀티 디바이스 클라우드 세이브 자동 백업 & 동기화**:
+  - 로그인 시 PC, 스마트폰, 태블릿 등 기기를 바꾸어 접속하더라도 캐릭터 레벨, 장비, 룬 보관함, 룬워드, 업적, 대균열 티어가 실시간 클라우드 복원.
+  - 플레이 중 던전 클리어, 아이템 획득, 마을 복귀 시 3초 디바운스로 클라우드 자동 백업.
+  - 비로그인 유저도 기존처럼 **게스트 모드**로 로컬스토리지에 안전하게 자동 저장되어 완벽한 하위 호환성 보장.
+- 🎨 **고딕 다크 판타지 스타일 로그인 모달 (`AuthModal.tsx`) & TopHUD / 설정 메뉴 연동**:
+  - 상단 TopHUD 바 및 설정 모달(`SettingsModal.tsx`)에 `[👤 계정 / 로그인]` 버튼 신설.
+  - 로그인 상태 뱃지, 가입일, 클라우드 동기화 상태 실시간 표출.
+
+

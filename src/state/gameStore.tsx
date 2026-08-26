@@ -58,6 +58,7 @@ import {
   claimAchievementHelper,
   claimAllAchievementsHelper
 } from './helpers/achievementManager';
+import { AuthUser, getStoredAuthUser, syncCloudSaveApi } from '../services/authApi';
 
 
 
@@ -268,6 +269,12 @@ interface GameContextType {
   latestGodlyDrop: { name: string; type: 'item' | 'rune'; title?: string } | null;
   clearLatestGodlyDrop: () => void;
   
+  // Auth & Cloud Save
+  currentUser: AuthUser | null;
+  setCurrentUser: (user: AuthUser | null) => void;
+  exportSaveDataPayload: () => SaveDataPayload;
+  applyCloudSaveData: (cloudSave: SaveDataPayload) => void;
+
   // Achievement System
   achievementStats: AchievementStats;
   claimedAchievements: string[];
@@ -283,6 +290,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [viewMode, setViewMode] = useState<ViewMode>('town');
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [confirmDialogState, setConfirmDialogState] = useState<ConfirmDialogState | null>(null);
+
+  // Auth & Cloud User
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => getStoredAuthUser());
 
   const openConfirmModal = useCallback((options: Omit<ConfirmDialogState, 'isOpen'>) => {
     setConfirmDialogState({ ...options, isOpen: true });
@@ -485,7 +495,62 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     hasSeenTutorial, townUpgrades
   ]);
 
-  // Debounced autosave — HP/rage change every hit; writing JSON every frame stalls 1-core clients.
+  // Helper: Export full save payload
+  const exportSaveDataPayload = useCallback((): SaveDataPayload => {
+    return {
+      playerStats,
+      equipment,
+      inventory,
+      itemStash,
+      runesVault,
+      consumables,
+      currentDungeonId: currentDungeon.id,
+      currentRoomId,
+      currentDifficulty,
+      maxUnlockedDifficulty,
+      skillRunes,
+      skillLevels,
+      passiveLevels,
+      equippedSkillSlots,
+      achievementStats,
+      claimedAchievements,
+      hasSeenTutorial,
+      townUpgrades,
+      timestamp: Date.now()
+    };
+  }, [
+    playerStats, equipment, inventory, itemStash, runesVault, consumables,
+    currentDungeon.id, currentRoomId, currentDifficulty, maxUnlockedDifficulty,
+    skillRunes, skillLevels, passiveLevels, equippedSkillSlots,
+    achievementStats, claimedAchievements, hasSeenTutorial, townUpgrades
+  ]);
+
+  // Helper: Apply cloud save data to local state
+  const applyCloudSaveData = useCallback((cloudSave: SaveDataPayload) => {
+    if (!cloudSave) return;
+    if (cloudSave.playerStats) setPlayerStats(cloudSave.playerStats);
+    if (cloudSave.equipment) setEquipment(cloudSave.equipment);
+    if (cloudSave.inventory) setInventory(cloudSave.inventory);
+    if (cloudSave.itemStash) setItemStash(cloudSave.itemStash);
+    if (cloudSave.runesVault) setRunesVault(cloudSave.runesVault);
+    if (cloudSave.consumables) setConsumables(cloudSave.consumables);
+    if (cloudSave.currentDifficulty) setCurrentDifficulty(cloudSave.currentDifficulty);
+    if (cloudSave.maxUnlockedDifficulty) setMaxUnlockedDifficulty(cloudSave.maxUnlockedDifficulty);
+    if (cloudSave.skillRunes) setSkillRunes(cloudSave.skillRunes);
+    if (cloudSave.skillLevels) setSkillLevels(cloudSave.skillLevels);
+    if (cloudSave.passiveLevels) setPassiveLevels(cloudSave.passiveLevels);
+    if (cloudSave.equippedSkillSlots) setEquippedSkillSlots(cloudSave.equippedSkillSlots);
+    if (cloudSave.achievementStats) setAchievementStats(cloudSave.achievementStats);
+    if (cloudSave.claimedAchievements) setClaimedAchievements(cloudSave.claimedAchievements);
+    if (cloudSave.townUpgrades) setTownUpgrades(cloudSave.townUpgrades);
+    if (cloudSave.hasSeenTutorial !== undefined) setHasSeenTutorial(cloudSave.hasSeenTutorial);
+
+    try {
+      localStorage.setItem(SAVE_KEY, JSON.stringify(cloudSave));
+    } catch {}
+  }, []);
+
+  // Debounced autosave — LocalStorage (450ms) + Cloud Sync (3000ms)
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const timer = window.setTimeout(() => {
@@ -496,15 +561,35 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Failed to auto-save to localStorage', e);
       }
     }, 450);
-    return () => window.clearTimeout(timer);
-  }, [playerStats, equipment, inventory, itemStash, runesVault, consumables, currentDungeon.id, currentRoomId, currentDifficulty, maxUnlockedDifficulty, equippedSkillSlots, skillRunes, skillLevels, passiveLevels, achievementStats, claimedAchievements]);
+
+    // Cloud auto-sync debounce if logged in
+    let cloudTimer: number | null = null;
+    if (currentUser) {
+      cloudTimer = window.setTimeout(() => {
+        const payload = persistStateRef.current;
+        if (payload) {
+          syncCloudSaveApi(payload);
+        }
+      }, 3000);
+    }
+
+    return () => {
+      window.clearTimeout(timer);
+      if (cloudTimer) window.clearTimeout(cloudTimer);
+    };
+  }, [currentUser, playerStats, equipment, inventory, itemStash, runesVault, consumables, currentDungeon.id, currentRoomId, currentDifficulty, maxUnlockedDifficulty, equippedSkillSlots, skillRunes, skillLevels, passiveLevels, achievementStats, claimedAchievements]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const flush = () => {
       try {
         const data = persistStateRef.current;
-        if (data) localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+        if (data) {
+          localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+          if (currentUser) {
+            syncCloudSaveApi(data);
+          }
+        }
       } catch { /* ignore */ }
     };
     const onVis = () => { if (document.hidden) flush(); };
@@ -514,7 +599,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       window.removeEventListener('beforeunload', flush);
       document.removeEventListener('visibilitychange', onVis);
     };
-  }, []);
+  }, [currentUser]);
 
   // Claim single achievement reward
   const claimAchievementReward = (achievementId: string) => {
@@ -2979,6 +3064,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setSelectedShrineType,
     cycleShrineSelection,
     claimShrine,
+    // Auth & Cloud Save
+    currentUser,
+    setCurrentUser,
+    exportSaveDataPayload,
+    applyCloudSaveData,
     achievementStats,
     claimedAchievements,
     claimAchievementReward,
@@ -3054,7 +3144,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     endlessRiftTier,
     updateEndlessRiftTier,
     latestGodlyDrop,
-    clearLatestGodlyDrop
+    clearLatestGodlyDrop,
+    currentUser,
+    exportSaveDataPayload,
+    applyCloudSaveData
   ]);
 
   return (

@@ -10,6 +10,7 @@ const DungeonVictoryModal = lazy(() => import('./DungeonVictoryModal').then(m =>
 const DeathModal = lazy(() => import('./DeathModal').then(m => ({ default: m.DeathModal })));
 const SettingsModal = lazy(() => import('./SettingsModal').then(m => ({ default: m.SettingsModal })));
 const AchievementModal = lazy(() => import('./AchievementModal').then(m => ({ default: m.AchievementModal })));
+const AuthModal = lazy(() => import('./AuthModal').then(m => ({ default: m.AuthModal })));
 
 const ModalLoadingFallback: React.FC = () => (
   <div className="bg-iron-950/90 border border-brass-600/60 rounded-lg p-6 flex flex-col items-center justify-center gap-3 shadow-2xl text-center min-w-[280px]">
@@ -56,6 +57,7 @@ export const GlobalModalHost: React.FC = React.memo(() => {
             {activeModal === 'skills' && <SkillRuneModal />}
             {activeModal === 'settings' && <SettingsModal />}
             {activeModal === 'achievement' && <AchievementModal />}
+            {activeModal === 'auth' && <AuthModal />}
           </div>
         )}
       </Suspense>

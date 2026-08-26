@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useGame } from '../../state/gameStore';
-import { Settings, Volume2, VolumeX, Download, Upload, RotateCcw, X, Check, Copy, AlertTriangle, GraduationCap } from 'lucide-react';
+import { Settings, Volume2, VolumeX, Download, Upload, RotateCcw, X, Check, Copy, AlertTriangle, GraduationCap, User, Cloud } from 'lucide-react';
 
 export const SettingsModal: React.FC = () => {
   const {
     closeModal,
+    openModal,
+    currentUser,
     soundVolume,
     setSoundVolume,
     isMuted,
@@ -49,7 +51,7 @@ export const SettingsModal: React.FC = () => {
       <div className="flex items-center justify-between border-b border-iron-750 pb-3">
         <div className="flex items-center gap-2 text-brass-300">
           <Settings className="w-5 h-5 text-brass-400" />
-          <h2 className="font-cinzel font-black text-base sm:text-lg text-white">게임 설정 & 데이터 백업</h2>
+          <h2 className="font-cinzel font-black text-base sm:text-lg text-white">게임 설정 & 데이터 관리</h2>
         </div>
         <button
           onClick={closeModal}
@@ -59,7 +61,40 @@ export const SettingsModal: React.FC = () => {
         </button>
       </div>
 
-      {/* 1. Audio Settings */}
+      {/* 1. Cloud Account & Sync */}
+      <div className="space-y-2.5 bg-iron-900/90 p-3 sm:p-4 rounded-lg border border-iron-750">
+        <h3 className="text-xs font-bold text-gray-300 flex items-center justify-between uppercase font-mono">
+          <div className="flex items-center gap-1.5">
+            <User className="w-4 h-4 text-amber-400" />
+            <span>클라우드 계정 & 동기화</span>
+          </div>
+          {currentUser && (
+            <span className="text-[10px] text-emerald-400 font-bold">
+              ● {currentUser.displayName} 연동 중
+            </span>
+          )}
+        </h3>
+
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-[11px] text-gray-400">
+            {currentUser
+              ? '진행 상황이 클라우드 서버에 실시간으로 자동 동기화되고 있습니다.'
+              : '계정으로 로그인하면 다른 PC나 모바일에서도 내 세이브를 그대로 불러올 수 있습니다.'}
+          </p>
+          <button
+            onClick={() => {
+              closeModal();
+              openModal('auth');
+            }}
+            className="px-3 py-1.5 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-iron-950 text-xs font-black rounded-lg transition flex items-center gap-1 flex-shrink-0 shadow cursor-pointer"
+          >
+            <User className="w-3.5 h-3.5" />
+            <span>{currentUser ? '계정 관리' : '로그인 / 회원가입'}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* 2. Audio Settings */}
       <div className="space-y-2.5 bg-iron-900/90 p-3 sm:p-4 rounded-lg border border-iron-750">
         <h3 className="text-xs font-bold text-gray-300 flex items-center gap-1.5 uppercase font-mono">
           <Volume2 className="w-4 h-4 text-amber-400" />
@@ -98,24 +133,24 @@ export const SettingsModal: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. Save Data Export & Import */}
+      {/* 3. Save Data Export & Import */}
       <div className="space-y-3 bg-iron-900/90 p-3 sm:p-4 rounded-lg border border-iron-750">
         <h3 className="text-xs font-bold text-gray-300 flex items-center gap-1.5 uppercase font-mono">
           <Download className="w-4 h-4 text-purple-400" />
-          <span>세이브 데이터 내보내기 / 가져오기</span>
+          <span>로컬 세이브 코드 내보내기 / 가져오기</span>
         </h3>
 
         {/* Export Button */}
         <div className="flex items-center justify-between gap-2">
           <p className="text-[11px] text-gray-400">
-            현재 진행 상황을 클립보드로 복사하여 안전하게 보관합니다.
+            현재 진행 상황을 백업 코드로 복사하여 텍스트로 보관합니다.
           </p>
           <button
             onClick={handleExport}
             className="px-3 py-1.5 bg-purple-950 hover:bg-purple-900 border border-purple-600 text-purple-200 text-xs font-bold rounded-lg transition flex items-center gap-1 flex-shrink-0 shadow"
           >
             {copySuccess ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-            <span>{copySuccess ? '복사 완료!' : '세이브 복사'}</span>
+            <span>{copySuccess ? '복사 완료!' : '코드 복사'}</span>
           </button>
         </div>
 
@@ -128,100 +163,69 @@ export const SettingsModal: React.FC = () => {
           <div className="flex gap-2">
             <input
               type="text"
-              placeholder="여기에 복사한 세이브 코드를 붙여넣으세요..."
               value={importText}
               onChange={(e) => setImportText(e.target.value)}
-              className="flex-1 bg-iron-950 border border-iron-750 rounded px-2.5 py-1.5 text-xs text-gray-200 font-mono placeholder:text-gray-600 focus:outline-none focus:border-purple-500"
+              placeholder="복사해둔 세이브 코드를 여기에 붙여넣으세요..."
+              className="flex-1 px-3 py-1.5 bg-iron-950 border border-iron-700 rounded-lg text-xs font-mono text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
             />
             <button
               onClick={handleImport}
               disabled={!importText.trim()}
-              className="px-3 py-1.5 bg-blue-950 hover:bg-blue-900 disabled:bg-iron-800 border border-blue-600 disabled:border-iron-700 text-blue-200 disabled:text-gray-500 text-xs font-bold rounded-lg transition flex-shrink-0 shadow"
+              className="px-3 py-1.5 bg-blue-950 hover:bg-blue-900 disabled:opacity-40 border border-blue-600 text-blue-200 text-xs font-bold rounded-lg transition shadow"
             >
               불러오기
             </button>
           </div>
-
           {importStatus === 'success' && (
-            <p className="text-[11px] text-emerald-400 font-bold flex items-center gap-1 animate-fade-in">
-              <Check className="w-3.5 h-3.5" /> 세이브 데이터를 성공적으로 복원했습니다!
-            </p>
+            <p className="text-[11px] text-emerald-400 font-mono">✓ 세이브 데이터를 성공적으로 복원했습니다!</p>
           )}
           {importStatus === 'error' && (
-            <p className="text-[11px] text-blood-400 font-bold flex items-center gap-1 animate-fade-in">
-              <AlertTriangle className="w-3.5 h-3.5" /> 잘못된 세이브 코드입니다. 다시 확인해주세요.
-            </p>
+            <p className="text-[11px] text-blood-400 font-mono">✗ 유효하지 않은 세이브 데이터 코드입니다.</p>
           )}
         </div>
       </div>
 
-      {/* 2.5. Replay Tutorial */}
-      <div className="bg-iron-900/90 p-3 sm:p-4 rounded-lg border border-iron-750 flex items-center justify-between gap-3 shadow">
-        <div className="flex items-center gap-2">
-          <GraduationCap className="w-5 h-5 text-amber-400" />
-          <div>
-            <div className="text-xs font-bold text-gray-200">초기 튜토리얼 다시 보기</div>
-            <div className="text-[11px] text-gray-400 font-mono">주요 시설 및 단축키 인터랙티브 가이드를 다시 시작합니다.</div>
-          </div>
-        </div>
+      {/* 4. Tutorial & Reset */}
+      <div className="pt-2 border-t border-iron-800 flex flex-wrap items-center justify-between gap-2">
         <button
           onClick={startTutorial}
-          className="px-3.5 py-1.5 bg-gradient-to-r from-amber-600 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 text-iron-950 text-xs font-black rounded-lg transition shadow cursor-pointer flex items-center gap-1.5 flex-shrink-0 transform active:scale-95"
+          className="px-3 py-1.5 bg-iron-800 hover:bg-iron-750 text-gray-300 hover:text-white rounded-lg text-xs font-bold flex items-center gap-1 transition shadow border border-iron-700"
         >
-          <GraduationCap className="w-3.5 h-3.5" />
-          <span>가이드 시작</span>
-        </button>
-      </div>
-
-      {/* 3. Reset Button */}
-      <div className="flex items-center justify-between pt-2 border-t border-iron-750">
-        <button
-          onClick={() => setShowResetConfirm(true)}
-          className="px-3 py-1.5 bg-blood-950/80 hover:bg-blood-900 border border-blood-700 text-blood-300 text-xs font-bold rounded-lg transition flex items-center gap-1.5"
-        >
-          <RotateCcw className="w-3.5 h-3.5" />
-          <span>캐릭터 초기화 (Lv 1 리셋)</span>
+          <GraduationCap className="w-3.5 h-3.5 text-amber-400" />
+          <span>튜토리얼 다시보기</span>
         </button>
 
-        <button
-          onClick={closeModal}
-          className="px-4 py-1.5 bg-iron-800 hover:bg-iron-750 text-gray-200 text-xs font-bold rounded-lg transition"
-        >
-          닫기
-        </button>
-      </div>
-
-      {/* Reset Confirmation Overlay inside Settings */}
-      {showResetConfirm && (
-        <div className="absolute inset-0 bg-black/90 rounded-xl p-5 flex flex-col justify-center items-center text-center space-y-4 z-50 animate-fade-in">
-          <AlertTriangle className="w-10 h-10 text-yellow-400" />
-          <div>
-            <h3 className="font-cinzel font-black text-base text-white">캐릭터 데이터 완전 초기화</h3>
-            <p className="text-xs text-gray-300 mt-1">
-              정말로 캐릭터를 레벨 1 및 초기 상태로 리셋하시겠습니까?<br />
-              <span className="text-blood-400 font-bold">이 작업은 취소할 수 없습니다.</span>
-            </p>
-          </div>
-          <div className="flex gap-2">
+        {!showResetConfirm ? (
+          <button
+            onClick={() => setShowResetConfirm(true)}
+            className="px-3 py-1.5 bg-blood-950/60 hover:bg-blood-900/80 border border-blood-800/80 text-blood-400 hover:text-blood-300 rounded-lg text-xs font-bold flex items-center gap-1 transition"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>데이터 초기화</span>
+          </button>
+        ) : (
+          <div className="flex items-center gap-2 bg-blood-950 p-2 rounded-lg border border-blood-600 animate-shake">
+            <AlertTriangle className="w-4 h-4 text-blood-400 flex-shrink-0" />
+            <span className="text-[11px] text-blood-200">정말 모든 데이터를 초기화할까요?</span>
             <button
               onClick={() => {
                 resetGameSave();
                 setShowResetConfirm(false);
                 closeModal();
               }}
-              className="px-4 py-2 bg-blood-600 hover:bg-blood-500 text-white font-bold text-xs rounded-lg transition shadow"
+              className="px-2 py-1 bg-blood-600 hover:bg-blood-500 text-white rounded text-[10px] font-black"
             >
-              초기화 확인
+              초기화
             </button>
             <button
               onClick={() => setShowResetConfirm(false)}
-              className="px-3 py-2 bg-iron-800 hover:bg-iron-700 text-gray-300 font-bold text-xs rounded-lg transition"
+              className="px-2 py-1 bg-iron-800 hover:bg-iron-700 text-gray-300 rounded text-[10px]"
             >
               취소
             </button>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

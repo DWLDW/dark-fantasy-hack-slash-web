@@ -1,9 +1,9 @@
 import React from 'react';
 import { useGame } from '../../state/gameStore';
-import { Shield, Flame, Coins, Sparkles, MapPin, Home, Settings, Trophy } from 'lucide-react';
+import { Shield, Flame, Coins, Sparkles, MapPin, Home, Settings, Trophy, User } from 'lucide-react';
 
 export const TopHUD: React.FC = React.memo(() => {
-  const { playerStats, viewMode, currentDungeon, setViewMode, isLevelUpAnimated, openModal, abandonDungeon } = useGame();
+  const { playerStats, viewMode, currentDungeon, setViewMode, isLevelUpAnimated, openModal, abandonDungeon, currentUser } = useGame();
 
   const hpPercent = Math.max(0, Math.min(100, (playerStats.hp / playerStats.maxHp) * 100));
   const ragePercent = Math.max(0, Math.min(100, (playerStats.rage / playerStats.maxRage) * 100));
@@ -47,6 +47,22 @@ export const TopHUD: React.FC = React.memo(() => {
             >
               <Trophy className="w-3.5 h-3.5 text-amber-400" />
               <span className="hidden sm:inline">업적</span>
+            </button>
+
+            {/* Auth / Profile Button */}
+            <button
+              onClick={() => openModal('auth')}
+              className={`px-2 py-1 sm:px-2.5 sm:py-1.5 min-h-[32px] sm:min-h-[36px] rounded shadow transition flex items-center justify-center gap-1 text-[10px] sm:text-xs font-mono font-bold cursor-pointer active:scale-95 ${
+                currentUser
+                  ? 'bg-gradient-to-r from-amber-950 to-iron-900 border border-amber-400 text-amber-300 hover:text-white'
+                  : 'bg-iron-900 hover:bg-iron-800 border border-iron-700 text-gray-300 hover:text-white'
+              }`}
+              title={currentUser ? `계정: ${currentUser.displayName} (클라우드 동기화 됨)` : "계정 로그인 / 회원가입 (클라우드 세이브)"}
+            >
+              <User className="w-3.5 h-3.5 text-amber-400" />
+              <span className="hidden sm:inline truncate max-w-[70px]">
+                {currentUser ? currentUser.displayName : '로그인'}
+              </span>
             </button>
 
             {/* Settings Button */}

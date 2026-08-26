@@ -1,6 +1,6 @@
 export type ViewMode = 'town' | 'dungeon_select' | 'dungeon_exploration' | 'battle';
 
-export type ModalType = null | 'character' | 'inventory' | 'skills' | 'storage' | 'blacksmith' | 'settings' | 'achievement';
+export type ModalType = null | 'character' | 'inventory' | 'skills' | 'storage' | 'blacksmith' | 'settings' | 'achievement' | 'auth';
 
 export type ItemRarity = 'normal' | 'magic' | 'rare' | 'set' | 'unique' | 'runeword' | 'legendary';
 
