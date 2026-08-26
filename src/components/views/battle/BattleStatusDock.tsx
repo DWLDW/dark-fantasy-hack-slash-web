@@ -148,7 +148,7 @@ export const BattleStatusDock: React.FC<BattleStatusDockProps> = React.memo(({
               </div>
             )}
 
-            <div className={`w-full h-5 sm:h-6 rounded bg-iron-950 border relative overflow-hidden flex items-center justify-between px-1.5 shadow-inner ${
+            <div className={`w-full h-5 sm:h-6 rounded bg-iron-950 border relative overflow-hidden flex items-center justify-between px-2 shadow-inner ${
               isLowHp ? 'border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.7)]' : 'border-red-900/80'
             }`}>
               <div
@@ -170,24 +170,24 @@ export const BattleStatusDock: React.FC<BattleStatusDockProps> = React.memo(({
                 />
               )}
 
-              <div className="relative z-10 font-mono font-bold text-[10px] text-rose-100 flex items-center gap-1.5">
+              <div className="relative z-10 font-mono font-bold text-xs text-rose-100 flex items-center gap-1.5">
                 <span>❤️ 체력</span>
-                {shieldAmount > 0 && <span className="text-[8px] text-cyan-300 font-bold">+🛡️{shieldAmount}</span>}
+                {shieldAmount > 0 && <span className="text-[10px] text-cyan-300 font-bold">+🛡️{shieldAmount}</span>}
                 {expectedIncomingDmg > 0 && (
-                  <span className="text-[9px] text-amber-300 font-black px-1 rounded bg-red-950/90 border border-amber-400/80 shadow animate-pulse">
-                    ⚠️ -{expectedIncomingDmg} 피격 예고
+                  <span className="text-[10px] text-amber-300 font-black px-1.5 py-0.2 rounded bg-red-950 border border-amber-400/80 shadow">
+                    ⚠️ -{expectedIncomingDmg} 피격
                   </span>
                 )}
               </div>
 
-              <div className="relative z-10 font-mono font-bold text-[10px] text-white flex items-center gap-1">
+              <div className="relative z-10 font-mono font-black text-xs sm:text-sm text-white flex items-center gap-1">
                 {expectedIncomingDmg > 0 && (
-                  <span className="text-[9px] text-orange-300 font-mono">
+                  <span className="text-[10px] sm:text-xs text-orange-300 font-mono font-normal mr-0.5">
                     ({expectedNextHp})
                   </span>
                 )}
                 <span>{playerStats.hp}</span>
-                <span className="text-[9px] text-rose-200/70">/ {playerStats.maxHp}</span>
+                <span className="text-[10px] sm:text-xs text-rose-200/80 font-normal">/ {playerStats.maxHp}</span>
               </div>
             </div>
           </div>
@@ -203,18 +203,18 @@ export const BattleStatusDock: React.FC<BattleStatusDockProps> = React.memo(({
               </div>
             )}
 
-            <div className="w-full h-4 sm:h-5 rounded bg-iron-950 border border-amber-800/80 relative overflow-hidden flex items-center justify-between px-1.5 shadow-inner">
+            <div className="w-full h-4 sm:h-5 rounded bg-iron-950 border border-amber-800/80 relative overflow-hidden flex items-center justify-between px-2 shadow-inner">
               <div
                 className="absolute top-0 bottom-0 left-0 bg-gradient-to-r from-amber-900 via-amber-600 to-yellow-500 transition-all duration-200 ease-out"
                 style={{ width: `${Math.max(0, Math.min(100, (playerStats.rage / Math.max(1, playerStats.maxRage)) * 100))}%` }}
               />
 
-              <div className="relative z-10 font-mono font-bold text-[9px] text-amber-100 flex items-center gap-1">
+              <div className="relative z-10 font-mono font-bold text-[10px] text-amber-100 flex items-center gap-1">
                 <span>🔥 분노</span>
               </div>
 
-              <div className="relative z-10 font-mono font-bold text-[9px] text-white">
-                {playerStats.rage} <span className="text-[8px] text-amber-200/70">/ {playerStats.maxRage}</span>
+              <div className="relative z-10 font-mono font-black text-[11px] sm:text-xs text-white">
+                {playerStats.rage} <span className="text-[10px] text-amber-200/80 font-normal">/ {playerStats.maxRage}</span>
               </div>
             </div>
           </div>

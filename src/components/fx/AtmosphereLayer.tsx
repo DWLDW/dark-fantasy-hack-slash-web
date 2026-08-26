@@ -8,44 +8,35 @@ interface AtmosphereLayerProps {
 }
 
 const PARTICLE_COUNT: Record<number, number> = {
-  1: 18,
-  2: 16,
-  3: 20,
-  4: 22,
-  5: 20
+  1: 6,
+  2: 5,
+  3: 6,
+  4: 6,
+  5: 5
 };
 
 export const AtmosphereLayer: React.FC<AtmosphereLayerProps> = React.memo(({ act, theme, variant = 'battle' }) => {
-  const count = PARTICLE_COUNT[act] || 16;
+  const count = PARTICLE_COUNT[act] || 5;
   const kind = act === 4 ? 'ember' : act === 5 ? 'snow' : act === 3 ? 'spore' : act === 2 ? 'sand' : 'ash';
 
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden z-0" aria-hidden>
-      <div className={`absolute inset-0 opacity-70 ${theme.ambientGlow}`} />
-      <div className={`absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t ${
-        act === 4
-          ? 'from-orange-950/50 via-red-950/20 to-transparent'
-          : act === 5
-          ? 'from-cyan-950/40 via-slate-950/20 to-transparent'
-          : act === 3
-          ? 'from-emerald-950/40 via-transparent to-transparent'
-          : act === 2
-          ? 'from-amber-950/35 via-transparent to-transparent'
-          : 'from-red-950/40 via-transparent to-transparent'
-      }`} />
+      {/* Soft Ambient Tint (Restful to eyes) */}
+      <div className={`absolute inset-0 opacity-20 ${theme.ambientGlow}`} />
+      <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/60 to-transparent" />
       {variant === 'battle' && (
-        <div className="absolute inset-x-0 bottom-0 h-10 battlefield-floor" />
+        <div className="absolute inset-x-0 bottom-0 h-8 battlefield-floor opacity-40" />
       )}
-      <div className="absolute inset-0 battlefield-fog" />
+      <div className="absolute inset-0 battlefield-fog opacity-30" />
       {Array.from({ length: count }).map((_, i) => (
         <span
           key={i}
           className={`fx-particle fx-particle-${kind}`}
           style={{
-            left: `${(i * 37) % 100}%`,
-            animationDelay: `${(i * 0.35) % 5}s`,
-            animationDuration: `${5 + (i % 4)}s`,
-            opacity: 0.45 + (i % 4) * 0.15
+            left: `${(i * 37 + 10) % 100}%`,
+            animationDelay: `${(i * 0.8) % 6}s`,
+            animationDuration: `${7 + (i % 3)}s`,
+            opacity: 0.20 + (i % 3) * 0.10
           }}
         />
       ))}

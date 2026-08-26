@@ -112,9 +112,9 @@ export const TopHUD: React.FC = React.memo(() => {
                 </span>
                 <span className="text-white text-[9px] sm:text-xs">{playerStats.hp}/{playerStats.maxHp}</span>
               </div>
-              <div className="w-full bg-iron-900 h-2.5 sm:h-3.5 rounded overflow-hidden border border-blood-800 relative shadow-inner hud-bar-shine">
+              <div className="w-full bg-iron-900 h-2.5 sm:h-3.5 rounded overflow-hidden border border-blood-900 relative shadow-inner">
                 <div
-                  className="bg-gradient-to-r from-blood-800 via-blood-500 to-rose-300 h-full transition-all duration-300 shadow-[0_0_14px_rgba(239,68,68,0.85)]"
+                  className="bg-gradient-to-r from-blood-700 to-rose-500 h-full transition-all duration-300"
                   style={{ width: `${hpPercent}%` }}
                 />
               </div>
@@ -126,11 +126,11 @@ export const TopHUD: React.FC = React.memo(() => {
                 <span className="flex items-center gap-0.5">
                   <Flame className="w-3 h-3 text-amber-400" /> Rage
                 </span>
-                <span className="text-white text-[9px] sm:text-xs">{playerStats.rage}/{playerStats.maxRage}</span>
+                <span className="text-white text-[9px] sm:text-xs font-black">{playerStats.rage}/{playerStats.maxRage}</span>
               </div>
-              <div className="w-full bg-iron-900 h-2.5 sm:h-3.5 rounded overflow-hidden border border-amber-800 relative shadow-inner hud-bar-shine">
+              <div className="w-full bg-iron-900 h-2.5 sm:h-3.5 rounded overflow-hidden border border-amber-900 relative shadow-inner">
                 <div
-                  className="bg-gradient-to-r from-amber-800 via-orange-500 to-yellow-300 h-full transition-all duration-300 shadow-[0_0_14px_rgba(245,158,11,0.85)]"
+                  className="bg-gradient-to-r from-amber-600 to-yellow-400 h-full transition-all duration-300"
                   style={{ width: `${ragePercent}%` }}
                 />
               </div>

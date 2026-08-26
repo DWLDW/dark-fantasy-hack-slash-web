@@ -472,63 +472,63 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
               >
                 {/* Lane Top Header & Hit Summary */}
                 <div className="w-full flex-shrink-0 space-y-0.5">
-                  <div className={`w-full py-0.2 px-1 text-center rounded text-[9px] sm:text-[10px] font-mono font-black flex items-center justify-between transition ${
+                  <div className={`w-full py-0.5 px-1.5 text-center rounded text-[10px] sm:text-xs font-mono font-black flex items-center justify-between transition ${
                     hasBoss
-                      ? 'bg-gradient-to-r from-red-600 to-amber-500 text-white font-black animate-pulse'
+                      ? 'bg-gradient-to-r from-red-700 to-amber-600 text-white font-black shadow'
                       : isPlayerInLane
-                      ? 'bg-gradient-to-r from-amber-400 to-yellow-300 text-iron-950 font-black'
-                      : 'bg-iron-950 text-gray-300 border border-iron-850'
+                      ? 'bg-gradient-to-r from-amber-400 to-yellow-300 text-iron-950 font-black shadow'
+                      : 'bg-iron-950/95 text-gray-200 border border-iron-800'
                   }`}>
-                    <span className="truncate">
-                      {hasBoss ? '👑BOSS' : `${laneIdx + 1}`}
+                    <span className="truncate font-bold">
+                      {hasBoss ? '👑 BOSS' : `${laneIdx + 1}번`}
                     </span>
-                    <span className="font-bold text-[8px] sm:text-[9px]">
-                      {laneList.length > 0 ? `${laneList.length}👹` : '0'}
+                    <span className="font-mono font-black text-[9px] sm:text-[10px]">
+                      {laneList.length > 0 ? `${laneList.length}마리` : '0'}
                     </span>
                   </div>
 
                   {/* Boss Danger Telegraph Overlay */}
                   {isBossRoom && bossMonster?.bossTelegraphLanes?.includes(laneIdx) && (
                     <div className="absolute inset-0 z-10 pointer-events-none rounded-lg border-2 border-red-500 animate-danger-lane flex items-start justify-center overflow-hidden">
-                      <span className="mt-4 px-1 py-0.2 rounded bg-red-600 text-white text-[8px] font-mono font-black border border-red-300 shadow-[0_0_10px_rgba(239,68,68,0.9)]">☠️위험</span>
+                      <span className="mt-4 px-1.5 py-0.5 rounded bg-red-600 text-white text-[9px] font-mono font-black border border-red-300 shadow-[0_0_10px_rgba(239,68,68,0.9)]">☠️ 위험</span>
                     </div>
                   )}
 
                   {/* Lane Hit Prediction Summary */}
                   {isBossWeakLane && (
-                    <div className="w-full py-0.2 px-0.5 bg-emerald-600 text-white text-[8px] font-mono font-black rounded border border-emerald-300 shadow animate-pulse text-center truncate">
-                      🎯 약점
+                    <div className="w-full py-0.5 px-1 bg-emerald-600 text-white text-[9px] font-mono font-black rounded border border-emerald-300 shadow text-center truncate">
+                      🎯 약점 직격
                     </div>
                   )}
 
                   {hasHitsInLane && (
-                    <div className={`w-full text-center py-0.2 px-0.5 rounded text-[8px] font-mono font-black border transition truncate ${
+                    <div className={`w-full text-center py-0.5 px-1 rounded text-[9px] font-mono font-black border transition truncate ${
                       laneFatalHits === laneList.length
                         ? 'bg-red-600 border-amber-300 text-white animate-pulse'
                         : laneFatalHits > 0
-                        ? 'bg-amber-950/90 border-amber-500 text-amber-200'
-                        : 'bg-iron-900 border-iron-750 text-gray-300'
+                        ? 'bg-amber-950 border-amber-500 text-amber-200'
+                        : 'bg-iron-900 border-iron-700 text-gray-200'
                     }`}>
                       {laneFatalHits === laneList.length
-                        ? '💥전멸'
+                        ? '💥 전멸'
                         : laneFatalHits > 0
-                        ? `⚔️${laneFatalHits}/${laneList.length}`
-                        : `🎯${laneHitTargets.length}타`}
+                        ? `⚔️ 처치 ${laneFatalHits}/${laneList.length}`
+                        : `🎯 ${laneHitTargets.length}타 타격`}
                     </div>
                   )}
 
-                  {/* Rear Queue Stack Indicator (if more than 4 monsters in queue) */}
+                  {/* Rear Queue Stack Indicator */}
                   {queuedCount > 0 && (
-                    <div className="w-full bg-iron-950/90 border border-iron-800 rounded px-1 py-0.2 text-[7px] font-mono text-gray-300 flex items-center justify-between">
+                    <div className="w-full bg-iron-950 border border-iron-800 rounded px-1 py-0.5 text-[8px] sm:text-[9px] font-mono text-gray-300 flex items-center justify-between">
                       <span className="text-amber-400 font-bold truncate">
-                        +{queuedCount}
+                        후열 +{queuedCount}마리 대기
                       </span>
                     </div>
                   )}
                 </div>
 
                 {/* Visible Rows of Enemies in this Lane (Bottom-Up Stack) */}
-                <div className="w-full flex-1 flex flex-col-reverse justify-start gap-0.5 overflow-hidden my-0.5">
+                <div className="w-full flex-1 flex flex-col-reverse justify-start gap-1 overflow-hidden my-0.5">
                   {visibleMonsters.map((m, dIdx) => {
                     const hitInfo = preview.targetsHit.find(t => t.monsterId === m.id);
                     const isTargeted = !!hitInfo;
@@ -545,9 +545,9 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                     return (
                       <div
                         key={m.id}
-                        className={`w-full rounded transition-all relative overflow-visible shadow flex-shrink-0 monster-token ${
-                          isBoss ? 'p-1 border-2' : 'p-0.5 border'
-                        } ${dIdx === 0 ? 'monster-token-front' : ''} ${
+                        className={`w-full rounded-lg transition-all relative overflow-visible shadow flex-shrink-0 monster-token ${
+                          isBoss ? 'p-1.5 border-2' : 'p-1 border'
+                        } ${dIdx === 0 ? 'monster-token-front ring-1 ring-iron-700/60' : ''} ${
                           monsterDmgPopups.length > 0 ? 'monster-token-hit' : ''
                         } ${
                           isDying
@@ -555,26 +555,26 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                             : isPredictedKill
                             ? 'bg-gradient-to-r from-orange-600 via-rose-600 to-amber-500 border-amber-300 text-white ring-1 ring-amber-400 animate-pulse'
                             : isTargeted
-                            ? 'bg-red-950/85 border border-red-500 ring-1 ring-red-500/80 text-red-100'
+                            ? 'bg-red-950/90 border border-red-500 ring-1 ring-red-500/80 text-red-100'
                             : isBoss
                             ? isEnraged
                               ? 'animate-boss-enrage bg-gradient-to-b from-red-900 via-red-950 to-amber-950 text-amber-100 border-red-400 ring-2 ring-red-500/80 shadow-[0_0_20px_rgba(239,68,68,0.7)]'
                               : 'animate-boss-pulse bg-gradient-to-b from-red-950 via-iron-950 to-red-950 text-amber-200 border-amber-400 ring-1 ring-amber-400'
                             : isStopper
-                            ? 'bg-yellow-950 border-yellow-400 text-yellow-300 ring-1 ring-yellow-300'
+                            ? 'bg-yellow-950/90 border-yellow-400 text-yellow-300 ring-1 ring-yellow-300'
                             : isFrozen
-                            ? 'bg-sky-950/80 border border-sky-400 text-sky-100'
+                            ? 'bg-sky-950/90 border border-sky-400 text-sky-100'
                             : isElite
-                            ? 'bg-blood-950 border-blood-500 text-yellow-200'
+                            ? 'bg-blood-950/90 border-blood-500 text-yellow-200'
                             : dIdx === 0
-                            ? 'bg-iron-850 border-iron-700 text-white shadow-sm'
-                            : 'bg-iron-900 border-iron-800 text-gray-300'
+                            ? 'bg-iron-900/95 border-iron-700 text-white shadow-md'
+                            : 'bg-iron-950/95 border-iron-800 text-gray-200'
                         } ${isOverkillResidual && !isDying ? 'animate-overkill-glow' : ''}`}
                       >
                         {(() => {
                           const chg = m.intent?.chargePercent || 0;
                           if (chg < 75 || m.hp <= 0 || isFrozen) return null;
-                          return (<span className="chargeGauge absolute -top-1 -right-1 z-20 px-0.5 rounded bg-red-600 text-white text-[8px] font-black border border-red-300 animate-pulse">⚡{chg}%</span>);
+                          return (<span className="chargeGauge absolute -top-1.5 -right-1 z-20 px-1 py-0.2 rounded bg-red-600 text-white text-[9px] font-black border border-red-300 shadow animate-pulse">⚡{chg}%</span>);
                         })()}
                         {monsterDmgPopups.length > 0 && (
                           <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden rounded">
@@ -587,7 +587,7 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                         {monsterDmgPopups.map(dp => (
                           <div
                             key={dp.id}
-                            className={`absolute -top-2 left-1/2 -translate-x-1/2 z-45 font-mono font-black whitespace-nowrap ${
+                            className={`absolute -top-3 left-1/2 -translate-x-1/2 z-45 font-mono font-black whitespace-nowrap ${
                               dp.isCrit
                                 ? 'text-amber-200 text-xs sm:text-sm animate-crit-dmg drop-shadow-[0_0_8px_rgba(251,191,36,1)]'
                                 : dp.isOverkill
@@ -595,16 +595,16 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                                 : 'text-white text-[10px] sm:text-xs animate-float-dmg drop-shadow-[0_2px_4px_rgba(0,0,0,1)]'
                             }`}
                           >
-                            {dp.isCrit && <span className="text-[7px] text-yellow-200 block text-center">CRIT</span>}
-                            {dp.isOverkill && <span className="text-[7px] text-orange-200 block text-center">OVER</span>}
+                            {dp.isCrit && <span className="text-[8px] text-yellow-200 block text-center font-bold">CRIT</span>}
+                            {dp.isOverkill && <span className="text-[8px] text-orange-200 block text-center font-bold">OVER</span>}
                             -{dp.damage}
                             {dp.isFatal && <span className="text-blood-300 ml-0.5">💀</span>}
                           </div>
                         ))}
 
-                        {/* Monster Header: Portrait + Name + Rank (NO D1/D2) */}
-                        <div className={`flex items-center justify-between leading-tight gap-0.5 ${
-                          isBoss ? 'text-[9px] sm:text-[10px]' : 'text-[8px] sm:text-[9px]'
+                        {/* Monster Header: Portrait + Name + Rank */}
+                        <div className={`flex items-center justify-between leading-tight gap-1 ${
+                          isBoss ? 'text-[10px] sm:text-xs' : 'text-[9px] sm:text-[10px]'
                         }`}>
                           <div className="flex items-center gap-1 min-w-0 flex-1">
                             <MonsterPortrait
@@ -618,27 +618,27 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                               isDying={isDying}
                             />
                             <span className={`truncate font-bold ${
-                              isBoss ? 'text-amber-200 font-cinzel font-black' : isElite ? 'text-yellow-200' : 'text-white'
+                              isBoss ? 'text-amber-200 font-cinzel font-black' : isElite ? 'text-yellow-300 font-bold' : 'text-white'
                             }`}>
                               {m.name.split(' ')[0]}
                             </span>
                           </div>
                           {isBoss ? (
-                            <span className={`font-mono text-[7px] font-black px-0.5 rounded flex-shrink-0 ${
+                            <span className={`font-mono text-[8px] font-black px-1 py-0.2 rounded flex-shrink-0 ${
                               isEnraged ? 'bg-red-600 text-white animate-pulse' : 'bg-amber-600 text-iron-950'
                             }`}>
                               {isEnraged ? '광란' : 'BOSS'}
                             </span>
                           ) : isElite ? (
-                            <span className="font-mono text-[7px] font-black px-0.5 rounded bg-yellow-500 text-iron-950 flex-shrink-0">
+                            <span className="font-mono text-[8px] font-black px-1 py-0.2 rounded bg-yellow-500 text-iron-950 flex-shrink-0">
                               ELITE
                             </span>
                           ) : null}
                         </div>
 
-                        {/* HP Bar */}
-                        <div className={`w-full bg-iron-950 rounded-full overflow-hidden border border-iron-800 my-0.2 hp-bar-shell ${
-                          isBoss ? 'h-2 sm:h-2.5' : 'h-1 sm:h-1.5'
+                        {/* HP Bar (Thicker & Higher Contrast) */}
+                        <div className={`w-full bg-iron-950 rounded-full overflow-hidden border border-iron-750 my-0.5 hp-bar-shell ${
+                          isBoss ? 'h-2.5 sm:h-3' : 'h-1.5 sm:h-2'
                         }`}>
                           <div
                             className={`h-full transition-all duration-200 hp-bar-fill ${
@@ -656,9 +656,9 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                           />
                         </div>
 
-                        {/* Monster Stats Row */}
-                        <div className="flex justify-between items-center font-mono text-gray-300 text-[8px] leading-none">
-                          <span className="font-black text-rose-300">{m.hp}</span>
+                        {/* Monster Stats Row (High Contrast) */}
+                        <div className="flex justify-between items-center font-mono text-[9px] sm:text-[10px] leading-none pt-0.5">
+                          <span className="font-black text-rose-300">{m.hp} <span className="text-[8px] text-gray-400">HP</span></span>
                           {(() => {
                             const [minD, maxD] = getMonsterDamageRange(m.intent?.damage || 3);
                             return (
@@ -671,11 +671,11 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
 
                         {/* Prediction / Targeting Tag */}
                         {isPredictedKill ? (
-                          <div className="text-[7px] font-black text-blood-200 uppercase bg-blood-950 px-0.5 rounded text-center border border-blood-700 truncate">
+                          <div className="text-[8px] sm:text-[9px] font-black text-blood-200 uppercase bg-blood-950 px-1 py-0.2 rounded text-center border border-blood-700 truncate mt-0.5">
                             {isOverkillResidual ? '오버킬' : '처치예상'}
                           </div>
                         ) : isTargeted ? (
-                          <div className="text-[7px] font-black text-red-200 uppercase bg-red-950 px-0.5 rounded text-center border border-red-500 animate-pulse truncate">
+                          <div className="text-[8px] sm:text-[9px] font-black text-red-200 uppercase bg-red-950 px-1 py-0.2 rounded text-center border border-red-500 animate-pulse truncate mt-0.5">
                             -{hitInfo.damage}
                           </div>
                         ) : null}

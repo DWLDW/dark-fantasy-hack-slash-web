@@ -116,15 +116,13 @@ export const BattleView: React.FC = React.memo(() => {
     }
   }, [floatingDamages, monsters]);
 
-  const strikeShake = isAttacking
-    ? (chainCount >= 25 ? 'animate-shake-heavy' : chainCount >= 10 ? 'animate-shake-medium' : 'animate-shake-light')
-    : '';
+  const strikeShake = '';
 
   return (
-    <div className={`w-full max-w-6xl mx-auto h-[calc(100dvh-54px)] sm:h-[calc(100dvh-58px)] flex flex-col justify-between transition-colors duration-500 rounded-xl p-1 sm:p-2 ${actTheme.bgGradient} ${strikeShake} overflow-hidden select-none font-sans relative`}>
-      {/* Low HP Red Vignette Screen Pulse */}
+    <div className={`w-full max-w-6xl mx-auto h-[calc(100dvh-54px)] sm:h-[calc(100dvh-58px)] flex flex-col justify-between transition-colors duration-500 rounded-xl p-1 sm:p-2 ${actTheme.bgGradient} overflow-hidden select-none font-sans relative`}>
+      {/* Low HP Gentle Vignette (Restful to eyes) */}
       {isLowHp && (
-        <div className="fixed inset-0 pointer-events-none border-4 sm:border-8 border-blood-600/50 shadow-[inset_0_0_60px_rgba(239,68,68,0.5)] z-30 animate-pulse" />
+        <div className="fixed inset-0 pointer-events-none border-2 border-blood-900/50 shadow-[inset_0_0_45px_rgba(185,28,28,0.3)] z-30" />
       )}
 
       {/* Boss Signature Skill Cinematic Cut-in & Fullscreen Flash */}

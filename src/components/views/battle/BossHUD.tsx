@@ -92,36 +92,31 @@ export const BossHUD: React.FC = React.memo(() => {
 
   return (
     <div
-      className={`relative rounded-xl border-2 p-2.5 sm:p-3 shadow-2xl transition-all duration-300 overflow-hidden ${elementBadge.auraColor} ${
+      className={`relative rounded-xl border p-2.5 sm:p-3 shadow-xl transition-all duration-300 overflow-hidden ${
         isGroggy
-          ? 'bg-gradient-to-r from-yellow-950/90 via-iron-950 to-yellow-950/90 border-yellow-400 ring-2 ring-yellow-400/80 animate-pulse'
+          ? 'bg-gradient-to-r from-yellow-950/90 via-iron-950 to-yellow-950/90 border-yellow-400 ring-1 ring-yellow-400/80 animate-pulse'
           : isCharging
-          ? 'bg-gradient-to-r from-red-950 via-blood-950 to-red-950 border-red-500 ring-2 ring-red-500/90 animate-boss-enrage'
+          ? 'bg-gradient-to-r from-red-950 via-blood-950 to-red-950 border-red-500 ring-2 ring-red-500/90'
           : isEnraged
-          ? 'animate-boss-enrage bg-gradient-to-r from-red-950 via-iron-950 to-red-950 border-red-500'
+          ? 'bg-gradient-to-r from-red-950/90 via-iron-950 to-red-950/90 border-red-800'
           : bossGuardActive
-          ? 'animate-boss-guard bg-gradient-to-r from-blue-950/90 via-iron-950 to-blue-950/90 border-blue-400'
-          : `${actTheme.containerBg} ${actTheme.bossHudGlow}`
+          ? 'bg-gradient-to-r from-blue-950/90 via-iron-950 to-blue-950/90 border-blue-600'
+          : 'bg-iron-950/95 border-iron-800'
       }`}
     >
-      {/* Ambient Act Atmospheric Glow */}
-      <div className={`absolute inset-0 pointer-events-none opacity-35 ${
-        isCharging ? 'bg-gradient-to-t from-red-600/40 via-transparent to-transparent' : actTheme.ambientGlow
-      }`} />
-
       {/* ═══ TOP: Big Central Retro Pixel Boss Portrait ═══ */}
       <div className="relative z-10 flex flex-col items-center justify-center text-center mb-1">
         {/* 👾 Big Retro Pixel Boss Portrait */}
         <div
           onClick={() => setPlayerLane(boss.lane)}
-          className={`relative flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-2xl flex items-center justify-center border-2 shadow-2xl transition transform hover:scale-105 cursor-pointer overflow-hidden p-1 ${
+          className={`relative flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-2xl flex items-center justify-center border-2 shadow-lg transition transform hover:scale-105 cursor-pointer overflow-hidden p-1 ${
             isGroggy
-              ? 'bg-yellow-950/90 border-yellow-400 shadow-[0_0_25px_rgba(251,191,36,0.9)] ring-2 ring-yellow-300'
+              ? 'bg-yellow-950/90 border-yellow-400 ring-1 ring-yellow-300'
               : isCharging
-              ? 'bg-red-950/95 border-red-400 shadow-[0_0_35px_rgba(239,68,68,0.9)] ring-2 ring-red-400 animate-pulse'
+              ? 'bg-red-950/95 border-red-400 ring-2 ring-red-400 animate-pulse'
               : isEnraged
-              ? 'bg-red-950/90 border-red-400 shadow-[0_0_25px_rgba(239,68,68,0.8)]'
-              : 'bg-iron-950/95 border-amber-500/80 shadow-[0_0_20px_rgba(251,191,36,0.5)]'
+              ? 'bg-red-950/90 border-red-600'
+              : 'bg-iron-950/95 border-amber-500/60'
           }`}
           title="클릭 시 보스 전면 레인으로 즉시 조준 이동"
         >

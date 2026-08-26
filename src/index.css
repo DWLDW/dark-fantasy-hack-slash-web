@@ -437,52 +437,50 @@
   animation: bossCutinSlam 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Elemental Screen Flash */
+/* Elemental Screen Flash (Gentle Ambient Dissipation) */
 @keyframes screenFlashPoison {
   0% { opacity: 0; }
-  20% { opacity: 0.85; }
+  20% { opacity: 0.35; }
   100% { opacity: 0; }
 }
 .animate-flash-poison {
-  animation: screenFlashPoison 1.2s ease-out forwards;
+  animation: screenFlashPoison 0.8s ease-out forwards;
 }
 
 @keyframes screenFlashLightning {
   0% { opacity: 0; }
-  10% { opacity: 1; }
-  25% { opacity: 0.3; }
-  40% { opacity: 0.9; }
+  15% { opacity: 0.40; }
   100% { opacity: 0; }
 }
 .animate-flash-lightning {
-  animation: screenFlashLightning 1.2s ease-out forwards;
+  animation: screenFlashLightning 0.8s ease-out forwards;
 }
 
 @keyframes screenFlashFire {
-  0% { opacity: 0; transform: scale(1.1); }
-  20% { opacity: 0.9; transform: scale(1); }
-  100% { opacity: 0; transform: scale(1); }
+  0% { opacity: 0; }
+  20% { opacity: 0.40; }
+  100% { opacity: 0; }
 }
 .animate-flash-fire {
-  animation: screenFlashFire 1.2s ease-out forwards;
+  animation: screenFlashFire 0.8s ease-out forwards;
 }
 
 @keyframes screenFlashCold {
   0% { opacity: 0; }
-  25% { opacity: 0.85; }
+  20% { opacity: 0.35; }
   100% { opacity: 0; }
 }
 .animate-flash-cold {
-  animation: screenFlashCold 1.2s ease-out forwards;
+  animation: screenFlashCold 0.8s ease-out forwards;
 }
 
 @keyframes screenFlashVoid {
   0% { opacity: 0; }
-  20% { opacity: 0.9; filter: invert(0.2); }
-  100% { opacity: 0; filter: none; }
+  20% { opacity: 0.35; }
+  100% { opacity: 0; }
 }
 .animate-flash-void {
-  animation: screenFlashVoid 1.2s ease-out forwards;
+  animation: screenFlashVoid 0.8s ease-out forwards;
 }
 
 /* ═══ Boss Danger Telegraph: lane hazard pulse ═══ */

@@ -64,9 +64,9 @@ export const CombatJackpotOverlay: React.FC<CombatJackpotOverlayProps> = React.m
   const isBigHit = activeEvent.totalDamage >= 300 || activeEvent.isCrit;
 
   return (
-    <div className="absolute inset-0 pointer-events-none z-[60] flex flex-col items-center justify-center select-none overflow-visible" aria-hidden>
+    <div className="absolute top-2 sm:top-3 inset-x-0 pointer-events-none z-[60] flex flex-col items-center justify-start select-none overflow-visible" aria-hidden>
       
-      {/* 💥 Main Center Jackpot Popup (Zero Backdrop / Clean Floating) */}
+      {/* 💥 Upper Compact Jackpot Banner (Non-intrusive, clear battlefield view) */}
       <div
         key={activeEvent.id}
         className={`flex flex-col items-center justify-center text-center ${

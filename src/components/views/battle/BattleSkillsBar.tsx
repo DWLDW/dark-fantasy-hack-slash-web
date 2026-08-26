@@ -70,39 +70,39 @@ export const BattleSkillsBar: React.FC = React.memo(() => {
               key={skill.id}
               onClick={() => { if (isCleared || totalMonsters === 0 || !unlocked) return; selectSkillOrExecute(skill); }}
               disabled={isAttacking || isEnemyTurn || !unlocked}
-              className={`p-1 sm:p-1.5 rounded-lg border text-left flex flex-col justify-between transition relative shadow-sm cursor-pointer bg-gradient-to-br min-h-[46px] sm:min-h-[50px] ${tint} ${
+              className={`p-1.5 rounded-lg border text-left flex flex-col justify-between transition relative shadow cursor-pointer min-h-[48px] sm:min-h-[52px] ${
                 !unlocked
-                  ? 'border-iron-850 text-gray-600 opacity-40 cursor-not-allowed'
+                  ? 'bg-iron-950 border-iron-900 text-gray-600 opacity-40 cursor-not-allowed'
                   : isSelected
-                  ? 'border-amber-400 text-amber-100 ring-1 ring-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.35)] scale-[1.02]'
+                  ? 'bg-iron-900 border-amber-400 text-amber-100 ring-1 ring-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.3)]'
                   : canAfford
-                  ? 'border-iron-750 text-gray-200 hover:bg-iron-850 hover:border-iron-600'
-                  : 'border-iron-800 text-gray-500 opacity-60'
+                  ? 'bg-iron-950/95 border-iron-800 text-gray-200 hover:bg-iron-900 hover:border-iron-700'
+                  : 'bg-iron-950 border-iron-900 text-gray-500 opacity-60'
               }`}
-              title={unlocked ? `${skill.name} (클릭 시 락온, 재클릭 시 시전)` : `Lv.${skill.unlockLevel} 해금`}
+              title={unlocked ? `${skill.name} (클릭 시 조준, 재클릭 시 시전)` : `Lv.${skill.unlockLevel} 해금`}
             >
               {/* Row 1: Name + Hotkey / Unlock Level */}
-              <div className="flex items-center justify-between text-[11px] sm:text-xs font-black font-cinzel leading-tight w-full">
+              <div className="flex items-center justify-between text-xs sm:text-sm font-black font-cinzel leading-tight w-full">
                 <span className="truncate flex items-center gap-1">
                   <span className={isSelected ? 'text-amber-300' : 'text-brass-400 flex-shrink-0'}>{SKILL_ICON[skill.id]}</span>
-                  <span className="truncate">{unlocked ? skill.name.split(' ')[0] : '잠김'}</span>
+                  <span className="truncate text-white font-bold">{unlocked ? skill.name.split(' ')[0] : '잠김'}</span>
                 </span>
-                <span className={`text-[8px] sm:text-[9px] font-mono font-black px-1 rounded flex-shrink-0 ${
-                  isSelected ? 'bg-amber-400 text-iron-950' : 'bg-iron-950 text-amber-400 border border-iron-800'
+                <span className={`text-[9px] sm:text-[10px] font-mono font-black px-1 py-0.2 rounded flex-shrink-0 ${
+                  isSelected ? 'bg-amber-400 text-iron-950' : 'bg-iron-900 text-amber-400 border border-iron-800'
                 }`}>
                   {unlocked ? `[${skill.hotkey}]` : `Lv.${skill.unlockLevel}`}
                 </span>
               </div>
 
               {/* Row 2: Damage & Rage Cost */}
-              <div className="flex items-center justify-between font-mono text-[8px] sm:text-[9px] w-full mt-0.5 leading-none">
+              <div className="flex items-center justify-between font-mono text-[9px] sm:text-[10px] w-full mt-1 leading-none">
                 {unlocked ? (
-                  <span className="text-amber-300 font-bold truncate">{dmgText}</span>
+                  <span className="text-amber-300 font-black truncate">{dmgText}</span>
                 ) : (
                   <span className="text-gray-500">미해금</span>
                 )}
                 {unlocked && (
-                  <span className={`font-bold flex-shrink-0 ${canAfford ? 'text-gray-300' : 'text-blood-400'}`}>
+                  <span className={`font-black flex-shrink-0 ${canAfford ? 'text-gray-300' : 'text-blood-400'}`}>
                     {skill.rageCost > 0 ? `${skill.rageCost}분노` : '자유'}
                   </span>
                 )}
