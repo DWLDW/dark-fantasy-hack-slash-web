@@ -179,29 +179,29 @@
   will-change: transform, opacity;
 }
 
-/* 💥 ANIME / ARCADE FIGHTING IMPACT BANNER KEYFRAMES */
+/* 💥 ANIME / ARCADE FIGHTING IMPACT BANNER KEYFRAMES (Straight Upright Typography) */
 @keyframes animeSlamPunch {
   0% {
     opacity: 0;
-    transform: scale(2.6) translateY(-24px) rotate(-8deg) skewX(-12deg);
+    transform: scale(2.4) translateY(-20px);
   }
   12% {
     opacity: 1;
-    transform: scale(0.92) translateY(4px) rotate(2deg) skewX(-12deg);
+    transform: scale(0.94) translateY(2px);
   }
   24% {
-    transform: scale(1.06) translateY(-2px) rotate(-1deg) skewX(-12deg);
+    transform: scale(1.05) translateY(-1px);
   }
   36% {
-    transform: scale(1) translateY(0) rotate(0deg) skewX(-12deg);
+    transform: scale(1) translateY(0);
   }
   85% {
     opacity: 1;
-    transform: scale(1) translateY(0) rotate(0deg) skewX(-12deg);
+    transform: scale(1) translateY(0);
   }
   100% {
     opacity: 0;
-    transform: scale(0.85) translateY(-40px) rotate(-3deg) skewX(-12deg);
+    transform: scale(0.85) translateY(-35px);
   }
 }
 .animate-anime-slam {
@@ -213,25 +213,25 @@
 @keyframes slashSlideIn {
   0% {
     opacity: 0;
-    transform: translateX(-60px) skewX(-18deg) scaleY(0.4);
+    transform: translateY(-20px) scale(0.7);
   }
   20% {
     opacity: 1;
-    transform: translateX(6px) skewX(-12deg) scaleY(1.15);
+    transform: translateY(2px) scale(1.1);
   }
   35% {
-    transform: translateX(-2px) skewX(-12deg) scaleY(0.98);
+    transform: translateY(-1px) scale(0.98);
   }
   50% {
-    transform: translateX(0) skewX(-12deg) scaleY(1);
+    transform: translateY(0) scale(1);
   }
   85% {
     opacity: 1;
-    transform: translateX(0) skewX(-12deg) scaleY(1);
+    transform: translateY(0) scale(1);
   }
   100% {
     opacity: 0;
-    transform: translateX(40px) skewX(-12deg) scaleY(0.8);
+    transform: translateY(-25px) scale(0.85);
   }
 }
 .animate-slash-slide {

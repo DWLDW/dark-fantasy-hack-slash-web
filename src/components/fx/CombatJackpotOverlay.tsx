@@ -75,14 +75,14 @@ export const CombatJackpotOverlay: React.FC<CombatJackpotOverlayProps> = React.m
       >
         
         {/* =========================================================================
-            1. TOP HIGH-IMPACT COMBAT BADGES (Kill la Kill / P5 Angular Badges)
+            1. TOP HIGH-IMPACT COMBAT BADGES (Straight Upright Anime Badges)
             ========================================================================= */}
         <div className="flex items-center gap-2 flex-wrap justify-center mb-2 pointer-events-none">
           
           {/* ⚡ CRITICAL HIT! (TRIGGER Style Flaming Lightning Chevron) */}
           {activeEvent.isCrit && (
             <div
-              className="relative p-[2.5px] bg-black banner-hard-shadow -skew-x-12"
+              className="relative p-[2.5px] bg-black banner-hard-shadow"
               style={{ clipPath: 'polygon(0% 0%, calc(100% - 14px) 0%, 100% 50%, calc(100% - 14px) 100%, 0% 100%, 14px 50%)' }}
             >
               <div
@@ -93,7 +93,7 @@ export const CombatJackpotOverlay: React.FC<CombatJackpotOverlayProps> = React.m
                 }}
               >
                 <Zap className="w-4 h-4 text-black fill-current animate-bounce" />
-                <span className="text-anime-stroke-thin text-white font-black italic tracking-wider">
+                <span className="text-anime-stroke-thin text-white font-black tracking-wider">
                   CRITICAL HIT!
                 </span>
                 <Zap className="w-4 h-4 text-black fill-current animate-bounce" />
@@ -101,10 +101,10 @@ export const CombatJackpotOverlay: React.FC<CombatJackpotOverlayProps> = React.m
             </div>
           )}
 
-          {/* 🎯 WEAK SPOT 2.5x (Persona 5 Razor Slanted Parallelogram) */}
+          {/* 🎯 WEAK SPOT 2.5x (Persona 5 Razor Parallelogram) */}
           {activeEvent.isWeakSpotHit && (
             <div
-              className="relative p-[2.5px] bg-black filter drop-shadow-[3px_3px_0_#000] -skew-x-12"
+              className="relative p-[2.5px] bg-black filter drop-shadow-[3px_3px_0_#000]"
               style={{ clipPath: 'polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%)' }}
             >
               <div
@@ -112,7 +112,7 @@ export const CombatJackpotOverlay: React.FC<CombatJackpotOverlayProps> = React.m
                 style={{ clipPath: 'polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%)' }}
               >
                 <Target className="w-4 h-4 text-black stroke-[3]" />
-                <span className="text-anime-stroke-thin text-white italic">WEAK SPOT 2.5x</span>
+                <span className="text-anime-stroke-thin text-white font-black">WEAK SPOT 2.5x</span>
               </div>
             </div>
           )}
@@ -120,7 +120,7 @@ export const CombatJackpotOverlay: React.FC<CombatJackpotOverlayProps> = React.m
           {/* 💥 BREAK! GROGGY (Shattered Sawtooth Impact Badge) */}
           {activeEvent.isBossBreak && (
             <div
-              className="relative p-[2.5px] bg-black filter drop-shadow-[3px_3px_0_#000] -skew-x-12"
+              className="relative p-[2.5px] bg-black filter drop-shadow-[3px_3px_0_#000]"
               style={{ clipPath: 'polygon(0% 0%, 100% 0%, 94% 50%, 100% 100%, 0% 100%, 6% 50%)' }}
             >
               <div
@@ -128,7 +128,7 @@ export const CombatJackpotOverlay: React.FC<CombatJackpotOverlayProps> = React.m
                 style={{ clipPath: 'polygon(0% 0%, 100% 0%, 94% 50%, 100% 100%, 0% 100%, 6% 50%)' }}
               >
                 <ShieldAlert className="w-4 h-4 text-black stroke-[3]" />
-                <span className="text-anime-stroke-thin text-yellow-100 italic">BREAK! GROGGY</span>
+                <span className="text-anime-stroke-thin text-yellow-100 font-black">BREAK! GROGGY</span>
               </div>
             </div>
           )}
@@ -136,7 +136,7 @@ export const CombatJackpotOverlay: React.FC<CombatJackpotOverlayProps> = React.m
           {/* ⚡ EXTRA STRIKE (Speed Ribbon) */}
           {activeEvent.isExtraStrike && (
             <div
-              className="relative p-[2px] bg-black filter drop-shadow-[2px_2px_0_#000] -skew-x-12"
+              className="relative p-[2px] bg-black filter drop-shadow-[2px_2px_0_#000]"
               style={{ clipPath: 'polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%)' }}
             >
               <div
@@ -150,17 +150,17 @@ export const CombatJackpotOverlay: React.FC<CombatJackpotOverlayProps> = React.m
         </div>
 
         {/* =========================================================================
-            2. MEGA ARCADE DAMAGE ROLLER (3D Comic Extrusion & Slanted Typography)
+            2. MEGA ARCADE DAMAGE ROLLER (3D Upright Bold Typography)
             ========================================================================= */}
         <div className="relative pointer-events-none my-1 flex flex-col items-center">
           
-          {/* Comic Speedline Shard Backdrop on Big Hits */}
+          {/* Comic Backdrop Glow on Big Hits */}
           {isBigHit && (
-            <div className="absolute -inset-x-8 -inset-y-4 bg-gradient-to-r from-transparent via-amber-500/20 to-transparent -skew-x-12 animate-pulse pointer-events-none -z-10" />
+            <div className="absolute -inset-x-8 -inset-y-4 bg-gradient-to-r from-transparent via-amber-500/20 to-transparent animate-pulse pointer-events-none -z-10" />
           )}
 
           <div
-            className={`font-mono font-black italic tracking-tighter -skew-x-12 text-anime-3d-shadow flex items-baseline justify-center select-none ${
+            className={`font-mono font-black tracking-tight text-anime-3d-shadow flex items-baseline justify-center select-none ${
               activeEvent.isCrit
                 ? 'text-5xl sm:text-7xl md:text-8xl text-yellow-300'
                 : isBigHit
@@ -176,26 +176,26 @@ export const CombatJackpotOverlay: React.FC<CombatJackpotOverlayProps> = React.m
             </span>
 
             {/* TOTAL Label Badge */}
-            <span className="text-base sm:text-2xl text-amber-200 ml-2 font-cinzel font-black not-italic tracking-wider uppercase bg-black px-2.5 py-0.5 border-2 border-amber-400 -skew-x-6 text-anime-stroke-thin shadow-lg">
+            <span className="text-base sm:text-2xl text-amber-200 ml-2 font-cinzel font-black tracking-wider uppercase bg-black px-2.5 py-0.5 border-2 border-amber-400 text-anime-stroke-thin shadow-lg">
               TOTAL
             </span>
           </div>
 
-          {/* Underline Hard Slashed Energy Ray */}
+          {/* Underline Energy Ray */}
           {isBigHit && (
-            <div className="w-[110%] h-1.5 bg-gradient-to-r from-transparent via-yellow-400 to-transparent mt-1 shadow-[0_0_14px_rgba(251,191,36,0.9)] -skew-x-12" />
+            <div className="w-[110%] h-1.5 bg-gradient-to-r from-transparent via-yellow-400 to-transparent mt-1 shadow-[0_0_14px_rgba(251,191,36,0.9)]" />
           )}
         </div>
 
         {/* =========================================================================
-            3. BOTTOM MULTI-KILL & CHAIN COMBO COUNTER (Slanted Comic Sawtooth)
+            3. BOTTOM MULTI-KILL & CHAIN COMBO COUNTER (Straight Anime Badges)
             ========================================================================= */}
         <div className="flex items-center gap-2.5 mt-2 pointer-events-none">
           
           {/* 💀 OVERKILL ROULETTE BADGE */}
           {activeEvent.overkillCount > 0 && (
             <div
-              className="relative p-[2.5px] bg-black filter drop-shadow-[3px_3px_0_#000] -skew-x-12 animate-bounce"
+              className="relative p-[2.5px] bg-black filter drop-shadow-[3px_3px_0_#000] animate-bounce"
               style={{ clipPath: 'polygon(0% 0%, 100% 0%, 92% 50%, 100% 100%, 0% 100%, 8% 50%)' }}
             >
               <div
@@ -203,7 +203,7 @@ export const CombatJackpotOverlay: React.FC<CombatJackpotOverlayProps> = React.m
                 style={{ clipPath: 'polygon(0% 0%, 100% 0%, 92% 50%, 100% 100%, 0% 100%, 8% 50%)' }}
               >
                 <Skull className="w-4 h-4 text-yellow-300" />
-                <span className="text-anime-stroke-thin italic">OVERKILL x{activeEvent.overkillCount}</span>
+                <span className="text-anime-stroke-thin">OVERKILL x{activeEvent.overkillCount}</span>
               </div>
             </div>
           )}
@@ -211,7 +211,7 @@ export const CombatJackpotOverlay: React.FC<CombatJackpotOverlayProps> = React.m
           {/* 🔥 CHAIN COMBO BADGE */}
           {activeEvent.chainCount >= 2 && (
             <div
-              className="relative p-[2.5px] bg-black filter drop-shadow-[3px_3px_0_#000] -skew-x-12"
+              className="relative p-[2.5px] bg-black filter drop-shadow-[3px_3px_0_#000]"
               style={{ clipPath: 'polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%)' }}
             >
               <div
@@ -219,7 +219,7 @@ export const CombatJackpotOverlay: React.FC<CombatJackpotOverlayProps> = React.m
                 style={{ clipPath: 'polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%)' }}
               >
                 <Flame className="w-4 h-4 text-red-600 fill-current" />
-                <span className="text-anime-stroke-thin text-white italic">CHAIN x{activeEvent.chainCount}</span>
+                <span className="text-anime-stroke-thin text-white">CHAIN x{activeEvent.chainCount}</span>
               </div>
             </div>
           )}
