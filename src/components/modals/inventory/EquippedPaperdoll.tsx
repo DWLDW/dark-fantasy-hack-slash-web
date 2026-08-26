@@ -59,9 +59,9 @@ export const EquipSlotBox: React.FC<EquipSlotBoxProps> = ({
     <div
       onClick={onClick}
       onDoubleClick={() => !isCombatMode && item && onUnequip()}
-      className={`p-1.5 rounded-lg border-2 text-center cursor-pointer transition min-h-[72px] flex flex-col justify-between items-center relative shadow ${
+      className={`p-1 sm:p-1.5 rounded-lg border-2 text-center cursor-pointer transition min-h-[56px] sm:min-h-[62px] flex flex-col justify-between items-center relative shadow ${
         isSelected
-          ? 'ring-2 ring-brass-400 border-brass-400 bg-iron-850 scale-105 shadow-[0_0_10px_rgba(222,178,67,0.5)]'
+          ? 'ring-2 ring-brass-400 border-brass-400 bg-iron-850 scale-102 shadow-[0_0_10px_rgba(222,178,67,0.5)]'
           : item
           ? item.rarity === 'runeword'
             ? 'bg-amber-950/40 border-amber-400 text-amber-200 font-bold'
@@ -70,19 +70,19 @@ export const EquipSlotBox: React.FC<EquipSlotBoxProps> = ({
             : item.rarity === 'rare'
             ? 'bg-yellow-950/30 border-yellow-400 text-yellow-200'
             : 'bg-iron-900 border-iron-700 text-gray-200'
-          : 'bg-iron-950 border-dashed border-iron-800 text-gray-500 hover:border-iron-700'
+          : 'bg-iron-950/80 border-dashed border-iron-800 text-gray-500 hover:border-iron-700'
       }`}
     >
-      <div className="w-full flex items-center justify-between">
-        <span className={`text-[10px] font-mono font-bold leading-none ${isSelected ? 'text-brass-300 underline' : 'text-gray-400'}`}>
+      <div className="w-full flex items-center justify-between leading-none">
+        <span className={`text-[9px] sm:text-[10px] font-mono font-bold leading-none ${isSelected ? 'text-brass-300 underline' : 'text-gray-400'}`}>
           {label}
         </span>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5">
           {item?.isLocked && (
-            <span className="text-[9px]" title="잠금된 장비">🔒</span>
+            <span className="text-[8px]" title="잠금된 장비">🔒</span>
           )}
           {item?.isRuneWord && (
-            <span className="text-[8px] font-mono text-amber-300 font-black px-1 rounded bg-amber-950/80 border border-amber-500/50">RW</span>
+            <span className="text-[7px] font-mono text-amber-300 font-black px-1 rounded bg-amber-950/80 border border-amber-500/50">RW</span>
           )}
           {item && !isCombatMode && (
             <button
@@ -90,7 +90,7 @@ export const EquipSlotBox: React.FC<EquipSlotBoxProps> = ({
                 e.stopPropagation();
                 onUnequip();
               }}
-              className="text-[8px] px-1 py-0.2 rounded bg-blood-950 text-blood-300 hover:bg-blood-900 border border-blood-700 cursor-pointer active:scale-90"
+              className="text-[8px] font-bold px-1 py-0.2 rounded bg-blood-950/90 text-blood-300 hover:bg-blood-900 border border-blood-700 cursor-pointer active:scale-90"
               title="장착 해제"
             >
               해제
@@ -100,14 +100,14 @@ export const EquipSlotBox: React.FC<EquipSlotBoxProps> = ({
       </div>
 
       {item ? (
-        <div className="font-black text-[11px] truncate w-full leading-tight my-0.5" title={item.name}>
+        <div className="font-bold text-[10px] sm:text-[11px] truncate w-full leading-tight my-0.5 text-brass-100" title={item.name}>
           {item.name}
         </div>
       ) : (
-        <div className="text-[10px] text-gray-600 font-mono my-auto">[빈 슬롯]</div>
+        <div className="text-[9px] text-gray-600 font-mono my-auto">비어있음</div>
       )}
 
-      <div className="w-full flex items-center justify-center">
+      <div className="w-full flex items-center justify-center leading-none">
         {statBadge}
       </div>
     </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { EquipSlot } from '../../../types/game';
-import { Sparkles, ArrowDown, ArrowUp, Coins, Zap, Swords } from 'lucide-react';
+import { Sparkles, ArrowDownUp, Coins, Zap, Swords } from 'lucide-react';
 
 export type CategoryFilter = 'all' | 'weapon' | 'armor' | 'accessory' | 'runeword';
 export type SortOrder = 'desc' | 'asc';
@@ -39,131 +39,76 @@ export const InventoryFilterBar: React.FC<InventoryFilterBarProps> = React.memo(
   onAutoEquip
 }) => {
   return (
-    <div className="bg-iron-900/90 p-2.5 rounded-lg border border-iron-750 flex flex-wrap items-center justify-between gap-2 shadow">
-      {/* Tier 3: Category Filter Buttons (Dark Inset Active State) */}
-      <div className="flex flex-wrap items-center gap-1.5">
-        <span className="text-[11px] font-bold text-gray-400 font-cinzel mr-1 hidden sm:inline">분류:</span>
-        <button
-          onClick={() => onSelectCategory('all')}
-          className={`px-2.5 py-1 rounded text-xs transition flex items-center gap-1 border cursor-pointer ${
-            categoryFilter === 'all' && selectedSlot === 'all'
-              ? 'bg-iron-800 text-brass-200 border-2 border-brass-400 shadow-inner font-black'
-              : 'bg-iron-950 text-gray-400 border-iron-800 hover:text-gray-200 hover:border-iron-700 font-medium'
-          }`}
-        >
-          <span>전체</span>
-          <span className="text-[10px] font-mono opacity-80">({categoryCounts.all})</span>
-        </button>
-
-        <button
-          onClick={() => onSelectCategory('weapon')}
-          className={`px-2.5 py-1 rounded text-xs transition flex items-center gap-1 border cursor-pointer ${
-            categoryFilter === 'weapon' && selectedSlot === 'all'
-              ? 'bg-iron-800 text-brass-200 border-2 border-brass-400 shadow-inner font-black'
-              : 'bg-iron-950 text-gray-400 border-iron-800 hover:text-gray-200 hover:border-iron-700 font-medium'
-          }`}
-        >
-          <span>무기</span>
-          <span className="text-[10px] font-mono opacity-80">({categoryCounts.weapon})</span>
-        </button>
-
-        <button
-          onClick={() => onSelectCategory('armor')}
-          className={`px-2.5 py-1 rounded text-xs transition flex items-center gap-1 border cursor-pointer ${
-            categoryFilter === 'armor' && selectedSlot === 'all'
-              ? 'bg-iron-800 text-brass-200 border-2 border-brass-400 shadow-inner font-black'
-              : 'bg-iron-950 text-gray-400 border-iron-800 hover:text-gray-200 hover:border-iron-700 font-medium'
-          }`}
-        >
-          <span>방어구</span>
-          <span className="text-[10px] font-mono opacity-80">({categoryCounts.armor})</span>
-        </button>
-
-        <button
-          onClick={() => onSelectCategory('accessory')}
-          className={`px-2.5 py-1 rounded text-xs transition flex items-center gap-1 border cursor-pointer ${
-            categoryFilter === 'accessory' && selectedSlot === 'all'
-              ? 'bg-iron-800 text-brass-200 border-2 border-brass-400 shadow-inner font-black'
-              : 'bg-iron-950 text-gray-400 border-iron-800 hover:text-gray-200 hover:border-iron-700 font-medium'
-          }`}
-        >
-          <span>장신구</span>
-          <span className="text-[10px] font-mono opacity-80">({categoryCounts.accessory})</span>
-        </button>
-
-        <button
-          onClick={() => onSelectCategory('runeword')}
-          className={`px-2.5 py-1 rounded text-xs transition flex items-center gap-1 border cursor-pointer ${
-            categoryFilter === 'runeword' && selectedSlot === 'all'
-              ? 'bg-iron-800 text-amber-300 border-2 border-amber-400 shadow-inner font-black'
-              : 'bg-iron-950 text-amber-400/70 border-iron-800 hover:text-amber-300 hover:border-amber-600/50 font-medium'
-          }`}
-        >
-          <Sparkles className="w-3 h-3 text-amber-400" />
-          <span>룬워드</span>
-          <span className="text-[10px] font-mono opacity-80">({categoryCounts.runeword})</span>
-        </button>
+    <div className="bg-iron-900/90 p-1.5 sm:p-2 rounded-lg border border-iron-750 flex flex-wrap items-center justify-between gap-1.5 shadow">
+      {/* Category Filter Chips */}
+      <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5 flex-wrap">
+        {(['all', 'weapon', 'armor', 'accessory', 'runeword'] as const).map((cat) => {
+          const labels = {
+            all: '전체',
+            weapon: '⚔️무기',
+            armor: '🛡️방어구',
+            accessory: '💍장신구',
+            runeword: '✨룬'
+          };
+          const isAct = categoryFilter === cat && selectedSlot === 'all';
+          return (
+            <button
+              key={cat}
+              onClick={() => onSelectCategory(cat)}
+              className={`px-2 py-1 rounded text-xs font-bold transition flex items-center gap-1 border whitespace-nowrap cursor-pointer ${
+                isAct
+                  ? 'bg-iron-800 text-brass-200 border-2 border-brass-400 shadow-inner font-black'
+                  : 'bg-iron-950 text-gray-400 border-iron-800 hover:text-gray-200 font-medium'
+              }`}
+            >
+              <span>{labels[cat]}</span>
+              <span className="text-[10px] font-mono opacity-80">({categoryCounts[cat]})</span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Auto-Equip, Sorting & Batch Sell Controls */}
-      <div className="flex items-center gap-2 flex-wrap">
-        {/* Tier 1: Recommended Auto-Equip Action Button (Top Visual Dominance) */}
+      {/* Quick Actions (Recommend, Sort, Bulk Sell) */}
+      <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
+        {/* Recommended Auto-Equip */}
         {onAutoEquip && (
           <button
             onClick={onAutoEquip}
-            className="px-3.5 py-1.5 rounded-lg text-xs font-black transition flex items-center gap-1.5 border shadow bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-iron-950 border-amber-300 ring-2 ring-amber-300/80 shadow-[0_0_15px_rgba(251,191,36,0.6)] cursor-pointer transform active:scale-95 animate-pulse"
-            title="공격력+체력 가중치 기반으로 소지품에서 가장 우수한 상위 장비를 자동 일괄 장착합니다 [A]"
+            className="px-2.5 py-1 rounded-lg text-xs font-black transition flex items-center gap-1 border shadow bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-iron-950 border-amber-300 ring-1 ring-amber-300/80 cursor-pointer transform active:scale-95 animate-pulse"
+            title="소지품에서 가장 우수한 상위 장비를 자동 일괄 장착합니다 [A]"
           >
             <Zap className="w-3.5 h-3.5 fill-iron-950" />
-            <span>추천 일괄 장착</span>
-            <kbd className="text-[9px] font-mono px-1 rounded bg-black/40 text-amber-200 border border-amber-600/60">A</kbd>
+            <span>추천장착</span>
+            <kbd className="text-[9px] font-mono px-1 rounded bg-black/40 text-amber-200 border border-amber-600/60 hidden sm:inline">A</kbd>
           </button>
         )}
 
-        {/* Tier 3: Rarity Sort Buttons */}
-        <div className="flex items-center bg-iron-950 rounded-lg border border-iron-800 p-0.5">
-          <button
-            onClick={() => onToggleSortOrder('desc')}
-            title="레어리티 높은 순으로 정렬"
-            className={`px-2 py-1 rounded text-[11px] font-bold flex items-center gap-1 transition cursor-pointer ${
-              sortOrder === 'desc'
-                ? 'bg-iron-800 text-brass-300 border border-brass-500/80 font-black shadow-inner'
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            <ArrowDown className="w-3 h-3" />
-            <span>등급 높은순</span>
-          </button>
-          <button
-            onClick={() => onToggleSortOrder('asc')}
-            title="레어리티 낮은 순으로 정렬"
-            className={`px-2 py-1 rounded text-[11px] font-bold flex items-center gap-1 transition cursor-pointer ${
-              sortOrder === 'asc'
-                ? 'bg-iron-800 text-brass-300 border border-brass-500/80 font-black shadow-inner'
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            <ArrowUp className="w-3 h-3" />
-            <span>등급 낮은순</span>
-          </button>
-        </div>
+        {/* Sort Toggle */}
+        <button
+          onClick={() => onToggleSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')}
+          title={sortOrder === 'desc' ? "등급 높은순 (클릭 시 낮은순 전환)" : "등급 낮은순 (클릭 시 높은순 전환)"}
+          className="px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1 transition cursor-pointer bg-iron-950 text-gray-300 border border-iron-800 hover:border-iron-700"
+        >
+          <ArrowDownUp className="w-3 h-3 text-amber-400" />
+          <span>{sortOrder === 'desc' ? '등급↓' : '등급↑'}</span>
+        </button>
 
-        {/* Tier 2-B: Sell All (Guaranteed Protection for Locked Items) */}
+        {/* Bulk Sell */}
         <button
           onClick={onBulkSell}
           disabled={sellableCount === 0}
-          className={`px-3 py-1.5 rounded-lg text-xs font-black transition flex items-center gap-1.5 border shadow ${
+          className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 border shadow ${
             sellableCount > 0
-              ? 'bg-gradient-to-r from-amber-950 via-blood-950 to-amber-950 text-amber-200 border-amber-500/80 hover:border-amber-400 hover:text-white ring-1 ring-amber-500/50 cursor-pointer shadow-md'
-              : 'bg-iron-900 text-gray-600 border-iron-800 cursor-not-allowed opacity-50'
+              ? 'bg-amber-950/80 text-amber-200 border-amber-500/80 hover:border-amber-400 cursor-pointer'
+              : 'bg-iron-950 text-gray-600 border-iron-850 cursor-not-allowed opacity-50'
           }`}
-          title="소지품의 모든 잠금 해제 장비를 일괄 판매합니다. (🔒 잠금된 아이템과 장착 중인 장비는 안전하게 보호됩니다)"
+          title="소지품의 모든 잠금 해제 장비를 일괄 판매합니다"
         >
           <Coins className="w-3.5 h-3.5 text-amber-400" />
-          <span>전부 팔기</span>
+          <span>일괄판매</span>
           {sellableCount > 0 && (
-            <span className="text-[10px] font-mono font-bold text-amber-300 bg-black/60 px-1.5 py-0.5 rounded border border-amber-500/40">
-              {sellableCount}개 (+{totalSellGold.toLocaleString()}G)
+            <span className="text-[10px] font-mono font-bold text-amber-300">
+              ({sellableCount})
             </span>
           )}
         </button>

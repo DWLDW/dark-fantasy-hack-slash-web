@@ -43,68 +43,43 @@ export const ItemCompareTable: React.FC<ItemCompareTableProps> = React.memo(({ s
   }, [selectedItem, equippedItem]);
 
   return (
-    <div className="bg-iron-900/90 p-2.5 rounded-lg border border-iron-750 space-y-2">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[10px] font-mono border-b border-iron-800 pb-1.5">
-        <span className="text-gray-300 font-bold flex items-center gap-1">
-          <Scale className="w-3.5 h-3.5 text-brass-400" />
-          <span>
-            현재 착용 장비([<strong className="text-gray-200">{equippedItem ? equippedItem.name : '미착용'}</strong>])와의 스탯 비교표
-          </span>
+    <div className="bg-iron-950/80 p-2 rounded-lg border border-iron-800 space-y-1.5">
+      <div className="flex items-center justify-between text-[10px] font-mono text-gray-400">
+        <span className="font-bold flex items-center gap-1 text-brass-300">
+          <Scale className="w-3 h-3" /> 착용 장비 대비 스탯 변화
         </span>
-        <span className="text-gray-500 text-[9px]">
-          증가: <span className="text-green-400 font-bold">녹색(+)</span> / 감소: <span className="text-red-400 font-bold">빨간색(-)</span>
+        <span className="text-gray-500 truncate max-w-[120px]">
+          [{equippedItem ? equippedItem.name : '미착용'}]
         </span>
       </div>
 
       {visibleStats.length === 0 ? (
-        <div className="text-center py-2.5 text-gray-400 font-mono text-[11px] bg-iron-950/40 rounded border border-iron-800">
-          ✨ 비교 대상 장비와 모든 기본 스탯 수치가 동일합니다.
+        <div className="text-center py-1.5 text-gray-500 font-mono text-[10px]">
+          모든 기본 스탯 수치가 동일합니다.
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-[140px] overflow-y-auto pr-0.5">
+        <div className="flex flex-wrap gap-1 max-h-[110px] overflow-y-auto">
           {visibleStats.map(({ key, label, isPercent, icon }) => {
             const curVal = (equippedItem?.stats?.[key] as number) || 0;
             const nextVal = (selectedItem.stats?.[key] as number) || 0;
             const diff = nextVal - curVal;
 
             return (
-              <div
+              <span
                 key={key}
-                className={`p-1.5 rounded border text-[11px] font-mono flex items-center justify-between transition ${
+                className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold flex items-center gap-1 border ${
                   diff > 0
-                    ? 'bg-green-950/30 border-green-700/60'
+                    ? 'bg-green-950/60 text-green-300 border-green-700/60'
                     : diff < 0
-                    ? 'bg-red-950/30 border-red-700/60'
-                    : 'bg-iron-950/60 border-iron-800'
+                    ? 'bg-red-950/60 text-red-300 border-red-700/60'
+                    : 'bg-iron-900 text-gray-400 border-iron-800'
                 }`}
               >
-                <div className="text-gray-300 truncate mr-1 flex items-center gap-1">
-                  <span className="text-[10px]">{icon}</span>
-                  <span className="text-[10px] font-sans">{label}</span>
-                </div>
-
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <span className="text-gray-400 text-[10px]">
-                    {curVal}{isPercent ? '%' : ''}
-                  </span>
-                  <ArrowRight className="w-2.5 h-2.5 text-gray-600" />
-                  <span className={`font-black ${diff > 0 ? 'text-green-400' : diff < 0 ? 'text-red-400' : 'text-gray-300'}`}>
-                    {nextVal}{isPercent ? '%' : ''}
-                  </span>
-
-                  {diff !== 0 && (
-                    <span
-                      className={`text-[10px] font-black px-1 rounded ml-0.5 ${
-                        diff > 0
-                          ? 'text-green-400 bg-green-950 border border-green-600/50'
-                          : 'text-red-400 bg-red-950 border border-red-600/50'
-                      }`}
-                    >
-                      {diff > 0 ? `+${diff}` : `${diff}`}{isPercent ? '%' : ''}
-                    </span>
-                  )}
-                </div>
-              </div>
+                <span>{icon} {label}</span>
+                <span className="font-black">
+                  {diff > 0 ? `+${diff}` : diff}{isPercent ? '%' : ''}
+                </span>
+              </span>
             );
           })}
         </div>

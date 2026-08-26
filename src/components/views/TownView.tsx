@@ -86,118 +86,125 @@ export const TownView: React.FC = React.memo(() => {
   const unidentifiedCount = inventory.filter(i => i.isIdentified === false).length;
 
   return (
-    <div className="max-w-7xl mx-auto p-2 sm:p-4 space-y-3 pb-24 sm:pb-28 select-none overflow-x-hidden font-sans">
+    <div className="h-[calc(100dvh-40px-52px)] w-full max-w-7xl mx-auto p-1.5 sm:p-2.5 flex flex-col justify-between gap-1.5 sm:gap-2 select-none overflow-hidden font-sans">
       
-      {/* 1. Center Interactive Dark Fantasy Town Map Canvas */}
-      <TownMapCanvas
-        onOpenFacility={(fac) => handleOpenFacility(fac)}
-        unidentifiedCount={unidentifiedCount}
-        onDeploy={() => enterDungeon(lastDungeon.id, autoDeployDiff)}
-        onWorldMap={() => setViewMode('dungeon_select')}
-        lastDungeonName={lastDungeon.name}
-        autoDeployDiff={autoDeployDiff}
-        playerLevel={playerStats.level}
-      />
+      {/* 1. Center Interactive Dark Fantasy Town Map Canvas (Flex-1 Adaptive Height) */}
+      <div className="flex-1 min-h-0 w-full relative">
+        <TownMapCanvas
+          onOpenFacility={(fac) => handleOpenFacility(fac)}
+          unidentifiedCount={unidentifiedCount}
+          onDeploy={() => enterDungeon(lastDungeon.id, autoDeployDiff)}
+          onWorldMap={() => setViewMode('dungeon_select')}
+          lastDungeonName={lastDungeon.name}
+          autoDeployDiff={autoDeployDiff}
+          playerLevel={playerStats.level}
+        />
+      </div>
 
-      {/* 2. 4 Interactive Facility Cards Navigation */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-2.5">
+      {/* 2. Slim 1-Row 4-Facility Quick Bar (Zero Redundancy) */}
+      <div className="grid grid-cols-4 gap-1 sm:gap-1.5 flex-shrink-0">
         <button
           onClick={() => handleOpenFacility('cain')}
-          className={`p-2.5 sm:p-3 rounded-xl border-2 text-left transition cursor-pointer flex items-center gap-2.5 ${activeFacility === 'cain' && isFacilityModalOpen ? 'bg-blue-950/95 border-brass-400 ring-2 ring-brass-400/80 shadow-[0_0_15px_rgba(251,191,36,0.4)]' : 'bg-iron-900/95 border-iron-750 hover:border-iron-600 hover:bg-iron-850'}`}
+          className={`py-1 px-1 sm:px-2 rounded-lg border flex items-center justify-center gap-1 text-center transition cursor-pointer relative min-h-[36px] ${
+            activeFacility === 'cain' && isFacilityModalOpen
+              ? 'bg-blue-950 border-blue-400 text-blue-200 ring-2 ring-blue-400 shadow-md'
+              : 'bg-iron-900/95 border-iron-750 hover:border-blue-400 text-gray-200'
+          }`}
         >
-          <div className="w-9 h-9 rounded-lg bg-blue-950 border border-blue-400 flex items-center justify-center text-blue-300 flex-shrink-0">
-            <BookOpen className="w-5 h-5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center justify-between">
-              <span className="font-cinzel font-black text-xs sm:text-sm text-white truncate">데커드 케인</span>
-              {unidentifiedCount > 0 && <span className="px-1.5 py-0.2 bg-blood-600 text-white rounded-full text-[10px] font-mono font-bold animate-pulse">{unidentifiedCount}개</span>}
-            </div>
-            <div className="text-[11px] sm:text-xs text-blue-200/90 font-mono font-bold truncate">장비 무료 감정</div>
-          </div>
+          <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-300 flex-shrink-0" />
+          <span className="font-cinzel font-black text-[10px] sm:text-xs text-white truncate">케인</span>
+          {unidentifiedCount > 0 && (
+            <span className="absolute -top-1 -right-1 px-1.5 py-0.2 bg-blood-600 text-white rounded-full text-[9px] font-mono font-black animate-pulse border border-white">
+              {unidentifiedCount}
+            </span>
+          )}
         </button>
 
         <button
           onClick={() => handleOpenFacility('gamble')}
-          className={`p-2.5 sm:p-3 rounded-xl border-2 text-left transition cursor-pointer flex items-center gap-2.5 ${activeFacility === 'gamble' && isFacilityModalOpen ? 'bg-amber-950/95 border-brass-400 ring-2 ring-brass-400/80 shadow-[0_0_15px_rgba(251,191,36,0.4)]' : 'bg-iron-900/95 border-iron-750 hover:border-iron-600 hover:bg-iron-850'}`}
+          className={`py-1 px-1 sm:px-2 rounded-lg border flex items-center justify-center gap-1 text-center transition cursor-pointer min-h-[36px] ${
+            activeFacility === 'gamble' && isFacilityModalOpen
+              ? 'bg-amber-950 border-amber-400 text-amber-200 ring-2 ring-amber-400 shadow-md'
+              : 'bg-iron-900/95 border-iron-750 hover:border-amber-400 text-gray-200'
+          }`}
         >
-          <div className="w-9 h-9 rounded-lg bg-amber-950 border border-amber-400 flex items-center justify-center text-yellow-300 flex-shrink-0">
-            <Dices className="w-5 h-5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="font-cinzel font-black text-xs sm:text-sm text-white truncate">기드의 암시장</div>
-            <div className="text-[11px] sm:text-xs text-amber-200/90 font-mono font-bold truncate">8대 부위 도박</div>
-          </div>
+          <Dices className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300 flex-shrink-0" />
+          <span className="font-cinzel font-black text-[10px] sm:text-xs text-white truncate">기드</span>
         </button>
 
         <button
           onClick={() => handleOpenFacility('runewords')}
-          className={`p-2.5 sm:p-3 rounded-xl border-2 text-left transition cursor-pointer flex items-center gap-2.5 ${activeFacility === 'runewords' && isFacilityModalOpen ? 'bg-purple-950/95 border-brass-400 ring-2 ring-brass-400/80 shadow-[0_0_15px_rgba(251,191,36,0.4)]' : 'bg-iron-900/95 border-iron-750 hover:border-iron-600 hover:bg-iron-850'}`}
+          className={`py-1 px-1 sm:px-2 rounded-lg border flex items-center justify-center gap-1 text-center transition cursor-pointer min-h-[36px] ${
+            activeFacility === 'runewords' && isFacilityModalOpen
+              ? 'bg-purple-950 border-purple-400 text-purple-200 ring-2 ring-purple-400 shadow-md'
+              : 'bg-iron-900/95 border-iron-750 hover:border-purple-400 text-gray-200'
+          }`}
         >
-          <div className="w-9 h-9 rounded-lg bg-purple-950 border border-purple-400 flex items-center justify-center text-purple-300 flex-shrink-0">
-            <Sparkles className="w-5 h-5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="font-cinzel font-black text-xs sm:text-sm text-white truncate">룬워드 공방</div>
-            <div className="text-[11px] sm:text-xs text-purple-200/90 font-mono font-bold truncate">소켓 룬워드 제련</div>
-          </div>
+          <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-300 flex-shrink-0" />
+          <span className="font-cinzel font-black text-[10px] sm:text-xs text-white truncate">룬워드</span>
         </button>
 
         <button
           onClick={() => handleOpenFacility('cube')}
-          className={`p-2.5 sm:p-3 rounded-xl border-2 text-left transition cursor-pointer flex items-center gap-2.5 ${activeFacility === 'cube' && isFacilityModalOpen ? 'bg-emerald-950/95 border-brass-400 ring-2 ring-brass-400/80 shadow-[0_0_15px_rgba(251,191,36,0.4)]' : 'bg-iron-900/95 border-iron-750 hover:border-iron-600 hover:bg-iron-850'}`}
+          className={`py-1 px-1 sm:px-2 rounded-lg border flex items-center justify-center gap-1 text-center transition cursor-pointer min-h-[36px] ${
+            activeFacility === 'cube' && isFacilityModalOpen
+              ? 'bg-emerald-950 border-emerald-400 text-emerald-200 ring-2 ring-emerald-400 shadow-md'
+              : 'bg-iron-900/95 border-iron-750 hover:border-emerald-400 text-gray-200'
+          }`}
         >
-          <div className="w-9 h-9 rounded-lg bg-emerald-950 border border-emerald-400 flex items-center justify-center text-emerald-300 flex-shrink-0">
-            <Box className="w-5 h-5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="font-cinzel font-black text-xs sm:text-sm text-white truncate">호라드릭 연구소</div>
-            <div className="text-[11px] sm:text-xs text-emerald-200/90 font-mono font-bold truncate">30레벨 연구·합성</div>
-          </div>
+          <Box className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-300 flex-shrink-0" />
+          <span className="font-cinzel font-black text-[10px] sm:text-xs text-white truncate">큐브</span>
         </button>
       </div>
 
-      {/* 3. Primary Action & Expedition Bar */}
-      <div className="p-2.5 sm:p-3 bg-iron-950 border-2 border-brass-600/60 rounded-xl flex items-center justify-between gap-2.5 flex-wrap shadow-xl">
-        <div className="flex items-center gap-2 font-mono text-xs sm:text-sm text-gray-200 font-bold flex-wrap">
-          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded bg-iron-900 border border-brass-500 flex items-center justify-center text-amber-300 font-black text-xs sm:text-sm shadow">
-            Lv.{playerStats.level}
+      {/* 3. Thumb-Friendly Integrated Smart Expedition Dock */}
+      <div className="p-1.5 sm:p-2 bg-iron-950/95 border-2 border-brass-600/70 rounded-xl space-y-1 shadow-2xl flex-shrink-0">
+        {/* 3-A. Top Mini Status & Sub Actions */}
+        <div className="flex items-center justify-between gap-1 text-xs font-mono">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="px-1.5 py-0.2 bg-iron-900 border border-brass-500/80 rounded text-amber-300 font-black text-[10px] sm:text-[11px]">
+              Lv.{playerStats.level}
+            </span>
+            <span className="text-brass-200 font-bold text-[10px] sm:text-xs">
+              💰 {playerStats.gold.toLocaleString()} G
+            </span>
+            <span className="text-purple-300 font-bold text-[10px] sm:text-xs hidden min-[380px]:inline">
+              · 🔮 {playerStats.shards} S
+            </span>
           </div>
-          <span className="font-black text-white font-cinzel">광전사</span>
-          <span className="text-gray-500">·</span>
-          <span className="text-brass-200 font-black">{playerStats.gold.toLocaleString()} G</span>
-          <span className="text-gray-500">·</span>
-          <span className="text-purple-300 font-black">{playerStats.shards} Shards</span>
+
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => openModal('inventory')}
+              className="px-2 py-0.5 sm:py-1 bg-iron-900 hover:bg-iron-800 border border-iron-750 text-gray-200 rounded text-[10px] sm:text-[11px] font-bold flex items-center gap-1 cursor-pointer"
+              title="소지품 및 보관함 열기 [I]"
+            >
+              <Package className="w-3 h-3 text-indigo-400" />
+              <span>가방</span>
+            </button>
+            <button
+              onClick={() => setViewMode('dungeon_select')}
+              className="px-2 py-0.5 sm:py-1 bg-iron-900 hover:bg-iron-800 border border-iron-750 text-gray-200 rounded text-[10px] sm:text-[11px] font-bold flex items-center gap-1 cursor-pointer"
+              title="던전 월드맵 선택"
+            >
+              <Compass className="w-3 h-3 text-red-400" />
+              <span>월드맵</span>
+            </button>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap flex-1 sm:flex-initial justify-end">
-          <button
-            onClick={() => openModal('inventory')}
-            className="px-3 py-1.5 bg-iron-900 hover:bg-iron-800 border border-iron-750 text-gray-200 hover:text-white rounded-lg text-xs sm:text-sm font-bold flex items-center gap-1.5 transition shadow cursor-pointer min-h-[38px]"
-            title="가방 및 모험가 보관함 열기 [I]"
-          >
-            <Package className="w-4 h-4 text-indigo-400" />
-            <span>가방·보관함 [I]</span>
-          </button>
-
-          <button
-            onClick={() => setViewMode('dungeon_select')}
-            className="px-3 py-1.5 bg-iron-900 hover:bg-iron-800 border border-iron-750 text-gray-200 hover:text-white rounded-lg text-xs sm:text-sm font-bold flex items-center gap-1.5 transition shadow cursor-pointer min-h-[38px]"
-          >
-            <Compass className="w-4 h-4 text-red-400" />
-            <span>던전 월드맵</span>
-          </button>
-
-          <button
-            data-tutorial="deploy"
-            onClick={() => enterDungeon(lastDungeon.id, autoDeployDiff)}
-            className="px-4 sm:px-5 py-2 bg-gradient-to-r from-blood-700 via-blood-600 to-amber-600 hover:from-blood-600 hover:to-amber-500 text-white font-black rounded-lg text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-xl ring-2 ring-amber-400/80 hover:ring-amber-300 transition transform active:scale-95 min-h-[38px] cursor-pointer break-keep text-center"
-            title={`[${lastDungeon.name.split(":")[0]}] (난이도 Lv.${autoDeployDiff})으로 즉시 출격`}
-          >
-            <span>[출격] {lastDungeon.name.split(":")[0]} Lv.{autoDeployDiff}</span>
-            <ArrowRight className="w-4 h-4 flex-shrink-0" />
-          </button>
-        </div>
+        {/* 3-B. Bottom Large Main Launch CTA (Preserves data-tutorial="deploy") */}
+        <button
+          data-tutorial="deploy"
+          onClick={() => enterDungeon(lastDungeon.id, autoDeployDiff)}
+          className="w-full py-2 sm:py-2.5 bg-gradient-to-r from-blood-700 via-blood-600 to-amber-600 hover:from-blood-600 hover:to-amber-500 text-white font-black rounded-lg text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-xl ring-2 ring-amber-400/80 hover:ring-amber-300 transition transform active:scale-98 cursor-pointer min-h-[40px]"
+          title={`[${lastDungeon.name.split(":")[0]}] (난이도 Lv.${autoDeployDiff})으로 즉시 출격`}
+        >
+          <span className="truncate">
+            ⚔️ [출격] {lastDungeon.name.split(":")[0]} (Lv.{autoDeployDiff})
+          </span>
+          <ArrowRight className="w-4 h-4 flex-shrink-0" />
+        </button>
       </div>
 
       {/* 4. INDEPENDENT FACILITY MODAL WORKSPACE */}
