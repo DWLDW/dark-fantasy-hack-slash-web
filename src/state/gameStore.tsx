@@ -1587,6 +1587,106 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 element: bElem
               });
               addLog(`⚠️ [${boss.name} 멸망기 차징 개시!] 1턴 후 파멸의 스킬이 발동합니다! 저지 게이지(${staggerMax})를 깎아 Break 시키세요!`, 'damage');
+            } else {
+              // ⚔️ Boss Regular Signature Active Skill Rotation!
+              const sigKey = boss.bossSignatureKey || '';
+              const bName = boss.name.replace(/^👑\s*/, '');
+              const bIcon = boss.icon || '👑';
+              const bElem = (boss.element || 'fire') as ElementType;
+              const baseDmg = boss.intent.damage || 20;
+              const turn = bossTurnCountRef.current;
+
+              let activeSkillName = '';
+              let activeSkillDesc = '';
+              let activeSkillDmg = Math.max(10, Math.floor(baseDmg * 1.25));
+              let skillElem = bElem;
+
+              if (sigKey === 'poison_nova' || bElem === 'poison') {
+                if (turn % 2 === 1) {
+                  activeSkillName = '독침 연사 (Poison Sting)';
+                  activeSkillDesc = '맹독이 주입된 침을 날려 연속 피해';
+                  activeSkillDmg = Math.max(12, Math.floor(baseDmg * 1.3));
+                } else {
+                  activeSkillName = '유독한 안개 (Venom Fog)';
+                  activeSkillDesc = '전 레인에 독기를 방출하여 공격력 약화';
+                  activeSkillDmg = Math.max(10, Math.floor(baseDmg * 1.15));
+                }
+              } else if (sigKey === 'holy_freeze_charge' || bElem === 'cold') {
+                if (turn % 2 === 1) {
+                  activeSkillName = '결빙 강타 (Glacial Slam)';
+                  activeSkillDesc = '혹한의 충격으로 분노 -15 소각 및 결빙 타격';
+                  activeSkillDmg = Math.max(14, Math.floor(baseDmg * 1.35));
+                  setPlayerStats(p => ({ ...p, rage: Math.max(0, p.rage - 15) }));
+                } else {
+                  activeSkillName = '흉포한 도약 (Heavy Pounce)';
+                  activeSkillDesc = '육중한 몸체로 내리찍는 파쇄타';
+                  activeSkillDmg = Math.max(15, Math.floor(baseDmg * 1.4));
+                }
+              } else if (sigKey === 'lightning_pylon' || bElem === 'lightning') {
+                if (turn % 2 === 1) {
+                  activeSkillName = '연쇄 번개 (Chain Lightning)';
+                  activeSkillDesc = '전류가 튕기며 파고드는 뇌격포';
+                  activeSkillDmg = Math.max(14, Math.floor(baseDmg * 1.35));
+                } else {
+                  activeSkillName = '해골 유도탄 (Skull Missile)';
+                  activeSkillDesc = '영혼을 추적하는 암흑 마탄';
+                  activeSkillDmg = Math.max(16, Math.floor(baseDmg * 1.45));
+                }
+              } else if (sigKey === 'red_lightning_hose' || bElem === 'fire') {
+                if (turn % 2 === 1) {
+                  activeSkillName = '지옥불 파도 (Fire Wave)';
+                  activeSkillDesc = '전 레인을 휩쓰는 지옥의 화염 파도';
+                  activeSkillDmg = Math.max(15, Math.floor(baseDmg * 1.4));
+                } else {
+                  activeSkillName = '암흑 화염구 (Dark Fireball)';
+                  activeSkillDesc = '응축된 지옥불을 폭발시키는 강타';
+                  activeSkillDmg = Math.max(16, Math.floor(baseDmg * 1.5));
+                }
+              } else if (sigKey === 'vile_clone_burn' || bElem === 'void') {
+                if (turn % 2 === 1) {
+                  activeSkillName = '마나 연소 광선 (Mana Burn Beam)';
+                  activeSkillDesc = '정신을 찢는 공허 광선으로 분노 -20 소각';
+                  activeSkillDmg = Math.max(14, Math.floor(baseDmg * 1.3));
+                  setPlayerStats(p => ({ ...p, rage: Math.max(0, p.rage - 20) }));
+                } else {
+                  activeSkillName = '혈마 쐐기 (Blood Mana Spike)';
+                  activeSkillDesc = '생명력을 관통하는 심연의 쐐기';
+                  activeSkillDmg = Math.max(16, Math.floor(baseDmg * 1.45));
+                }
+              } else {
+                if (sigKey.includes('blood')) {
+                  activeSkillName = '피의 갈증 (Blood Thirst)';
+                  activeSkillDesc = '생명력을 흡수하는 맹공격';
+                  activeSkillDmg = Math.max(12, Math.floor(baseDmg * 1.3));
+                  boss.hp = Math.min(boss.maxHp, boss.hp + Math.floor(activeSkillDmg * 0.4));
+                } else if (sigKey.includes('ancient') || sigKey.includes('whirlwind')) {
+                  activeSkillName = '3인의 도약 참격 (Leap Cleave)';
+                  activeSkillDesc = '고대 야만용사의 강철 도약 베기';
+                  activeSkillDmg = Math.max(15, Math.floor(baseDmg * 1.4));
+                } else {
+                  activeSkillName = '암흑 분쇄타 (Shadow Smash)';
+                  activeSkillDesc = '강력한 암흑의 힘으로 내려치는 묵직한 강타';
+                  activeSkillDmg = Math.max(12, Math.floor(baseDmg * 1.25));
+                }
+              }
+
+              // Trigger Boss Regular Active Skill Banner & Log
+              triggerBossSkill({
+                name: bName,
+                icon: bIcon,
+                title: activeSkillName,
+                desc: activeSkillDesc,
+                element: skillElem
+              });
+              addLog(`⚔️ [${boss.name} 스킬 시전: ${activeSkillName}] ${activeSkillDesc} (${activeSkillDmg} 피해)`, 'damage');
+
+              calculatedHp = Math.max(0, calculatedHp - activeSkillDmg);
+              triggerPlayerHitFlash(activeSkillDmg, {
+                attackerName: boss.name,
+                isBoss: true,
+                element: skillElem,
+                lane: playerLane
+              });
             }
 
             // Guard weak lane cycle

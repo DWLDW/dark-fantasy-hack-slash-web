@@ -164,17 +164,17 @@
   will-change: transform, opacity;
 }
 
-/* 💥 Critical Hit Heavy Slam (대형 크리티컬 스탬프) */
+/* 💥 Critical Hit Heavy Slam (대형 크리티컬 스탬프 - Zero Blur & Clean Transparent) */
 @keyframes critSlam {
-  0% { opacity: 0; transform: translate(-50%, -50%) scale(3.2) rotate(-5deg); filter: drop-shadow(0 0 35px rgba(251, 191, 36, 1)); }
-  15% { opacity: 1; transform: translate(-50%, -50%) scale(0.92) rotate(-2deg); }
-  25% { transform: translate(-50%, -50%) scale(1.04) rotate(0deg); }
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(2.2) rotate(-5deg); }
+  15% { opacity: 1; transform: translate(-50%, -50%) scale(0.95) rotate(-2deg); }
+  25% { transform: translate(-50%, -50%) scale(1.02) rotate(0deg); }
   40% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
   85% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-  100% { opacity: 0; transform: translate(-50%, -58%) scale(0.8); filter: blur(4px); }
+  100% { opacity: 0; transform: translate(-50%, -58%) scale(0.85); }
 }
 .animate-crit-slam {
-  animation: critSlam 1.35s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+  animation: critSlam 1.25s cubic-bezier(0.19, 1, 0.22, 1) forwards;
   pointer-events: none;
   will-change: transform, opacity;
 }

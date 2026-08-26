@@ -66,7 +66,7 @@ export const CombatJackpotOverlay: React.FC<CombatJackpotOverlayProps> = React.m
   return (
     <div className="absolute inset-0 pointer-events-none z-[60] flex flex-col items-center justify-center select-none overflow-visible" aria-hidden>
       
-      {/* 💥 Main Center Jackpot Popup Banner */}
+      {/* 💥 Main Center Jackpot Popup (Zero Backdrop / Clean Floating) */}
       <div
         key={activeEvent.id}
         className={`flex flex-col items-center justify-center text-center ${
@@ -74,9 +74,9 @@ export const CombatJackpotOverlay: React.FC<CombatJackpotOverlayProps> = React.m
         }`}
       >
         {/* Top Badges Row (Crit / Overkill / WeakSpot) */}
-        <div className="flex items-center gap-1.5 flex-wrap justify-center mb-0.5">
+        <div className="flex items-center gap-1.5 flex-wrap justify-center mb-0.5 pointer-events-none">
           {activeEvent.isCrit && (
-            <div className="px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500 via-yellow-300 to-amber-500 text-iron-950 font-black text-xs sm:text-sm tracking-widest shadow-[0_0_20px_rgba(251,191,36,1)] border border-white flex items-center gap-1 animate-pulse">
+            <div className="px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500 via-yellow-300 to-amber-500 text-iron-950 font-black text-xs sm:text-sm tracking-widest border border-white flex items-center gap-1 shadow-lg animate-pulse">
               <Sparkles className="w-3.5 h-3.5 text-red-600 fill-current" />
               <span>CRITICAL HIT!</span>
               <Sparkles className="w-3.5 h-3.5 text-red-600 fill-current" />
@@ -84,33 +84,33 @@ export const CombatJackpotOverlay: React.FC<CombatJackpotOverlayProps> = React.m
           )}
 
           {activeEvent.isWeakSpotHit && (
-            <div className="px-2 py-0.5 rounded-full bg-emerald-600 text-white font-black text-xs sm:text-sm tracking-wider shadow-[0_0_15px_rgba(16,185,129,0.9)] border border-emerald-200 animate-bounce">
+            <div className="px-2 py-0.5 rounded-full bg-emerald-600 text-white font-black text-xs sm:text-sm tracking-wider border border-emerald-200 shadow animate-bounce">
               <span>🎯 WEAK SPOT 2.5x</span>
             </div>
           )}
 
           {activeEvent.isBossBreak && (
-            <div className="px-2 py-0.5 rounded-full bg-red-600 text-yellow-200 font-black text-xs sm:text-sm tracking-wider shadow-[0_0_20px_rgba(239,68,68,1)] border-2 border-yellow-300 animate-bounce">
+            <div className="px-2 py-0.5 rounded-full bg-red-600 text-yellow-200 font-black text-xs sm:text-sm tracking-wider border-2 border-yellow-300 shadow animate-bounce">
               <span>💥 BREAK! GROGGY</span>
             </div>
           )}
 
           {activeEvent.isExtraStrike && (
-            <div className="px-1.5 py-0.5 rounded bg-amber-950/90 border border-amber-400 text-amber-300 font-mono font-bold text-[10px] sm:text-xs">
+            <div className="px-1.5 py-0.5 rounded bg-amber-950/90 border border-amber-400 text-amber-300 font-mono font-bold text-[10px] sm:text-xs shadow">
               ⚡ 신속 연격 +35%
             </div>
           )}
         </div>
 
-        {/* 🎰 BIG ROLLING TOTAL DAMAGE NUMBER */}
-        <div className="relative">
+        {/* 🎰 BIG ROLLING TOTAL DAMAGE NUMBER (Zero Blur Neon Outline) */}
+        <div className="relative pointer-events-none">
           <div
-            className={`font-mono font-black tracking-tight drop-shadow-[0_4px_12px_rgba(0,0,0,1)] ${
+            className={`font-mono font-black tracking-tight text-stroke-thin ${
               activeEvent.isCrit
-                ? 'text-3xl sm:text-5xl text-amber-300 drop-shadow-[0_4px_16px_rgba(0,0,0,1)]'
+                ? 'text-3xl sm:text-5xl text-yellow-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]'
                 : isBigHit
-                ? 'text-2xl sm:text-4xl text-orange-300 drop-shadow-[0_4px_16px_rgba(0,0,0,1)]'
-                : 'text-xl sm:text-3xl text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]'
+                ? 'text-2xl sm:text-4xl text-amber-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]'
+                : 'text-xl sm:text-3xl text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]'
             }`}
           >
             {activeEvent.isCrit ? '💥 ' : ''}
@@ -118,16 +118,16 @@ export const CombatJackpotOverlay: React.FC<CombatJackpotOverlayProps> = React.m
             <span className="text-xs sm:text-base text-amber-200 ml-1 font-cinzel font-bold">TOTAL</span>
           </div>
 
-          {/* Underline Flame Aura for Big Hits */}
+          {/* Underline Light Glow */}
           {isBigHit && (
-            <div className="w-full h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent shadow-[0_0_12px_rgba(251,191,36,1)] mt-0.5 animate-pulse" />
+            <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent mt-0.5 animate-pulse" />
           )}
         </div>
 
         {/* Bottom Multi-Kill / Overkill Roulette Counter */}
-        <div className="flex items-center gap-2 mt-1">
+        <div className="flex items-center gap-2 mt-1 pointer-events-none">
           {activeEvent.overkillCount > 0 && (
-            <div className="px-2 py-0.5 rounded-full bg-gradient-to-r from-orange-600 to-red-600 text-white font-mono font-black text-[10px] sm:text-xs border border-orange-300 shadow-[0_0_12px_rgba(249,115,22,0.8)] animate-overkill-pop flex items-center gap-1">
+            <div className="px-2 py-0.5 rounded-full bg-gradient-to-r from-orange-600 to-red-600 text-white font-mono font-black text-[10px] sm:text-xs border border-orange-300 shadow animate-overkill-pop flex items-center gap-1">
               <Skull className="w-3 h-3 text-yellow-300" />
               <span>OVERKILL x{activeEvent.overkillCount}</span>
             </div>

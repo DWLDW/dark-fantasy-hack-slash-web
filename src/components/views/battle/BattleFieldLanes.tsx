@@ -444,7 +444,7 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                     ? 'bg-amber-950/30 border-amber-500/80'
                     : isLaneTargeted
                     ? 'bg-iron-900/50 border-blood-700/80'
-                    : 'bg-black/25 border-iron-800/80 hover:border-iron-700'
+                    : `${actTheme.laneBg} ${actTheme.laneBorder}`
                 }`}
               >
                 {/* Lane Top Header & Hit Summary */}

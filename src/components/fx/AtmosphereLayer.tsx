@@ -44,8 +44,8 @@ export const AtmosphereLayer: React.FC<AtmosphereLayerProps> = React.memo(({ act
           style={{
             left: `${(i * 37) % 100}%`,
             animationDelay: `${(i * 0.35) % 5}s`,
-            animationDuration: `${6 + (i % 5)}s`,
-            opacity: 0.25 + (i % 4) * 0.12
+            animationDuration: `${5 + (i % 4)}s`,
+            opacity: 0.45 + (i % 4) * 0.15
           }}
         />
       ))}
