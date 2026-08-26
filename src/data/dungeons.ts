@@ -822,17 +822,36 @@ export const DUNGEON_MONSTER_TEMPLATES: Record<string, DungeonMonsterRoster> = {
     backline: { name: '역병 미이라 사제', icon: '🏺' },
     elite: { name: '하수도 부패 군주', icon: '🦟👑' }
   },
-  act2_2_oasis: {
+  act2_2_halls: {
+    frontline: { name: '모래 딱정벌레', icon: '🪲' },
+    midline: { name: '사막 약탈자 전사', icon: '🥷' },
+    backline: { name: '풍뎅이 번개충', icon: '🪲⚡' },
+    elite: { name: '거대 번개 풍뎅이', icon: '🪲⭐' }
+  },
+  act2_3_maggot: {
     frontline: { name: '모래 구더기 유충', icon: '🐛' },
+    midline: { name: '산란 맹독충', icon: '🪱' },
+    backline: { name: '거대 모래벌레', icon: '🐛🔥' },
+    elite: { name: '마고트 맹독 군주', icon: '🐛👑' }
+  },
+  act2_4_tomb: {
+    frontline: { name: '탈 라샤의 수호 미이라', icon: '🏺' },
+    midline: { name: '사막 맹독 전갈', icon: '🦂' },
+    backline: { name: '모래 폭풍 뼈 마법사', icon: '💀🌪️' },
+    elite: { name: '고대 무덤 수호대장', icon: '🏺⭐' }
+  },
+  // Act 2 Aliases for backward compatibility
+  act2_2_oasis: {
+    frontline: { name: '모래 딱정벌레', icon: '🪲' },
     midline: { name: '사막 약탈자 전사', icon: '🥷' },
     backline: { name: '풍뎅이 번개충', icon: '🪲⚡' },
     elite: { name: '거대 번개 풍뎅이', icon: '🪲⭐' }
   },
   act2_3_sanctuary: {
-    frontline: { name: '비전의 유령 수호자', icon: '👻' },
-    midline: { name: '차원 왜곡 악마', icon: '👾' },
-    backline: { name: '소환술사 제자', icon: '🧙' },
-    elite: { name: '비전 차원장', icon: '🔮⭐' }
+    frontline: { name: '모래 구더기 유충', icon: '🐛' },
+    midline: { name: '산란 맹독충', icon: '🪱' },
+    backline: { name: '거대 모래벌레', icon: '🐛🔥' },
+    elite: { name: '마고트 맹독 군주', icon: '🐛👑' }
   },
   act2_4_duriel: {
     frontline: { name: '탈 라샤의 수호 미이라', icon: '🏺' },
@@ -842,17 +861,17 @@ export const DUNGEON_MONSTER_TEMPLATES: Record<string, DungeonMonsterRoster> = {
   },
 
   // ==================== ACT 3 ====================
-  act3_1_jungle: {
+  act3_1_spider: {
     frontline: { name: '밀림 맹독 거미', icon: '🕷️' },
-    midline: { name: '정글 피그미 전사', icon: '🎭' },
+    midline: { name: '독침 날벌레', icon: '🦟' },
     backline: { name: '밀림 침묵의 주술사', icon: '🧙‍♂️' },
-    elite: { name: '피그미 족장', icon: '🎭⭐' }
+    elite: { name: '맹독 거미 군주', icon: '🕷️⭐' }
   },
-  act3_2_kurast: {
-    frontline: { name: '자카룸 광신도 전사', icon: '⚔️' },
-    midline: { name: '타락한 사원 집행관', icon: '🛡️' },
-    backline: { name: '암흑 번개 주술사', icon: '⚡' },
-    elite: { name: '자카룸 대사제', icon: '🧙‍♂️⭐' }
+  act3_2_jungle: {
+    frontline: { name: '정글 피그미 전사', icon: '🎭' },
+    midline: { name: '피그미 독침 취관수', icon: '🪈' },
+    backline: { name: '약탈자 흑마술사', icon: '🔮' },
+    elite: { name: '피그미 대족장', icon: '🎭⭐' }
   },
   act3_3_travincal: {
     frontline: { name: '평의회 근위 호위병', icon: '🛡️' },
@@ -865,6 +884,19 @@ export const DUNGEON_MONSTER_TEMPLATES: Record<string, DungeonMonsterRoster> = {
     midline: { name: '타락한 언데드 기사', icon: '💀🛡️' },
     backline: { name: '영혼 흡수 유령', icon: '👻' },
     elite: { name: '브렘 스파크피스트', icon: '⚡⭐' }
+  },
+  // Act 3 Aliases for backward compatibility
+  act3_1_jungle: {
+    frontline: { name: '밀림 맹독 거미', icon: '🕷️' },
+    midline: { name: '정글 피그미 전사', icon: '🎭' },
+    backline: { name: '밀림 침묵의 주술사', icon: '🧙‍♂️' },
+    elite: { name: '피그미 족장', icon: '🎭⭐' }
+  },
+  act3_2_kurast: {
+    frontline: { name: '자카룸 광신도 전사', icon: '⚔️' },
+    midline: { name: '타락한 사원 집행관', icon: '🛡️' },
+    backline: { name: '암흑 번개 주술사', icon: '⚡' },
+    elite: { name: '자카룸 대사제', icon: '🧙‍♂️⭐' }
   },
 
   // ==================== ACT 4 ====================

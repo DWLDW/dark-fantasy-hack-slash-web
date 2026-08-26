@@ -620,7 +620,7 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                             <span className={`truncate font-bold ${
                               isBoss ? 'text-amber-200 font-cinzel font-black' : isElite ? 'text-yellow-300 font-bold' : 'text-white'
                             }`}>
-                              {m.name.split(' ')[0]}
+                              {m.name}
                             </span>
                           </div>
                           {isBoss ? (

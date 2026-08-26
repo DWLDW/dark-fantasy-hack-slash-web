@@ -2954,7 +2954,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setConsumables(INITIAL_CONSUMABLES);
     setCurrentDungeon(DUNGEONS_DATA[0]);
     setCurrentRoomId(2);
-    setMonsters(createDungeonFormation('act1_crypt', 'normal', 1));
+    setMonsters(createDungeonFormation('act1_1_den', 'normal', 1));
     setChainCount(0);
     setViewMode('town');
     setAchievementStats(INITIAL_ACHIEVEMENT_STATS);
