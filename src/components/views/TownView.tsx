@@ -4,12 +4,51 @@ import { useGame } from '../../state/gameStore';
 import { DUNGEONS_DATA, RUNEWORD_RECIPES, D2_RUNES } from '../../data/gameData';
 import { simulateRuneWordCrafting } from '../../utils/runeCrafting';
 import { POTION_CAPACITY_TIERS, getPotionCapacityUpgradeCost, getPotionHealingUpgradeCost, getConsumablePowerUpgradeCost, getGambleLevelUpgradeCost } from '../../state/helpers/cubeCraftingHelper';
-import { GameItem } from '../../types/game';
+import { GameItem, EquipSlot } from '../../types/game';
 import { ACHIEVEMENTS } from '../../data/achievements';
 import { isDungeonUnlocked, getHighestUnlockedDungeon } from '../../data/dungeons';
-import { Box, Home, X, ArrowLeft, Sparkles, Dices, BookOpen, ArrowRight, Shield, Compass, Hammer, Trophy, Zap, Package } from 'lucide-react';
+import { Box, Home, X, ArrowLeft, Sparkles, Dices, BookOpen, ArrowRight, Shield, Compass, Hammer, Trophy, Zap, Package, Filter, ArrowUpDown } from 'lucide-react';
+
+const RARITY_WEIGHT: Record<string, number> = {
+  legendary: 7,
+  unique: 6,
+  set: 5,
+  runeword: 4,
+  rare: 3,
+  magic: 2,
+  normal: 1
+};
+
+const TIER_WEIGHT: Record<string, number> = {
+  elite: 3,
+  exceptional: 2,
+  normal: 1
+};
+
+type SocketSlotFilter = 'all' | 'weapon' | 'armor' | 'helm' | 'shield';
+type SocketSortBy = 'quality' | 'sockets' | 'tier' | 'power';
+
+const GAMBLE_OPTIONS: {
+  slot: 'weapon' | 'armor' | 'shield' | 'helm' | 'gloves' | 'boots' | 'ring' | 'amulet';
+  name: string;
+  subText: string;
+  icon: string;
+  cost: number;
+  hoverBorder: string;
+  textColor: string;
+}[] = [
+  { slot: 'weapon', name: '미지의 무기', subText: '고대 병기 & 도검', icon: '⚔️', cost: 3500, hoverBorder: 'hover:border-amber-400', textColor: 'text-amber-400' },
+  { slot: 'armor', name: '미지의 갑옷', subText: '판금갑 & 성역 방호구', icon: '🥋', cost: 4000, hoverBorder: 'hover:border-blue-400', textColor: 'text-blue-400' },
+  { slot: 'shield', name: '미지의 방패', subText: '기사단 방패 & 방벽', icon: '🛡️', cost: 3800, hoverBorder: 'hover:border-cyan-400', textColor: 'text-cyan-400' },
+  { slot: 'helm', name: '미지의 투구', subText: '고대 군주의 관', icon: '👑', cost: 3200, hoverBorder: 'hover:border-purple-400', textColor: 'text-purple-400' },
+  { slot: 'gloves', name: '미지의 장갑', subText: '명장의 완갑 & 건틀릿', icon: '🧤', cost: 2800, hoverBorder: 'hover:border-emerald-400', textColor: 'text-emerald-400' },
+  { slot: 'boots', name: '미지의 장화', subText: '원정대의 군화 & 그리브', icon: '🥾', cost: 2800, hoverBorder: 'hover:border-emerald-400', textColor: 'text-emerald-400' },
+  { slot: 'ring', name: '미지의 반지', subText: '신비로운 마력의 고리', icon: '💍', cost: 6000, hoverBorder: 'hover:border-yellow-400', textColor: 'text-yellow-400' },
+  { slot: 'amulet', name: '미지의 목걸이', subText: '고대 유물 아뮬렛', icon: '📿', cost: 7500, hoverBorder: 'hover:border-purple-400', textColor: 'text-purple-400' },
+];
 
 export const TownView: React.FC = React.memo(() => {
+
   const {
     playerStats,
     totalStats,
@@ -95,10 +134,57 @@ export const TownView: React.FC = React.memo(() => {
     setSelectedCubeItems([]);
   };
 
-  const socketableItems = useMemo(() => 
+  const [socketSlotFilter, setSocketSlotFilter] = useState<SocketSlotFilter>('all');
+  const [socketSortBy, setSocketSortBy] = useState<SocketSortBy>('quality');
+
+  const rawSocketItems = useMemo(() => 
     inventory.filter(i => i.sockets && i.sockets > (i.socketedRunes?.length || 0)),
     [inventory]
   );
+
+  const socketCountsBySlot = useMemo(() => ({
+    all: rawSocketItems.length,
+    weapon: rawSocketItems.filter(i => i.slot === 'weapon').length,
+    armor: rawSocketItems.filter(i => i.slot === 'armor').length,
+    helm: rawSocketItems.filter(i => i.slot === 'helm').length,
+    shield: rawSocketItems.filter(i => i.slot === 'shield').length,
+  }), [rawSocketItems]);
+
+  const socketableItems = useMemo(() => {
+    let list = rawSocketItems;
+    if (socketSlotFilter !== 'all') {
+      list = list.filter(i => i.slot === socketSlotFilter);
+    }
+    return [...list].sort((a, b) => {
+      const rarityA = RARITY_WEIGHT[a.rarity] || 1;
+      const rarityB = RARITY_WEIGHT[b.rarity] || 1;
+      const socketsA = a.sockets || 0;
+      const socketsB = b.sockets || 0;
+      const tierA = TIER_WEIGHT[a.tier?.toLowerCase() || 'normal'] || 1;
+      const tierB = TIER_WEIGHT[b.tier?.toLowerCase() || 'normal'] || 1;
+      const powerA = (a.stats.maxDmg || a.stats.minDmg || 0) + (a.stats.defense || 0);
+      const powerB = (b.stats.maxDmg || b.stats.minDmg || 0) + (b.stats.defense || 0);
+
+      if (socketSortBy === 'quality') {
+        if (rarityB !== rarityA) return rarityB - rarityA;
+        if (socketsB !== socketsA) return socketsB - socketsA;
+        if (tierB !== tierA) return tierB - tierA;
+        return powerB - powerA;
+      } else if (socketSortBy === 'sockets') {
+        if (socketsB !== socketsA) return socketsB - socketsA;
+        if (rarityB !== rarityA) return rarityB - rarityA;
+        return tierB - tierA;
+      } else if (socketSortBy === 'tier') {
+        if (tierB !== tierA) return tierB - tierA;
+        if (rarityB !== rarityA) return rarityB - rarityA;
+        return socketsB - socketsA;
+      } else if (socketSortBy === 'power') {
+        if (powerB !== powerA) return powerB - powerA;
+        return rarityB - rarityA;
+      }
+      return 0;
+    });
+  }, [rawSocketItems, socketSlotFilter, socketSortBy]);
   
   const unidentifiedCount = useMemo(() => 
     inventory.filter(i => i.isIdentified === false).length,
@@ -397,8 +483,8 @@ export const TownView: React.FC = React.memo(() => {
             {activeFacility === 'gamble' && (
               <div className="space-y-3.5 text-xs sm:text-sm animate-fade-in">
                 <div className="text-gray-100 leading-relaxed font-medium bg-iron-950/80 p-3 rounded-xl border border-iron-750">
-                  "모든 물건에는 가치가 있는 법이지... 골드만 충분하다면 말이야."<br />
-                  미확인 장비를 뽑아 대박 <strong className="text-yellow-300 font-black">레어</strong> 및 <strong className="text-orange-400 font-black">유니크(나겔링, 조던링, 마라의 만화경 등)</strong>를 노리세요!
+                  "모든 물건에는 저마다의 비밀과 가치가 있지... 골드만 충분하다면 말이야."<br />
+                  베일에 싸인 미확인 장비를 거래하여 성역의 강력한 <strong className="text-yellow-300 font-black">희귀 명품(Rare)</strong>과 <strong className="text-orange-400 font-black">고대 전설 유물(Unique)</strong>을 손에 넣으세요!
                 </div>
 
                 {gambleFeedback && (
@@ -440,118 +526,22 @@ export const TownView: React.FC = React.memo(() => {
                 )}
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 font-mono">
-                  <button
-                    onClick={() => {
-                      const res = gambleItem('weapon');
-                      if (res) setGambleFeedback({ item: res.item, isHighRarity: res.isHighRarity, cost: 3500 });
-                    }}
-                    className="p-3 bg-iron-950 hover:bg-iron-850 border-2 border-iron-700 hover:border-amber-400 rounded-xl text-left transition space-y-1.5 shadow cursor-pointer transform active:scale-95"
-                  >
-                    <div className="font-black text-gray-100 text-xs sm:text-sm flex items-center justify-between">
-                      <span>⚔️ 무기류</span>
-                      <span className="text-[11px] text-amber-400 font-bold">도검/폴암</span>
-                    </div>
-                    <div className="text-brass-200 font-black text-xs sm:text-sm">3,500 G</div>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      const res = gambleItem('armor');
-                      if (res) setGambleFeedback({ item: res.item, isHighRarity: res.isHighRarity, cost: 4000 });
-                    }}
-                    className="p-3 bg-iron-950 hover:bg-iron-850 border-2 border-iron-700 hover:border-blue-400 rounded-xl text-left transition space-y-1.5 shadow cursor-pointer transform active:scale-95"
-                  >
-                    <div className="font-black text-gray-100 text-xs sm:text-sm flex items-center justify-between">
-                      <span>🥋 갑옷류</span>
-                      <span className="text-[11px] text-blue-400 font-bold">판금갑옷</span>
-                    </div>
-                    <div className="text-brass-200 font-black text-xs sm:text-sm">4,000 G</div>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      const res = gambleItem('shield');
-                      if (res) setGambleFeedback({ item: res.item, isHighRarity: res.isHighRarity, cost: 3800 });
-                    }}
-                    className="p-3 bg-iron-950 hover:bg-iron-850 border-2 border-iron-700 hover:border-cyan-400 rounded-xl text-left transition space-y-1.5 shadow cursor-pointer transform active:scale-95"
-                  >
-                    <div className="font-black text-gray-100 text-xs sm:text-sm flex items-center justify-between">
-                      <span>🛡️ 방패류</span>
-                      <span className="text-[11px] text-cyan-400 font-bold">타워실드</span>
-                    </div>
-                    <div className="text-brass-200 font-black text-xs sm:text-sm">3,800 G</div>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      const res = gambleItem('helm');
-                      if (res) setGambleFeedback({ item: res.item, isHighRarity: res.isHighRarity, cost: 3200 });
-                    }}
-                    className="p-3 bg-iron-950 hover:bg-iron-850 border-2 border-iron-700 hover:border-purple-400 rounded-xl text-left transition space-y-1.5 shadow cursor-pointer transform active:scale-95"
-                  >
-                    <div className="font-black text-gray-100 text-xs sm:text-sm flex items-center justify-between">
-                      <span>👑 투구류</span>
-                      <span className="text-[11px] text-purple-400 font-bold">샤코/크라운</span>
-                    </div>
-                    <div className="text-brass-200 font-black text-xs sm:text-sm">3,200 G</div>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      const res = gambleItem('gloves');
-                      if (res) setGambleFeedback({ item: res.item, isHighRarity: res.isHighRarity, cost: 2800 });
-                    }}
-                    className="p-3 bg-iron-950 hover:bg-iron-850 border-2 border-iron-700 hover:border-emerald-400 rounded-xl text-left transition space-y-1.5 shadow cursor-pointer transform active:scale-95"
-                  >
-                    <div className="font-black text-gray-100 text-xs sm:text-sm flex items-center justify-between">
-                      <span>🧤 장갑류</span>
-                      <span className="text-[11px] text-emerald-400 font-bold">건틀릿</span>
-                    </div>
-                    <div className="text-brass-200 font-black text-xs sm:text-sm">2,800 G</div>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      const res = gambleItem('boots');
-                      if (res) setGambleFeedback({ item: res.item, isHighRarity: res.isHighRarity, cost: 2800 });
-                    }}
-                    className="p-3 bg-iron-950 hover:bg-iron-850 border-2 border-iron-700 hover:border-emerald-400 rounded-xl text-left transition space-y-1.5 shadow cursor-pointer transform active:scale-95"
-                  >
-                    <div className="font-black text-gray-100 text-xs sm:text-sm flex items-center justify-between">
-                      <span>🥾 신발류</span>
-                      <span className="text-[11px] text-emerald-400 font-bold">워부츠</span>
-                    </div>
-                    <div className="text-brass-200 font-black text-xs sm:text-sm">2,800 G</div>
-                  </button>
-
-
-                  <button
-                    onClick={() => {
-                      const res = gambleItem('ring');
-                      if (res) setGambleFeedback({ item: res.item, isHighRarity: res.isHighRarity, cost: 6000 });
-                    }}
-                    className="p-3 bg-iron-950 hover:bg-iron-850 border-2 border-iron-700 hover:border-yellow-400 rounded-xl text-left transition space-y-1.5 shadow cursor-pointer transform active:scale-95"
-                  >
-                    <div className="font-black text-gray-100 text-xs sm:text-sm flex items-center justify-between">
-                      <span>💍 반지 (Ring)</span>
-                      <span className="text-[11px] text-yellow-400 font-bold">조던/나겔</span>
-                    </div>
-                    <div className="text-brass-200 font-black text-xs sm:text-sm">6,000 G</div>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      const res = gambleItem('amulet');
-                      if (res) setGambleFeedback({ item: res.item, isHighRarity: res.isHighRarity, cost: 7500 });
-                    }}
-                    className="p-3 bg-iron-950 hover:bg-iron-850 border-2 border-iron-700 hover:border-purple-400 rounded-xl text-left transition space-y-1.5 shadow cursor-pointer transform active:scale-95"
-                  >
-                    <div className="font-black text-gray-100 text-xs sm:text-sm flex items-center justify-between">
-                      <span>📿 목걸이 (Amulet)</span>
-                      <span className="text-[11px] text-purple-400 font-bold">마라/대군주</span>
-                    </div>
-                    <div className="text-brass-200 font-black text-xs sm:text-sm">7,500 G</div>
-                  </button>
+                  {GAMBLE_OPTIONS.map((option) => (
+                    <button
+                      key={option.slot}
+                      onClick={() => {
+                        const res = gambleItem(option.slot);
+                        if (res) setGambleFeedback({ item: res.item, isHighRarity: res.isHighRarity, cost: option.cost });
+                      }}
+                      className={`p-3 bg-iron-950 hover:bg-iron-850 border-2 border-iron-700 ${option.hoverBorder} rounded-xl text-left transition space-y-1.5 shadow cursor-pointer transform active:scale-95`}
+                    >
+                      <div className="font-black text-gray-100 text-xs sm:text-sm flex items-center justify-between">
+                        <span>{option.icon} {option.name}</span>
+                        <span className={`text-[11px] font-bold ${option.textColor}`}>{option.subText}</span>
+                      </div>
+                      <div className="text-brass-200 font-black text-xs sm:text-sm">{option.cost.toLocaleString()} G</div>
+                    </button>
+                  ))}
                 </div>
 
                 <div className="text-xs text-gray-300 text-center font-mono font-bold pt-0.5">
@@ -588,6 +578,52 @@ export const TownView: React.FC = React.memo(() => {
                     )}
                   </div>
 
+                  {/* 🎯 부위별 필터 탭 & 정렬 옵션 툴바 */}
+                  <div className="flex items-center justify-between gap-2 flex-wrap text-xs">
+                    {/* 부위별 필터 탭 */}
+                    <div className="flex items-center gap-1 bg-iron-900 p-1 rounded-lg border border-iron-750 flex-wrap font-mono">
+                      {(['all', 'weapon', 'armor', 'helm', 'shield'] as const).map((filterKey) => {
+                        const label = filterKey === 'all' ? '전체' : filterKey === 'weapon' ? '무기' : filterKey === 'armor' ? '갑옷' : filterKey === 'helm' ? '투구' : '방패';
+                        const count = socketCountsBySlot[filterKey];
+                        const isActive = socketSlotFilter === filterKey;
+                        return (
+                          <button
+                            key={filterKey}
+                            onClick={() => setSocketSlotFilter(filterKey)}
+                            className={`px-2 py-0.5 rounded text-[11px] font-bold transition flex items-center gap-1 cursor-pointer ${
+                              isActive
+                                ? 'bg-amber-950 text-amber-200 border border-amber-400 shadow'
+                                : 'text-gray-400 hover:text-gray-200 hover:bg-iron-800'
+                            }`}
+                          >
+                            <span>{label}</span>
+                            <span className={`px-1 py-0.2 rounded text-[9px] ${isActive ? 'bg-amber-400 text-iron-950 font-black' : 'bg-iron-950 text-gray-400'}`}>
+                              {count}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* 정렬 셀렉터 */}
+                    <div className="flex items-center gap-1 text-[11px] font-mono">
+                      <span className="text-gray-400 flex items-center gap-0.5">
+                        <ArrowUpDown className="w-3 h-3 text-amber-400" />
+                        정렬:
+                      </span>
+                      <select
+                        value={socketSortBy}
+                        onChange={(e) => setSocketSortBy(e.target.value as SocketSortBy)}
+                        className="bg-iron-900 border border-iron-700 text-amber-300 font-bold px-2 py-0.5 rounded cursor-pointer focus:outline-none focus:border-amber-400 text-xs"
+                      >
+                        <option value="quality">💎 최고 품질순 (기본)</option>
+                        <option value="sockets">🔢 소켓 수 많은 순</option>
+                        <option value="tier">⭐ 티어 높은 순</option>
+                        <option value="power">⚔️ 공격/방어 스탯순</option>
+                      </select>
+                    </div>
+                  </div>
+
                   {socketableItems.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 max-h-60 overflow-y-auto pr-1">
                       {socketableItems.map(item => {
@@ -595,6 +631,14 @@ export const TownView: React.FC = React.memo(() => {
                         const slotLabel = item.slot === 'weapon' ? '무기' : item.slot === 'armor' ? '갑옷' : item.slot === 'shield' ? '방패' : item.slot === 'helm' ? '투구' : item.slot;
                         const socketedCount = item.socketedRunes?.length || 0;
                         const remainingSockets = (item.sockets || 0) - socketedCount;
+
+                        // 등급 색상
+                        const rarityBadgeColor = 
+                          item.rarity === 'unique' ? 'text-amber-400 border-amber-500 bg-amber-950/60' :
+                          item.rarity === 'set' ? 'text-emerald-400 border-emerald-500 bg-emerald-950/60' :
+                          item.rarity === 'rare' ? 'text-yellow-300 border-yellow-500 bg-yellow-950/60' :
+                          item.rarity === 'magic' ? 'text-blue-400 border-blue-500 bg-blue-950/60' :
+                          'text-gray-300 border-iron-700 bg-iron-950';
 
                         return (
                           <button
@@ -618,8 +662,11 @@ export const TownView: React.FC = React.memo(() => {
                               )}
                             </div>
 
-                            {/* Badges: Slot, Tier, Sockets */}
+                            {/* Badges: Slot, Rarity, Tier, Sockets */}
                             <div className="flex items-center gap-1.5 flex-wrap text-xs font-mono">
+                              <span className={`px-1.5 py-0.2 rounded border font-bold uppercase text-[10px] ${rarityBadgeColor}`}>
+                                {item.rarity}
+                              </span>
                               <span className="px-2 py-0.5 rounded bg-iron-950 border border-iron-700 text-gray-200 font-bold">
                                 {slotLabel}
                               </span>
@@ -652,6 +699,7 @@ export const TownView: React.FC = React.memo(() => {
                                 </span>
                               )}
                             </div>
+
 
                             {/* Socketed Runes List if any (No Truncate!) */}
                             {item.socketedRunes && item.socketedRunes.length > 0 && (

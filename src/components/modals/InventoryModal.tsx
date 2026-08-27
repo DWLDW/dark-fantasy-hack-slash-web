@@ -322,9 +322,35 @@ export const InventoryModal: React.FC = () => {
     return inventory.filter(i => !i.isLocked && i.slot !== 'rune' && i.slot !== 'consumable');
   }, [inventory]);
 
+  const normalMagicSellableItems = useMemo(() => {
+    return cleanEquipmentInventory.filter(i => !i.isLocked && (i.rarity === 'normal' || i.rarity === 'magic'));
+  }, [cleanEquipmentInventory]);
+
+  const normalMagicSellGold = useMemo(() => {
+    return normalMagicSellableItems.reduce((acc, item) => acc + (getItemSellPrice ? getItemSellPrice(item) : (item.value || 5)), 0);
+  }, [normalMagicSellableItems, getItemSellPrice]);
+
   const totalSellGold = useMemo(() => {
     return sellableItems.reduce((acc, item) => acc + (getItemSellPrice ? getItemSellPrice(item) : (item.value || 5)), 0);
   }, [sellableItems, getItemSellPrice]);
+
+  const handleBulkSellNormalMagic = () => {
+    if (normalMagicSellableItems.length === 0) {
+      alert('판매할 수 있는 일반/마법 장비가 없습니다.\n(🔒 잠금된 아이템은 안전하게 보호됩니다)');
+      return;
+    }
+
+    openConfirmModal({
+      title: '일반/마법 장비 일괄 판매',
+      message: `인벤토리의 일반 및 마법 등급 미장착 장비 총 ${normalMagicSellableItems.length}개를 일괄 판매하시겠습니까?\n\n• 총 획득 골드: +${normalMagicSellGold.toLocaleString()}G\n• 🔒 잠금된 아이템과 희귀(레어) 이상 장비는 안전하게 보호됩니다.`,
+      confirmText: `일괄 판매 (+${normalMagicSellGold.toLocaleString()}G)`,
+      type: 'warning',
+      onConfirm: () => {
+        bulkSellItems(['normal', 'magic']);
+        setSelectedCandidateItemId(null);
+      }
+    });
+  };
 
   const handleSellAll = () => {
     if (sellableItems.length === 0) {
@@ -404,9 +430,19 @@ export const InventoryModal: React.FC = () => {
   return (
     <div className="bg-iron-950 border-2 border-brass-500 rounded-xl p-2.5 sm:p-3 w-full max-w-5xl h-[96dvh] max-h-[96dvh] overflow-hidden flex flex-col shadow-[0_0_40px_rgba(251,191,36,0.2)] text-xs md:text-sm select-none font-sans ui-ornate">
       
-      {/* ═══ Header & Mode Tabs (Compact 1-Row) ═══ */}
+      {/* ═══ Header & Mode Tabs (Left: Close + Tabs / Right: Bulk Sell + Auto Equip) ═══ */}
       <div className="bg-iron-950 pb-2 border-b border-iron-750 flex items-center justify-between gap-2 flex-shrink-0 flex-wrap">
+        {/* Left: Close Button + Main Tabs */}
         <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={closeModal}
+            className="text-gray-300 hover:text-white p-1.5 rounded-lg hover:bg-iron-800 bg-iron-900 border border-iron-750 transition cursor-pointer flex items-center justify-center shadow group"
+            aria-label="닫기"
+            title="인벤토리 닫기 (Esc)"
+          >
+            <X className="w-4 h-4 text-gray-300 group-hover:text-amber-400 transition-colors" />
+          </button>
+
           {/* Main Mode Tabs */}
           <div className="flex bg-iron-900 p-0.5 rounded-lg border border-iron-750 font-cinzel font-bold text-xs">
             <button
@@ -463,13 +499,34 @@ export const InventoryModal: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Status & Quick Auto-Equip & Close */}
-        <div className="flex items-center gap-1.5">
-          {!isCombatMode && activeTab === 'equipment' && (
+        {/* Right: Bulk Sell Normal/Magic + Quick Auto-Equip */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {!isCombatMode && (
+            <button
+              onClick={handleBulkSellNormalMagic}
+              disabled={normalMagicSellableItems.length === 0}
+              className={`px-2.5 py-1 rounded text-[11px] font-bold transition flex items-center gap-1 border shadow cursor-pointer active:scale-95 ${
+                normalMagicSellableItems.length > 0
+                  ? 'bg-amber-950/80 text-amber-300 border-amber-600/80 hover:bg-amber-900 hover:border-amber-400 ring-1 ring-amber-500/30'
+                  : 'bg-iron-900 text-gray-600 border-iron-800 cursor-not-allowed opacity-50'
+              }`}
+              title="인벤토리의 일반 및 마법 등급 장비를 일괄 판매합니다 (잠금 장비 안전 보호)"
+            >
+              <Coins className="w-3.5 h-3.5 text-amber-400" />
+              <span>일반/마법 일괄판매</span>
+              {normalMagicSellableItems.length > 0 && (
+                <span className="text-[10px] font-mono font-black text-amber-200 bg-black/50 px-1 rounded border border-amber-700/60">
+                  {normalMagicSellableItems.length}
+                </span>
+              )}
+            </button>
+          )}
+
+          {!isCombatMode && (
             <button
               onClick={autoEquipBestItems}
               className="px-2.5 py-1 rounded text-[11px] font-black bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 text-iron-950 border border-amber-300 ring-1 ring-amber-400 flex items-center gap-1 cursor-pointer active:scale-95 shadow"
-              title="최상위 장비 일괄 장착 [A]"
+              title="최상위 장비 자동 일괄 장착 [A]"
             >
               <Sparkles className="w-3 h-3 fill-iron-950" />
               <span>추천 일괄 장착 [A]</span>
@@ -482,14 +539,6 @@ export const InventoryModal: React.FC = () => {
               전투 중 (조회)
             </span>
           )}
-
-          <button
-            onClick={closeModal}
-            className="text-gray-300 hover:text-white p-1 rounded hover:bg-iron-800 transition cursor-pointer flex items-center justify-center"
-            aria-label="닫기"
-          >
-            <X className="w-5 h-5" />
-          </button>
         </div>
       </div>
 
@@ -516,7 +565,7 @@ export const InventoryModal: React.FC = () => {
             {/* ═══ Right 7 Cols: Selected Slot Candidates + Single Focus Diff Card ═══ */}
             <div className="md:col-span-7 flex flex-col justify-between h-full min-h-0 space-y-1.5 overflow-hidden">
               
-              {/* Candidate Horizontal Ribbon Bar (Ultra-Slim) */}
+              {/* Candidate Horizontal Ribbon Bar (Expanded 2~3 Rows & Full Stats Range) */}
               <div className="bg-iron-900/90 p-1.5 rounded-lg border border-iron-750 flex-shrink-0 shadow">
                 <div className="flex items-center justify-between mb-1 text-[10px] font-mono text-gray-300">
                   <span className="font-bold text-amber-300">
@@ -532,14 +581,17 @@ export const InventoryModal: React.FC = () => {
                     📦 가방에 교체 가능한 [{SLOT_NAMES[selectedSlot]}] 장비가 없습니다.
                   </div>
                 ) : (
-                  <div className="grid grid-cols-4 sm:grid-cols-6 gap-1 max-h-[58px] overflow-y-auto pr-0.5">
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-1 max-h-[118px] overflow-y-auto pr-0.5">
                     {stackedCandidates.map(({ item, count }) => {
                       const isSelected = activeCandidateItem?.id === item.id;
+                      const isWeapon = item.slot === 'weapon';
+                      const isArmor = isArmorSlot(item.slot);
+
                       return (
                         <button
                           key={item.id}
                           onClick={() => setSelectedCandidateItemId(item.id)}
-                          className={`p-1 rounded border text-left transition relative flex flex-col justify-between min-h-[42px] cursor-pointer ${
+                          className={`p-1 rounded border text-left transition relative flex flex-col justify-between min-h-[44px] cursor-pointer ${
                             isSelected
                               ? 'bg-amber-950/90 border-amber-400 ring-1 ring-amber-400 text-white shadow'
                               : 'bg-iron-950 border-iron-800 hover:border-iron-600 text-gray-300'
@@ -554,8 +606,16 @@ export const InventoryModal: React.FC = () => {
                           <div className="font-bold text-[9px] truncate leading-tight my-0.5">
                             {item.name}
                           </div>
-                          <div className="text-[8px] font-mono font-bold text-amber-400 leading-none">
-                            {item.stats.minDmg ? `⚔️${item.stats.minDmg}` : item.stats.defense ? `🛡️${item.stats.defense}` : ''}
+                          <div className="text-[8px] font-mono font-bold text-amber-400 leading-none truncate">
+                            {isWeapon || item.stats.minDmg !== undefined || item.stats.maxDmg !== undefined
+                              ? `⚔️${item.stats.minDmg ?? 0}~${item.stats.maxDmg ?? 0}`
+                              : isArmor && item.stats.defense
+                              ? `🛡️${item.stats.defense}`
+                              : item.stats.allResist
+                              ? `✨저항+${item.stats.allResist}`
+                              : item.stats.hp
+                              ? `❤️+${item.stats.hp}`
+                              : ''}
                           </div>
                         </button>
                       );
