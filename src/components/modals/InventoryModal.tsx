@@ -3,6 +3,7 @@ import { useGame } from '../../state/gameStore';
 import { EquipSlot, GameItem, ItemRarity, RuneWordRecipe } from '../../types/game';
 import { RUNEWORD_RECIPES } from '../../data/gameData';
 import { simulateRuneWordCrafting } from '../../utils/runeCrafting';
+import { isRuneWordSlotCompatible } from '../../state/helpers/runeWordCalculator';
 import { ItemDetailCard } from './inventory/ItemDetailCard';
 import { ItemCompareTable } from './inventory/ItemCompareTable';
 import { EquippedPaperdoll } from './inventory/EquippedPaperdoll';
@@ -160,9 +161,7 @@ export const InventoryModal: React.FC = () => {
     }
 
     const availableRecipes = RUNEWORD_RECIPES.filter(recipe => {
-      const isSlotMatching =
-        recipe.allowedSlot === activeCandidateItem.slot ||
-        (recipe.allowedSlot === 'weapon' && (activeCandidateItem.slot === 'weapon' || activeCandidateItem.slot === 'shield'));
+      const isSlotMatching = isRuneWordSlotCompatible(activeCandidateItem.slot, recipe);
       return isSlotMatching && recipe.requiredSockets === activeCandidateItem.sockets;
     });
 

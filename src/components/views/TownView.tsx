@@ -3,6 +3,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { useGame } from '../../state/gameStore';
 import { DUNGEONS_DATA, RUNEWORD_RECIPES, D2_RUNES } from '../../data/gameData';
 import { simulateRuneWordCrafting } from '../../utils/runeCrafting';
+import { isRuneWordSlotCompatible } from '../../state/helpers/runeWordCalculator';
 import { POTION_CAPACITY_TIERS, getPotionCapacityUpgradeCost, getPotionHealingUpgradeCost, getConsumablePowerUpgradeCost, getGambleLevelUpgradeCost } from '../../state/helpers/cubeCraftingHelper';
 import { GameItem, EquipSlot } from '../../types/game';
 import { ACHIEVEMENTS } from '../../data/achievements';
@@ -740,11 +741,11 @@ export const TownView: React.FC = React.memo(() => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 max-h-72 overflow-y-auto pr-1">
                     {RUNEWORD_RECIPES.filter(r => {
                       if (!selectedBaseItem) return true;
-                      const isSlotMatch = r.allowedSlot === selectedBaseItem.slot || (r.id === 'rw_spirit' && selectedBaseItem.slot === 'shield');
+                      const isSlotMatch = isRuneWordSlotCompatible(selectedBaseItem.slot, r);
                       return isSlotMatch && r.requiredSockets === selectedBaseItem.sockets;
                     }).map(recipe => {
                       const sim = simulateRuneWordCrafting(recipe, runesVault);
-                      const isSlotMatch = selectedBaseItem ? (recipe.allowedSlot === selectedBaseItem.slot || (recipe.id === 'rw_spirit' && selectedBaseItem.slot === 'shield')) : false;
+                      const isSlotMatch = selectedBaseItem ? isRuneWordSlotCompatible(selectedBaseItem.slot, recipe) : false;
                       const isMatchingSelected = Boolean(selectedBaseItem && isSlotMatch && recipe.requiredSockets === selectedBaseItem.sockets);
 
                       return (

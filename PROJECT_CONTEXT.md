@@ -381,6 +381,22 @@ Dragon Quest 식 턴제 전투 기반 + Diablo II 식 오버킬 체인, 룬워�
 - 🌐 **실서버 배포 완료**:
   - `https://193.122.127.129.sslip.io` (Oracle Cloud Ubuntu 24.04).
 
+### 33. [디아블로2 원작 기준] 드랍 테이블 소켓 매트릭스 & 33종 룬워드 호환성 전수 점검 완료
+- 💎 **등급별 소켓 생성 상한선 및 디아블로2 매트릭스 엄격 적용 (`dungeonEventHelper.ts`, `items.ts`, `cubeCraftingHelper.ts`)**:
+  - **노멀(Normal)**: 무기(1~6소켓), 갑옷(1~4소켓), 방패(1~4소켓), 투구(1~3소켓), 장갑/신발/장신구(0소켓) - 베이스 및 티어별 D2 공식 최대 소켓 룰 100% 적용.
+  - **매직(Magic) & 레어(Rare)**: 드랍 및 생성 시 **최고 2소켓** 제한 (0~2소켓).
+  - **유니크(Unique) & 세트(Set)**: 드랍 및 생성 시 **최고 1소켓** 제한 (0~1소켓, `u_crown_of_ages` 등 전수 1소켓 보정).
+- 📜 **33종 전 룬워드 레시피 및 다중 장비군 호환성 전수 검증 (`runeWords.ts`, `runeWordCalculator.ts`, `TownView.tsx`, `InventoryModal.tsx`)**:
+  - 33종 전 룬워드의 명칭, 필요 룬 및 각인 순서, 필요 소켓 수, 허용 장비군이 디아블로2 공식과 100% 일치함을 확인.
+  - **다중 슬롯 호환성 함수 (`isRuneWordSlotCompatible`) 도입**:
+    - `스피리트 (Spirit)`: 검(Weapon) & 방패(Shield) 4소켓 모두 지원
+    - `불사조 (Phoenix)`: 무기(Weapon) & 방패(Shield) 4소켓 모두 지원
+    - `인내 (Fortitude)`: 갑옷(Armor) & 무기(Weapon) 4소켓 모두 지원
+    - `용 (Dragon)`: 갑옷(Armor) & 방패(Shield) 3소켓 모두 지원
+- 🌐 **실서버 배포 완료**:
+  - `https://193.122.127.129.sslip.io` (Oracle Cloud Ubuntu 24.04).
+
+
 
 
 

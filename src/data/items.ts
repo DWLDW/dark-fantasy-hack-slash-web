@@ -1305,14 +1305,14 @@ export const GAME_ITEMS_POOL: GameItem[] = [
     rarity: 'unique',
     tier: 'elite',
     slot: 'helm',
-    sockets: 2,
+    sockets: 1,
     socketedRunes: [],
     requiredLevel: 82,
     stats: { defense: 110, allResist: 30, damageReduction: 15, allSkills: 1 },
     value: 9500,
     icon: 'HardHat',
-    description: '고대 시대부터 전해 내려오는 불멸의 왕관. 2개의 빈 소켓과 올스킬을 지닙니다.',
-    specialEffect: '모든 스킬 레벨 +1, 물리 피해 감소 +15% 및 모든 원소 저항 +30% (2 소켓)'
+    description: '고대 시대부터 전해 내려오는 불멸의 왕관. 1개의 빈 소켓과 올스킬을 지닙니다.',
+    specialEffect: '모든 스킬 레벨 +1, 물리 피해 감소 +15% 및 모든 원소 저항 +30% (1 소켓)'
   },
   {
     id: 'u_griffons_eye',

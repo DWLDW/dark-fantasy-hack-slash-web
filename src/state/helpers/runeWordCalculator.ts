@@ -42,6 +42,19 @@ export interface CraftRuneWordResult {
   newVault?: Record<string, number>;
 }
 
+export function isRuneWordSlotCompatible(targetSlot: string, recipe: RuneWordRecipe): boolean {
+  if (targetSlot === recipe.allowedSlot) return true;
+  // 1. 스피리트 (Spirit / 영혼): 도검(Weapon) & 방패(Shield) 모두 제작 가능
+  if (recipe.id === 'rw_spirit' && (targetSlot === 'weapon' || targetSlot === 'shield')) return true;
+  // 2. 불사조 (Phoenix): 무기(Weapon) & 방패(Shield) 모두 제작 가능
+  if (recipe.id === 'rw_phoenix' && (targetSlot === 'weapon' || targetSlot === 'shield')) return true;
+  // 3. 인내 (Fortitude): 갑옷(Armor) & 무기(Weapon) 모두 제작 가능
+  if (recipe.id === 'rw_fortitude' && (targetSlot === 'armor' || targetSlot === 'weapon')) return true;
+  // 4. 용 (Dragon): 갑옷(Armor) & 방패(Shield) 모두 제작 가능
+  if (recipe.id === 'rw_dragon' && (targetSlot === 'armor' || targetSlot === 'shield')) return true;
+  return false;
+}
+
 export function craftRuneWordHelper(
   targetItem: GameItem | undefined,
   recipeId: string,
@@ -52,9 +65,7 @@ export function craftRuneWordHelper(
     return { success: false, message: '제작 대상 아이템 또는 룬워드 레시피를 찾을 수 없습니다.' };
   }
 
-  const isSlotMatch = targetItem.slot === recipe.allowedSlot ||
-    (recipe.id === 'rw_spirit' && targetItem.slot === 'shield') ||
-    ((targetItem.slot === 'ring1' || targetItem.slot === 'ring2') && (recipe.allowedSlot === 'ring1' || recipe.allowedSlot === 'ring2'));
+  const isSlotMatch = isRuneWordSlotCompatible(targetItem.slot, recipe);
 
   if (targetItem.rarity !== 'normal' || !isSlotMatch || (targetItem.sockets || 0) !== recipe.requiredSockets) {
     return {
@@ -102,9 +113,7 @@ export function craftRuneWordWithTransmuteHelper(
     return { success: false, message: '제작 대상 아이템 또는 룬워드 레시피를 찾을 수 없습니다.' };
   }
 
-  const isSlotMatch = targetItem.slot === recipe.allowedSlot ||
-    (recipe.id === 'rw_spirit' && targetItem.slot === 'shield') ||
-    ((targetItem.slot === 'ring1' || targetItem.slot === 'ring2') && (recipe.allowedSlot === 'ring1' || recipe.allowedSlot === 'ring2'));
+  const isSlotMatch = isRuneWordSlotCompatible(targetItem.slot, recipe);
 
   if (targetItem.rarity !== 'normal' || !isSlotMatch || (targetItem.sockets || 0) !== recipe.requiredSockets) {
     return {

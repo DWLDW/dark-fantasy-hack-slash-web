@@ -51,30 +51,51 @@ export interface TreasureReward {
 }
 
 /**
- * 🚀 [Base Hunter Mechanic]: 매직 아이템 발견 확률(playerFortune / MF)이 높을수록
- * 노말 및 소켓 가능 장비에 3~6 소켓이 뚫릴 확률이 기하급수적으로 증가합니다!
+ * 🚀 [Diablo 2 Socket Matrix]:
+ * - 노멀(Normal): 디아블로2 기준 부위별/티어별 최대 소켓 (무기 1~6, 갑옷 1~4, 방패 1~4, 투구 1~3, 기타 0)
+ * - 매직(Magic) / 레어(Rare): 최대 소켓 2개 (1~2개)
+ * - 유니크(Unique) / 세트(Set): 최대 소켓 1개 (0~1개)
  */
 export function rollDynamicSockets(
   baseItem: GameItem,
   playerFortune: number = 0,
-  difficultyLevel: number = 1
+  difficultyLevel: number = 1,
+  targetRarity?: GameItem['rarity']
 ): number | undefined {
   const slot = baseItem.slot;
   if (slot !== 'weapon' && slot !== 'armor' && slot !== 'shield' && slot !== 'helm') {
     return undefined;
   }
 
-  // 기본 아이템에 지정된 소켓이 있는 경우
-  const baseSockets = baseItem.sockets || 0;
+  const effectiveRarity = targetRarity || baseItem.rarity;
+
+  // 1. 유니크 / 세트 / 레전더리 -> 최대 1소켓
+  if (effectiveRarity === 'unique' || effectiveRarity === 'set' || effectiveRarity === 'legendary') {
+    const defaultSockets = baseItem.sockets ? Math.min(1, baseItem.sockets) : 0;
+    if (defaultSockets > 0) return 1;
+    // 25% 확률로 1소켓 드랍
+    return Math.random() < 0.25 ? 1 : undefined;
+  }
+
+  // 2. 매직 / 레어 -> 최대 2소켓
+  if (effectiveRarity === 'magic' || effectiveRarity === 'rare') {
+    // 35% 확률로 소켓 부여 (50% 확률로 2소켓, 50% 확률로 1소켓)
+    if (Math.random() < 0.35) {
+      return Math.random() < 0.50 ? 2 : 1;
+    }
+    return baseItem.sockets ? Math.min(2, baseItem.sockets) : undefined;
+  }
+
+  // 3. 노멀(Normal) -> 디아블로2 원작 최대 소켓 매트릭스
   const maxSocketsForSlot: Record<string, number> = {
     weapon: baseItem.tier === 'elite' ? 6 : baseItem.tier === 'exceptional' ? 5 : 4,
-    armor: 4,
-    shield: 4,
-    helm: 3
+    armor: baseItem.tier === 'normal' ? 3 : 4,
+    shield: baseItem.tier === 'normal' ? 3 : 4,
+    helm: baseItem.tier === 'normal' ? 2 : 3
   };
   const maxS = maxSocketsForSlot[slot] || 4;
 
-  // Fortune (MF) bonus: 100 MF = +15% high-socket weight, 300 MF = +45% high-socket weight
+  // Fortune (MF) & 난이도 보너스
   const mfBonus = Math.min(0.60, Math.max(0, playerFortune * 0.0015));
   const diffBonus = Math.min(0.30, Math.max(0, (difficultyLevel - 1) * 0.05));
   const highSocketChance = mfBonus + diffBonus;
@@ -91,7 +112,7 @@ export function rollDynamicSockets(
   // 2소켓 롤
   if (maxS >= 2 && roll < 0.90) return 2;
 
-  return Math.max(baseSockets, 1);
+  return Math.max(baseItem.sockets || 1, 1);
 }
 
 export function scaleItemForDifficulty(baseItem: GameItem, difficultyLevel: number = 1): GameItem {
@@ -190,13 +211,14 @@ function makeDungeonDrop(
   const isSpecialDrop = droppedBase.rarity === 'unique' || droppedBase.rarity === 'set' || droppedBase.rarity === 'legendary';
 
   if (isSpecialDrop && wantSpecial) {
+    const specialSockets = droppedBase.sockets ? Math.min(1, droppedBase.sockets) : (Math.random() < 0.20 ? 1 : undefined);
     return {
       ...scaled,
       id: `${idPrefix}_${Date.now()}_${index}_${Math.random().toString(36).substring(2, 6)}`,
       name: `미확인 [${getSlotBaseName(droppedBase.slot, droppedBase.baseItemName)}]`,
       baseItemName: droppedBase.baseItemName || getSlotBaseName(droppedBase.slot),
       rarity: droppedBase.rarity,
-      sockets: droppedBase.sockets,
+      sockets: specialSockets,
       socketedRunes: [],
       realUniqueName: droppedBase.name,
       isIdentified: false
@@ -209,10 +231,8 @@ function makeDungeonDrop(
   if (roll < 7 + magicBoost * 0.25) rarity = 'rare';
   else if (roll < 30 + magicBoost) rarity = 'magic';
 
-  // 🚀 Base Hunter: 노말 베이스 아이템 드랍 시 MF(playerFortune)에 비례하여 3~6소켓 생성!
-  const rolledSockets = (rarity === 'normal' || droppedBase.sockets)
-    ? rollDynamicSockets(droppedBase, playerFortune, difficultyLevel)
-    : undefined;
+  // 🚀 D2 Socket Matrix: 노말 1~6소켓, 매직/레어 1~2소켓
+  const rolledSockets = rollDynamicSockets(droppedBase, playerFortune, difficultyLevel, rarity);
 
   let displayName = droppedBase.name;
   if (rarity === 'normal' && rolledSockets && rolledSockets > 0) {

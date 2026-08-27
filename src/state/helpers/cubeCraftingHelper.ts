@@ -172,23 +172,28 @@ export function cubeTransmuteHelper(selectedItems: GameItem[]): CubeTransmuteRes
     }
   }
 
-  // Recipe 2: Single Normal Item -> Add 2~4 Sockets
+  // Recipe 2: Single Normal Item -> Add Sockets (D2 Matrix: Weapon 1~6, Armor/Shield 1~4, Helm 1~3)
   const socketableSlots: EquipSlot[] = ['weapon', 'armor', 'helm', 'shield'];
   if (selectedItems.length === 1 && selectedItems[0].rarity === 'normal' && socketableSlots.includes(selectedItems[0].slot as EquipSlot) && (!selectedItems[0].sockets || selectedItems[0].sockets === 0)) {
     const target = selectedItems[0];
-    const maxSockets = target.slot === 'helm' ? 3 : 4;
-    const socketCount = Math.min(maxSockets, Math.floor(Math.random() * 2) + 2);
+    const maxSockets = target.slot === 'weapon'
+      ? (target.tier === 'elite' ? 6 : target.tier === 'exceptional' ? 5 : 4)
+      : target.slot === 'helm'
+      ? 3
+      : 4;
+    // 1부터 maxSockets 사이의 랜덤 소켓 생성 (D2 큐빙 확률)
+    const socketCount = Math.floor(Math.random() * maxSockets) + 1;
     const updated: GameItem = {
       ...target,
       sockets: socketCount,
       socketedRunes: [],
       name: `${target.baseItemName || target.name} (${socketCount} 소켓)`,
-      description: `${socketCount}개의 빈 소켓이 뚫린 베이스 아이템. 룬을 박아 룬워드를 제작하세요.`
+      description: `${socketCount}개의 빈 소켓이 뚫린 노멀 베이스 아이템. 룬을 순서대로 박아 룬워드를 제작하세요.`
     };
 
     return {
       success: true,
-      message: `🔮 큐브의 힘으로 [${updated.name}]에 ${socketCount}개의 소켓을 뚫었습니다!`,
+      message: `🔮 호라드릭 큐브의 힘으로 [${updated.name}]에 ${socketCount}개의 소켓을 뚫었습니다!`,
       consumedItemIds: [target.id],
       createdItem: updated
     };
