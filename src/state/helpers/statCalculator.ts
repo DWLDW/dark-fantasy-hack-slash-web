@@ -23,6 +23,8 @@ export interface CalculatedTotalStats {
   critDamage: number;
   overkillEfficiency: number;
   fortune: number;
+  goldFind?: number;
+  allSkills?: number;
   allResist: number;
   lifeSteal: number;
   attackSpeed: number;
@@ -38,7 +40,7 @@ export function calculateTotalStats(
   playerStats: PlayerStats,
   equipment: Record<string, GameItem>,
   tempBuffs: TempBuffs,
-  dungeonBuffs: DungeonBuff[],
+  dungeonBuffs: DungeonBuff[] = [],
   passiveLevels: Record<string, number> = {}
 ): CalculatedTotalStats {
   let str = playerStats.str;
@@ -57,6 +59,8 @@ export function calculateTotalStats(
   let critDamage = 150;
   let overkillEfficiency = 100 + tempBuffs.overkillBonus;
   let fortune = cha * 1.2;
+  let goldFind = 0;
+  let allSkills = 0;
   let lifeSteal = 0;
   let attackSpeed = 0;
   let turnRageRegen = 0;
@@ -85,6 +89,8 @@ export function calculateTotalStats(
     if (item.stats.critDamage) critDamage += item.stats.critDamage;
     if (item.stats.overkillEfficiency) overkillEfficiency += item.stats.overkillEfficiency;
     if (item.stats.fortune) fortune += item.stats.fortune;
+    if (item.stats.goldFind) goldFind += item.stats.goldFind;
+    if (item.stats.allSkills) allSkills += item.stats.allSkills;
     if (item.stats.lifeSteal) lifeSteal += item.stats.lifeSteal;
     if (item.stats.attackSpeed) attackSpeed += item.stats.attackSpeed;
     if (item.stats.allResist) allResist += item.stats.allResist;
@@ -254,6 +260,8 @@ export function calculateTotalStats(
     critDamage: Math.floor(critDamage),
     overkillEfficiency: Math.floor(overkillEfficiency),
     fortune: Math.floor(fortune),
+    goldFind: Math.floor(goldFind),
+    allSkills: Math.floor(allSkills),
     allResist: Math.floor(allResist),
     lifeSteal: Math.floor(lifeSteal),
     attackSpeed: Math.floor(attackSpeed),

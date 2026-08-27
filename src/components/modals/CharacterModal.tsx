@@ -267,10 +267,20 @@ export const CharacterModal: React.FC = React.memo(() => {
             </div>
           </div>
 
-          {/* Group 4: 파밍 & MF */}
-          <div className="bg-iron-950/80 p-2 rounded-lg border border-iron-800 flex justify-between items-center text-xs font-mono">
-            <span className="text-teal-300 font-bold">✨ 아이템 희귀도 상승 (MF):</span>
-            <span className="text-teal-200 font-black text-sm">+{totalStats.fortune}%</span>
+          {/* Group 4: 파밍 & 유틸리티 */}
+          <div className="bg-iron-950/80 p-2 rounded-lg border border-iron-800 space-y-1 text-xs font-mono">
+            <div className="flex justify-between items-center py-0.5 border-b border-iron-800/80">
+              <span className="text-amber-300 font-bold">👑 모든 스킬 레벨 보너스:</span>
+              <span className="text-amber-400 font-black text-sm">+{totalStats.allSkills || 0} Lv</span>
+            </div>
+            <div className="flex justify-between items-center py-0.5 border-b border-iron-800/80">
+              <span className="text-teal-300 font-bold">✨ 매직 아이템 발견율 (MF):</span>
+              <span className="text-teal-200 font-black text-sm">+{totalStats.fortune}%</span>
+            </div>
+            <div className="flex justify-between items-center py-0.5">
+              <span className="text-yellow-300 font-bold">💰 괴물 골드 획득량 (GF):</span>
+              <span className="text-yellow-200 font-black text-sm">+{totalStats.goldFind || 0}%</span>
+            </div>
           </div>
         </div>
       </div>

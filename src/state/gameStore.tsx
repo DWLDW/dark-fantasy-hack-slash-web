@@ -1119,16 +1119,16 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   }, [totalStats.totalBonusHp, totalStats.con]);
 
-  // Active Skill with equipped Skill Rune and invested Skill Level
+  // Active Skill with equipped Skill Rune and invested Skill Level (+ All Skills from Uniques)
   const effectiveSkill: Skill = useMemo(() => {
     const baseSkill = WARRIOR_SKILLS.find(s => s.id === selectedSkill.id) || selectedSkill;
-    const currentLv = skillLevels[selectedSkill.id] || 1;
+    const currentLv = (skillLevels[selectedSkill.id] || 1) + (totalStats.allSkills || 0);
     return {
       ...baseSkill,
       level: currentLv,
       activeRuneId: skillRunes[selectedSkill.id] || selectedSkill.activeRuneId || null
     };
-  }, [selectedSkill, skillRunes, skillLevels]);
+  }, [selectedSkill, skillRunes, skillLevels, totalStats.allSkills]);
 
   // Real-time Preview 100% matched with resolveAttack
   const preview = useMemo(() => {
@@ -1323,7 +1323,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setMaxChainThisRoom(result.chainCount);
       }
 
-      const gains = calculateAttackGains(result, effectiveSkill, monsters, playerStats.maxHp, totalStats.defense, totalStats.lifeSteal);
+      const gains = calculateAttackGains(
+        result,
+        effectiveSkill,
+        monsters,
+        playerStats.maxHp,
+        totalStats.defense,
+        totalStats.lifeSteal,
+        totalStats.goldFind || 0
+      );
 
       if (gains.actionExp > 0) {
         addPlayerExp(gains.actionExp);

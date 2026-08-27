@@ -249,7 +249,19 @@ Dragon Quest 식 턴제 전투 기반 + Diablo II 식 오버킬 체인, 룬워�
   - `InteractiveTutorial`과 `combat-engine` 청크 분할로 `index-*.js`를 172.6KB (Gzip 54KB, Brotli 44KB)로 경량화.
   - `scripts/precompress.js`: Gzip(Lv 9) + Brotli(Lv 11) 듀얼 압축 자동화.
   - Nginx 설정: `gzip_static on;`, `/assets/` 1년 `immutable` 캐시, `sendfile on;` 적용으로 서버 CPU 0% 및 초고속 TTFB 달성.
-  - 미사용 821KB 에셋(`public/images/town_bg.*`, `public/images/acts/*.jpg`) 정리 완료.
+### 25. 아이템 시스템 대확장, 소켓 드랍률 MF 연동 & 유니크 스탯 전수 적용 완료
+- 🎲 **소켓 드랍률 MF 연동 (Base Hunter System, `dungeonEventHelper.ts`)**:
+  - `rollDynamicSockets`: `playerFortune`(MF)에 비례하여 노말 장비 드랍 시 **3~6소켓 출현 확률을 최대 +45%까지 대폭 가산**.
+  - 1~6소켓 전 부위 노말 베이스 아이템(페이즈 블레이드 3~6S, 버서커 액스 4~6S, 더스크 슈라우드 3~4S, 세이크리드 아머 4S, 코로나 3S, 워드 4S 등) 완비.
+- 👑 **유니크 스탯 & +All Skills 전수 인게임 연동 (`types/game.ts`, `statCalculator.ts`, `gameStore.tsx`, `combatEngine.ts`)**:
+  - `ItemStats` 및 `CalculatedTotalStats`에 `allSkills?: number`, `goldFind?: number` 정식 추가.
+  - 샤코(+2), 마라(+2), 조던링(+1), 불카토스(+1), 하이로드(+1), 안다리엘(+2), 자카룸(+2), 아라트(+2) 등의 **`+모든 스킬 레벨`이 플레이어의 실제 스킬 위력과 룬 계수에 100% 반영되어 데미지가 비약적으로 상승**.
+  - `calculateAttackGains`에 `goldFind`가 적용되어 몬스터 처치 및 보물함 골드 획득량 대폭 증가.
+- 🗺️ **드랍 지역 풀 확장 & 대균열(Endless Rift) 고티어 드랍 정상화**:
+  - `getActDropPool(1~5)`에 신규 및 확장 유니크/베이스 아이템 전수 등록.
+  - 대균열(Endless Rift)에서 액트 1 아이템만 나오던 버그를 완전 수정하여, 대균열 티어에 따라 Act 3~5 최상위 유니크 및 고급 룬(Ber, Jah, Cham, Zod 등)이 정상 드랍되도록 조치.
+- 🗡️ **신규 종결 유니크 8종 추가**:
+  - 죽음의 거미줄(Death's Web), 마지막 소원(Last Wish), 에스츄타의 분노(Eschuta's Temper), 오르무스의 장포(Ormus' Robes), 시대의 왕관(Crown of Ages), 그리폰의 눈초리(Griffon's Eye), 밤날개의 면사포(Nightwing's Veil), 그림자 춤꾼(Shadow Dancer), 자연의 평화(Nature's Peace) 등.
 
 
 

@@ -30,7 +30,9 @@ export interface ItemStats {
   weaponSpeed?: number;
   moveSpeed?: number;
   allResist?: number;
-  fortune?: number; // Magic Find %
+  fortune?: number; // Magic Find % (MF)
+  goldFind?: number; // Extra Gold from Monsters % (GF)
+  allSkills?: number; // +All Skills level bonus
 }
 
 export interface GameItem {

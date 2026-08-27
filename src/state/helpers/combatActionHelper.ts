@@ -31,7 +31,8 @@ export function calculateAttackGains(
   monsters: Monster[],
   playerMaxHp: number = 120,
   totalDefense: number = 0,
-  itemLifeSteal: number = 0
+  itemLifeSteal: number = 0,
+  goldFind: number = 0
 ): AttackGainsResult {
   const primaryTargets = result.targetsHit.filter(t => !t.isOverkillHit);
   const rageHitCap = effectiveSkill.id === 'war_cry' ? 3 : primaryTargets.length;
@@ -65,7 +66,8 @@ export function calculateAttackGains(
     ? Math.floor(playerMaxHp * 0.20 + totalDefense * 0.5)
     : 0;
 
-  const gainedGold = result.chainCount * 25 + (result.stopperId ? 100 : 0);
+  const baseGold = result.chainCount * 25 + (result.stopperId ? 100 : 0);
+  const gainedGold = Math.floor(baseGold * (1 + Math.max(0, goldFind) / 100));
 
   let actionExp = 0;
   result.kills.forEach(kId => {

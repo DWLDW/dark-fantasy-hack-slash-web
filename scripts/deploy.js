@@ -159,6 +159,7 @@ async function main() {
     sudo tar -xzf - -C ${REMOTE_DEST} && \
     sudo chown -R www-data:www-data ${REMOTE_DEST} && \
     sudo chmod -R a+rX ${REMOTE_DEST} && \
+    sudo rm -f /etc/nginx/sites-enabled/default && \
     if [ -f ${REMOTE_DEST}/scripts/nginx-dark-fantasy.conf ]; then
       sudo cp ${REMOTE_DEST}/scripts/nginx-dark-fantasy.conf /etc/nginx/sites-available/dark-fantasy.conf
       sudo ln -sf /etc/nginx/sites-available/dark-fantasy.conf /etc/nginx/sites-enabled/dark-fantasy.conf

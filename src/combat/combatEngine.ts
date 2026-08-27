@@ -104,8 +104,9 @@ export function resolveAttack(
   }
 
   const critMultiplier = totalStats.critDamage / 100;
+  const skillLevelBonus = 1 + (Math.max(1, (skill.level || 1)) - 1) * 0.15;
   const initialRawPayload = Math.floor(
-    baseDamage * (skill.damageMultiplier || 1.0) * runeDmgBonus * (isCritical ? critMultiplier : 1.0) * (isExtraStrike ? 1.35 : 1.0)
+    baseDamage * (skill.damageMultiplier || 1.0) * skillLevelBonus * runeDmgBonus * (isCritical ? critMultiplier : 1.0) * (isExtraStrike ? 1.35 : 1.0)
   );
 
   const targetsHit: CombatHitResult[] = [];

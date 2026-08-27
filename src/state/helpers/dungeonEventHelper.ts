@@ -27,7 +27,15 @@ export const DUNGEON_RUNE_TIERS: Record<string, string[]> = {
   act5: ['Gul', 'Vex', 'Ohm', 'Lo', 'Sur', 'Ber', 'Jah', 'Cham', 'Zod']
 };
 
-export function getRunePoolForDungeon(dungeonId: string): string[] {
+export function getRunePoolForDungeon(dungeonId: string, riftTier?: number): string[] {
+  if (dungeonId.startsWith('endless_rift_')) {
+    const tier = riftTier || parseInt(dungeonId.replace('endless_rift_t', '')) || 1;
+    if (tier >= 18) return DUNGEON_RUNE_TIERS.act5;
+    if (tier >= 12) return DUNGEON_RUNE_TIERS.act4;
+    if (tier >= 6) return DUNGEON_RUNE_TIERS.act3;
+    if (tier >= 3) return DUNGEON_RUNE_TIERS.act2;
+    return DUNGEON_RUNE_TIERS.act1;
+  }
   if (DUNGEON_RUNE_TIERS[dungeonId]) return DUNGEON_RUNE_TIERS[dungeonId];
   if (dungeonId.startsWith('act5')) return DUNGEON_RUNE_TIERS.act5;
   if (dungeonId.startsWith('act4')) return DUNGEON_RUNE_TIERS.act4;
@@ -40,6 +48,50 @@ export interface TreasureReward {
   gold: number;
   shards: number;
   items: GameItem[];
+}
+
+/**
+ * 🚀 [Base Hunter Mechanic]: 매직 아이템 발견 확률(playerFortune / MF)이 높을수록
+ * 노말 및 소켓 가능 장비에 3~6 소켓이 뚫릴 확률이 기하급수적으로 증가합니다!
+ */
+export function rollDynamicSockets(
+  baseItem: GameItem,
+  playerFortune: number = 0,
+  difficultyLevel: number = 1
+): number | undefined {
+  const slot = baseItem.slot;
+  if (slot !== 'weapon' && slot !== 'armor' && slot !== 'shield' && slot !== 'helm') {
+    return undefined;
+  }
+
+  // 기본 아이템에 지정된 소켓이 있는 경우
+  const baseSockets = baseItem.sockets || 0;
+  const maxSocketsForSlot: Record<string, number> = {
+    weapon: baseItem.tier === 'elite' ? 6 : baseItem.tier === 'exceptional' ? 5 : 4,
+    armor: 4,
+    shield: 4,
+    helm: 3
+  };
+  const maxS = maxSocketsForSlot[slot] || 4;
+
+  // Fortune (MF) bonus: 100 MF = +15% high-socket weight, 300 MF = +45% high-socket weight
+  const mfBonus = Math.min(0.60, Math.max(0, playerFortune * 0.0015));
+  const diffBonus = Math.min(0.30, Math.max(0, (difficultyLevel - 1) * 0.05));
+  const highSocketChance = mfBonus + diffBonus;
+
+  const roll = Math.random();
+  // 6소켓 롤 (엘리트 무기)
+  if (maxS >= 6 && roll < 0.12 + highSocketChance * 0.35) return 6;
+  // 5소켓 롤 (무기)
+  if (maxS >= 5 && roll < 0.25 + highSocketChance * 0.40) return 5;
+  // 4소켓 롤 (무기, 갑옷, 방패)
+  if (maxS >= 4 && roll < 0.50 + highSocketChance * 0.45) return 4;
+  // 3소켓 롤 (무기, 갑옷, 방패, 투구)
+  if (maxS >= 3 && roll < 0.75 + highSocketChance * 0.30) return 3;
+  // 2소켓 롤
+  if (maxS >= 2 && roll < 0.90) return 2;
+
+  return Math.max(baseSockets, 1);
 }
 
 export function scaleItemForDifficulty(baseItem: GameItem, difficultyLevel: number = 1): GameItem {
@@ -66,13 +118,6 @@ export function scaleItemForDifficulty(baseItem: GameItem, difficultyLevel: numb
   if (scaledStats.int !== undefined) scaledStats.int = Math.floor(scaledStats.int * statScale);
   if (scaledStats.wis !== undefined) scaledStats.wis = Math.floor(scaledStats.wis * statScale);
 
-  // High difficulties can add bonus sockets (cap 6).
-  const bonusSocketChance = difficultyLevel >= 5 ? Math.min(0.5, 0.05 * (difficultyLevel - 4)) : 0;
-  const currentSockets = baseItem.sockets ?? 0;
-  const scaledSockets = (currentSockets > 0 || (baseItem.slot === 'weapon' || baseItem.slot === 'armor' || baseItem.slot === 'shield' || baseItem.slot === 'helm')) && Math.random() < bonusSocketChance
-    ? Math.min(6, Math.max(1, currentSockets + 1))
-    : baseItem.sockets;
-
   const scaledAffixes = baseItem.subAffixes
     ? baseItem.subAffixes.map(aff => ({
         ...aff,
@@ -84,7 +129,7 @@ export function scaleItemForDifficulty(baseItem: GameItem, difficultyLevel: numb
     ...baseItem,
     tier: difficultyLevel > 1 ? `T${difficultyLevel}` : (baseItem.tier || 'NORMAL'),
     stats: scaledStats,
-    sockets: scaledSockets,
+    sockets: baseItem.sockets,
     subAffixes: scaledAffixes,
     requiredLevel: baseItem.requiredLevel ?? undefined,
     value: Math.floor((baseItem.value || 50) * mult)
@@ -95,8 +140,8 @@ export function scaleItemForDifficulty(baseItem: GameItem, difficultyLevel: numb
 function rollSpecialDrop(baseFortune: number, dungeonIdx: number): boolean {
   const fortune = Math.max(0, baseFortune || 0);
   const actBonus = dungeonIdx * 2;
-  // Base ~8%, up to ~28% at high MF. Roll under threshold => special drop.
-  const specialChance = Math.min(0.28, 0.08 + fortune * 0.002 + actBonus * 0.01);
+  // Base ~8%, up to ~32% at high MF. Roll under threshold => special drop.
+  const specialChance = Math.min(0.32, 0.08 + fortune * 0.0025 + actBonus * 0.01);
   return Math.random() < specialChance;
 }
 
@@ -151,7 +196,7 @@ function makeDungeonDrop(
       name: `미확인 [${getSlotBaseName(droppedBase.slot, droppedBase.baseItemName)}]`,
       baseItemName: droppedBase.baseItemName || getSlotBaseName(droppedBase.slot),
       rarity: droppedBase.rarity,
-      sockets: scaled.sockets,
+      sockets: droppedBase.sockets,
       socketedRunes: [],
       realUniqueName: droppedBase.name,
       isIdentified: false
@@ -164,13 +209,24 @@ function makeDungeonDrop(
   if (roll < 7 + magicBoost * 0.25) rarity = 'rare';
   else if (roll < 30 + magicBoost) rarity = 'magic';
 
+  // 🚀 Base Hunter: 노말 베이스 아이템 드랍 시 MF(playerFortune)에 비례하여 3~6소켓 생성!
+  const rolledSockets = (rarity === 'normal' || droppedBase.sockets)
+    ? rollDynamicSockets(droppedBase, playerFortune, difficultyLevel)
+    : undefined;
+
+  let displayName = droppedBase.name;
+  if (rarity === 'normal' && rolledSockets && rolledSockets > 0) {
+    const cleanBaseName = getSlotBaseName(droppedBase.slot, droppedBase.baseItemName || droppedBase.name);
+    displayName = `${cleanBaseName} (${rolledSockets} 소켓)`;
+  }
+
   const stub: GameItem = {
     ...scaled,
     id: `${idPrefix}_${Date.now()}_${index}_${Math.random().toString(36).substring(2, 6)}`,
     name: `미확인 [${getSlotBaseName(droppedBase.slot, droppedBase.baseItemName)}]`,
     baseItemName: droppedBase.baseItemName || getSlotBaseName(droppedBase.slot),
     rarity,
-    sockets: scaled.sockets,
+    sockets: rolledSockets,
     socketedRunes: [],
     isIdentified: false
   };
@@ -178,7 +234,7 @@ function makeDungeonDrop(
   if (rarity === 'normal') {
     return {
       ...stub,
-      name: droppedBase.name,
+      name: displayName,
       rarity: 'normal',
       isIdentified: true,
       description: droppedBase.description
@@ -193,8 +249,13 @@ export function claimTreasureHelper(
   difficultyLevel: number = 1,
   playerFortune: number = 0
 ): TreasureReward {
-  const dungeonIdx = Math.max(0, DUNGEONS_DATA.findIndex(d => d.id === currentDungeon.id));
-  const actIndex = Math.min(4, Math.floor(dungeonIdx / 4));
+  const isEndless = currentDungeon.isEndlessRift || currentDungeon.id.startsWith('endless_rift_');
+  const dungeonIdx = isEndless
+    ? Math.min(19, Math.max(8, (currentDungeon.riftTier || 1) + 7))
+    : Math.max(0, DUNGEONS_DATA.findIndex(d => d.id === currentDungeon.id));
+  const actIndex = isEndless
+    ? Math.min(4, Math.max(2, Math.floor(((currentDungeon.riftTier || 1) - 1) / 4) + 2))
+    : Math.min(4, Math.floor(dungeonIdx / 4));
   const mult = (dungeonIdx + 1) * (1 + (difficultyLevel - 1) * 0.40);
   const goldReward = Math.floor((500 + Math.random() * 400) * mult);
   const shardReward = Math.floor(3 * (dungeonIdx + 1) * (1 + (difficultyLevel - 1) * 0.15));
@@ -217,8 +278,8 @@ export function claimTreasureHelper(
   };
 }
 
-export function claimRuneAltarHelper(dungeonId: string): { runeName: string; count: number } {
-  const runes = getRunePoolForDungeon(dungeonId);
+export function claimRuneAltarHelper(dungeonId: string, riftTier?: number): { runeName: string; count: number } {
+  const runes = getRunePoolForDungeon(dungeonId, riftTier);
   const pickedRune = runes[Math.floor(Math.random() * runes.length)];
   return { runeName: pickedRune, count: 1 };
 }
@@ -272,8 +333,13 @@ export function generateVictoryLoot(
   difficultyLevel: number = 1,
   playerHpPercent: number = 100
 ): VictoryLootResult {
-  const dungeonIndex = Math.max(0, DUNGEONS_DATA.findIndex(d => d.id === currentDungeon.id));
-  const actIndex = Math.min(4, Math.floor(dungeonIndex / 4));
+  const isEndless = currentDungeon.isEndlessRift || currentDungeon.id.startsWith('endless_rift_');
+  const dungeonIndex = isEndless
+    ? Math.min(19, Math.max(8, (currentDungeon.riftTier || 1) + 7))
+    : Math.max(0, DUNGEONS_DATA.findIndex(d => d.id === currentDungeon.id));
+  const actIndex = isEndless
+    ? Math.min(4, Math.max(2, Math.floor(((currentDungeon.riftTier || 1) - 1) / 4) + 2))
+    : Math.min(4, Math.floor(dungeonIndex / 4));
   const actMultiplier = dungeonIndex + 1;
   const diffMultiplier = 1 + (difficultyLevel - 1) * 0.45;
 
@@ -287,7 +353,7 @@ export function generateVictoryLoot(
 
   const victoryExp = Math.floor(baseExp * (1 + (difficultyLevel - 1) * 0.40));
 
-  const availableRunes = getRunePoolForDungeon(currentDungeon.id);
+  const availableRunes = getRunePoolForDungeon(currentDungeon.id, currentDungeon.riftTier);
   const droppedRunes: Record<string, number> = {};
   const runeDropCount = Math.min(5, Math.floor(1 + Math.random() * 2 + (playerFortune > 30 ? 1 : 0) + (difficultyLevel >= 10 ? 1 : 0)));
 
@@ -308,15 +374,13 @@ export function generateVictoryLoot(
   }
 
   let advanceLevels = 1;
-  let performanceGrade = '🛡️ 클리어 승리 (+1 난이도)';
-
+  let performanceGrade = 'B';
   if (playerHpPercent >= 90) {
+    performanceGrade = 'S';
+    advanceLevels = 3;
+  } else if (playerHpPercent >= 60) {
+    performanceGrade = 'A';
     advanceLevels = 2;
-    performanceGrade = '🌟 무손실 대승 (+2 난이도)';
-  } else if (playerHpPercent >= 70) {
-    advanceLevels = 1;
-    performanceGrade = '🔥 완벽한 승리 (+1 난이도)';
-  } else {
     advanceLevels = 1;
     performanceGrade = '⚔️ 클리어 (+1 난이도)';
   }
@@ -362,8 +426,13 @@ export function generateRoomClearLoot(
   playerFortune: number,
   roomType: RoomType
 ): { gold: number; items: GameItem[]; runeName?: string } {
-  const dungeonIdx = Math.max(0, DUNGEONS_DATA.findIndex(d => d.id === currentDungeon.id));
-  const actIndex = Math.min(4, Math.floor(dungeonIdx / 4));
+  const isEndless = currentDungeon.isEndlessRift || currentDungeon.id.startsWith('endless_rift_');
+  const dungeonIdx = isEndless
+    ? Math.min(19, Math.max(8, (currentDungeon.riftTier || 1) + 7))
+    : Math.max(0, DUNGEONS_DATA.findIndex(d => d.id === currentDungeon.id));
+  const actIndex = isEndless
+    ? Math.min(4, Math.max(2, Math.floor(((currentDungeon.riftTier || 1) - 1) / 4) + 2))
+    : Math.min(4, Math.floor(dungeonIdx / 4));
   const pool = currentDungeon.dropItems && currentDungeon.dropItems.length > 0
     ? currentDungeon.dropItems
     : getActDropPool(actIndex + 1);
@@ -377,8 +446,8 @@ export function generateRoomClearLoot(
     items.push(makeDungeonDrop(pool, ctx, 'elite', 0));
     if (Math.random() < 0.4) items.push(makeDungeonDrop(pool, ctx, 'elite', 1));
     if (Math.random() < 0.35) {
-      const runes = getRunePoolForDungeon(currentDungeon.id);
-      runeName = runes[Math.floor(Math.random() * Math.min(runes.length, 6))];
+      const runes = getRunePoolForDungeon(currentDungeon.id, currentDungeon.riftTier);
+      runeName = runes[Math.floor(Math.random() * runes.length)];
     }
   } else if (roomType === 'normal') {
     gold = Math.floor((20 + Math.random() * 30) * (dungeonIdx + 1));

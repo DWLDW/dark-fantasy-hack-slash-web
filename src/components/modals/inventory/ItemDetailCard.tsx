@@ -292,10 +292,22 @@ export const ItemDetailCard: React.FC<ItemDetailCardProps> = React.memo(({
             <strong className="font-bold">+{item.stats.allResist}%</strong>
           </div>
         )}
+        {item.stats.allSkills !== undefined && item.stats.allSkills > 0 && (
+          <div className="bg-gradient-to-r from-amber-950 to-orange-950 px-2 py-1 rounded border border-amber-500/80 flex justify-between items-center text-amber-300 shadow">
+            <span>👑 모든 스킬 레벨</span>
+            <strong className="font-bold">+{item.stats.allSkills}</strong>
+          </div>
+        )}
         {item.stats.fortune !== undefined && item.stats.fortune > 0 && (
           <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between items-center text-teal-300">
             <span>✨ 매직 발견(MF)</span>
             <strong className="font-bold">+{item.stats.fortune}%</strong>
+          </div>
+        )}
+        {item.stats.goldFind !== undefined && item.stats.goldFind > 0 && (
+          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between items-center text-yellow-300">
+            <span>💰 골드 획득량</span>
+            <strong className="font-bold">+{item.stats.goldFind}%</strong>
           </div>
         )}
       </div>
