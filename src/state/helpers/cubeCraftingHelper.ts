@@ -103,7 +103,7 @@ export function socketRuneHelper(
     const newStats = { ...(target.stats || {}) };
     Object.entries(bonusStats).forEach(([k, v]) => {
       const statKey = k as keyof typeof newStats;
-      newStats[statKey] = ((newStats[statKey] as number) || 0) + (v as number);
+      (newStats as any)[statKey] = ((newStats[statKey] as number) || 0) + (v as number);
     });
 
     updatedItem = {

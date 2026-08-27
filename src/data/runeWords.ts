@@ -9,7 +9,7 @@ export const RUNEWORD_RECIPES: RuneWordRecipe[] = [
     allowedSlot: 'weapon',
     requiredSockets: 2,
     enhancedDamage: 50,
-    bonusStats: { minDmg: 5, maxDmg: 10, attackSpeed: 25, str: 6, critChance: 10, overkillEfficiency: 20 },
+    bonusStats: { minDmg: 5, maxDmg: 10, attackSpeed: 25, str: 6, critChance: 10, openWounds: 20, overkillEfficiency: 20 },
     specialEffect: '공격력 +50% 증가, 공격 속도 +25%, 상처 악화, 처치 시 분노 +2',
     description: '[Tir + El] 베이스 공격력 +50%, 공격 속도 +25%! 베어낼수록 예리함이 살아나는 초반 국민 명검.'
   },
@@ -20,8 +20,8 @@ export const RUNEWORD_RECIPES: RuneWordRecipe[] = [
     allowedSlot: 'armor',
     requiredSockets: 2,
     enhancedDefense: 50,
-    bonusStats: { defense: 20, attackSpeed: 15, dex: 6, hp: 50, evasion: 8 },
-    specialEffect: '방어력 +50%, 공격/이동 속도 +15%, 회피 +8%, 독 저항 +35%',
+    bonusStats: { defense: 20, attackSpeed: 15, dex: 6, hp: 50, allResist: 25, evasion: 8 },
+    specialEffect: '방어력 +50%, 공격/이동 속도 +15%, 회피 +8%, 모든 저항 +25%',
     description: '[Tal + Eth] 베이스 방어력 +50%! 빠른 기동성과 저항을 제공하는 초반 국민 경량 갑주.'
   },
   {
@@ -31,8 +31,8 @@ export const RUNEWORD_RECIPES: RuneWordRecipe[] = [
     allowedSlot: 'weapon',
     requiredSockets: 2,
     enhancedDamage: 60,
-    bonusStats: { minDmg: 12, maxDmg: 28, int: 8, wis: 8 },
-    specialEffect: '화염 피해 대폭 추가, 모든 스킬 위력 +20%, 처치 시 마나/분노 회복',
+    bonusStats: { minDmg: 12, maxDmg: 28, int: 8, wis: 8, allSkills: 1 },
+    specialEffect: '화염 피해 대폭 추가, 모든 스킬 레벨 +1, 처치 시 마나/분노 회복',
     description: '[Tir + Ral] 화염 원소 정령이 깃들어 폭발적인 화염 피해를 입히는 초반 마검.'
   },
   {
@@ -42,8 +42,8 @@ export const RUNEWORD_RECIPES: RuneWordRecipe[] = [
     allowedSlot: 'helm',
     requiredSockets: 2,
     enhancedDefense: 60,
-    bonusStats: { defense: 15, int: 5, wis: 5, damageReduction: 5 },
-    specialEffect: '방어력 +60%, 모든 스킬 위력 +15%, 번개 저항 +30%, 물리 피해 감소 5%',
+    bonusStats: { defense: 15, int: 5, wis: 5, allResist: 20, allSkills: 1, damageReduction: 5 },
+    specialEffect: '방어력 +60%, 모든 스킬 레벨 +1, 번개/모든 저항 +20%, 물리 피해 감소 5%',
     description: '[Ort + Sol] 베이스 방어력 +60%! 지혜와 원소 저항이 깃든 고대의 투구.'
   },
   {
@@ -64,7 +64,7 @@ export const RUNEWORD_RECIPES: RuneWordRecipe[] = [
     allowedSlot: 'shield',
     requiredSockets: 2,
     enhancedDefense: 60,
-    bonusStats: { defense: 25, attackSpeed: 10, evasion: 15, fortune: 25, allResist: 25 },
+    bonusStats: { defense: 25, attackSpeed: 10, evasion: 15, fortune: 25, allResist: 25, cannotBeFrozen: true },
     specialEffect: '빙결되지 않음(Cannot be Frozen), 회피율 +15%, 매직 찬스(MF) +25%',
     description: '[Shael + Eth] 빙결 면역과 높은 회피율, 매직 찬스를 고루 갖춘 만능 가성비 방패.'
   },
@@ -77,8 +77,8 @@ export const RUNEWORD_RECIPES: RuneWordRecipe[] = [
     allowedSlot: 'weapon',
     requiredSockets: 4,
     enhancedDamage: 70,
-    bonusStats: { minDmg: 15, maxDmg: 28, attackSpeed: 25, int: 12, hp: 80, allResist: 30 },
-    specialEffect: '공격력 +70%, 공격 속도 +25%, 모든 스킬 위력 +35%, 원소 저항 +30%',
+    bonusStats: { minDmg: 15, maxDmg: 28, attackSpeed: 25, int: 12, hp: 80, allResist: 30, allSkills: 2 },
+    specialEffect: '공격력 +70%, 공격 속도 +25%, 모든 스킬 레벨 +2, 원소 저항 +30%',
     description: '[Tal + Thul + Ort + Amn] 베이스 공격력 +70%! 사계의 원소 정령이 깃든 국민 만능 명검.'
   },
   {
@@ -87,7 +87,7 @@ export const RUNEWORD_RECIPES: RuneWordRecipe[] = [
     requiredRunes: ['Ral', 'Tir', 'Tal', 'Sol'],
     allowedSlot: 'weapon',
     requiredSockets: 4,
-    enhancedDamage: 35, // 너프: 순수 딜은 낮추고 명상 오라에 집중
+    enhancedDamage: 35,
     bonusStats: { minDmg: 10, maxDmg: 20, attackSpeed: 25, critChance: 15 },
     specialEffect: '명상 오라: 매 턴 분노 +20 자동 회복 & 스킬 분노 소모량 25% 감소, 공격 속도 +25%',
     description: '[Ral + Tir + Tal + Sol] [휠윈드/스킬 난사용 유틸 무기] 공격력은 낮으나, 매 턴 분노를 +20씩 자동 충전하고 스킬 분노 소모를 25% 줄여 휠윈드를 무한 난사할 수 있는 최고의 유틸리티 명검.'
@@ -114,6 +114,28 @@ export const RUNEWORD_RECIPES: RuneWordRecipe[] = [
     specialEffect: '힘 +25, 체력 +20, 민첩 +15, 최대 생명력 +110, 모든 저항 +30%',
     description: '[Hel + Lum + Fal] 착용자에게 사자의 용맹과 막대한 올스탯을 부여하는 균형 잡힌 명품 갑주.'
   },
+  {
+    id: 'rw_memory',
+    name: '추억 (Memory)',
+    requiredRunes: ['Lum', 'Io', 'Sol', 'Eth'],
+    allowedSlot: 'weapon',
+    requiredSockets: 4,
+    enhancedDamage: 80,
+    bonusStats: { allSkills: 3, int: 35, wis: 25, defense: 60, damageReduction: 10 },
+    specialEffect: '모든 스킬 레벨 +3, 에너지 쉴드 (방어력 +60, 피해 감소 10%), 지능 +35',
+    description: '[Lum + Io + Sol + Eth] 마법의 지혜가 농축되어 모든 스킬 레벨을 +3 올려주는 마법 명기.'
+  },
+  {
+    id: 'rw_heart_of_the_oak',
+    name: '오크의 심장 (Heart of the Oak)',
+    requiredRunes: ['Ko', 'Vex', 'Pul', 'Thul'],
+    allowedSlot: 'weapon',
+    requiredSockets: 4,
+    enhancedDamage: 100,
+    bonusStats: { allSkills: 3, attackSpeed: 40, allResist: 40, hp: 100, dex: 10 },
+    specialEffect: '모든 스킬 레벨 +3, 공격 속도 +40%, 모든 저항 +40%, 생명력 +100',
+    description: '[Ko + Vex + Pul + Thul] 오크나무의 영험한 힘이 깃들어 스킬 레벨과 올레를 폭발시키는 명검 (오심).'
+  },
 
   // --- Late Game (Acts 3-4) ---
   {
@@ -123,7 +145,7 @@ export const RUNEWORD_RECIPES: RuneWordRecipe[] = [
     allowedSlot: 'weapon',
     requiredSockets: 5,
     enhancedDamage: 180,
-    bonusStats: { minDmg: 45, maxDmg: 90, str: 15, dex: 15, defense: 40, allResist: 25 },
+    bonusStats: { minDmg: 45, maxDmg: 90, str: 15, dex: 15, defense: 40, allResist: 25, crushingBlow: 40, targetDefenseReduction: 25 },
     specialEffect: '강타 40%, 적 방어력 -25%, 화염 피해 +150, 모든 저항 +25%',
     description: '[Hel + Ko + Thul + Eth + Fal] 적을 굴복시키는 무자비한 5룬 결합 대형 무기.'
   },
@@ -134,7 +156,7 @@ export const RUNEWORD_RECIPES: RuneWordRecipe[] = [
     allowedSlot: 'armor',
     requiredSockets: 3,
     enhancedDefense: 150,
-    bonusStats: { defense: 60, attackSpeed: 15, critChance: 15, overkillEfficiency: 30, allResist: 20 },
+    bonusStats: { defense: 60, attackSpeed: 15, critChance: 15, crushingBlow: 15, openWounds: 33, overkillEfficiency: 30, allResist: 20 },
     specialEffect: '강타 15%, 상처 악화 33%, 공격 속도 +15%, 냉기 피해 추가',
     description: '[Shael + Um + Thul] 공격과 방어를 동시에 극대화하는 광전사용 돌격 갑주.'
   },
@@ -156,9 +178,53 @@ export const RUNEWORD_RECIPES: RuneWordRecipe[] = [
     allowedSlot: 'weapon',
     requiredSockets: 3,
     enhancedDamage: 120,
-    bonusStats: { minDmg: 30, maxDmg: 60, attackSpeed: 30, critChance: 15 },
-    specialEffect: '타격 시 10% 확률 스태틱 필드(전체 체력 25% 삭감), 적 번개 저항 -35%',
+    bonusStats: { minDmg: 30, maxDmg: 60, attackSpeed: 30, critChance: 15, staticFieldChance: 10, openWounds: 25 },
+    specialEffect: '타격 시 10% 확률 스태틱 필드(전체 체력 25% 삭감), 상처 악화 25%',
     description: '[Shael + Um + Tir] 번개의 일격을 터뜨려 적 전체의 체력을 순식간에 깎아내는 번개 명검.'
+  },
+  {
+    id: 'rw_call_to_arms',
+    name: '소집 (Call to Arms)',
+    requiredRunes: ['Amn', 'Ral', 'Mal', 'Ist', 'Ohm'],
+    allowedSlot: 'weapon',
+    requiredSockets: 5,
+    enhancedDamage: 290,
+    bonusStats: { allSkills: 1, hp: 200, attackSpeed: 40, overkillEfficiency: 30 },
+    specialEffect: '배틀 오더스: 최대 생명력 +200, 모든 스킬 레벨 +1, 매 턴 분노 대량 충전',
+    description: '[Amn + Ral + Mal + Ist + Ohm] 전사의 함성을 외쳐 최대 생명력과 전투 지속력을 폭증시키는 명기 (콜투암스).'
+  },
+  {
+    id: 'rw_oath',
+    name: '서약 (Oath)',
+    requiredRunes: ['Shael', 'Pul', 'Mal', 'Lum'],
+    allowedSlot: 'weapon',
+    requiredSockets: 4,
+    enhancedDamage: 310,
+    bonusStats: { attackSpeed: 50, overkillEfficiency: 35 },
+    specialEffect: '공격력 +310% 대폭 증폭, 공격 속도 +50%, 파괴 불가',
+    description: '[Shael + Pul + Mal + Lum] 맹세의 칼날로 극강의 공격 속도와 물리 딜량을 선사하는 가성비 명검.'
+  },
+  {
+    id: 'rw_death',
+    name: '죽음 (Death)',
+    requiredRunes: ['Hel', 'El', 'Vex', 'Ort', 'Gul'],
+    allowedSlot: 'weapon',
+    requiredSockets: 5,
+    enhancedDamage: 350,
+    bonusStats: { crushingBlow: 50, critChance: 35, overkillEfficiency: 40 },
+    specialEffect: '강타 확률 50%, 치명적 공격 35%, 타격 시 분노 흡수',
+    description: '[Hel + El + Vex + Ort + Gul] 보스를 즉각 도륙하는 50% 강타와 35% 치명타의 파괴신 대검.'
+  },
+  {
+    id: 'rw_chaos',
+    name: '혼돈 (Chaos)',
+    requiredRunes: ['Fal', 'Ohm', 'Um'],
+    allowedSlot: 'weapon',
+    requiredSockets: 3,
+    enhancedDamage: 320,
+    bonusStats: { attackSpeed: 35, openWounds: 25, str: 10 },
+    specialEffect: '휠윈드 마스터리, 공격 속도 +35%, 상처 악화 25%',
+    description: '[Fal + Ohm + Um] 혼돈의 춤사위로 전장을 휩쓰는 광란의 클로.'
   },
 
   // --- Endgame & High Torment (Acts 4-5) ---
@@ -168,8 +234,8 @@ export const RUNEWORD_RECIPES: RuneWordRecipe[] = [
     requiredRunes: ['Eth', 'Tir', 'Lo', 'Mal', 'Ral'],
     allowedSlot: 'weapon',
     requiredSockets: 5,
-    bonusStats: { minDmg: 240, maxDmg: 360, attackSpeed: 40, critChance: 25, overkillEfficiency: 50 },
-    specialEffect: '적 방어력 완전 무시, 치명적 공격 +20%, 공격 속도 +40%, 괴물 회복 저지',
+    bonusStats: { minDmg: 240, maxDmg: 360, attackSpeed: 40, critChance: 25, overkillEfficiency: 50, ignoreTargetDefense: true },
+    specialEffect: '적 방어력 완전 무시 (ITD), 치명적 공격 +25%, 공격 속도 +40%, 괴물 회복 저지',
     description: '[Eth + Tir + Lo + Mal + Ral] 근접 물리 딜의 절대 정점. +300급 절대 피해와 극강의 공격 속도를 뿜어냅니다.'
   },
   {
@@ -179,7 +245,8 @@ export const RUNEWORD_RECIPES: RuneWordRecipe[] = [
     allowedSlot: 'armor',
     requiredSockets: 4,
     enhancedDefense: 200,
-    bonusStats: { defense: 80, hp: 160, allResist: 30, damageReduction: 15 },
+    enhancedDamage: 200,
+    bonusStats: { defense: 80, hp: 160, allResist: 30, damageReduction: 15, chillingArmor: true },
     specialEffect: '물리 피해량 +200% 증폭, 칠흑 갑주 발동, 생명력 대폭 증가, 모든 저항 +30%',
     description: '[El + Sol + Dol + Lo] 베이스 방어력 +200% & 모든 물리 피해 +200% 증폭! 공방일체의 최고봉 갑주.'
   },
@@ -189,7 +256,7 @@ export const RUNEWORD_RECIPES: RuneWordRecipe[] = [
     requiredRunes: ['Jah', 'Ith', 'Ber'],
     allowedSlot: 'armor',
     requiredSockets: 3,
-    bonusStats: { defense: 160, str: 35, hp: 120, fortune: 90, damageReduction: 8 },
+    bonusStats: { defense: 160, str: 35, hp: 120, fortune: 90, damageReduction: 8, allSkills: 2 },
     specialEffect: '모든 스킬 +2, 레벨 비례 힘 대폭 상승, MF +90%, 물리 피해 감소 8%',
     description: '[Jah + Ith + Ber] 시공간을 초월하는 전설의 마법 갑주. 막대한 스탯과 매직 파밍의 궁극체.'
   },
@@ -200,7 +267,8 @@ export const RUNEWORD_RECIPES: RuneWordRecipe[] = [
     allowedSlot: 'shield',
     requiredSockets: 4,
     enhancedDefense: 150,
-    bonusStats: { minDmg: 40, maxDmg: 80, defense: 90, hp: 150, allResist: 25 },
+    enhancedDamage: 150,
+    bonusStats: { minDmg: 40, maxDmg: 80, defense: 90, hp: 150, allResist: 25, redemptionOnKill: true },
     specialEffect: '구원의 오라: 적 처치 시 생명력/분노 100% 즉시 완충, 물리 피해 +150% 증폭',
     description: '[Vex + Vex + Lo + Jah] 쓰러진 적의 영혼을 흡수하여 체력과 분노를 즉시 완충하는 불멸의 성물.'
   },
@@ -211,7 +279,7 @@ export const RUNEWORD_RECIPES: RuneWordRecipe[] = [
     allowedSlot: 'weapon',
     requiredSockets: 4,
     enhancedDamage: 220,
-    bonusStats: { minDmg: 120, maxDmg: 220, attackSpeed: 35, fortune: 50 },
+    bonusStats: { minDmg: 120, maxDmg: 220, attackSpeed: 35, fortune: 50, convictionAura: true, crushingBlow: 40 },
     specialEffect: '선고 오라: 적의 방어력 및 모든 원소 저항 85% 파괴, 강타 40%',
     description: '[Ber + Mal + Ber + Ist] 적의 방어선과 저항을 완전히 붕괴시키는 파멸의 신기.'
   },
@@ -222,9 +290,75 @@ export const RUNEWORD_RECIPES: RuneWordRecipe[] = [
     allowedSlot: 'weapon',
     requiredSockets: 6,
     enhancedDamage: 280,
-    bonusStats: { minDmg: 180, maxDmg: 320, attackSpeed: 30, critChance: 30, fortune: 65 },
+    bonusStats: { minDmg: 180, maxDmg: 320, attackSpeed: 30, critChance: 30, fortune: 65, mightAura: true, crushingBlow: 70, lifeTapChance: 10 },
     specialEffect: '위세 오라: 아군 전체 공격력 +200%, 강타 70%, 타격 시 생명력 추출',
     description: '[Jah + Mal + Jah + Sur + Jah + Ber] 6개 고급 룬의 정수가 빚어낸 궁극의 축복과 파괴.'
+  },
+  {
+    id: 'rw_faith',
+    name: '신념 (Faith)',
+    requiredRunes: ['Ohm', 'Jah', 'Lem', 'Eld'],
+    allowedSlot: 'weapon',
+    requiredSockets: 4,
+    enhancedDamage: 330,
+    bonusStats: { allSkills: 2, attackSpeed: 50, ignoreTargetDefense: true, goldFind: 75 },
+    specialEffect: '광신 오라(Fanaticism): 공격 속도 +50%, 공격력 +330%, 목표물 방어 무시',
+    description: '[Ohm + Jah + Lem + Eld] 파나티시즘 광신 오라로 파티 전체의 공격 속도와 위력을 극대화하는 신궁.'
+  },
+  {
+    id: 'rw_exile',
+    name: '망명 (Exile)',
+    requiredRunes: ['Vex', 'Ohm', 'Ist', 'Dol'],
+    allowedSlot: 'shield',
+    requiredSockets: 4,
+    enhancedDefense: 250,
+    bonusStats: { defense: 180, allResist: 30, damageReduction: 15, lifeTapChance: 15 },
+    specialEffect: '타격 시 15% 확률 생명력 추출(Life Tap) 시전, 방어력 +250% 극강 수호',
+    description: '[Vex + Ohm + Ist + Dol] 팔라딘의 궁극 방패. 적을 때릴 때마다 라이프 탭을 터뜨려 무적의 흡혈을 제공.'
+  },
+  {
+    id: 'rw_doom',
+    name: '파멸 (Doom)',
+    requiredRunes: ['Hel', 'Ohm', 'Um', 'Lo', 'Cham'],
+    allowedSlot: 'weapon',
+    requiredSockets: 5,
+    enhancedDamage: 330,
+    bonusStats: { allSkills: 2, attackSpeed: 45, openWounds: 25, critChance: 20, cannotBeFrozen: true },
+    specialEffect: '신성한 빙결 오라(Holy Freeze), 모든 스킬 +2, 공격 속도 +45%, 상처 악화 25%',
+    description: '[Hel + Ohm + Um + Lo + Cham] 주변의 모든 적을 결빙시키고 절대 파멸의 냉기 참격을 가하는 무기.'
+  },
+  {
+    id: 'rw_pride',
+    name: '자존심 (Pride)',
+    requiredRunes: ['Cham', 'Sur', 'Io', 'Lo'],
+    allowedSlot: 'weapon',
+    requiredSockets: 4,
+    enhancedDamage: 300,
+    bonusStats: { critChance: 30, critDamage: 50, turnRageRegen: 25, cannotBeFrozen: true },
+    specialEffect: '집중 오라(Concentration): 치명타율 +30%, 치명 피해 +50%, 턴당 분노 +25',
+    description: '[Cham + Sur + Io + Lo] 컨센트레이션 오라로 치명타와 자원을 무한 공급하는 서포트 종결 무기.'
+  },
+  {
+    id: 'rw_dragon',
+    name: '용 (Dragon)',
+    requiredRunes: ['Sur', 'Cham', 'Amn'],
+    allowedSlot: 'armor',
+    requiredSockets: 3,
+    enhancedDefense: 180,
+    bonusStats: { allSkills: 1, defense: 100, str: 25, cannotBeFrozen: true, allResist: 25 },
+    specialEffect: '신성한 불꽃 오라(Holy Fire), 모든 스킬 +1, 빙결되지 않음, 힘 +25',
+    description: '[Sur + Cham + Amn] 성스러운 화염의 용이 깃들어 타오르는 전설의 갑주.'
+  },
+  {
+    id: 'rw_hand_of_justice',
+    name: '정의의 손길 (Hand of Justice)',
+    requiredRunes: ['Sur', 'Cham', 'Amn', 'Lo'],
+    allowedSlot: 'weapon',
+    requiredSockets: 4,
+    enhancedDamage: 330,
+    bonusStats: { attackSpeed: 33, lifeSteal: 7, cannotBeFrozen: true, critChance: 20 },
+    specialEffect: '정의의 심판, 공격 속도 +33%, 생명력 흡수 7%, 빙결 방지',
+    description: '[Sur + Cham + Amn + Lo] 악을 심판하는 정의의 불꽃을 휘두르는 성검.'
   },
   {
     id: 'rw_botd',
@@ -233,7 +367,7 @@ export const RUNEWORD_RECIPES: RuneWordRecipe[] = [
     allowedSlot: 'weapon',
     requiredSockets: 6,
     enhancedDamage: 350,
-    bonusStats: { minDmg: 260, maxDmg: 450, attackSpeed: 60, str: 30, dex: 30, con: 30, overkillEfficiency: 60, lifeSteal: 7 },
+    bonusStats: { minDmg: 260, maxDmg: 450, attackSpeed: 60, str: 30, dex: 30, con: 30, int: 30, wis: 30, cha: 30, overkillEfficiency: 60, lifeSteal: 7 },
     specialEffect: '파괴 불가(Indestructible), 공격 속도 +60%, 모든 능력치 +30, 생명력/분노 7% 흡수',
     description: '[Vex + Hel + El + Eld + Zod + Eth] 6개 룬의 궁극 합일, 불멸의 파괴신이 깃든 절대 무기.'
   }

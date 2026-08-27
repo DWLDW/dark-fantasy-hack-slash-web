@@ -40,6 +40,21 @@ export function resolveAttack(
     critDamage: number;
     overkillEfficiency: number;
     attackSpeed?: number;
+    allSkills?: number;
+    crushingBlow?: number;
+    openWounds?: number;
+    ignoreTargetDefense?: boolean;
+    targetDefenseReduction?: number;
+    convictionAura?: boolean;
+    redemptionOnKill?: boolean;
+    mightAura?: boolean;
+    chillingArmor?: boolean;
+    staticFieldChance?: number;
+    amplifyDamageChance?: number;
+    lifeTapChance?: number;
+    cannotBeFrozen?: boolean;
+    damageToDemons?: number;
+    knockback?: boolean;
   },
   skill: Skill,
   playerLane: number,
@@ -111,7 +126,8 @@ export function resolveAttack(
   }
 
   const critMultiplier = totalStats.critDamage / 100;
-  const skillLevelBonus = 1 + (Math.max(1, (skill.level || 1)) - 1) * 0.15;
+  const effectiveSkillLevel = Math.max(1, (skill.level || 1) + (totalStats.allSkills || 0));
+  const skillLevelBonus = 1 + (effectiveSkillLevel - 1) * 0.15;
   const initialRawPayload = Math.floor(
     baseDamage * (skill.damageMultiplier || 1.0) * skillLevelBonus * runeDmgBonus * (isCritical ? critMultiplier : 1.0) * (isExtraStrike ? 1.35 : 1.0)
   );
@@ -124,8 +140,37 @@ export function resolveAttack(
   let bossBreakTriggered = false;
   let weakSpotHitTriggered = false;
 
+  const monsterMap = new Map<string, Monster>(monsters.map(m => [m.id, { ...m }]));
+
+  // ⚡ Static Field Proc (Crescent Moon: 10% chance to cut all alive monsters HP by 25%)
+  if (!forceDeterministic && totalStats.staticFieldChance && Math.random() * 100 < totalStats.staticFieldChance) {
+    monsterMap.forEach(mon => {
+      if (mon.hp > 0) {
+        const hpCut = Math.floor(mon.hp * 0.25);
+        if (hpCut > 0) {
+          mon.hp = Math.max(1, mon.hp - hpCut);
+          accumulatedDamage += hpCut;
+        }
+      }
+    });
+  }
+
   const getEffectiveDefense = (def: number) => {
-    return skill.activeRuneId === 'rune_poison' ? Math.floor(def * 0.5) : def;
+    if (totalStats.ignoreTargetDefense) return 0;
+    let effective = def;
+    if (totalStats.convictionAura) {
+      effective = Math.floor(effective * 0.15); // Infinity: -85% Defense
+    }
+    if (totalStats.targetDefenseReduction) {
+      effective = Math.floor(effective * (1 - totalStats.targetDefenseReduction / 100));
+    }
+    if (!forceDeterministic && totalStats.amplifyDamageChance && Math.random() * 100 < totalStats.amplifyDamageChance) {
+      effective = 0; // Amplify Damage: 100% Armor Shred
+    }
+    if (skill.activeRuneId === 'rune_poison') {
+      effective = Math.floor(effective * 0.5);
+    }
+    return Math.max(0, effective);
   };
 
   const applyFrostFreeze = (m: Monster) => {
@@ -136,7 +181,6 @@ export function resolveAttack(
     }
   };
 
-  const monsterMap = new Map<string, Monster>(monsters.map(m => [m.id, { ...m }]));
   const effectiveOverkillEff = skill.overkillEfficiency * (totalStats.overkillEfficiency / 100) * runeOverkillBonus;
 
   // Boss Interactive Mechanics: Stagger Break & Weak Spot & Guard
@@ -172,6 +216,29 @@ export function resolveAttack(
     return Math.max(1, dmg);
   };
 
+  const calculateHitDamage = (m: Monster, currentPayload: number): { actualDmg: number; defMultiplier: number } => {
+    const effectiveDef = getEffectiveDefense(m.defense);
+    const defMultiplier = calculateDamageMultiplier(attackerLevel, effectiveDef);
+    
+    // Demon / Elite / Boss Damage Multiplier (Laying of Hands +350% etc.)
+    let demonMultiplier = 1.0;
+    if (totalStats.damageToDemons && (m.rank === 'boss' || m.rank === 'elite')) {
+      demonMultiplier += totalStats.damageToDemons / 100;
+    }
+
+    let rawHit = Math.floor(currentPayload * defMultiplier * demonMultiplier);
+
+    // Crushing Blow (Guillaume, Gore Rider, Ber, Infinity, Last Wish, Death)
+    if (!forceDeterministic && totalStats.crushingBlow && Math.random() * 100 < totalStats.crushingBlow) {
+      const cbPercent = m.rank === 'boss' ? 0.10 : 0.25;
+      const cbDamage = Math.max(1, Math.floor(m.hp * cbPercent));
+      rawHit += cbDamage;
+    }
+
+    const actualDmg = applyBossMechanics(monsterMap.get(m.id)!, rawHit);
+    return { actualDmg, defMultiplier };
+  };
+
   if (skill.route === 'line') {
     const laneMonsters = monsters
       .filter(m => m.lane === playerLane && m.hp > 0)
@@ -183,9 +250,7 @@ export function resolveAttack(
       if (currentPayload <= 0) return;
 
       const isOverkillHit = idx > 0;
-      const defMultiplier = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(m.defense));
-      const baseDmg = Math.floor(currentPayload * defMultiplier);
-      const actualDmg = applyBossMechanics(monsterMap.get(m.id)!, baseDmg);
+      const { actualDmg, defMultiplier } = calculateHitDamage(m, currentPayload);
       const isFatal = actualDmg >= m.hp;
 
       targetsHit.push({
@@ -210,6 +275,9 @@ export function resolveAttack(
       } else {
         updatedM.hp = Math.max(1, updatedM.hp - actualDmg);
         applyFrostFreeze(updatedM);
+        if (totalStats.knockback && updatedM.depth < 4 && updatedM.rank !== 'boss') {
+          updatedM.depth += 1;
+        }
         if (m.rank === 'elite' && !stopperId) stopperId = m.id;
         currentPayload = 0;
       }
@@ -231,9 +299,7 @@ export function resolveAttack(
         if (currentPayload <= 0) return;
 
         const isOverkillHit = idx > 0;
-        const defMultiplier = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(m.defense));
-        const baseDmg = Math.floor(currentPayload * defMultiplier);
-        const actualDmg = applyBossMechanics(monsterMap.get(m.id)!, baseDmg);
+        const { actualDmg, defMultiplier } = calculateHitDamage(m, currentPayload);
         const isFatal = actualDmg >= m.hp;
 
         targetsHit.push({
@@ -258,6 +324,9 @@ export function resolveAttack(
         } else {
           updatedM.hp = Math.max(1, updatedM.hp - actualDmg);
           applyFrostFreeze(updatedM);
+          if (totalStats.knockback && updatedM.depth < 4 && updatedM.rank !== 'boss') {
+            updatedM.depth += 1;
+          }
           if (m.rank === 'elite' && !stopperId) stopperId = m.id;
           currentPayload = 0;
         }
@@ -279,9 +348,7 @@ export function resolveAttack(
 
       if (laneMonsters.length > 0) {
         const m0 = laneMonsters[0];
-        const defMultiplier = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(m0.defense));
-        const baseDmg0 = Math.floor(baseLanePayload * defMultiplier);
-        const actualDmg = applyBossMechanics(monsterMap.get(m0.id)!, baseDmg0);
+        const { actualDmg, defMultiplier } = calculateHitDamage(m0, baseLanePayload);
         const isFatal = actualDmg >= m0.hp;
 
         targetsHit.push({
@@ -305,16 +372,17 @@ export function resolveAttack(
         } else {
           updatedM0.hp = Math.max(1, updatedM0.hp - actualDmg);
           applyFrostFreeze(updatedM0);
+          if (totalStats.knockback && updatedM0.depth < 4 && updatedM0.rank !== 'boss') {
+            updatedM0.depth += 1;
+          }
           if (m0.rank === 'elite' && !stopperId) stopperId = m0.id;
         }
       }
 
       if (laneMonsters.length > 1) {
         const m1 = laneMonsters[1];
-        const defMultiplier = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(m1.defense));
         const payload1 = baseLanePayload + overkillCarryRaw;
-        const baseDmg1 = Math.floor(payload1 * defMultiplier);
-        const actualDmg = applyBossMechanics(monsterMap.get(m1.id)!, baseDmg1);
+        const { actualDmg, defMultiplier } = calculateHitDamage(m1, payload1);
         const isFatal = actualDmg >= m1.hp;
 
         targetsHit.push({
@@ -338,6 +406,9 @@ export function resolveAttack(
         } else {
           updatedM1.hp = Math.max(1, updatedM1.hp - actualDmg);
           applyFrostFreeze(updatedM1);
+          if (totalStats.knockback && updatedM1.depth < 4 && updatedM1.rank !== 'boss') {
+            updatedM1.depth += 1;
+          }
           if (m1.rank === 'elite' && !stopperId) stopperId = m1.id;
           overkillCarryRaw = 0;
         }
@@ -348,9 +419,7 @@ export function resolveAttack(
           if (overkillCarryRaw <= 0) break;
 
           const mb = laneMonsters[idx];
-          const defMultiplier = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(mb.defense));
-          const baseDmgB = Math.floor(overkillCarryRaw * defMultiplier);
-          const actualDmg = applyBossMechanics(monsterMap.get(mb.id)!, baseDmgB);
+          const { actualDmg, defMultiplier } = calculateHitDamage(mb, overkillCarryRaw);
           if (actualDmg <= 0) break;
 
           const isFatal = actualDmg >= mb.hp;
@@ -375,6 +444,9 @@ export function resolveAttack(
           } else {
             updatedMb.hp = Math.max(1, updatedMb.hp - actualDmg);
             applyFrostFreeze(updatedMb);
+            if (totalStats.knockback && updatedMb.depth < 4 && updatedMb.rank !== 'boss') {
+              updatedMb.depth += 1;
+            }
             if (mb.rank === 'elite' && !stopperId) stopperId = mb.id;
             overkillCarryRaw = 0;
             break;
@@ -398,10 +470,8 @@ export function resolveAttack(
       }
 
       const currentTarget = laneMonsters[targetIdx];
+      const { actualDmg } = calculateHitDamage(currentTarget, initialRawPayload);
       const targetState = monsterMap.get(currentTarget.id)!;
-      const defMultiplier = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(currentTarget.defense));
-      const baseDmg = Math.floor(initialRawPayload * defMultiplier);
-      const actualDmg = applyBossMechanics(targetState, baseDmg);
       const isFatal = actualDmg >= targetState.hp;
 
       targetsHit.push({
@@ -423,6 +493,9 @@ export function resolveAttack(
       } else {
         targetState.hp = Math.max(1, targetState.hp - actualDmg);
         applyFrostFreeze(targetState);
+        if (totalStats.knockback && targetState.depth < 4 && targetState.rank !== 'boss') {
+          targetState.depth += 1;
+        }
         if (currentTarget.rank === 'elite' && !stopperId) stopperId = currentTarget.id;
       }
     }
@@ -434,9 +507,8 @@ export function resolveAttack(
     if (laneMonsters.length > 0) {
       const frontTarget = laneMonsters[0];
       const executeBonus = skill.id === 'execute' && frontTarget.hp < frontTarget.maxHp * 0.5 ? 1.6 : 1.0;
-      const defMultiplier = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(frontTarget.defense));
-      const baseDmg = Math.floor(initialRawPayload * executeBonus * defMultiplier);
-      const actualDmg = applyBossMechanics(monsterMap.get(frontTarget.id)!, baseDmg);
+      const singlePayload = Math.floor(initialRawPayload * executeBonus);
+      const { actualDmg, defMultiplier } = calculateHitDamage(frontTarget, singlePayload);
       const isFatal = actualDmg >= frontTarget.hp;
 
       targetsHit.push({
@@ -457,16 +529,14 @@ export function resolveAttack(
         updatedM.hp = 0;
 
         const requiredRawToKill = Math.ceil(frontTarget.hp / Math.max(0.01, defMultiplier));
-        const rawOverkill = Math.max(0, (initialRawPayload * executeBonus) - requiredRawToKill);
+        const rawOverkill = Math.max(0, singlePayload - requiredRawToKill);
         let currentPayload = Math.floor(rawOverkill * effectiveOverkillEff);
 
         for (let idx = 1; idx < laneMonsters.length; idx++) {
           if (currentPayload <= 0) break;
 
           const sm = laneMonsters[idx];
-          const smDefMult = calculateDamageMultiplier(attackerLevel, getEffectiveDefense(sm.defense));
-          const smBaseDmg = Math.floor(currentPayload * smDefMult);
-          const smDmg = applyBossMechanics(monsterMap.get(sm.id)!, smBaseDmg);
+          const { actualDmg: smDmg, defMultiplier: smDefMult } = calculateHitDamage(sm, currentPayload);
           if (smDmg <= 0) break;
 
           const isSmFatal = smDmg >= sm.hp;
@@ -491,6 +561,9 @@ export function resolveAttack(
           } else {
             smUpdated.hp = Math.max(1, smUpdated.hp - smDmg);
             applyFrostFreeze(smUpdated);
+            if (totalStats.knockback && smUpdated.depth < 4 && smUpdated.rank !== 'boss') {
+              smUpdated.depth += 1;
+            }
             if (sm.rank === 'elite' && !stopperId) stopperId = sm.id;
             currentPayload = 0;
             break;
@@ -499,6 +572,9 @@ export function resolveAttack(
       } else {
         updatedM.hp = Math.max(1, updatedM.hp - actualDmg);
         applyFrostFreeze(updatedM);
+        if (totalStats.knockback && updatedM.depth < 4 && updatedM.rank !== 'boss') {
+          updatedM.depth += 1;
+        }
         stopperId = frontTarget.id;
       }
     }

@@ -1350,7 +1350,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         playerStats.maxHp,
         totalStats.defense,
         totalStats.lifeSteal,
-        totalStats.goldFind || 0
+        totalStats.goldFind || 0,
+        passiveLevels['berserker_rage'] || 0,
+        totalStats.lifeTapChance || 0,
+        totalStats.redemptionOnKill || false
       );
 
       const turnRage = totalStats.turnRageRegen || 0;
@@ -1731,7 +1734,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           totalStats.damageReduction,
           totalStats.allResist,
           consumables,
-          postAttackShieldLayers
+          postAttackShieldLayers,
+          totalStats.chillingArmor || false
         );
 
         if (hordeResult.frozenCount > 0) {

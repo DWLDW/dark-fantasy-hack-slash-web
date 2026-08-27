@@ -23,8 +23,8 @@ export interface CalculatedTotalStats {
   critDamage: number;
   overkillEfficiency: number;
   fortune: number;
-  goldFind?: number;
-  allSkills?: number;
+  goldFind: number;
+  allSkills: number;
   allResist: number;
   lifeSteal: number;
   attackSpeed: number;
@@ -34,6 +34,22 @@ export interface CalculatedTotalStats {
   runeBonusHp: number;
   totalBonusHp: number;
   activeSetBonuses: { setName: string; count: number; description: string }[];
+  // 🌟 Special Mechanics
+  enhancedDamage: number;
+  crushingBlow: number;
+  openWounds: number;
+  ignoreTargetDefense: boolean;
+  targetDefenseReduction: number;
+  convictionAura: boolean;
+  redemptionOnKill: boolean;
+  mightAura: boolean;
+  chillingArmor: boolean;
+  staticFieldChance: number;
+  amplifyDamageChance: number;
+  lifeTapChance: number;
+  cannotBeFrozen: boolean;
+  damageToDemons: number;
+  knockback: boolean;
 }
 
 export function calculateTotalStats(
@@ -70,10 +86,29 @@ export function calculateTotalStats(
   let runeBonusHp = 0;
   let totalBonusHp = 0;
 
+  // 🌟 Special Mechanics Accumulators
+  let offWeaponEd = 0;
+  let crushingBlow = 0;
+  let openWounds = 0;
+  let ignoreTargetDefense = false;
+  let targetDefenseReduction = 0;
+  let convictionAura = false;
+  let redemptionOnKill = false;
+  let mightAura = false;
+  let chillingArmor = false;
+  let staticFieldChance = 0;
+  let amplifyDamageChance = 0;
+  let lifeTapChance = 0;
+  let cannotBeFrozen = false;
+  let damageToDemons = 0;
+  let knockback = false;
+
   const equippedSetCounts: Record<string, number> = {};
 
   Object.values(equipment).forEach(item => {
     if (!item) return;
+
+    // 1. Direct Stats Object Accumulation
     if (item.stats.str) str += item.stats.str;
     if (item.stats.dex) dex += item.stats.dex;
     if (item.stats.con) con += item.stats.con;
@@ -97,20 +132,73 @@ export function calculateTotalStats(
     if (item.stats.hp) totalBonusHp += item.stats.hp;
     if (item.stats.shield) defense += Math.floor(item.stats.shield * 0.5);
 
+    // Special stats directly in item.stats
+    if (item.stats.enhancedDamage && item.slot !== 'weapon') offWeaponEd += item.stats.enhancedDamage;
+    if (item.stats.crushingBlow) crushingBlow += item.stats.crushingBlow;
+    if (item.stats.openWounds) openWounds += item.stats.openWounds;
+    if (item.stats.ignoreTargetDefense) ignoreTargetDefense = true;
+    if (item.stats.targetDefenseReduction) targetDefenseReduction = Math.max(targetDefenseReduction, item.stats.targetDefenseReduction);
+    if (item.stats.convictionAura) { convictionAura = true; targetDefenseReduction = Math.max(targetDefenseReduction, 85); }
+    if (item.stats.redemptionOnKill) redemptionOnKill = true;
+    if (item.stats.mightAura) { mightAura = true; offWeaponEd += 200; }
+    if (item.stats.chillingArmor) chillingArmor = true;
+    if (item.stats.staticFieldChance) staticFieldChance += item.stats.staticFieldChance;
+    if (item.stats.amplifyDamageChance) amplifyDamageChance += item.stats.amplifyDamageChance;
+    if (item.stats.lifeTapChance) lifeTapChance += item.stats.lifeTapChance;
+    if (item.stats.cannotBeFrozen) cannotBeFrozen = true;
+    if (item.stats.damageToDemons) damageToDemons += item.stats.damageToDemons;
+    if (item.stats.knockback) knockback = true;
+
     if (item.slot === 'weapon' && item.baseAtbPercent) {
       baseAtbPercent = item.baseAtbPercent;
     }
 
-    if (item.isRuneWord && item.specialEffect) {
-      if (item.specialEffect.includes('명상 오라') || item.specialEffect.includes('분노 +20')) {
+    // 2. Special Effects Parsing (Unique & RuneWord Unified)
+    const eff = item.specialEffect || '';
+    if (eff) {
+      if (eff.includes('명상 오라') || eff.includes('분노 +20')) {
         turnRageRegen += 20;
         rageCostReduction += 25;
       }
-      if (item.specialEffect.includes('분노 재생 +15%')) {
+      if (eff.includes('분노 재생') || eff.includes('마나 재생')) {
         turnRageRegen += 5;
+      }
+      if (eff.includes('빙결되지 않음') || eff.includes('빙결 방지') || eff.includes('Cannot be Frozen')) {
+        cannotBeFrozen = true;
+      }
+      if (eff.includes('적 방어력 완전 무시') || eff.includes('방어력 무시')) {
+        ignoreTargetDefense = true;
+      }
+      if (eff.includes('구원의 오라')) redemptionOnKill = true;
+      if (eff.includes('선고 오라')) { convictionAura = true; targetDefenseReduction = Math.max(targetDefenseReduction, 85); }
+      if (eff.includes('위세 오라')) { mightAura = true; offWeaponEd += 200; }
+      if (eff.includes('칠흑 갑주')) chillingArmor = true;
+      if (eff.includes('스태틱 필드')) staticFieldChance = Math.max(staticFieldChance, 10);
+      if (eff.includes('피해 증폭') || eff.includes('Amplify Damage')) amplifyDamageChance = Math.max(amplifyDamageChance, 5);
+      if (eff.includes('생명력 추출') || eff.includes('Life Tap')) lifeTapChance = Math.max(lifeTapChance, 5);
+      if (eff.includes('밀쳐내기') || eff.includes('Knockback')) knockback = true;
+
+      // Regex matching for numeric values in specialEffect
+      const cbMatch = eff.match(/강타\s*(\d+)%/);
+      if (cbMatch) crushingBlow += parseInt(cbMatch[1]);
+
+      const demonMatch = eff.match(/악마에\s*대한\s*피해\s*\+(\d+)%/);
+      if (demonMatch) damageToDemons += parseInt(demonMatch[1]);
+
+      const edMatch = eff.match(/물리\s*피해량?\s*\+(\d+)%\s*증폭/);
+      if (edMatch && item.slot !== 'weapon') offWeaponEd += parseInt(edMatch[1]);
+
+      // Level Scaling Stats
+      if (eff.includes('레벨 비례 최대 공격력') || eff.includes('레벨 비례 극강 최대 피해량') || eff.includes('레벨 비례 치명적 공격')) {
+        maxDmg += Math.floor(playerStats.level * 2.5);
+        critChance += Math.min(25, playerStats.level * 0.3);
+      }
+      if (eff.includes('레벨 비례 최대 생명력') || eff.includes('레벨 비례 HP')) {
+        totalBonusHp += Math.floor(playerStats.level * 2.0);
       }
     }
 
+    // 3. Socketed Runes Processing (Non-RuneWord Only)
     if (item.socketedRunes && !item.isRuneWord) {
       item.socketedRunes.forEach(runeKey => {
         const rDef = D2_RUNES[runeKey];
@@ -130,10 +218,21 @@ export function calculateTotalStats(
           if (bonus.wis) wis += bonus.wis;
           if (bonus.hp) { runeBonusHp += bonus.hp; totalBonusHp += bonus.hp; }
           if (bonus.fortune) fortune += bonus.fortune;
+          if (bonus.goldFind) goldFind += bonus.goldFind;
+          if (bonus.allSkills) allSkills += bonus.allSkills;
           if (bonus.allResist) allResist += bonus.allResist;
           if (bonus.critChance) critChance += bonus.critChance;
           if (bonus.critDamage) critDamage += bonus.critDamage;
           if (bonus.evasion) evasion = Math.min(75, evasion + bonus.evasion);
+          if (bonus.damageReduction) damageReduction = Math.min(50, damageReduction + bonus.damageReduction);
+          if (bonus.turnRageRegen) turnRageRegen += bonus.turnRageRegen;
+          if (bonus.rageCostReduction) rageCostReduction += bonus.rageCostReduction;
+          if (bonus.crushingBlow) crushingBlow += bonus.crushingBlow;
+          if (bonus.openWounds) openWounds += bonus.openWounds;
+          if (bonus.ignoreTargetDefense) ignoreTargetDefense = true;
+          if (bonus.targetDefenseReduction) targetDefenseReduction = Math.max(targetDefenseReduction, bonus.targetDefenseReduction);
+          if (bonus.cannotBeFrozen) cannotBeFrozen = true;
+          if (bonus.damageToDemons) damageToDemons += bonus.damageToDemons;
         }
       });
     }
@@ -143,6 +242,7 @@ export function calculateTotalStats(
     }
   });
 
+  // 4. Set Bonuses Accumulation
   const activeSetBonuses: { setName: string; count: number; description: string }[] = [];
   Object.entries(equippedSetCounts).forEach(([setName, count]) => {
     const setDef = SET_DEFINITIONS[setName];
@@ -173,12 +273,14 @@ export function calculateTotalStats(
         if (b.stats.critDamage) critDamage += b.stats.critDamage;
         if (b.stats.fortune) fortune += b.stats.fortune;
         if (b.stats.goldFind) goldFind += b.stats.goldFind;
+        if (b.stats.allSkills) allSkills += b.stats.allSkills;
         if (b.stats.hp) totalBonusHp += b.stats.hp;
         if (b.stats.overkillEfficiency) overkillEfficiency += b.stats.overkillEfficiency;
       }
     });
   });
 
+  // 5. Dungeon Buffs
   dungeonBuffs.forEach(b => {
     if (b.type === 'fortune') fortune += b.value;
     if (b.type === 'crit') critChance += b.value;
@@ -192,10 +294,18 @@ export function calculateTotalStats(
     }
   });
 
+  // 6. Base Stat Scaling
   minDmg += Math.floor(str * 1.5);
   maxDmg += Math.floor(str * 2.0);
 
-  // 🧬 WARRIOR PASSIVE SKILLS BONUSES (Max Level 10)
+  // 7. Off-Weapon Enhanced Damage Amplification
+  if (offWeaponEd > 0) {
+    const edMult = 1 + offWeaponEd / 100;
+    minDmg = Math.floor(minDmg * edMult);
+    maxDmg = Math.floor(maxDmg * edMult);
+  }
+
+  // 8. Warrior Passive Skills Bonuses (Max Level 10)
   const wmLevel = Math.min(10, passiveLevels['weapon_mastery'] || 0);
   if (wmLevel > 0) {
     const wmMult = 1 + wmLevel * 0.06;
@@ -278,6 +388,22 @@ export function calculateTotalStats(
     baseAtbPercent: finalAtb,
     runeBonusHp: Math.floor(runeBonusHp),
     totalBonusHp,
-    activeSetBonuses
+    activeSetBonuses,
+    // 🌟 Special Mechanics
+    enhancedDamage: offWeaponEd,
+    crushingBlow,
+    openWounds,
+    ignoreTargetDefense,
+    targetDefenseReduction,
+    convictionAura,
+    redemptionOnKill,
+    mightAura,
+    chillingArmor,
+    staticFieldChance,
+    amplifyDamageChance,
+    lifeTapChance,
+    cannotBeFrozen,
+    damageToDemons,
+    knockback
   };
 }

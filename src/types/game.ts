@@ -32,7 +32,25 @@ export interface ItemStats {
   allResist?: number;
   fortune?: number; // Magic Find % (MF)
   goldFind?: number; // Extra Gold from Monsters % (GF)
+  turnRageRegen?: number; // 턴당 분노 자동 회복량
+  rageCostReduction?: number; // 분노 소모량 감소 %
   allSkills?: number; // +All Skills level bonus
+  // 🌟 RuneWord & Unique Special Stats
+  enhancedDamage?: number; // Off-weapon ED % (e.g. Fortitude +200%, Phoenix +150%)
+  crushingBlow?: number; // 강타 확률 % (Crushing Blow)
+  openWounds?: number; // 상처 악화 확률 % (Open Wounds)
+  ignoreTargetDefense?: boolean; // 적 방어력 무시 (Grief, Faith, Jah)
+  targetDefenseReduction?: number; // 적 방어력 감소 % (Infinity -85%, Eth -25%)
+  convictionAura?: boolean; // 선고 오라 (Infinity - 적 방어/저항 85% 파괴)
+  redemptionOnKill?: boolean; // 구원의 오라 (Phoenix - 처치 시 HP/분노 완충)
+  mightAura?: boolean; // 위세 오라 (Last Wish - 공격력 +200%)
+  chillingArmor?: boolean; // 칠흑 갑주 (Fortitude - 피격 시 결빙 반사 & 방어 +50%)
+  staticFieldChance?: number; // 스태틱 필드 발동 확률 % (Crescent Moon)
+  amplifyDamageChance?: number; // 앰플리파이 발동 확률 % (Atma)
+  lifeTapChance?: number; // 라이프 탭 발동 확률 % (Dracul, Last Wish, Exile)
+  cannotBeFrozen?: boolean; // 결빙 방지 (Raven Frost, Rhyme, Cham)
+  damageToDemons?: number; // 악마 대상 추가 피해 % (Laying of Hands +350%)
+  knockback?: boolean; // 적 밀쳐내기 (Windforce)
 }
 
 export interface GameItem {

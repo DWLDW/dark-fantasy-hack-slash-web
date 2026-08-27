@@ -33,7 +33,9 @@ export function calculateAttackGains(
   totalDefense: number = 0,
   itemLifeSteal: number = 0,
   goldFind: number = 0,
-  berserkRagePassiveLevel: number = 0
+  berserkRagePassiveLevel: number = 0,
+  lifeTapChance: number = 0,
+  redemptionOnKill: boolean = false
 ): AttackGainsResult {
   const primaryTargets = result.targetsHit.filter(t => !t.isOverkillHit);
   const rageHitCap = effectiveSkill.id === 'war_cry' ? 3 : primaryTargets.length;
@@ -42,15 +44,23 @@ export function calculateAttackGains(
   const voidKillRage = effectiveSkill.activeRuneId === 'rune_void' ? result.chainCount * 2 : 0;
   const rawRageGained = hitRage + voidKillRage;
 
-  const totalRageGained = effectiveSkill.activeRuneId === 'rune_void'
+  let totalRageGained = effectiveSkill.activeRuneId === 'rune_void'
     ? Math.ceil(rawRageGained * 1.20)
     : rawRageGained;
 
   const effectiveDamageForHeal = Math.max(result.appliedDamage, Math.min(result.totalDamage, result.appliedDamage * 1.5));
   
+  // 🧛 Life Tap Proc (Dracul, Last Wish, Exile: 50% massive life steal)
+  let effectiveLifeSteal = itemLifeSteal;
+  const isLifeTapProc = lifeTapChance > 0 && Math.random() * 100 < lifeTapChance;
+  if (isLifeTapProc) {
+    effectiveLifeSteal = Math.max(effectiveLifeSteal, 50);
+  }
+
   // 🧛 Balanced Life Steal Caps (Prevents unkillable full-heal exploits while keeping satisfying sustain)
-  const itemHeal = itemLifeSteal > 0
-    ? Math.min(Math.floor(playerMaxHp * 0.10), Math.floor(effectiveDamageForHeal * (itemLifeSteal / 100)))
+  const maxHealCap = isLifeTapProc ? 0.35 : 0.15;
+  const itemHeal = effectiveLifeSteal > 0
+    ? Math.min(Math.floor(playerMaxHp * maxHealCap), Math.floor(effectiveDamageForHeal * (effectiveLifeSteal / 100)))
     : 0;
 
   const skillHeal = effectiveSkill.lifeStealPercent
@@ -61,7 +71,13 @@ export function calculateAttackGains(
     ? Math.min(Math.floor(playerMaxHp * 0.08), result.chainCount * Math.max(5, Math.floor(playerMaxHp * 0.02)))
     : 0;
 
-  const totalHpHealed = Math.min(Math.floor(playerMaxHp * 0.20), skillHeal + itemHeal + voidHeal);
+  let totalHpHealed = Math.min(Math.floor(playerMaxHp * (isLifeTapProc ? 0.50 : 0.25)), skillHeal + itemHeal + voidHeal);
+
+  // 🌟 Phoenix Redemption Aura (Full recharge on kills)
+  if (redemptionOnKill && result.kills.length > 0) {
+    totalRageGained = 100;
+    totalHpHealed = Math.max(totalHpHealed, Math.floor(playerMaxHp * 0.50));
+  }
 
   // Shield Bash generated shield (20% max HP + 50% defense)
   const shieldGained = effectiveSkill.id === 'shield_bash'
@@ -142,7 +158,8 @@ export function resolveHordeCounterAttack(
   damageReduction: number,
   allResist: number = 0,
   consumables: ConsumableItem[],
-  shieldLayers: { amount: number; turns: number }[] = []
+  shieldLayers: { amount: number; turns: number }[] = [],
+  chillingArmor: boolean = false
 ): HordeAttackResult {
   const frontRowAttackers: Monster[] = [];
   for (let l = 0; l < 5; l++) {
@@ -160,11 +177,19 @@ export function resolveHordeCounterAttack(
   let dodgedCount = 0;
   let chargedStrikes = 0;
 
+  // 🛡️ Fortitude Chilling Armor: 50% defense boost
+  const effectiveBaseDefense = chillingArmor ? Math.floor(defense * 1.5) : defense;
+
   activeAttackers.forEach(m => {
     const isDodged = Math.random() * 100 < (evasion || 0);
     if (isDodged) {
       dodgedCount++;
       return;
+    }
+
+    // ❄️ Chilling Armor Freeze-back: 50% chance to freeze the attacker
+    if (chillingArmor && Math.random() < 0.50) {
+      m.isFrozen = true;
     }
 
     const isElite = m.rank === 'elite' || m.rank === 'boss';
@@ -181,7 +206,7 @@ export function resolveHordeCounterAttack(
       rolledDmg = Math.floor(rolledDmg * 2);
       chargedStrikes++;
     }
-    const effectiveDefense = isCharged ? Math.floor(defense / 2) : defense;
+    const effectiveDefense = isCharged ? Math.floor(effectiveBaseDefense / 2) : effectiveBaseDefense;
     const k = 100 + playerLevel * 10;
     const defMult = k / (k + Math.max(0, effectiveDefense));
     const resistMult = 1 - Math.min(75, Math.max(0, allResist || 0)) / 100;
