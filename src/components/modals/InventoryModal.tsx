@@ -429,20 +429,10 @@ export const InventoryModal: React.FC = () => {
   return (
     <div className="bg-iron-950 border-2 border-brass-500 rounded-xl p-2.5 sm:p-3 w-full max-w-5xl h-[96dvh] max-h-[96dvh] overflow-hidden flex flex-col shadow-[0_0_40px_rgba(251,191,36,0.2)] text-xs md:text-sm select-none font-sans ui-ornate">
       
-      {/* ═══ Header & Mode Tabs (Left: Close + Tabs / Right: Bulk Sell + Auto Equip) ═══ */}
+      {/* ═══ Header & Mode Tabs (Left: Main Tabs / Right: Actions + Close X) ═══ */}
       <div className="bg-iron-950 pb-2 border-b border-iron-750 flex items-center justify-between gap-2 flex-shrink-0 flex-wrap">
-        {/* Left: Close Button + Main Tabs */}
+        {/* Left: Main Mode Tabs */}
         <div className="flex items-center gap-2 flex-wrap">
-          <button
-            onClick={closeModal}
-            className="text-gray-300 hover:text-white p-1.5 rounded-lg hover:bg-iron-800 bg-iron-900 border border-iron-750 transition cursor-pointer flex items-center justify-center shadow group"
-            aria-label="닫기"
-            title="인벤토리 닫기 (Esc)"
-          >
-            <X className="w-4 h-4 text-gray-300 group-hover:text-amber-400 transition-colors" />
-          </button>
-
-          {/* Main Mode Tabs */}
           <div className="flex bg-iron-900 p-0.5 rounded-lg border border-iron-750 font-cinzel font-bold text-xs">
             <button
               onClick={() => setActiveTab('equipment')}
@@ -498,7 +488,7 @@ export const InventoryModal: React.FC = () => {
           </div>
         </div>
 
-        {/* Right: Bulk Sell Normal/Magic + Quick Auto-Equip */}
+        {/* Right: Bulk Sell + Quick Auto-Equip + [X] Close Button */}
         <div className="flex items-center gap-1.5 flex-wrap">
           {!isCombatMode && (
             <button
@@ -538,6 +528,16 @@ export const InventoryModal: React.FC = () => {
               전투 중 (조회)
             </span>
           )}
+
+          {/* Unified Top-Right Close Button */}
+          <button
+            onClick={closeModal}
+            className="text-gray-300 hover:text-white p-1.5 rounded-lg hover:bg-iron-800 bg-iron-900 border border-iron-750 transition cursor-pointer flex items-center justify-center shadow group ml-1"
+            aria-label="닫기"
+            title="인벤토리 닫기 (Esc)"
+          >
+            <X className="w-4 h-4 text-gray-300 group-hover:text-amber-400 transition-colors" />
+          </button>
         </div>
       </div>
 

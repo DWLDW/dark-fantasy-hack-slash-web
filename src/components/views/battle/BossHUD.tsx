@@ -4,9 +4,30 @@ import { getActTheme } from '../../../utils/actThemes';
 import { Crown, Shield, Flame, Skull, Swords, AlertTriangle, Zap, Sparkles, Target, ShieldAlert } from 'lucide-react';
 import { BossPixelPortrait } from '../../fx/BossPixelPortrait';
 
+const getBossIllustration = (bossName: string, dungeonId: string): string => {
+  const n = bossName.toLowerCase();
+  const d = dungeonId.toLowerCase();
+  if (n.includes('안다리엘') || n.includes('andariel') || d.includes('act1') || d.includes('cathedral')) {
+    return '/images/ui/boss_andariel.webp';
+  }
+  if (n.includes('듀리엘') || n.includes('duriel') || d.includes('act2') || d.includes('tomb')) {
+    return '/images/ui/boss_duriel.webp';
+  }
+  if (n.includes('메피스토') || n.includes('mephisto') || d.includes('act3') || d.includes('kurast') || d.includes('durance')) {
+    return '/images/ui/boss_mephisto.webp';
+  }
+  if (n.includes('디아블로') || n.includes('diablo') || d.includes('act4') || d.includes('chaos')) {
+    return '/images/ui/boss_diablo.webp';
+  }
+  if (n.includes('바알') || n.includes('baal') || d.includes('act5') || d.includes('worldstone')) {
+    return '/images/ui/boss_baal.webp';
+  }
+  return '/images/ui/boss_diablo.webp';
+};
+
 /**
  * BossHUD — Dedicated high-impact boss battle HUD.
- * Features distinct abyssal crimson/purple health bar, stagger break gauge, weak lane targeting, and enrage state.
+ * Features massive wide boss illustration banner, abyssal health bar, stagger break gauge, weak lane targeting, and enrage state.
  */
 export const BossHUD: React.FC = React.memo(() => {
   const {
@@ -23,6 +44,11 @@ export const BossHUD: React.FC = React.memo(() => {
   const isBossRoom = currentRoom?.type === 'boss';
   const boss = monsters.find(m => m.rank === 'boss' && m.hp > 0);
   const actTheme = useMemo(() => getActTheme(currentDungeon.id), [currentDungeon.id]);
+
+  const bossArtwork = useMemo(() => {
+    if (!boss) return '/images/ui/boss_diablo.webp';
+    return getBossIllustration(boss.name, currentDungeon.id);
+  }, [boss?.name, currentDungeon.id]);
 
   if (!isBossRoom || !boss) return null;
 
@@ -92,51 +118,69 @@ export const BossHUD: React.FC = React.memo(() => {
 
   return (
     <div
-      className={`relative rounded-lg border p-1 sm:p-1.5 shadow-xl transition-all duration-300 overflow-hidden flex-shrink-0 mb-1 ${
-
+      className={`relative rounded-xl border-2 p-1.5 sm:p-2 shadow-2xl transition-all duration-300 overflow-hidden flex-shrink-0 mb-1 select-none ${
         isGroggy
-          ? 'bg-yellow-950/90 border-yellow-400 ring-1 ring-yellow-400/80 animate-pulse'
+          ? 'bg-yellow-950/90 border-yellow-400 ring-2 ring-yellow-400/80 shadow-[0_0_30px_rgba(251,191,36,0.6)] animate-pulse'
           : isCharging
-          ? 'bg-red-950 border-red-500 ring-1 ring-red-500/90 animate-pulse'
+          ? 'bg-red-950 border-red-500 ring-2 ring-red-500/90 shadow-[0_0_30px_rgba(239,68,68,0.7)] animate-pulse'
           : isEnraged
-          ? 'bg-red-950/90 border-red-800'
+          ? 'bg-red-950/90 border-red-600 shadow-[0_0_20px_rgba(220,38,38,0.5)]'
           : bossGuardActive
           ? 'bg-blue-950/90 border-blue-600'
-          : 'bg-iron-950/95 border-iron-800'
+          : 'bg-iron-950 border-brass-600/60 shadow-[0_0_20px_rgba(0,0,0,0.8)]'
       }`}
     >
-      {/* Horizontal Ultra-Compact Layout: Left Avatar | Center HP/Break | Right Weakness/Intent */}
-      <div className="flex items-center gap-2">
-        {/* Left: Compact Boss Portrait (40px) */}
+      {/* 👹 Massive Wide Boss Background Artwork Layer */}
+      <div
+        className={`absolute inset-0 bg-cover bg-right sm:bg-center transition-all duration-500 pointer-events-none filter contrast-125 ${
+          isGroggy
+            ? 'opacity-45 brightness-125 saturate-150'
+            : isCharging
+            ? 'opacity-55 brightness-125 saturate-200'
+            : isEnraged
+            ? 'opacity-40 brightness-110 saturate-150'
+            : 'opacity-35 brightness-95 saturate-125'
+        }`}
+        style={{ backgroundImage: `url(${bossArtwork})` }}
+      />
+      {/* Dark Vignette Overlay for Content Readability */}
+      <div className="absolute inset-0 bg-gradient-to-r from-iron-950 via-iron-950/80 to-transparent pointer-events-none" />
+
+      {/* Horizontal Layout: Left Boss Portrait | Center HP/Break | Right Weakness/Intent */}
+      <div className="relative z-10 flex items-center gap-2 sm:gap-3">
+        {/* Left: High-Presence Boss Portrait (48px) */}
         <div
           onClick={() => setPlayerLane(boss.lane)}
-          className={`relative flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center border transition transform hover:scale-105 cursor-pointer overflow-hidden p-0.5 ${
+          className={`relative flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center border-2 transition transform hover:scale-105 cursor-pointer overflow-hidden shadow-lg p-0.5 ${
             isGroggy
-              ? 'bg-yellow-950 border-yellow-400'
+              ? 'bg-yellow-950 border-yellow-400 ring-2 ring-yellow-300'
               : isCharging
-              ? 'bg-red-950 border-red-400 ring-1 ring-red-400 animate-pulse'
-              : 'bg-iron-950 border-amber-500/60'
+              ? 'bg-red-950 border-red-400 ring-2 ring-red-500 animate-pulse'
+              : isEnraged
+              ? 'bg-red-950 border-red-500'
+              : 'bg-iron-950 border-amber-400/80'
           }`}
-          title="클릭 시 보스 전면 레인으로 조준"
+          title="클릭 시 보스 전면 레인으로 즉시 조준"
         >
-          <BossPixelPortrait
-            name={boss.name}
-            element={boss.element}
-            signatureKey={boss.bossSignatureKey}
-            isEnraged={isEnraged}
-            isGroggy={isGroggy}
-            isCharging={isCharging}
-            size={36}
+          <img
+            src={bossArtwork}
+            alt={boss.name}
+            className="w-full h-full object-cover rounded-lg filter contrast-125"
           />
           {isCharging && (
-            <span className="absolute bottom-0 inset-x-0 text-[7px] bg-red-600 text-white font-black text-center leading-tight">
+            <span className="absolute bottom-0 inset-x-0 text-[8px] bg-red-600 text-white font-black text-center leading-tight tracking-wider shadow">
               CAST
+            </span>
+          )}
+          {isEnraged && !isCharging && (
+            <span className="absolute bottom-0 inset-x-0 text-[7px] bg-red-800/90 text-amber-300 font-bold text-center leading-tight">
+              광폭
             </span>
           )}
         </div>
 
-        {/* Center: Name & Compact HP Bar & Stagger */}
-        <div className="flex-1 min-w-0 space-y-0.5">
+        {/* Center: Name & Abyssal Health Bar & Stagger */}
+        <div className="flex-1 min-w-0 space-y-1">
           {/* Boss Name + Element + Intent Chips */}
           <div className="flex items-center justify-between gap-1 leading-none">
             <div className="flex items-center gap-1 min-w-0">
