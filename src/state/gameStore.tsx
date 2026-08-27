@@ -1333,32 +1333,86 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         totalStats.goldFind || 0
       );
 
-      if (gains.actionExp > 0) {
-        addPlayerExp(gains.actionExp);
-      }
-
       const turnRage = totalStats.turnRageRegen || 0;
-      setPlayerStats(prev => ({
-        ...prev,
-        gold: prev.gold + gains.gainedGold,
-        rage: Math.min(prev.maxRage || 100, prev.rage + gains.totalRageGained + turnRage),
-        hp: Math.min(prev.maxHp, prev.hp + gains.totalHpHealed)
-      }));
+
+      // ⚡ Atomic Combat Stats & Level-Up Update (Single Batch Dispatch for Instant UI Sync)
+      setPlayerStats(prev => {
+        let currentExp = prev.exp + (gains.actionExp || 0);
+        let currentLevel = prev.level;
+        let currentMaxExp = prev.maxExp || calculateMaxExp(currentLevel);
+        let statPointsGained = 0;
+        let skillPointsGained = 0;
+        let didLevelUp = false;
+
+        while (currentExp >= currentMaxExp) {
+          currentExp -= currentMaxExp;
+          currentLevel += 1;
+          currentMaxExp = calculateMaxExp(currentLevel);
+          statPointsGained += 5;
+          skillPointsGained += 1;
+          didLevelUp = true;
+        }
+
+        if (didLevelUp) {
+          playRuneWordSound();
+          setIsLevelUpAnimated(true);
+          setTimeout(() => setIsLevelUpAnimated(false), 4500);
+          addLog(`🌟 LEVEL UP! 레벨 ${currentLevel} 달성! (스탯 포인트 +${statPointsGained}P, 스킬 포인트 +${skillPointsGained}P 획득 & HP/마나 완전 회복!)`, 'loot');
+
+          ALL_AVAILABLE_SKILLS.forEach(skill => {
+            const reqLv = skill.unlockLevel ?? 1;
+            if (reqLv > prev.level && reqLv <= currentLevel) {
+              addLog(`⚔️ [신규 액티브 스킬 해금] '${skill.name}' 습득! [K] 키를 눌러 스킬북에서 슬롯에 장착하세요!`, 'chain');
+            }
+          });
+
+          WARRIOR_PASSIVE_SKILLS.forEach(passive => {
+            if (passive.unlockLevel > prev.level && passive.unlockLevel <= currentLevel) {
+              addLog(`🧬 [신규 패시브 스킬 해금] '${passive.name}' 습득! [K] 키를 눌러 패시브 마스터리를 강화하세요!`, 'chain');
+            }
+          });
+        }
+
+        const finalMaxHp = didLevelUp
+          ? 120 + (currentLevel - 1) * 25 + prev.con * 5
+          : prev.maxHp;
+        const finalMaxMana = didLevelUp
+          ? 40 + (currentLevel - 1) * 8 + prev.int * 3
+          : prev.maxMana;
+        const finalHp = didLevelUp
+          ? finalMaxHp
+          : Math.min(finalMaxHp, prev.hp + gains.totalHpHealed);
+
+        let currentShieldLayers = prev.shieldLayers || [];
+        let finalShield = prev.shield || 0;
+        if (gains.shieldGained && gains.shieldGained > 0) {
+          const newLayer = { amount: Math.min(finalMaxHp, gains.shieldGained), turns: 2 };
+          currentShieldLayers = [...currentShieldLayers, newLayer];
+          finalShield = currentShieldLayers.reduce((sum, l) => sum + l.amount, 0);
+        }
+
+        return {
+          ...prev,
+          level: currentLevel,
+          exp: currentExp,
+          maxExp: currentMaxExp,
+          statPoints: prev.statPoints + statPointsGained,
+          skillPoints: prev.skillPoints + skillPointsGained,
+          maxHp: finalMaxHp,
+          hp: finalHp,
+          maxMana: finalMaxMana,
+          mana: didLevelUp ? finalMaxMana : prev.mana,
+          gold: prev.gold + gains.gainedGold,
+          rage: Math.min(prev.maxRage || 100, prev.rage + gains.totalRageGained + turnRage),
+          shieldLayers: currentShieldLayers,
+          shield: finalShield
+        };
+      });
 
       if (gains.totalHpHealed > 0) {
         addLog(`🧛 [생명력 흡수] 공격을 통해 생명력 +${gains.totalHpHealed} HP를 흡혈 회복했습니다!`, "loot");
       }
-
-      let currentShieldLayers = playerStats.shieldLayers || [];
       if (gains.shieldGained && gains.shieldGained > 0) {
-        const newLayer = { amount: Math.min(playerStats.maxHp, gains.shieldGained), turns: 2 };
-        currentShieldLayers = [...currentShieldLayers, newLayer];
-        const totalShield = currentShieldLayers.reduce((sum, l) => sum + l.amount, 0);
-        setPlayerStats(prev => ({
-          ...prev,
-          shieldLayers: currentShieldLayers,
-          shield: totalShield
-        }));
         addLog(`🛡️ [방패 강타] 생명력 보호막 +${gains.shieldGained} 생성! (2턴 지속)`, "system");
       }
       if (turnRage > 0) {
@@ -1648,7 +1702,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           totalStats.damageReduction,
           totalStats.allResist,
           consumables,
-          currentShieldLayers
+          playerStats.shieldLayers || []
         );
 
         if (hordeResult.frozenCount > 0) {

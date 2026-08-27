@@ -263,6 +263,14 @@ Dragon Quest 식 턴제 전투 기반 + Diablo II 식 오버킬 체인, 룬워�
 - 🗡️ **신규 종결 유니크 8종 추가**:
   - 죽음의 거미줄(Death's Web), 마지막 소원(Last Wish), 에스츄타의 분노(Eschuta's Temper), 오르무스의 장포(Ormus' Robes), 시대의 왕관(Crown of Ages), 그리폰의 눈초리(Griffon's Eye), 밤날개의 면사포(Nightwing's Veil), 그림자 춤꾼(Shadow Dancer), 자연의 평화(Nature's Peace) 등.
 
+### 26. 잠금 상태 및 레벨업 즉각 갱신(Instant Reactivity) 및 원자적 동기화 완료
+- 🔒 **인벤토리 잠금 상태 실시간 반응성 완비 (`InventoryModal.tsx`)**:
+  - `selectedCandidateItem` 객체 정적 복제 상태를 `selectedCandidateItemId` ID 바인딩 및 `activeCandidateItem` 실시간 파생(`useMemo`)으로 전면 전환.
+  - 사용자가 잠금/해제(`[L]`)를 누르면 화면 이동이나 재접속 없이 **0ms로 즉각 자물쇠 아이콘, 잠금 뱃지, 판매 방지 상태가 실시간 동기화**.
+- ⚡ **전투 턴 경험치/레벨업/스탯/골드 단일 원자적 업데이트 (`gameStore.tsx`)**:
+  - `executeAttack`에서 분리되어 호출되던 `addPlayerExp`와 2회의 `setPlayerStats`를 **단일 원자적(Atomic) `setPlayerStats` 배치 디스패치**로 통합.
+  - 레벨업 시 포인트(+5P/+1P), 최대 HP/마나 확장, 체력 풀 회복, 골드, 분노 충전이 단 1회의 렌더 사이클로 원자적 적용되어 **불필요한 리렌더링 리소스를 절감하고 상단 TopHUD 및 캐릭터 모달의 레벨/경험치/스탯 알림 뱃지가 즉각 100% 반영**.
+
 
 
 

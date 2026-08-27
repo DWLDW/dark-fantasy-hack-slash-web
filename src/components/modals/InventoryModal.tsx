@@ -97,7 +97,7 @@ export const InventoryModal: React.FC = () => {
   // Tab: 'equipment' (Slot-Driven Compare/Swap) | 'all_bag' (Full 60-grid Bag) | 'stash' (Vault) | 'runes' (Rune Vault)
   const [activeTab, setActiveTab] = useState<'equipment' | 'all_bag' | 'stash' | 'runes'>('equipment');
   const [selectedSlot, setSelectedSlot] = useState<EquipSlot>('weapon');
-  const [selectedCandidateItem, setSelectedCandidateItem] = useState<GameItem | null>(null);
+  const [selectedCandidateItemId, setSelectedCandidateItemId] = useState<string | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [detailSubTab, setDetailSubTab] = useState<'compare' | 'craft' | 'socket'>('compare');
@@ -132,25 +132,38 @@ export const InventoryModal: React.FC = () => {
   // Auto-select first candidate item when slot changes if current candidate is invalid
   useEffect(() => {
     if (slotCandidateItems.length > 0) {
-      if (!selectedCandidateItem || !matchSlot(selectedCandidateItem, selectedSlot)) {
-        setSelectedCandidateItem(slotCandidateItems[0]);
+      const exists = slotCandidateItems.some(i => i.id === selectedCandidateItemId);
+      if (!selectedCandidateItemId || !exists) {
+        setSelectedCandidateItemId(slotCandidateItems[0].id);
       }
     } else {
-      setSelectedCandidateItem(null);
+      setSelectedCandidateItemId(null);
     }
-  }, [selectedSlot, slotCandidateItems]);
+  }, [selectedSlot, slotCandidateItems, selectedCandidateItemId]);
+
+  // ⚡ 100% Reactive Item Reference: Always binds to the live state in inventory/equipment/stash
+  const activeCandidateItem = useMemo((): GameItem | null => {
+    if (!selectedCandidateItemId) return null;
+    const fromInv = inventory.find(i => i.id === selectedCandidateItemId);
+    if (fromInv) return fromInv;
+    const fromStash = itemStash.find(i => i.id === selectedCandidateItemId);
+    if (fromStash) return fromStash;
+    const fromEquip = Object.values(equipment).find(i => i && i.id === selectedCandidateItemId);
+    if (fromEquip) return fromEquip;
+    return null;
+  }, [selectedCandidateItemId, inventory, itemStash, equipment]);
 
   // Eligible Runewords calculation for selected candidate item
   const eligibleRuneWords = useMemo((): EligibleRuneWord[] => {
-    if (!selectedCandidateItem || selectedCandidateItem.rarity !== 'normal' || !selectedCandidateItem.sockets || selectedCandidateItem.sockets <= 0) {
+    if (!activeCandidateItem || activeCandidateItem.rarity !== 'normal' || !activeCandidateItem.sockets || activeCandidateItem.sockets <= 0) {
       return [];
     }
 
     const availableRecipes = RUNEWORD_RECIPES.filter(recipe => {
       const isSlotMatching =
-        recipe.allowedSlot === selectedCandidateItem.slot ||
-        (recipe.allowedSlot === 'weapon' && (selectedCandidateItem.slot === 'weapon' || selectedCandidateItem.slot === 'shield'));
-      return isSlotMatching && recipe.requiredSockets === selectedCandidateItem.sockets;
+        recipe.allowedSlot === activeCandidateItem.slot ||
+        (recipe.allowedSlot === 'weapon' && (activeCandidateItem.slot === 'weapon' || activeCandidateItem.slot === 'shield'));
+      return isSlotMatching && recipe.requiredSockets === activeCandidateItem.sockets;
     });
 
     return availableRecipes.map(recipe => {
@@ -163,27 +176,27 @@ export const InventoryModal: React.FC = () => {
         transmutedRunesCost: sim.transmutedRunesCost
       };
     });
-  }, [selectedCandidateItem, runesVault]);
+  }, [activeCandidateItem, runesVault]);
 
   // Check if candidate item is a unique/set/rare socketed item
   const isSingleSocketTarget = useMemo(() => {
-    if (!selectedCandidateItem) return false;
-    const isNormal = selectedCandidateItem.rarity === 'normal';
-    const hasSockets = Boolean(selectedCandidateItem.sockets && selectedCandidateItem.sockets > 0);
-    const hasEmptySockets = (selectedCandidateItem.sockets || 0) > (selectedCandidateItem.socketedRunes?.length || 0);
+    if (!activeCandidateItem) return false;
+    const isNormal = activeCandidateItem.rarity === 'normal';
+    const hasSockets = Boolean(activeCandidateItem.sockets && activeCandidateItem.sockets > 0);
+    const hasEmptySockets = (activeCandidateItem.sockets || 0) > (activeCandidateItem.socketedRunes?.length || 0);
     return !isNormal && hasSockets && hasEmptySockets;
-  }, [selectedCandidateItem]);
+  }, [activeCandidateItem]);
 
   // Reset detail sub-tab when item changes
   useEffect(() => {
-    if (selectedCandidateItem?.rarity === 'normal' && selectedCandidateItem?.sockets && selectedCandidateItem.sockets > 0 && eligibleRuneWords.length > 0) {
+    if (activeCandidateItem?.rarity === 'normal' && activeCandidateItem?.sockets && activeCandidateItem.sockets > 0 && eligibleRuneWords.length > 0) {
       setDetailSubTab('compare');
     } else if (isSingleSocketTarget) {
       setDetailSubTab('compare');
     } else {
       setDetailSubTab('compare');
     }
-  }, [selectedCandidateItem?.id, eligibleRuneWords.length, isSingleSocketTarget]);
+  }, [activeCandidateItem?.id, eligibleRuneWords.length, isSingleSocketTarget]);
 
   // Handle slot selection from paperdoll
   const handleSelectSlot = (slot: EquipSlot | 'all', item: GameItem | null) => {
@@ -191,7 +204,7 @@ export const InventoryModal: React.FC = () => {
       setSelectedSlot(slot);
       setActiveTab('equipment');
       const candidates = cleanEquipmentInventory.filter(i => matchSlot(i, slot));
-      setSelectedCandidateItem(candidates.length > 0 ? candidates[0] : null);
+      setSelectedCandidateItemId(candidates.length > 0 ? candidates[0].id : null);
     }
   };
 
@@ -200,7 +213,7 @@ export const InventoryModal: React.FC = () => {
     equipItem(itemToEquip, selectedSlot);
     setTimeout(() => {
       const remaining = cleanEquipmentInventory.filter(i => matchSlot(i, selectedSlot) && i.id !== itemToEquip.id);
-      setSelectedCandidateItem(remaining.length > 0 ? remaining[0] : null);
+      setSelectedCandidateItemId(remaining.length > 0 ? remaining[0].id : null);
     }, 50);
   };
 
@@ -326,7 +339,7 @@ export const InventoryModal: React.FC = () => {
       type: 'warning',
       onConfirm: () => {
         sellAllUnlockedItems();
-        setSelectedCandidateItem(null);
+        setSelectedCandidateItemId(null);
       }
     });
   };
@@ -337,8 +350,8 @@ export const InventoryModal: React.FC = () => {
       return;
     }
     sellItem(item.id);
-    if (selectedCandidateItem?.id === item.id) {
-      setSelectedCandidateItem(null);
+    if (selectedCandidateItemId === item.id) {
+      setSelectedCandidateItemId(null);
     }
   };
 
@@ -372,9 +385,9 @@ export const InventoryModal: React.FC = () => {
         setActiveTab('runes');
         return;
       }
-      if (key === 'e' && selectedCandidateItem && !isCombatMode) {
+      if (key === 'e' && activeCandidateItem && !isCombatMode) {
         e.preventDefault();
-        handleSwapEquip(selectedCandidateItem);
+        handleSwapEquip(activeCandidateItem);
         return;
       }
       if (key === 'a' && !isCombatMode) {
@@ -386,7 +399,7 @@ export const InventoryModal: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeTab, selectedCandidateItem, selectedSlot, isCombatMode, confirmDialogState?.isOpen]);
+  }, [activeTab, activeCandidateItem, selectedSlot, isCombatMode, confirmDialogState?.isOpen]);
 
   return (
     <div className="bg-iron-950 border-2 border-brass-500 rounded-xl p-2.5 sm:p-4 w-full max-w-5xl max-h-[92dvh] overflow-y-auto shadow-[0_0_40px_rgba(251,191,36,0.2)] text-xs md:text-sm select-none font-sans ui-ornate">
@@ -536,11 +549,11 @@ export const InventoryModal: React.FC = () => {
                 <div className="bg-iron-900/70 p-2 rounded-lg border border-iron-750">
                   <div className="grid grid-cols-4 sm:grid-cols-6 gap-1.5 max-h-[140px] overflow-y-auto pr-1">
                     {stackedCandidates.map(({ item, count }) => {
-                      const isSelected = selectedCandidateItem?.id === item.id;
+                      const isSelected = activeCandidateItem?.id === item.id;
                       return (
                         <button
                           key={item.id}
-                          onClick={() => setSelectedCandidateItem(item)}
+                          onClick={() => setSelectedCandidateItemId(item.id)}
                           className={`p-1.5 rounded-lg border text-left transition relative flex flex-col justify-between min-h-[50px] cursor-pointer ${
                             isSelected
                               ? 'bg-amber-950/80 border-2 border-amber-400 ring-2 ring-amber-400/80 shadow-[0_0_12px_rgba(251,191,36,0.6)]'
@@ -567,21 +580,21 @@ export const InventoryModal: React.FC = () => {
               )}
 
               {/* ═══ 1:1 Live Comparison, RuneCrafting & Decision Swap Action ═══ */}
-              {selectedCandidateItem ? (
+              {activeCandidateItem ? (
                 <div className="bg-iron-900/95 p-3 rounded-lg border-2 border-brass-500 shadow-xl space-y-2.5 animate-fade-in">
                   
                   {/* Candidate Item Info + Lock/Sell Top Bar */}
                   <ItemDetailCard
-                    item={selectedCandidateItem}
+                    item={activeCandidateItem}
                     onToggleLock={toggleItemLock}
                     onDeposit={depositToStash}
                     onSell={handleSingleSell}
-                    sellPrice={getItemSellPrice ? getItemSellPrice(selectedCandidateItem) : selectedCandidateItem.value || 5}
+                    sellPrice={getItemSellPrice ? getItemSellPrice(activeCandidateItem) : activeCandidateItem.value || 5}
                     isInStash={false}
                   />
 
                   {/* Sub-Tabs Selector for Normal Runeword Base or Unique Socket Item */}
-                  {((selectedCandidateItem.rarity === 'normal' && selectedCandidateItem.sockets && selectedCandidateItem.sockets > 0) || isSingleSocketTarget) && (
+                  {((activeCandidateItem.rarity === 'normal' && activeCandidateItem.sockets && activeCandidateItem.sockets > 0) || isSingleSocketTarget) && (
                     <div className="flex bg-iron-950 p-1 rounded-lg border border-iron-750 gap-1 font-cinzel font-bold text-xs">
                       <button
                         onClick={() => setDetailSubTab('compare')}
@@ -595,7 +608,7 @@ export const InventoryModal: React.FC = () => {
                         <span>장비 스탯 비교</span>
                       </button>
 
-                      {selectedCandidateItem.rarity === 'normal' && selectedCandidateItem.sockets && selectedCandidateItem.sockets > 0 && (
+                      {activeCandidateItem.rarity === 'normal' && activeCandidateItem.sockets && activeCandidateItem.sockets > 0 && (
                         <button
                           onClick={() => setDetailSubTab('craft')}
                           className={`flex-1 py-1 rounded text-xs transition flex items-center justify-center gap-1.5 cursor-pointer ${
@@ -626,9 +639,9 @@ export const InventoryModal: React.FC = () => {
                   )}
 
                   {/* Panel 1: RuneWord Crafting Panel for Normal Socket Base */}
-                  {detailSubTab === 'craft' && selectedCandidateItem.rarity === 'normal' && selectedCandidateItem.sockets && selectedCandidateItem.sockets > 0 && (
+                  {detailSubTab === 'craft' && activeCandidateItem.rarity === 'normal' && activeCandidateItem.sockets && activeCandidateItem.sockets > 0 && (
                     <RuneCraftPanel
-                      selectedItem={selectedCandidateItem}
+                      selectedItem={activeCandidateItem}
                       eligibleRuneWords={eligibleRuneWords}
                       onDirectCraft={(targetId, recipeId) => craftRuneWord(targetId, recipeId)}
                       onTransmuteCraft={(targetId, recipeId) => craftRuneWordWithTransmute(targetId, recipeId)}
@@ -638,7 +651,7 @@ export const InventoryModal: React.FC = () => {
                   {/* Panel 2: Single Socket Rune Panel for Unique/Rare/Set Socket Items */}
                   {detailSubTab === 'socket' && isSingleSocketTarget && (
                     <SingleSocketRunePanel
-                      selectedItem={selectedCandidateItem}
+                      selectedItem={activeCandidateItem}
                       runesVault={runesVault}
                       onSocketRune={handleSocketRune}
                     />
@@ -648,7 +661,7 @@ export const InventoryModal: React.FC = () => {
                   {detailSubTab === 'compare' && (
                     <ItemCompareTable
                       equippedItem={currentEquippedItem}
-                      selectedItem={selectedCandidateItem}
+                      selectedItem={activeCandidateItem}
                     />
                   )}
 
@@ -656,7 +669,7 @@ export const InventoryModal: React.FC = () => {
                   <div className="pt-2 border-t border-iron-750 flex items-center gap-2">
                     {!isCombatMode && (
                       <button
-                        onClick={() => handleSwapEquip(selectedCandidateItem)}
+                        onClick={() => handleSwapEquip(activeCandidateItem)}
                         className="flex-1 py-2.5 rounded-lg text-xs sm:text-sm font-black bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-iron-950 shadow-lg border border-amber-300 ring-2 ring-amber-400/90 flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition"
                       >
                         <Sword className="w-4 h-4 fill-iron-950" />
@@ -719,36 +732,36 @@ export const InventoryModal: React.FC = () => {
                 totalFilteredCount={allBagFilteredItems.length}
                 selectedSlot="all"
                 categoryFilter={categoryFilter}
-                selectedItem={selectedCandidateItem}
+                selectedItem={activeCandidateItem}
                 isCombatMode={isCombatMode}
-                onSelectItem={(item) => setSelectedCandidateItem(item)}
+                onSelectItem={(item) => setSelectedCandidateItemId(item.id)}
                 onEquipItem={(item) => handleSwapEquip(item)}
               />
             </div>
 
             <div className="md:col-span-5">
-              {selectedCandidateItem ? (
+              {activeCandidateItem ? (
                 <div className="bg-iron-900 p-3 rounded-lg border-2 border-brass-500 shadow-xl space-y-2.5">
                   <ItemDetailCard
-                    item={selectedCandidateItem}
+                    item={activeCandidateItem}
                     onToggleLock={toggleItemLock}
                     onDeposit={depositToStash}
                     onSell={handleSingleSell}
-                    sellPrice={getItemSellPrice ? getItemSellPrice(selectedCandidateItem) : selectedCandidateItem.value || 5}
+                    sellPrice={getItemSellPrice ? getItemSellPrice(activeCandidateItem) : activeCandidateItem.value || 5}
                     isInStash={false}
                   />
 
-                  {currentEquippedItem && currentEquippedItem.id !== selectedCandidateItem.id && (
+                  {currentEquippedItem && currentEquippedItem.id !== activeCandidateItem.id && (
                     <ItemCompareTable
                       equippedItem={currentEquippedItem}
-                      selectedItem={selectedCandidateItem}
+                      selectedItem={activeCandidateItem}
                     />
                   )}
 
                   <div className="pt-2 border-t border-iron-750 flex items-center gap-2">
                     {!isCombatMode && (
                       <button
-                        onClick={() => handleSwapEquip(selectedCandidateItem)}
+                        onClick={() => handleSwapEquip(activeCandidateItem)}
                         className="w-full py-2 rounded-lg text-xs font-black bg-gradient-to-r from-amber-500 to-yellow-400 text-iron-950 shadow flex items-center justify-center gap-1 cursor-pointer active:scale-95"
                       >
                         <Sword className="w-3.5 h-3.5" />
@@ -791,21 +804,21 @@ export const InventoryModal: React.FC = () => {
                 totalFilteredCount={filteredStashItems.length}
                 selectedSlot="all"
                 categoryFilter={categoryFilter}
-                selectedItem={selectedCandidateItem}
+                selectedItem={activeCandidateItem}
                 isCombatMode={isCombatMode}
-                onSelectItem={(item) => setSelectedCandidateItem(item)}
+                onSelectItem={(item) => setSelectedCandidateItemId(item.id)}
                 onEquipItem={(item) => withdrawFromStash(item.id)}
               />
             </div>
 
             <div className="md:col-span-5">
-              {selectedCandidateItem ? (
+              {activeCandidateItem ? (
                 <div className="bg-iron-900 p-3 rounded-lg border-2 border-indigo-500 shadow-xl space-y-2.5">
                   <ItemDetailCard
-                    item={selectedCandidateItem}
+                    item={activeCandidateItem}
                     onToggleLock={toggleItemLock}
                     onWithdraw={withdrawFromStash}
-                    sellPrice={getItemSellPrice ? getItemSellPrice(selectedCandidateItem) : selectedCandidateItem.value || 5}
+                    sellPrice={getItemSellPrice ? getItemSellPrice(activeCandidateItem) : activeCandidateItem.value || 5}
                     isInStash={true}
                   />
                 </div>
