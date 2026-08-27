@@ -50,6 +50,9 @@ export const BattleView: React.FC = React.memo(() => {
     return 'shadow-[inset_0_0_80px_rgba(185,28,28,0.25)] border-rose-950/80';
   }, [currentDungeon.id]);
 
+  const currentRoom = currentDungeon.rooms.find(r => r.id === currentRoomId);
+  const isBossRoom = currentRoom?.type === 'boss';
+
   const [dyingMonsterIds, setDyingMonsterIds] = useState<Set<string>>(new Set());
 
   // Life & Rage floating feedback tracking
@@ -175,11 +178,11 @@ export const BattleView: React.FC = React.memo(() => {
       {/* Layer 1: Ultra-Compact Top Header */}
       <BattleHeader />
 
-      {/* Layer 1.5: Micro Tactical Preview Banner */}
-      <BattleTacticalPreview />
+      {/* Layer 1.5: Micro Tactical Preview Banner (Normal rooms only) */}
+      {!isBossRoom && <BattleTacticalPreview />}
 
-      {/* Layer 1.7: Boss Dedicated HUD (boss rooms only) */}
-      <BossHUD />
+      {/* Layer 1.7: Boss Dedicated Cinematic Stage (Boss rooms only) */}
+      {isBossRoom && <BossHUD />}
 
       {/* Layer 2: Main 5-Lane Battlefield Area (Flex-1 Maximized Viewport) */}
       <div className="w-full flex-1 flex flex-col justify-center min-h-0 my-0.5 overflow-hidden relative">
