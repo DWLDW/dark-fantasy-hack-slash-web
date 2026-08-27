@@ -1,9 +1,8 @@
 import React, { useMemo, useEffect } from 'react';
 import { useGame } from '../../state/gameStore';
-import { Trophy, Sparkles, BookOpen, Coins, Gem, ArrowRight, Flame, HelpCircle, Zap, ShieldCheck, Package, Lock, Swords, Crown } from 'lucide-react';
+import { Trophy, Sparkles, BookOpen, Coins, Gem, ArrowRight, HelpCircle, Zap, ShieldCheck, Swords } from 'lucide-react';
 import { D2_RUNES } from '../../data/gameData';
-import { getNextStoryDungeon, generateEndlessRiftDungeon } from '../../data/dungeons';
-import { isItemBetterWithThreshold, calculateItemScore } from '../../utils/itemScoring';
+import { isItemBetterWithThreshold } from '../../utils/itemScoring';
 import type { GameItem, EquipSlot } from '../../types/game';
 
 export const DungeonVictoryModal: React.FC = () => {
@@ -18,11 +17,8 @@ export const DungeonVictoryModal: React.FC = () => {
     identifyAllVictoryLoot,
     enterDungeon,
     equipment,
-    inventory,
     equipItem,
-    autoEquipBestItems,
-    bulkSellItems,
-    getItemSellPrice
+    autoEquipBestItems
   } = useGame();
 
   if (!isVictoryModalOpen || !dungeonVictoryLoot) return null;
@@ -32,10 +28,6 @@ export const DungeonVictoryModal: React.FC = () => {
   }, [dungeonVictoryLoot.items]);
 
   const hasUnidentified = dungeonVictoryLoot.items.some(i => i.isIdentified === false);
-
-  const legendariesCount = dungeonVictoryLoot.items.filter(
-    i => i.isIdentified && (i.rarity === 'unique' || i.rarity === 'legendary' || i.rarity === 'set')
-  ).length;
 
   const isRift = Boolean(currentDungeon.isEndlessRift || currentDungeon.id.startsWith('endless_rift_'));
   
@@ -48,10 +40,10 @@ export const DungeonVictoryModal: React.FC = () => {
     : (dungeonVictoryLoot.nextDifficulty || currentDifficulty);
 
   const targetLabel = isRift
-    ? `🌌 대균열 ${currentDungeon.riftTier || endlessRiftTier}단계 진격 (Space)`
+    ? `🌌 대균열 ${currentDungeon.riftTier || endlessRiftTier}단계 진격 [Space]`
     : isStoryProgression
-    ? `다음 장 진격: [${targetDungeon.name.split(':')[0]}]`
-    : `전 막 정복! 상위 난이도: [${currentDungeon.name.split(':')[0]}] Lv.${targetDiff}`;
+    ? `다음 장 진격: [${targetDungeon.name.split(':')[0]}] [Space]`
+    : `상위 난이도 진격: Lv.${targetDiff} [Space]`;
 
   const handleReDeploy = () => {
     closeVictoryModal();
@@ -79,17 +71,7 @@ export const DungeonVictoryModal: React.FC = () => {
     return s;
   }, [dungeonVictoryLoot.items, allIdentified, equipment]);
 
-  const normalItems = inventory.filter(i => i.rarity === 'normal');
-  const normalCount = normalItems.length;
-  const normalGoldPreview = normalItems.reduce((sum, it) => sum + getItemSellPrice(it), 0);
-  const showBulkSellCTA = inventory.length > 30;
-
-  const handleBulkSellNormal = () => {
-    if (normalCount === 0) return;
-    bulkSellItems(['normal']);
-  };
-
-  // 🎮 게이머 손목 피로 방지: Space/Enter로 즉시 다음 진격, Esc로 마을 귀환
+  // 🎮 게이머 손목 피로 방지: Space/Enter로 즉시 다음 진격, Esc로 마을 귀환, F로 케인 감정
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
@@ -121,35 +103,38 @@ export const DungeonVictoryModal: React.FC = () => {
   }, [hasUnidentified, handleReDeploy, closeVictoryModal, identifyAllVictoryLoot]);
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-none animate-fade-in select-none font-sans">
-      <div className="bg-iron-950 border-2 border-brass-400 rounded-xl p-3 sm:p-4 w-full max-w-xl max-h-[96dvh] overflow-hidden shadow-[0_0_50px_rgba(251,191,36,0.35)] flex flex-col justify-between text-xs font-sans relative text-gray-200">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-sm animate-fade-in select-none font-sans">
+      <div className="bg-iron-950 border-2 border-brass-400 rounded-2xl p-3.5 sm:p-5 w-full max-w-3xl max-h-[94dvh] overflow-hidden shadow-[0_0_60px_rgba(251,191,36,0.45)] flex flex-col justify-between text-xs font-sans relative text-gray-200 gap-2.5">
         
-        {/* 🏆 Top AI Victory Artwork Banner (Compact 120px) */}
-        <div className="relative rounded-lg overflow-hidden border border-brass-500/80 shadow-lg h-24 sm:h-28 flex-shrink-0 flex items-end p-2 sm:p-2.5">
+        {/* 🏆 Grand AI Victory Cinematic Artwork Banner (Expanded 180px~220px) */}
+        <div className="relative rounded-xl overflow-hidden border-2 border-brass-500/90 shadow-2xl h-44 sm:h-56 flex-shrink-0 flex items-end p-3 sm:p-4">
           <picture className="absolute inset-0 pointer-events-none z-0 select-none">
             <source srcSet="/images/ui/dungeon_victory_heroic.webp" type="image/webp" />
             <img
               src="/images/ui/dungeon_victory_heroic.jpg"
               alt="Dungeon Victory"
-              className="w-full h-full object-cover object-center filter brightness-90 contrast-110"
+              className="w-full h-full object-cover object-center filter brightness-100 contrast-110"
               draggable={false}
             />
           </picture>
+          {/* Rich Ambient Vignette Gradient */}
           <div className="absolute inset-0 bg-gradient-to-t from-iron-950 via-iron-950/40 to-transparent" />
 
-          {/* Victory Floating Title */}
-          <div className="relative z-10 flex items-center justify-between w-full">
-            <div className="flex items-center gap-1.5">
-              <div className="p-1 rounded-lg bg-amber-950/90 border border-amber-400 text-amber-300 shadow">
-                <Trophy className="w-4 h-4 text-amber-300" />
+          {/* Victory Floating Title & Kane Identify Button */}
+          <div className="relative z-10 flex items-end justify-between w-full gap-2 flex-wrap">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-amber-950/90 border-2 border-amber-400 text-amber-300 shadow-[0_0_15px_rgba(251,191,36,0.5)]">
+                <Trophy className="w-6 h-6 text-amber-300 animate-bounce" />
               </div>
               <div>
-                <h2 className="text-sm sm:text-base font-cinzel font-black text-white tracking-wider leading-tight drop-shadow">
+                <h2 className="text-lg sm:text-2xl font-cinzel font-black text-amber-100 tracking-wider leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,1)]">
                   던전 정복 완료!
                 </h2>
-                <div className="text-[10px] text-amber-300 font-mono flex items-center gap-1">
-                  <span>[{currentDungeon.name.split(':')[0]}]</span>
-                  <span className="text-gray-300">· Lv.{currentDifficulty} 돌파</span>
+                <div className="text-xs sm:text-sm text-amber-300 font-mono flex items-center gap-1.5 font-bold mt-0.5">
+                  <span className="bg-iron-950/80 px-2 py-0.5 rounded border border-amber-500/60">
+                    [{currentDungeon.name.split(':')[0]}]
+                  </span>
+                  <span className="text-gray-200">· Lv.{currentDifficulty} 정복 돌파</span>
                 </div>
               </div>
             </div>
@@ -157,40 +142,40 @@ export const DungeonVictoryModal: React.FC = () => {
             {hasUnidentified && (
               <button
                 onClick={identifyAllVictoryLoot}
-                className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-mono font-bold text-[10px] sm:text-xs shadow flex items-center gap-1 cursor-pointer animate-pulse"
+                className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-600 hover:from-blue-500 hover:to-cyan-400 text-white font-mono font-black text-xs sm:text-sm shadow-[0_0_20px_rgba(6,182,212,0.8)] border border-cyan-300 flex items-center gap-1.5 cursor-pointer animate-pulse transition active:scale-95"
               >
-                <BookOpen className="w-3 h-3" />
-                <span>케인 감정 [F]</span>
+                <BookOpen className="w-4 h-4" />
+                <span>데커드 케인 감정 [F]</span>
               </button>
             )}
           </div>
         </div>
 
-        {/* 📊 Reward & Combat Stats Bar (Slim 32px) */}
-        <div className="grid grid-cols-3 gap-1.5 font-mono text-center my-1 flex-shrink-0">
-          <div className="p-1.5 rounded-lg bg-iron-900/90 border border-yellow-600/50 flex items-center justify-between px-2">
-            <span className="text-[10px] text-yellow-400 font-bold flex items-center gap-1">
-              <Coins className="w-3 h-3" /> 골드
+        {/* 📊 Core Rewards Bar (Gold, Shards, EXP) */}
+        <div className="grid grid-cols-3 gap-2 font-mono text-center flex-shrink-0">
+          <div className="p-2.5 rounded-xl bg-iron-900/90 border border-yellow-500/60 flex items-center justify-between px-3 shadow-lg">
+            <span className="text-xs font-bold text-yellow-400 flex items-center gap-1.5">
+              <Coins className="w-4 h-4 text-yellow-400" /> 골드
             </span>
-            <span className="text-xs font-black text-yellow-200">
+            <span className="text-sm sm:text-base font-black text-yellow-200">
               +{dungeonVictoryLoot.gold.toLocaleString()}
             </span>
           </div>
 
-          <div className="p-1.5 rounded-lg bg-iron-900/90 border border-purple-600/50 flex items-center justify-between px-2">
-            <span className="text-[10px] text-purple-400 font-bold flex items-center gap-1">
-              <Gem className="w-3 h-3" /> 샤드
+          <div className="p-2.5 rounded-xl bg-iron-900/90 border border-purple-500/60 flex items-center justify-between px-3 shadow-lg">
+            <span className="text-xs font-bold text-purple-400 flex items-center gap-1.5">
+              <Gem className="w-4 h-4 text-purple-400" /> 샤드
             </span>
-            <span className="text-xs font-black text-purple-200">
-              +{dungeonVictoryLoot.shards}
+            <span className="text-sm sm:text-base font-black text-purple-200">
+              +{dungeonVictoryLoot.shards.toLocaleString()}
             </span>
           </div>
 
-          <div className="p-1.5 rounded-lg bg-iron-900/90 border border-emerald-600/50 flex items-center justify-between px-2">
-            <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
-              <Sparkles className="w-3 h-3" /> EXP
+          <div className="p-2.5 rounded-xl bg-iron-900/90 border border-emerald-500/60 flex items-center justify-between px-3 shadow-lg">
+            <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-emerald-400" /> EXP
             </span>
-            <span className="text-xs font-black text-emerald-200">
+            <span className="text-sm sm:text-base font-black text-emerald-200">
               +{dungeonVictoryLoot.exp.toLocaleString()}
             </span>
           </div>
@@ -198,15 +183,15 @@ export const DungeonVictoryModal: React.FC = () => {
 
         {/* 🔮 Dropped Runes Strip */}
         {Object.keys(dungeonVictoryLoot.runes).length > 0 && (
-          <div className="p-1.5 bg-iron-900/90 rounded-lg border border-purple-600/50 flex items-center gap-1.5 overflow-x-auto flex-shrink-0">
-            <span className="text-[10px] font-bold text-purple-300 flex-shrink-0">🔮 룬:</span>
-            <div className="flex items-center gap-1 flex-wrap">
+          <div className="p-2 bg-iron-900/90 rounded-xl border border-purple-500/60 flex items-center gap-2 overflow-x-auto flex-shrink-0 shadow">
+            <span className="text-xs font-black text-purple-300 flex-shrink-0">🔮 룬 획득:</span>
+            <div className="flex items-center gap-1.5 flex-wrap">
               {Object.entries(dungeonVictoryLoot.runes).map(([rKey, count]) => {
                 const def = D2_RUNES[rKey];
                 return (
                   <span
                     key={rKey}
-                    className="px-1.5 py-0.2 rounded bg-iron-950 border border-purple-500 text-purple-200 font-mono font-black text-[9px] flex items-center gap-0.5"
+                    className="px-2 py-0.5 rounded-lg bg-iron-950 border border-purple-400 text-purple-200 font-mono font-black text-xs flex items-center gap-1 shadow"
                   >
                     <span>#{def?.number} {rKey}</span>
                     <span className="text-amber-300">x{count}</span>
@@ -217,22 +202,22 @@ export const DungeonVictoryModal: React.FC = () => {
           </div>
         )}
 
-        {/* ⚔️ Equipment Loot Showcase Grid (Flex-1 Adaptive) */}
-        <div className="flex-1 min-h-0 my-1 overflow-y-auto space-y-1 pr-0.5">
-          <div className="flex items-center justify-between text-[10px] font-mono text-gray-400">
-            <span>획득 장비 ({dungeonVictoryLoot.items.length}개)</span>
+        {/* ⚔️ Equipment Loot Showcase Grid (3-Column Wide Layout) */}
+        <div className="flex-1 min-h-0 overflow-y-auto space-y-1.5 pr-0.5">
+          <div className="flex items-center justify-between text-xs font-mono text-gray-300">
+            <span className="font-bold">획득 전리품 장비 ({dungeonVictoryLoot.items.length}개)</span>
             {allIdentified && (
               <button
                 onClick={autoEquipBestItems}
-                className="text-amber-300 font-bold hover:underline flex items-center gap-0.5 cursor-pointer"
+                className="text-amber-300 font-black hover:underline flex items-center gap-1 cursor-pointer bg-amber-950/60 px-2 py-0.5 rounded border border-amber-500/60"
               >
-                <Zap className="w-2.5 h-2.5" />
+                <Zap className="w-3 h-3 text-amber-300" />
                 <span>추천 일괄 장착</span>
               </button>
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-1 font-mono text-[10px]">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 font-mono text-xs">
             {dungeonVictoryLoot.items.map(item => {
               const isIdentified = item.isIdentified !== false;
               const isLegendary = isIdentified && (item.rarity === 'unique' || item.rarity === 'legendary');
@@ -241,24 +226,24 @@ export const DungeonVictoryModal: React.FC = () => {
               return (
                 <div
                   key={item.id}
-                  className={`p-1.5 rounded-lg border flex items-center justify-between gap-1 shadow ${
+                  className={`p-2 rounded-xl border-2 flex items-center justify-between gap-1.5 shadow-md ${
                     !isIdentified
-                      ? 'bg-blood-950/40 border-blood-600 text-blood-200'
+                      ? 'bg-blood-950/50 border-blood-600 text-blood-200'
                       : isRecommended
-                      ? 'bg-emerald-950/60 border-emerald-400 text-emerald-100 ring-1 ring-emerald-400'
+                      ? 'bg-emerald-950/70 border-emerald-400 text-emerald-100 ring-2 ring-emerald-400'
                       : isLegendary
-                      ? 'bg-amber-950/60 border-amber-400 text-amber-100 ring-1 ring-amber-400'
+                      ? 'bg-amber-950/70 border-amber-400 text-amber-100 ring-2 ring-amber-400'
                       : item.rarity === 'rare'
-                      ? 'bg-yellow-950/40 border-yellow-500 text-yellow-200'
-                      : 'bg-iron-900 border-iron-750 text-gray-300'
+                      ? 'bg-yellow-950/50 border-yellow-500 text-yellow-200'
+                      : 'bg-iron-900 border-iron-750 text-gray-200'
                   }`}
                 >
                   <div className="min-w-0 flex-1">
                     <div className="font-black truncate flex items-center gap-1">
                       <span>{item.name}</span>
-                      {!isIdentified && <HelpCircle className="w-2.5 h-2.5 text-blood-400" />}
+                      {!isIdentified && <HelpCircle className="w-3 h-3 text-blood-400" />}
                     </div>
-                    <div className="text-[9px] text-gray-400 truncate">
+                    <div className="text-[10px] text-gray-400 truncate mt-0.5">
                       {item.slot} · {isIdentified ? item.rarity : '미확인'}
                     </div>
                   </div>
@@ -266,9 +251,9 @@ export const DungeonVictoryModal: React.FC = () => {
                   {isIdentified && isRecommended && (
                     <button
                       onClick={() => equipItem(item)}
-                      className="px-1.5 py-0.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[9px] flex items-center gap-0.5 flex-shrink-0 cursor-pointer"
+                      className="px-2 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[10px] flex items-center gap-0.5 flex-shrink-0 cursor-pointer shadow active:scale-95"
                     >
-                      <ShieldCheck className="w-2.5 h-2.5" />
+                      <ShieldCheck className="w-3 h-3" />
                       <span>장착</span>
                     </button>
                   )}
@@ -278,20 +263,20 @@ export const DungeonVictoryModal: React.FC = () => {
           </div>
         </div>
 
-        {/* 🎮 Bottom Action Bar (Fixed 44px) */}
-        <div className="grid grid-cols-2 gap-1.5 pt-1 border-t border-iron-800 flex-shrink-0">
+        {/* 🎮 Bottom Large Action Bar (Height 48px) */}
+        <div className="grid grid-cols-2 gap-2 pt-1.5 border-t border-iron-800 flex-shrink-0">
           <button
             onClick={handleReDeploy}
-            className="w-full py-2 bg-gradient-to-r from-blood-700 via-blood-600 to-amber-600 hover:from-blood-600 hover:to-amber-500 text-white font-black rounded-lg text-xs transition shadow-xl ring-1 ring-amber-300 flex items-center justify-center gap-1.5 cursor-pointer animate-pulse"
+            className="w-full py-2.5 sm:py-3 bg-gradient-to-r from-blood-700 via-blood-600 to-amber-600 hover:from-blood-600 hover:to-amber-500 text-white font-black rounded-xl text-xs sm:text-sm transition shadow-[0_0_20px_rgba(239,68,68,0.7)] ring-2 ring-amber-300 flex items-center justify-center gap-2 cursor-pointer animate-pulse active:scale-95"
           >
-            <Swords className="w-3.5 h-3.5" />
-            <span className="truncate">다음 진격 [Space]</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <Swords className="w-4 h-4" />
+            <span className="truncate">{targetLabel}</span>
+            <ArrowRight className="w-4 h-4" />
           </button>
 
           <button
             onClick={closeVictoryModal}
-            className="w-full py-2 bg-iron-900 hover:bg-iron-800 border border-iron-700 text-gray-300 hover:text-white font-bold rounded-lg text-xs transition flex items-center justify-center gap-1 cursor-pointer"
+            className="w-full py-2.5 sm:py-3 bg-iron-900 hover:bg-iron-800 border-2 border-iron-700 text-gray-200 hover:text-white font-bold rounded-xl text-xs sm:text-sm transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
           >
             <span>마을 귀환 [Esc]</span>
           </button>
@@ -301,4 +286,5 @@ export const DungeonVictoryModal: React.FC = () => {
     </div>
   );
 };
+
 
