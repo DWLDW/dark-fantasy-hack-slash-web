@@ -579,20 +579,10 @@ export const InventoryModal: React.FC = () => {
                 </div>
               )}
 
-              {/* ═══ 1:1 Live Comparison, RuneCrafting & Decision Swap Action ═══ */}
+              {/* ═══ 1:1 Side-by-Side Live Comparison & Decision Swap Workspace ═══ */}
               {activeCandidateItem ? (
-                <div className="bg-iron-900/95 p-3 rounded-lg border-2 border-brass-500 shadow-xl space-y-2.5 animate-fade-in">
+                <div className="bg-iron-900/95 p-3 rounded-lg border border-brass-500/80 shadow-2xl space-y-2.5 animate-fade-in">
                   
-                  {/* Candidate Item Info + Lock/Sell Top Bar */}
-                  <ItemDetailCard
-                    item={activeCandidateItem}
-                    onToggleLock={toggleItemLock}
-                    onDeposit={depositToStash}
-                    onSell={handleSingleSell}
-                    sellPrice={getItemSellPrice ? getItemSellPrice(activeCandidateItem) : activeCandidateItem.value || 5}
-                    isInStash={false}
-                  />
-
                   {/* Sub-Tabs Selector for Normal Runeword Base or Unique Socket Item */}
                   {((activeCandidateItem.rarity === 'normal' && activeCandidateItem.sockets && activeCandidateItem.sockets > 0) || isSingleSocketTarget) && (
                     <div className="flex bg-iron-950 p-1 rounded-lg border border-iron-750 gap-1 font-cinzel font-bold text-xs">
@@ -657,12 +647,58 @@ export const InventoryModal: React.FC = () => {
                     />
                   )}
 
-                  {/* Panel 3: 1:1 Comparison Diff Table */}
+                  {/* Panel 3: 1:1 Side-by-Side Dual Card Compare View */}
                   {detailSubTab === 'compare' && (
-                    <ItemCompareTable
-                      equippedItem={currentEquippedItem}
-                      selectedItem={activeCandidateItem}
-                    />
+                    <div className="space-y-2">
+                      {currentEquippedItem ? (
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+                          {/* Left: Currently Equipped Item */}
+                          <div className="space-y-1">
+                            <div className="text-[10px] font-cinzel font-bold text-gray-400 px-1 flex items-center gap-1">
+                              <Shield className="w-3 h-3 text-blue-400" />
+                              <span>현재 착용 중인 장비</span>
+                            </div>
+                            <ItemDetailCard
+                              item={currentEquippedItem}
+                              onToggleLock={toggleItemLock}
+                              isInStash={false}
+                            />
+                          </div>
+
+                          {/* Right: Selected Candidate Item (with Diff against equipped) */}
+                          <div className="space-y-1">
+                            <div className="text-[10px] font-cinzel font-bold text-amber-300 px-1 flex items-center gap-1">
+                              <Sword className="w-3 h-3 text-amber-400" />
+                              <span>교체 대상 후보 장비</span>
+                            </div>
+                            <ItemDetailCard
+                              item={activeCandidateItem}
+                              comparedItem={currentEquippedItem}
+                              onToggleLock={toggleItemLock}
+                              onDeposit={depositToStash}
+                              onSell={handleSingleSell}
+                              sellPrice={getItemSellPrice ? getItemSellPrice(activeCandidateItem) : activeCandidateItem.value || 5}
+                              isInStash={false}
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-1">
+                          <div className="text-[10px] font-cinzel font-bold text-amber-300 px-1 flex items-center gap-1">
+                            <Sword className="w-3 h-3 text-amber-400" />
+                            <span>신규 장착 대상 장비</span>
+                          </div>
+                          <ItemDetailCard
+                            item={activeCandidateItem}
+                            onToggleLock={toggleItemLock}
+                            onDeposit={depositToStash}
+                            onSell={handleSingleSell}
+                            sellPrice={getItemSellPrice ? getItemSellPrice(activeCandidateItem) : activeCandidateItem.value || 5}
+                            isInStash={false}
+                          />
+                        </div>
+                      )}
+                    </div>
                   )}
 
                   {/* Big Decision Swap / Equip Button */}

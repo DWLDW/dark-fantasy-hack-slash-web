@@ -208,21 +208,17 @@ export const SkillRuneModal: React.FC = React.memo(() => {
       {activeTab === 'active' && (
         <div className="space-y-2.5">
           {/* Top 4 Equipped Slots (Q / W / E / R) */}
-          <div className="p-2 sm:p-2.5 rounded-lg bg-iron-900/90 border border-iron-750 space-y-1.5">
+          <div className="p-2 sm:p-2.5 rounded-lg bg-iron-900/90 border border-iron-750 space-y-1.5 shadow">
             <div className="text-[10px] sm:text-[11px] font-cinzel font-bold text-gray-300 flex items-center justify-between">
               <span className="flex items-center gap-1 text-brass-300 font-black">
                 <Layers className="w-3.5 h-3.5 text-amber-400" />
-                <span>단축키 슬롯 선택 (Q · W · E · R)</span>
+                <span>장착 슬롯 (Q · W · E · R)</span>
               </span>
-              <span className="text-[10px] font-mono text-amber-300/90">
-                {selectedSlot ? (
-                  <span className="bg-amber-950/70 text-amber-200 px-2 py-0.5 rounded border border-amber-500/70 animate-pulse font-bold">
-                    ✨ [{selectedSlot}] 슬롯 선택됨 ➔ 아래 스킬 클릭 시 즉시 장착
-                  </span>
-                ) : (
-                  '슬롯을 클릭한 후 아래 스킬을 선택하여 장착하세요'
-                )}
-              </span>
+              {selectedSlot && (
+                <span className="text-[10px] font-mono font-bold text-amber-300 bg-amber-950/80 px-2 py-0.2 rounded border border-amber-500/80">
+                  [{selectedSlot}] 슬롯 지정 중
+                </span>
+              )}
             </div>
 
             <div className="grid grid-cols-4 gap-1.5">
@@ -239,7 +235,7 @@ export const SkillRuneModal: React.FC = React.memo(() => {
                     onClick={() => handleSlotClick(slot)}
                     className={`p-1.5 rounded-lg border-2 text-left transition relative cursor-pointer ${
                       isCurrentSelectedSlot
-                        ? 'bg-amber-950/90 border-amber-400 ring-2 ring-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.4)]'
+                        ? 'bg-amber-950/90 border-amber-400 ring-2 ring-amber-400/80 shadow-[0_0_15px_rgba(251,191,36,0.4)]'
                         : skill
                         ? 'bg-iron-950 border-iron-700 hover:border-amber-500/60'
                         : 'bg-iron-950/60 border-dashed border-iron-800 hover:border-iron-600'
@@ -274,13 +270,13 @@ export const SkillRuneModal: React.FC = React.memo(() => {
             </div>
           </div>
 
-          {/* Main 2-Column Grid: Left (Skill Cards) + Right (Detail, Rune, Level Up) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-            {/* Left: All Available Active Skills */}
-            <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
+          {/* Main 2-Column Grid: Left (Skill Cards) + Right (3 Thematic Panels) */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-2.5">
+            {/* Left 5 Cols: All Available Active Skills */}
+            <div className="md:col-span-5 space-y-1.5 max-h-80 overflow-y-auto pr-1">
               <div className="text-[11px] font-cinzel font-bold text-gray-400 px-1 flex items-center justify-between">
-                <span>보유 스킬 목록</span>
-                <span className="text-[10px] font-mono text-gray-400">최대 Lv.{maxSkillLv}</span>
+                <span>보유 스킬</span>
+                <span className="text-[10px] font-mono text-gray-500">최대 Lv.{maxSkillLv}</span>
               </div>
               <div className="grid grid-cols-1 gap-1">
                 {ALL_AVAILABLE_SKILLS.map(skill => {
@@ -298,7 +294,7 @@ export const SkillRuneModal: React.FC = React.memo(() => {
                       onClick={() => handleSkillCardClick(skill.id)}
                       className={`p-2 rounded-lg border transition text-left cursor-pointer flex items-center justify-between gap-2 ${
                         isSelected
-                          ? 'bg-amber-950/80 border-amber-400 ring-1 ring-amber-400 shadow'
+                          ? 'bg-amber-950/80 border-amber-400 ring-1 ring-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.3)]'
                           : unlocked
                           ? 'bg-iron-900 border-iron-750 hover:bg-iron-850 hover:border-iron-600'
                           : 'bg-iron-950/80 border-iron-800 opacity-70 hover:border-iron-700'
@@ -330,7 +326,7 @@ export const SkillRuneModal: React.FC = React.memo(() => {
                       <div className="flex-shrink-0">
                         {isSelected && selectedSlot && unlocked && (
                           <span className="text-[10px] font-mono text-amber-300 font-black flex items-center gap-0.5 bg-amber-950 px-1.5 py-0.5 rounded border border-amber-500">
-                            <Check className="w-3 h-3" /> 장착됨
+                            <Check className="w-3 h-3" />
                           </span>
                         )}
                       </div>
@@ -340,105 +336,153 @@ export const SkillRuneModal: React.FC = React.memo(() => {
               </div>
             </div>
 
-            {/* Right: Selected Skill Detail & Rune Socketing & Level Up */}
-            <div className="p-3 rounded-lg bg-iron-900 border border-iron-750 space-y-2 flex flex-col justify-between">
-              <div className="space-y-1.5">
-                {/* Skill Name & Level Up Header */}
-                <div className="flex items-center justify-between border-b border-iron-750 pb-1.5">
-                  <div>
-                    <h3 className="font-cinzel font-black text-sm text-amber-200 flex items-center gap-1.5">
-                      <span>{selectedSkill.name}</span>
-                      <span className="text-xs font-mono text-amber-400 font-black">
-                        Lv.{currentSkillLv} / {maxSkillLv}
-                      </span>
+            {/* Right 7 Cols: 3 Distinct Thematic Panels (Info / Level-Up / Rune Socket) */}
+            <div className="md:col-span-7 space-y-2">
+              
+              {/* [Zone 1] Skill Info Plate (Dark Gold / Obsidian Frame) */}
+              <div className="p-2.5 rounded-lg bg-gradient-to-r from-amber-950/50 via-iron-900 to-amber-950/50 border border-amber-500/70 shadow space-y-1.5">
+                <div className="flex items-center justify-between border-b border-amber-500/40 pb-1">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-cinzel font-black text-sm sm:text-base text-amber-200">
+                      {selectedSkill.name}
                     </h3>
-                    <p className="text-[10px] text-gray-400 font-mono">
-                      {selectedSkill.route === 'line' ? '직선 관통 (Line)' : selectedSkill.route === 'branch' ? '3레인 휩쓸기 (Branch)' : selectedSkill.route === 'radius' ? '전체 광역 (Radius)' : '단일 집중 (Single)'}
-                      {levelDamageBonus > 0 && <span className="text-amber-300 font-bold ml-1.5">★ 레벨 보너스 +{levelDamageBonus}%</span>}
-                    </p>
+                    <span className="text-[10px] font-mono font-bold text-amber-400 bg-amber-950/80 px-1.5 py-0.2 rounded border border-amber-600/80">
+                      Lv.{currentSkillLv} / {maxSkillLv}
+                    </span>
                   </div>
 
-                  {/* Level Up Button */}
-                  {canUpgradeActive && (
-                    <button
-                      {...handleLevelUpHold}
-                      className="px-2.5 py-1 rounded bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-iron-950 font-black text-xs shadow-lg transition flex items-center gap-1 cursor-pointer animate-pulse"
-                      title="클릭 시 Lv+1 (Shift+클릭 시 최대치 즉시 투자)"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Lv 업 ({playerStats.skillPoints}P)</span>
-                    </button>
-                  )}
-                </div>
-
-                {/* Description */}
-                <p className="text-[11px] text-gray-300 leading-relaxed bg-iron-950 p-2 rounded border border-iron-800">
-                  {selectedSkill.description}
-                </p>
-
-                {/* Rune Inscription (Socketing) */}
-                <div className="space-y-1 pt-1">
-                  <div className="text-[10px] font-cinzel font-bold text-gray-400 flex items-center justify-between">
-                    <span>원소 룬 각인 (Rune Inscription)</span>
-                    <span className="text-[9px] text-amber-300 font-mono">클릭 시 즉시 각인</span>
-                  </div>
-
-                  <div className="grid grid-cols-5 gap-1">
-                    {SKILL_RUNES_DATA.map(rune => {
-                      const isRuneActive = activeRuneId === rune.id;
+                  {/* Slot assignment quick chips */}
+                  <div className="flex items-center gap-1 font-mono text-[10px]">
+                    <span className="text-gray-400 text-[9px]">슬롯:</span>
+                    {(['Q', 'W', 'E', 'R'] as const).map(slot => {
+                      const isEquippedHere = equippedSkillSlots[slot] === selectedSkill.id;
                       return (
                         <button
-                          key={rune.id}
-                          onClick={() => setSkillRune(selectedSkill.id, rune.id)}
-                          className={`p-1.5 rounded border text-center transition cursor-pointer flex flex-col items-center gap-0.5 ${
-                            isRuneActive
-                              ? 'bg-amber-950/90 border-amber-400 ring-1 ring-amber-400 shadow'
-                              : 'bg-iron-950 border-iron-800 hover:border-iron-600'
+                          key={slot}
+                          onClick={() => equipSkillToSlot(slot, selectedSkill.id)}
+                          disabled={!isSelectedUnlocked}
+                          className={`w-5 h-5 rounded font-black text-[10px] flex items-center justify-center transition cursor-pointer ${
+                            isEquippedHere
+                              ? 'bg-amber-400 text-iron-950 ring-1 ring-amber-300 shadow'
+                              : isSelectedUnlocked
+                              ? 'bg-iron-800 hover:bg-iron-700 text-gray-300 border border-iron-700'
+                              : 'bg-iron-950 text-gray-600 cursor-not-allowed opacity-50'
                           }`}
-                          title={rune.description}
                         >
-                          <span className="text-sm">{RUNE_ICONS[rune.id] || '🔮'}</span>
-                          <span className="text-[9px] font-bold truncate text-gray-200">
-                            {rune.name.split(' ')[0]}
-                          </span>
+                          {slot}
                         </button>
                       );
                     })}
                   </div>
+                </div>
 
-                  {currentRune && (
-                    <div className="text-[10px] text-amber-200 font-mono bg-iron-950/80 p-1.5 rounded border border-amber-500/40 mt-1">
-                      ✨ <span className="font-bold">{currentRune.name}</span>: {currentRune.specialEffectName}
-                    </div>
+                <div className="flex items-center gap-2 text-[10px] font-mono text-gray-300 flex-wrap">
+                  <span className="bg-iron-950 px-1.5 py-0.2 rounded border border-iron-750 text-amber-300 font-bold">
+                    {selectedSkill.route === 'line' ? '직선 관통' : selectedSkill.route === 'branch' ? '3레인 휩쓸기' : selectedSkill.route === 'radius' ? '전체 광역' : '단일 집중'}
+                  </span>
+                  {selectedSkill.rageCost ? (
+                    <span className="bg-iron-950 px-1.5 py-0.2 rounded border border-iron-750 text-orange-400 font-bold">
+                      🔥 분노 {selectedSkill.rageCost} 소모
+                    </span>
+                  ) : (
+                    <span className="bg-iron-950 px-1.5 py-0.2 rounded border border-iron-750 text-cyan-300 font-bold">
+                      ⚡ 분노 +{selectedSkill.rageGainPerHit || 15} 수급
+                    </span>
+                  )}
+                  {levelDamageBonus > 0 && (
+                    <span className="bg-amber-950/80 text-amber-300 font-bold px-1.5 py-0.2 rounded border border-amber-600/70">
+                      ★ 레벨 위력 +{levelDamageBonus}%
+                    </span>
                   )}
                 </div>
+
+                <p className="text-[11px] text-gray-300 bg-iron-950/80 p-2 rounded border border-iron-800 font-mono leading-relaxed">
+                  {selectedSkill.description}
+                </p>
               </div>
 
-              {/* Slot Assignment Quick Bar */}
-              <div className="pt-1.5 border-t border-iron-750 flex items-center justify-between text-[10px] font-mono text-gray-400">
-                <span>단축키 슬롯 지정:</span>
-                <div className="flex items-center gap-1">
-                  {(['Q', 'W', 'E', 'R'] as const).map(slot => {
-                    const isEquippedHere = equippedSkillSlots[slot] === selectedSkill.id;
+              {/* [Zone 2] Level-Up & Mastery Growth Container (Emerald Frame) */}
+              <div className="p-2.5 rounded-lg bg-gradient-to-r from-emerald-950/40 via-iron-900 to-emerald-950/40 border border-emerald-500/70 shadow flex items-center justify-between gap-2">
+                <div>
+                  <div className="text-[10px] text-emerald-400 font-mono font-bold flex items-center gap-1">
+                    <Zap className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>스킬 위력 성장 (Mastery Growth)</span>
+                  </div>
+                  <div className="text-xs font-mono font-bold text-gray-200 mt-0.5">
+                    현재 위력 <span className="text-emerald-300 font-black">+{levelDamageBonus}%</span>
+                    {currentSkillLv < maxSkillLv && (
+                      <span> ➔ 다음 Lv <strong className="text-yellow-300 font-black">+{levelDamageBonus + 15}%</strong> (+15%)</span>
+                    )}
+                  </div>
+                </div>
+
+                {canUpgradeActive ? (
+                  <button
+                    {...handleLevelUpHold}
+                    className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-iron-950 font-black text-xs shadow-lg transition flex items-center gap-1 cursor-pointer active:scale-95 animate-pulse"
+                    title="클릭 시 Lv+1 (Shift+클릭 시 최대치 즉시 투자)"
+                  >
+                    <Plus className="w-4 h-4 stroke-[3]" />
+                    <span>스킬 강화 (SP 1P)</span>
+                  </button>
+                ) : (
+                  <span className="text-[10px] font-mono text-gray-500 bg-iron-950 px-2 py-1 rounded border border-iron-800">
+                    {currentSkillLv >= maxSkillLv ? '최대 레벨 도달' : 'SP 부족 (0P)'}
+                  </span>
+                )}
+              </div>
+
+              {/* [Zone 3] Gem Socket Rune Inscription Panel (Gem Socket Frames) */}
+              <div className="p-2.5 rounded-lg bg-gradient-to-r from-purple-950/40 via-iron-900 to-purple-950/40 border border-purple-500/70 shadow space-y-1.5">
+                <div className="text-[10px] font-cinzel font-bold text-purple-300 flex items-center justify-between border-b border-purple-800/60 pb-1">
+                  <span className="flex items-center gap-1 font-black">
+                    <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                    <span>원소 룬 각인 소켓 (Rune Socket)</span>
+                  </span>
+                  <span className="text-[9px] text-purple-400 font-mono">소켓 터치 시 즉시 각인</span>
+                </div>
+
+                <div className="grid grid-cols-5 gap-1.5">
+                  {SKILL_RUNES_DATA.map(rune => {
+                    const isRuneActive = activeRuneId === rune.id;
+                    const runeColorGlow =
+                      rune.id === 'rune_fire' ? 'border-orange-500 text-orange-300 shadow-[0_0_12px_rgba(249,115,22,0.6)] bg-orange-950/90' :
+                      rune.id === 'rune_frost' ? 'border-cyan-400 text-cyan-200 shadow-[0_0_12px_rgba(34,211,238,0.6)] bg-cyan-950/90' :
+                      rune.id === 'rune_lightning' ? 'border-yellow-400 text-yellow-200 shadow-[0_0_12px_rgba(250,204,21,0.6)] bg-yellow-950/90' :
+                      rune.id === 'rune_poison' ? 'border-emerald-400 text-emerald-200 shadow-[0_0_12px_rgba(52,211,153,0.6)] bg-emerald-950/90' :
+                      'border-purple-400 text-purple-200 shadow-[0_0_12px_rgba(192,132,252,0.6)] bg-purple-950/90';
+
                     return (
                       <button
-                        key={slot}
-                        onClick={() => equipSkillToSlot(slot, selectedSkill.id)}
-                        disabled={!isSelectedUnlocked}
-                        className={`px-2 py-0.5 rounded font-black text-[10px] transition cursor-pointer ${
-                          isEquippedHere
-                            ? 'bg-amber-500 text-iron-950 ring-1 ring-amber-300'
-                            : isSelectedUnlocked
-                            ? 'bg-iron-800 hover:bg-iron-700 text-gray-300'
-                            : 'bg-iron-950 text-gray-600 cursor-not-allowed'
+                        key={rune.id}
+                        onClick={() => setSkillRune(selectedSkill.id, rune.id)}
+                        className={`p-1.5 rounded-lg border-2 text-center transition cursor-pointer flex flex-col items-center gap-0.5 relative ${
+                          isRuneActive
+                            ? `${runeColorGlow} ring-2 ring-white/50 scale-105`
+                            : 'bg-iron-950 border-iron-800 hover:border-iron-600 opacity-70 hover:opacity-100'
                         }`}
+                        title={rune.description}
                       >
-                        [{slot}]
+                        <span className="text-base sm:text-lg">{RUNE_ICONS[rune.id] || '🔮'}</span>
+                        <span className="text-[9px] font-black truncate">
+                          {rune.name.split(' ')[0]}
+                        </span>
+                        {isRuneActive && (
+                          <div className="w-1.5 h-1.5 rounded-full bg-white absolute top-1 right-1 shadow" />
+                        )}
                       </button>
                     );
                   })}
                 </div>
+
+                {currentRune && (
+                  <div className="text-[10px] text-amber-200 font-mono bg-iron-950 p-2 rounded border border-amber-500/50 mt-1 flex items-center justify-between">
+                    <span>✨ <strong className="text-white">{currentRune.name}</strong>: {currentRune.specialEffectName}</span>
+                    <span className="text-[9px] text-amber-400 font-bold bg-amber-950 px-1 py-0.2 rounded border border-amber-600/70">각인 활성화됨</span>
+                  </div>
+                )}
               </div>
+
             </div>
           </div>
         </div>
