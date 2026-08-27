@@ -95,10 +95,22 @@ export function socketRuneHelper(
   if (isRuneWord && runeWordMatch) {
     updatedItem = calculateRuneWordItem(target, runeWordMatch);
   } else {
+    // Apply single rune stat bonus to the socketed item
+    const runeDef = D2_RUNES[runeKey];
+    const isWeapon = target.slot === 'weapon';
+    const bonusStats = runeDef ? (isWeapon ? runeDef.statsWeapon : runeDef.statsArmor) : {};
+    
+    const newStats = { ...(target.stats || {}) };
+    Object.entries(bonusStats).forEach(([k, v]) => {
+      const statKey = k as keyof typeof newStats;
+      newStats[statKey] = ((newStats[statKey] as number) || 0) + (v as number);
+    });
+
     updatedItem = {
       ...target,
+      stats: newStats,
       socketedRunes: newSocketed,
-      description: `[소켓 ${newSocketed.length}/${target.sockets} 장착: ${newSocketed.join(', ')}] ${target.baseItemName || target.name}`
+      description: `[소켓 ${newSocketed.length}/${target.sockets} 각인: ${newSocketed.join(', ')}] ${target.baseItemName || target.name}`
     };
   }
 

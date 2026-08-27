@@ -9,6 +9,7 @@ import { EquippedPaperdoll } from './inventory/EquippedPaperdoll';
 import { InventoryFilterBar, CategoryFilter, SortOrder } from './inventory/InventoryFilterBar';
 import { InventoryItemsGrid, StackedItemEntry } from './inventory/InventoryItemsGrid';
 import { RuneCraftPanel, EligibleRuneWord } from './inventory/RuneCraftPanel';
+import { SingleSocketRunePanel } from './inventory/SingleSocketRunePanel';
 import { RuneVaultTab } from './inventory/RuneVaultTab';
 import {
   X,
@@ -28,7 +29,8 @@ import {
   Flame,
   CheckCircle2,
   RefreshCw,
-  Trash2
+  Trash2,
+  Plus
 } from 'lucide-react';
 
 const RARITY_WEIGHT: Record<ItemRarity, number> = {
@@ -77,6 +79,7 @@ export const InventoryModal: React.FC = () => {
     craftRuneWord,
     craftRuneWordWithTransmute,
     transmuteRunesInVault,
+    socketRuneIntoItem,
     equipItem,
     autoEquipBestItems,
     unequipItem,
@@ -97,7 +100,7 @@ export const InventoryModal: React.FC = () => {
   const [selectedCandidateItem, setSelectedCandidateItem] = useState<GameItem | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
-  const [detailSubTab, setDetailSubTab] = useState<'compare' | 'craft'>('compare');
+  const [detailSubTab, setDetailSubTab] = useState<'compare' | 'craft' | 'socket'>('compare');
 
   const isCombatMode = viewMode === 'battle' && monsters.length > 0;
 
@@ -137,6 +140,51 @@ export const InventoryModal: React.FC = () => {
     }
   }, [selectedSlot, slotCandidateItems]);
 
+  // Eligible Runewords calculation for selected candidate item
+  const eligibleRuneWords = useMemo((): EligibleRuneWord[] => {
+    if (!selectedCandidateItem || selectedCandidateItem.rarity !== 'normal' || !selectedCandidateItem.sockets || selectedCandidateItem.sockets <= 0) {
+      return [];
+    }
+
+    const availableRecipes = RUNEWORD_RECIPES.filter(recipe => {
+      const isSlotMatching =
+        recipe.allowedSlot === selectedCandidateItem.slot ||
+        (recipe.allowedSlot === 'weapon' && (selectedCandidateItem.slot === 'weapon' || selectedCandidateItem.slot === 'shield'));
+      return isSlotMatching && recipe.requiredSockets === selectedCandidateItem.sockets;
+    });
+
+    return availableRecipes.map(recipe => {
+      const sim = simulateRuneWordCrafting(recipe, runesVault);
+      return {
+        recipe,
+        canDirectCraft: sim.canDirectCraft,
+        canTransmuteCraft: sim.canTransmuteCraft,
+        directMissingRunes: sim.directMissingRunes,
+        transmutedRunesCost: sim.transmutedRunesCost
+      };
+    });
+  }, [selectedCandidateItem, runesVault]);
+
+  // Check if candidate item is a unique/set/rare socketed item
+  const isSingleSocketTarget = useMemo(() => {
+    if (!selectedCandidateItem) return false;
+    const isNormal = selectedCandidateItem.rarity === 'normal';
+    const hasSockets = Boolean(selectedCandidateItem.sockets && selectedCandidateItem.sockets > 0);
+    const hasEmptySockets = (selectedCandidateItem.sockets || 0) > (selectedCandidateItem.socketedRunes?.length || 0);
+    return !isNormal && hasSockets && hasEmptySockets;
+  }, [selectedCandidateItem]);
+
+  // Reset detail sub-tab when item changes
+  useEffect(() => {
+    if (selectedCandidateItem?.rarity === 'normal' && selectedCandidateItem?.sockets && selectedCandidateItem.sockets > 0 && eligibleRuneWords.length > 0) {
+      setDetailSubTab('compare');
+    } else if (isSingleSocketTarget) {
+      setDetailSubTab('compare');
+    } else {
+      setDetailSubTab('compare');
+    }
+  }, [selectedCandidateItem?.id, eligibleRuneWords.length, isSingleSocketTarget]);
+
   // Handle slot selection from paperdoll
   const handleSelectSlot = (slot: EquipSlot | 'all', item: GameItem | null) => {
     if (slot !== 'all') {
@@ -150,11 +198,15 @@ export const InventoryModal: React.FC = () => {
   // Execute Equip / Swap Action
   const handleSwapEquip = (itemToEquip: GameItem) => {
     equipItem(itemToEquip, selectedSlot);
-    // After equipping, select the newly equipped item or next candidate
     setTimeout(() => {
       const remaining = cleanEquipmentInventory.filter(i => matchSlot(i, selectedSlot) && i.id !== itemToEquip.id);
       setSelectedCandidateItem(remaining.length > 0 ? remaining[0] : null);
     }, 50);
+  };
+
+  // Socket a single rune into item
+  const handleSocketRune = (targetItemId: string, runeKey: string) => {
+    socketRuneIntoItem(targetItemId, runeKey);
   };
 
   // Stacked candidates for slot view
@@ -514,7 +566,7 @@ export const InventoryModal: React.FC = () => {
                 </div>
               )}
 
-              {/* ═══ 1:1 Live Comparison & Decision Swap Action ═══ */}
+              {/* ═══ 1:1 Live Comparison, RuneCrafting & Decision Swap Action ═══ */}
               {selectedCandidateItem ? (
                 <div className="bg-iron-900/95 p-3 rounded-lg border-2 border-brass-500 shadow-xl space-y-2.5 animate-fade-in">
                   
@@ -528,11 +580,77 @@ export const InventoryModal: React.FC = () => {
                     isInStash={false}
                   />
 
-                  {/* 1:1 Comparison Diff Table */}
-                  <ItemCompareTable
-                    equippedItem={currentEquippedItem}
-                    selectedItem={selectedCandidateItem}
-                  />
+                  {/* Sub-Tabs Selector for Normal Runeword Base or Unique Socket Item */}
+                  {((selectedCandidateItem.rarity === 'normal' && selectedCandidateItem.sockets && selectedCandidateItem.sockets > 0) || isSingleSocketTarget) && (
+                    <div className="flex bg-iron-950 p-1 rounded-lg border border-iron-750 gap-1 font-cinzel font-bold text-xs">
+                      <button
+                        onClick={() => setDetailSubTab('compare')}
+                        className={`flex-1 py-1 rounded text-xs transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                          detailSubTab === 'compare'
+                            ? 'bg-iron-800 text-brass-200 border border-brass-400 font-black'
+                            : 'text-gray-400 hover:text-white'
+                        }`}
+                      >
+                        <Scale className="w-3.5 h-3.5 text-amber-400" />
+                        <span>장비 스탯 비교</span>
+                      </button>
+
+                      {selectedCandidateItem.rarity === 'normal' && selectedCandidateItem.sockets && selectedCandidateItem.sockets > 0 && (
+                        <button
+                          onClick={() => setDetailSubTab('craft')}
+                          className={`flex-1 py-1 rounded text-xs transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                            detailSubTab === 'craft'
+                              ? 'bg-amber-950 text-amber-200 border border-amber-400 font-black shadow'
+                              : 'text-gray-400 hover:text-amber-300'
+                          }`}
+                        >
+                          <Hammer className="w-3.5 h-3.5 text-amber-400" />
+                          <span>룬워드 제련 ({eligibleRuneWords.length}종)</span>
+                        </button>
+                      )}
+
+                      {isSingleSocketTarget && (
+                        <button
+                          onClick={() => setDetailSubTab('socket')}
+                          className={`flex-1 py-1 rounded text-xs transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                            detailSubTab === 'socket'
+                              ? 'bg-purple-950 text-purple-200 border border-purple-400 font-black shadow'
+                              : 'text-gray-400 hover:text-purple-300'
+                          }`}
+                        >
+                          <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                          <span>소켓 룬 각인</span>
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Panel 1: RuneWord Crafting Panel for Normal Socket Base */}
+                  {detailSubTab === 'craft' && selectedCandidateItem.rarity === 'normal' && selectedCandidateItem.sockets && selectedCandidateItem.sockets > 0 && (
+                    <RuneCraftPanel
+                      selectedItem={selectedCandidateItem}
+                      eligibleRuneWords={eligibleRuneWords}
+                      onDirectCraft={(targetId, recipeId) => craftRuneWord(targetId, recipeId)}
+                      onTransmuteCraft={(targetId, recipeId) => craftRuneWordWithTransmute(targetId, recipeId)}
+                    />
+                  )}
+
+                  {/* Panel 2: Single Socket Rune Panel for Unique/Rare/Set Socket Items */}
+                  {detailSubTab === 'socket' && isSingleSocketTarget && (
+                    <SingleSocketRunePanel
+                      selectedItem={selectedCandidateItem}
+                      runesVault={runesVault}
+                      onSocketRune={handleSocketRune}
+                    />
+                  )}
+
+                  {/* Panel 3: 1:1 Comparison Diff Table */}
+                  {detailSubTab === 'compare' && (
+                    <ItemCompareTable
+                      equippedItem={currentEquippedItem}
+                      selectedItem={selectedCandidateItem}
+                    />
+                  )}
 
                   {/* Big Decision Swap / Equip Button */}
                   <div className="pt-2 border-t border-iron-750 flex items-center gap-2">

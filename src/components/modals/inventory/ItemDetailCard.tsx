@@ -53,10 +53,10 @@ export const ItemDetailCard: React.FC<ItemDetailCardProps> = React.memo(({
   const slotText = SLOT_LABEL[item.slot] || item.slot;
 
   return (
-    <div className="bg-iron-900/95 p-3 sm:p-3.5 rounded-xl border-2 border-brass-500/80 shadow-xl space-y-2.5 font-sans select-none text-gray-200">
+    <div className="bg-iron-900/95 p-3 rounded-xl border-2 border-brass-500/80 shadow-xl space-y-2 font-sans select-none text-gray-200">
       
-      {/* Header: Name, Badges & Icon Action Controls */}
-      <div className="flex items-start justify-between gap-2 border-b border-iron-750 pb-2">
+      {/* Header: Name, Badges & Action Controls */}
+      <div className="flex items-center justify-between gap-2 border-b border-iron-750 pb-2 flex-wrap">
         <div className="space-y-1 min-w-0 flex-1">
           {/* Item Name */}
           <div className="flex items-center gap-1.5 flex-wrap">
@@ -87,7 +87,7 @@ export const ItemDetailCard: React.FC<ItemDetailCardProps> = React.memo(({
             )}
           </div>
 
-          {/* Clean Property Badges Row (No redundant [고대 룬워드]) */}
+          {/* Clean Property Badges Row */}
           <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-mono flex-wrap">
             {getRarityBadge(item.rarity)}
             <span className="text-gray-300 font-bold bg-iron-950 px-1.5 py-0.5 rounded border border-iron-750">
@@ -114,7 +114,7 @@ export const ItemDetailCard: React.FC<ItemDetailCardProps> = React.memo(({
           </div>
         </div>
 
-        {/* Right: Action Buttons & Core Stat Badge */}
+        {/* Right: Action Buttons & Core Stat Badge (Aligned with same height) */}
         <div className="flex items-center gap-1.5 flex-shrink-0">
           {/* Icon-Only Lock Toggle Button */}
           {onToggleLock && (
@@ -123,28 +123,28 @@ export const ItemDetailCard: React.FC<ItemDetailCardProps> = React.memo(({
                 e.stopPropagation();
                 onToggleLock(item.id);
               }}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center transition cursor-pointer border shadow ${
+              className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center transition cursor-pointer border shadow ${
                 isLocked
                   ? 'bg-amber-950 text-amber-300 border-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.5)]'
                   : 'bg-iron-950 text-gray-400 border-iron-750 hover:text-white hover:border-gray-500'
               }`}
               title={isLocked ? "아이템 잠금 해제 [L]" : "아이템 잠금 (판매/소실 방지) [L]"}
             >
-              {isLocked ? <Lock className="w-4 h-4 text-amber-400" /> : <Unlock className="w-4 h-4 text-gray-400" />}
+              {isLocked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : <Unlock className="w-3.5 h-3.5 text-gray-400" />}
             </button>
           )}
 
-          {/* Icon-Only Stash Deposit / Withdraw Button */}
+          {/* Stash Deposit / Withdraw Button */}
           {isInStash && onWithdraw && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onWithdraw(item.id);
               }}
-              className="w-8 h-8 rounded-lg bg-indigo-900 hover:bg-indigo-800 text-indigo-100 border border-indigo-400 flex items-center justify-center shadow transition cursor-pointer"
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-indigo-900 hover:bg-indigo-800 text-indigo-100 border border-indigo-400 flex items-center justify-center shadow transition cursor-pointer"
               title="보관함에서 가방으로 꺼내기 [D]"
             >
-              <Upload className="w-4 h-4 text-indigo-200" />
+              <Upload className="w-3.5 h-3.5 text-indigo-200" />
             </button>
           )}
 
@@ -154,14 +154,14 @@ export const ItemDetailCard: React.FC<ItemDetailCardProps> = React.memo(({
                 e.stopPropagation();
                 onDeposit(item.id);
               }}
-              className="w-8 h-8 rounded-lg bg-iron-950 hover:bg-iron-800 text-gray-200 border border-iron-700 hover:border-indigo-400 flex items-center justify-center shadow transition cursor-pointer"
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-iron-950 hover:bg-iron-800 text-gray-200 border border-iron-700 hover:border-indigo-400 flex items-center justify-center shadow transition cursor-pointer"
               title="가방에서 모험가 보관함(Stash)으로 보관 [D]"
             >
-              <Download className="w-4 h-4 text-indigo-400" />
+              <Download className="w-3.5 h-3.5 text-indigo-400" />
             </button>
           )}
 
-          {/* Text-Only Clean Sell Button (No Icon, Upper Header Placement) */}
+          {/* Text-Only Clean Sell Button */}
           {!isInStash && onSell && (
             <button
               onClick={(e) => {
@@ -169,7 +169,7 @@ export const ItemDetailCard: React.FC<ItemDetailCardProps> = React.memo(({
                 if (!isLocked) onSell(item);
               }}
               disabled={isLocked}
-              className={`h-8 px-2.5 rounded-lg text-xs font-bold font-mono transition flex items-center justify-center border shadow cursor-pointer ${
+              className={`h-7 sm:h-8 px-2 sm:px-2.5 rounded-lg text-[11px] sm:text-xs font-bold font-mono transition flex items-center justify-center border shadow cursor-pointer ${
                 isLocked
                   ? 'bg-iron-950 text-gray-600 border-iron-800 cursor-not-allowed opacity-50'
                   : 'bg-amber-950/80 text-amber-300 border-amber-600/80 hover:bg-amber-900 hover:border-amber-400 hover:text-amber-200'
@@ -182,17 +182,17 @@ export const ItemDetailCard: React.FC<ItemDetailCardProps> = React.memo(({
 
           {/* Core Main Stat Header Badge */}
           {item.slot === 'weapon' && (
-            <div className="bg-iron-950 px-2.5 py-1 rounded-lg border border-amber-500/70 shadow text-right min-w-[70px]">
-              <div className="text-[9px] text-gray-400 font-mono">기본 공격력</div>
-              <div className="text-xs sm:text-sm font-cinzel font-black text-amber-300">
+            <div className="bg-iron-950 px-2 py-0.5 sm:py-1 rounded-lg border border-amber-500/70 shadow text-right min-w-[65px] h-7 sm:h-8 flex flex-col justify-center">
+              <div className="text-[8px] text-gray-400 font-mono leading-none">기본 공격력</div>
+              <div className="text-xs font-cinzel font-black text-amber-300 leading-tight">
                 ⚔️ {item.stats.minDmg || 0}~{item.stats.maxDmg || 0}
               </div>
             </div>
           )}
           {(item.slot === 'armor' || item.slot === 'shield' || item.slot === 'helm') && (
-            <div className="bg-iron-950 px-2.5 py-1 rounded-lg border border-blue-500/70 shadow text-right min-w-[70px]">
-              <div className="text-[9px] text-gray-400 font-mono">기본 방어력</div>
-              <div className="text-xs sm:text-sm font-cinzel font-black text-blue-300">
+            <div className="bg-iron-950 px-2 py-0.5 sm:py-1 rounded-lg border border-blue-500/70 shadow text-right min-w-[65px] h-7 sm:h-8 flex flex-col justify-center">
+              <div className="text-[8px] text-gray-400 font-mono leading-none">기본 방어력</div>
+              <div className="text-xs font-cinzel font-black text-blue-300 leading-tight">
                 🛡️ +{item.stats.defense || 0}
               </div>
             </div>
@@ -200,102 +200,102 @@ export const ItemDetailCard: React.FC<ItemDetailCardProps> = React.memo(({
         </div>
       </div>
 
-      {/* 1. Full Detailed Stats Grid (Primary Attributes) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-[11px] font-mono">
+      {/* 1. Full Detailed Stats Grid (Fixed 2-Column Balanced Grid) */}
+      <div className="grid grid-cols-2 gap-1.5 text-[11px] font-mono">
         {item.stats.minDmg !== undefined && (
-          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between text-amber-200">
+          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between items-center text-amber-200">
             <span>⚔️ 최소 공격력</span>
-            <strong>+{item.stats.minDmg}</strong>
+            <strong className="font-bold">+{item.stats.minDmg}</strong>
           </div>
         )}
         {item.stats.maxDmg !== undefined && (
-          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between text-amber-200">
+          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between items-center text-amber-200">
             <span>💥 최대 공격력</span>
-            <strong>+{item.stats.maxDmg}</strong>
-          </div>
-        )}
-        {item.stats.defense !== undefined && (
-          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between text-blue-200">
-            <span>🛡️ 방어력</span>
-            <strong>+{item.stats.defense}</strong>
-          </div>
-        )}
-        {item.stats.hp !== undefined && item.stats.hp > 0 && (
-          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between text-rose-300">
-            <span>❤️ 생명력 (HP)</span>
-            <strong>+{item.stats.hp}</strong>
-          </div>
-        )}
-        {item.stats.str !== undefined && item.stats.str > 0 && (
-          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between text-red-200">
-            <span>💪 힘 (STR)</span>
-            <strong>+{item.stats.str}</strong>
-          </div>
-        )}
-        {item.stats.dex !== undefined && item.stats.dex > 0 && (
-          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between text-emerald-200">
-            <span>⚡ 민첩 (DEX)</span>
-            <strong>+{item.stats.dex}</strong>
-          </div>
-        )}
-        {item.stats.con !== undefined && item.stats.con > 0 && (
-          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between text-yellow-200">
-            <span>🛡️ 체력 (CON)</span>
-            <strong>+{item.stats.con}</strong>
-          </div>
-        )}
-        {item.stats.evasion !== undefined && item.stats.evasion > 0 && (
-          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between text-teal-200">
-            <span>💨 회피율</span>
-            <strong>+{item.stats.evasion}%</strong>
-          </div>
-        )}
-        {item.stats.critChance !== undefined && item.stats.critChance > 0 && (
-          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between text-rose-300">
-            <span>🎯 치명타 확률</span>
-            <strong>+{item.stats.critChance}%</strong>
-          </div>
-        )}
-        {item.stats.critDamage !== undefined && item.stats.critDamage > 0 && (
-          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between text-rose-300">
-            <span>💥 치명타 피해</span>
-            <strong>+{item.stats.critDamage}%</strong>
-          </div>
-        )}
-        {item.stats.lifeSteal !== undefined && item.stats.lifeSteal > 0 && (
-          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between text-red-300">
-            <span>🩸 생명력 흡수</span>
-            <strong>+{item.stats.lifeSteal}%</strong>
+            <strong className="font-bold">+{item.stats.maxDmg}</strong>
           </div>
         )}
         {item.stats.attackSpeed !== undefined && item.stats.attackSpeed > 0 && (
-          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between text-cyan-300">
+          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between items-center text-cyan-300">
             <span>⚡ 공격 속도</span>
-            <strong>+{item.stats.attackSpeed}%</strong>
+            <strong className="font-bold">+{item.stats.attackSpeed}%</strong>
+          </div>
+        )}
+        {item.stats.defense !== undefined && (
+          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between items-center text-blue-200">
+            <span>🛡️ 방어력</span>
+            <strong className="font-bold">+{item.stats.defense}</strong>
+          </div>
+        )}
+        {item.stats.hp !== undefined && item.stats.hp > 0 && (
+          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between items-center text-rose-300">
+            <span>❤️ 생명력 (HP)</span>
+            <strong className="font-bold">+{item.stats.hp}</strong>
+          </div>
+        )}
+        {item.stats.str !== undefined && item.stats.str > 0 && (
+          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between items-center text-red-200">
+            <span>💪 힘 (STR)</span>
+            <strong className="font-bold">+{item.stats.str}</strong>
+          </div>
+        )}
+        {item.stats.dex !== undefined && item.stats.dex > 0 && (
+          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between items-center text-emerald-200">
+            <span>⚡ 민첩 (DEX)</span>
+            <strong className="font-bold">+{item.stats.dex}</strong>
+          </div>
+        )}
+        {item.stats.con !== undefined && item.stats.con > 0 && (
+          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between items-center text-yellow-200">
+            <span>🛡️ 체력 (CON)</span>
+            <strong className="font-bold">+{item.stats.con}</strong>
+          </div>
+        )}
+        {item.stats.evasion !== undefined && item.stats.evasion > 0 && (
+          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between items-center text-teal-200">
+            <span>💨 회피율</span>
+            <strong className="font-bold">+{item.stats.evasion}%</strong>
+          </div>
+        )}
+        {item.stats.critChance !== undefined && item.stats.critChance > 0 && (
+          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between items-center text-rose-300">
+            <span>🎯 치명타 확률</span>
+            <strong className="font-bold">+{item.stats.critChance}%</strong>
+          </div>
+        )}
+        {item.stats.critDamage !== undefined && item.stats.critDamage > 0 && (
+          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between items-center text-rose-300">
+            <span>💥 치명타 피해</span>
+            <strong className="font-bold">+{item.stats.critDamage}%</strong>
+          </div>
+        )}
+        {item.stats.lifeSteal !== undefined && item.stats.lifeSteal > 0 && (
+          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between items-center text-red-300">
+            <span>🩸 생명력 흡수</span>
+            <strong className="font-bold">+{item.stats.lifeSteal}%</strong>
           </div>
         )}
         {item.stats.overkillEfficiency !== undefined && item.stats.overkillEfficiency > 0 && (
-          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between text-orange-300">
+          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between items-center text-orange-300">
             <span>🔥 오버킬 효율</span>
-            <strong>+{item.stats.overkillEfficiency}%</strong>
+            <strong className="font-bold">+{item.stats.overkillEfficiency}%</strong>
           </div>
         )}
         {item.stats.damageReduction !== undefined && item.stats.damageReduction > 0 && (
-          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between text-purple-300">
+          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between items-center text-purple-300">
             <span>🛡️ 피해 감소율</span>
-            <strong>+{item.stats.damageReduction}%</strong>
+            <strong className="font-bold">+{item.stats.damageReduction}%</strong>
           </div>
         )}
         {item.stats.allResist !== undefined && item.stats.allResist > 0 && (
-          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between text-indigo-300">
+          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between items-center text-indigo-300">
             <span>🔮 모든 원소 저항</span>
-            <strong>+{item.stats.allResist}%</strong>
+            <strong className="font-bold">+{item.stats.allResist}%</strong>
           </div>
         )}
         {item.stats.fortune !== undefined && item.stats.fortune > 0 && (
-          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between text-teal-300">
+          <div className="bg-iron-950/80 px-2 py-1 rounded border border-iron-800 flex justify-between items-center text-teal-300">
             <span>✨ 매직 발견(MF)</span>
-            <strong>+{item.stats.fortune}%</strong>
+            <strong className="font-bold">+{item.stats.fortune}%</strong>
           </div>
         )}
       </div>
@@ -311,13 +311,13 @@ export const ItemDetailCard: React.FC<ItemDetailCardProps> = React.memo(({
         </div>
       )}
 
-      {/* 3. Socketed Runes & RuneWord Details (Now placed below stats as requested!) */}
+      {/* 3. Socketed Runes Details */}
       {item.socketedRunes && item.socketedRunes.length > 0 && (
         <div className="p-2 bg-gradient-to-r from-purple-950/80 via-iron-900 to-amber-950/80 rounded-lg border border-purple-500/70 text-[11px] space-y-1 shadow">
           <div className="flex items-center justify-between flex-wrap gap-1">
             <div className="flex items-center gap-1.5 text-purple-300 font-bold font-mono">
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              <span>각인된 룬 목록: [{item.socketedRunes.join(' + ')}]</span>
+              <span>각인된 룬: [{item.socketedRunes.join(' + ')}]</span>
             </div>
             {item.isRuneWord && (
               <span className="text-amber-300 font-black px-1.5 py-0.5 rounded bg-amber-950/80 border border-amber-400 font-mono animate-pulse">
@@ -366,4 +366,3 @@ export const ItemDetailCard: React.FC<ItemDetailCardProps> = React.memo(({
 });
 
 ItemDetailCard.displayName = 'ItemDetailCard';
-
