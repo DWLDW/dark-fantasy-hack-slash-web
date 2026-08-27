@@ -1,6 +1,7 @@
 import React from 'react';
 import { useGame } from '../../state/gameStore';
 import { useHoldAction } from '../../utils/useHoldAction';
+import { calculateResetShardCost } from '../../state/helpers/skillManager';
 import { X, Plus, Swords, Activity, Zap } from 'lucide-react';
 
 const StatUpgradeButtons: React.FC<{
@@ -121,7 +122,7 @@ export const CharacterModal: React.FC = React.memo(() => {
         <div className="flex items-center gap-2">
           {/* Tier 5: Warning Reset Button with Shard Cost */}
           {(() => {
-            const shardCost = Math.max(50, Math.floor(50 + (Math.max(1, playerStats.level) - 1) * (950 / 49)));
+            const shardCost = calculateResetShardCost(playerStats.level);
             const hasEnoughShards = (playerStats.shards || 0) >= shardCost;
             return (
               <button

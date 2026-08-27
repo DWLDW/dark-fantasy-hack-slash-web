@@ -178,11 +178,30 @@ export function generateGambleItem(
   }
 
   const isHighRarity = rarity === 'unique' || rarity === 'legendary' || rarity === 'set';
+  let realUniqueName: string | undefined = undefined;
+  let setName: string | undefined = undefined;
+
+  if (isHighRarity) {
+    const matchingPool = GAME_ITEMS_POOL.filter(p => {
+      const slotMatch = p.slot === slot || (slot === 'ring1' && (p.slot === 'ring' || p.slot === 'ring1' || p.slot === 'ring2'));
+      const rarityMatch = rarity === 'set' ? p.rarity === 'set' : (p.rarity === 'unique' || p.rarity === 'legendary');
+      return slotMatch && rarityMatch;
+    });
+
+    if (matchingPool.length > 0) {
+      const picked = matchingPool[Math.floor(Math.random() * matchingPool.length)];
+      realUniqueName = picked.name;
+      setName = picked.setName;
+      baseItemName = picked.baseItemName || baseItemName;
+    }
+  }
 
   const item: GameItem = {
     id: `gamble_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
     name: `미확인 [${baseItemName}]`,
     baseItemName,
+    realUniqueName,
+    setName,
     rarity,
     tier: effLevel >= 38 ? 'elite' : effLevel >= 15 ? 'exceptional' : 'normal',
     slot,

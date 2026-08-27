@@ -138,66 +138,63 @@ export function cubeTransmuteHelper(selectedItems: GameItem[]): CubeTransmuteRes
     return { success: false, message: '큐브에 합성할 재료를 넣으세요.' };
   }
 
-  // Recipe 1: 3 of same Runes -> 1 higher Rune
-  if (selectedItems.length === 3 && selectedItems.every(i => i.slot === 'rune' && i.name === selectedItems[0].name)) {
-    const rKey = extractRuneKey(selectedItems[0]);
+  // 🔒 Locked Item Protection
+  if (selectedItems.some(i => i.isLocked)) {
+    return { success: false, message: '🔒 잠금된 아이템은 큐브 합성 재료로 사용할 수 없습니다.' };
+  }
 
-    const runeOrder = [
-      'El', 'Eld', 'Tir', 'Nef', 'Eth', 'Ith', 'Tal', 'Ral', 'Ort', 'Thul',
-      'Amn', 'Sol', 'Shael', 'Dol', 'Hel', 'Io', 'Lum', 'Ko', 'Fal', 'Lem',
-      'Pul', 'Um', 'Mal', 'Ist', 'Gul', 'Vex', 'Ohm', 'Lo', 'Sur', 'Ber',
-      'Jah', 'Cham', 'Zod'
-    ];
-    const curIdx = rKey ? runeOrder.indexOf(rKey) : -1;
+  // Recipe 1: 3 of same Rarity equipment -> 1 higher Rarity item (Classic D2 Cube Recipe)
+  if (selectedItems.length === 3) {
+    const r0 = selectedItems[0].rarity;
+    if (selectedItems.every(i => i.rarity === r0)) {
+      let targetRarity: ItemRarity = 'magic';
+      if (r0 === 'normal') targetRarity = 'magic';
+      else if (r0 === 'magic') targetRarity = 'rare';
+      else if (r0 === 'rare') targetRarity = 'unique';
 
-    if (curIdx >= 0 && curIdx < runeOrder.length - 1) {
-      const nextKey = runeOrder[curIdx + 1];
-      const nextDef = D2_RUNES[nextKey];
-      const newRune: GameItem = {
-        id: `cube_rune_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-        name: nextDef.name,
-        rarity: nextDef.number >= 20 ? 'legendary' : 'rare',
-        slot: 'rune',
-        stats: {},
-        value: nextDef.number * 350,
-        icon: 'Sparkles',
-        description: `[룬 #${nextDef.number}] 무기: ${nextDef.weaponBonus} / 방어구: ${nextDef.armorBonus}`
+      const baseItem = selectedItems[0];
+      const newItem: GameItem = {
+        ...baseItem,
+        id: `cube_craft_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+        name: `연성된 [${baseItem.baseItemName || baseItem.name}]`,
+        rarity: targetRarity,
+        isIdentified: false,
+        value: Math.floor(selectedItems.reduce((s, i) => s + (i.value || 50), 0) * 0.8),
+        description: `호라드릭 큐브의 비전 연성으로 합성된 ${targetRarity.toUpperCase()} 등급 장비입니다. 데커드 케인에게 감정받으세요.`
       };
 
       return {
         success: true,
-        message: `🔮 호라드릭 큐브 합성 성공! [${newRune.name}]을(를) 연성했습니다!`,
+        message: `🔮 호라드릭 큐브 연성 성공! [${newItem.name}] (${targetRarity.toUpperCase()})을(를) 획득했습니다! (식별 필요)`,
         consumedItemIds: selectedItems.map(i => i.id),
-        createdItem: newRune
+        createdItem: newItem
       };
     }
   }
 
-  // Recipe 2: Normal Item (weapon, armor, helm, shield) + 1 Rune -> Add Sockets
+  // Recipe 2: Single Normal Item -> Add 2~4 Sockets
   const socketableSlots: EquipSlot[] = ['weapon', 'armor', 'helm', 'shield'];
-  const normalItem = selectedItems.find(i => i.rarity === 'normal' && socketableSlots.includes(i.slot as EquipSlot) && (!i.sockets || i.sockets === 0));
-  const hasRune = selectedItems.find(i => i.slot === 'rune');
-
-  if (selectedItems.length === 2 && normalItem && hasRune) {
-    const maxSocketsForSlot = normalItem.slot === 'helm' ? 3 : normalItem.slot === 'shield' ? 4 : 4;
-    const socketCount = Math.min(maxSocketsForSlot, Math.floor(Math.random() * 2) + 2); // 2 or 3 sockets
+  if (selectedItems.length === 1 && selectedItems[0].rarity === 'normal' && socketableSlots.includes(selectedItems[0].slot as EquipSlot) && (!selectedItems[0].sockets || selectedItems[0].sockets === 0)) {
+    const target = selectedItems[0];
+    const maxSockets = target.slot === 'helm' ? 3 : 4;
+    const socketCount = Math.min(maxSockets, Math.floor(Math.random() * 2) + 2);
     const updated: GameItem = {
-      ...normalItem,
+      ...target,
       sockets: socketCount,
       socketedRunes: [],
-      name: `${normalItem.baseItemName || normalItem.name} (${socketCount} 소켓)`,
+      name: `${target.baseItemName || target.name} (${socketCount} 소켓)`,
       description: `${socketCount}개의 빈 소켓이 뚫린 베이스 아이템. 룬을 박아 룬워드를 제작하세요.`
     };
 
     return {
       success: true,
       message: `🔮 큐브의 힘으로 [${updated.name}]에 ${socketCount}개의 소켓을 뚫었습니다!`,
-      consumedItemIds: selectedItems.map(i => i.id),
+      consumedItemIds: [target.id],
       createdItem: updated
     };
   }
 
-  return { success: false, message: '일치하는 호라드릭 큐브 레시피가 없습니다.' };
+  return { success: false, message: '일치하는 호라드릭 큐브 레시피가 없습니다. (동일 등급 장비 3개 또는 노말 소켓 베이스 1개 필요)' };
 }
 
 export const POTION_CAPACITY_TIERS = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20];

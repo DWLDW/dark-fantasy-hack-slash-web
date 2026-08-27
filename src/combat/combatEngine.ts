@@ -44,7 +44,8 @@ export function resolveAttack(
   skill: Skill,
   playerLane: number,
   monsters: Monster[],
-  forceDeterministic = false
+  forceDeterministic = false,
+  passiveLevels: Record<string, number> = {}
 ): AttackResolution {
   if (!monsters || monsters.length === 0) {
     return {
@@ -66,7 +67,9 @@ export function resolveAttack(
 
   let isCritical = false;
   let isExtraStrike = false;
-  let baseDamage = Math.floor((totalStats.minDmg + totalStats.maxDmg) / 2);
+  const effectiveMin = Math.min(totalStats.minDmg, totalStats.maxDmg);
+  const effectiveMax = Math.max(totalStats.minDmg, totalStats.maxDmg);
+  let baseDamage = Math.floor((effectiveMin + effectiveMax) / 2);
 
   const effectiveCritRate = skill.activeRuneId === 'rune_lightning'
     ? totalStats.critChance + 25
@@ -77,29 +80,33 @@ export function resolveAttack(
   if (!forceDeterministic) {
     isCritical = Math.random() * 100 < effectiveCritRate;
     isExtraStrike = Math.random() * 100 < flurryChance;
-    baseDamage = Math.floor(totalStats.minDmg + Math.random() * (totalStats.maxDmg - totalStats.minDmg + 1));
+    baseDamage = Math.floor(effectiveMin + Math.random() * (effectiveMax - effectiveMin + 1));
   } else {
     isCritical = effectiveCritRate >= 50;
     isExtraStrike = flurryChance >= 50;
   }
 
+  // Passive: Elemental Attunement (+5% elemental rune damage per level)
+  const eaLevel = Math.min(10, passiveLevels['elemental_attunement'] || 0);
+  const elementalAffinityBonus = 1 + eaLevel * 0.05;
+
   let runeDmgBonus = 1.0;
   let runeOverkillBonus = 1.0;
 
   if (skill.activeRuneId === 'rune_fire') {
-    runeDmgBonus = 1.25;
+    runeDmgBonus = 1.25 * elementalAffinityBonus;
     runeOverkillBonus = 1.30;
   } else if (skill.activeRuneId === 'rune_frost') {
-    runeDmgBonus = 1.15;
+    runeDmgBonus = 1.15 * elementalAffinityBonus;
     runeOverkillBonus = 1.20;
   } else if (skill.activeRuneId === 'rune_lightning') {
-    runeDmgBonus = 1.20;
+    runeDmgBonus = 1.20 * elementalAffinityBonus;
     runeOverkillBonus = 1.20;
   } else if (skill.activeRuneId === 'rune_poison') {
-    runeDmgBonus = 1.15;
+    runeDmgBonus = 1.15 * elementalAffinityBonus;
     runeOverkillBonus = 1.25;
   } else if (skill.activeRuneId === 'rune_void') {
-    runeDmgBonus = 1.10;
+    runeDmgBonus = 1.10 * elementalAffinityBonus;
     runeOverkillBonus = 1.15;
   }
 
@@ -133,6 +140,9 @@ export function resolveAttack(
   const effectiveOverkillEff = skill.overkillEfficiency * (totalStats.overkillEfficiency / 100) * runeOverkillBonus;
 
   // Boss Interactive Mechanics: Stagger Break & Weak Spot & Guard
+  const tjLevel = Math.min(10, passiveLevels['titan_juggernaut'] || 0);
+  const titanStaggerBonus = 1 + tjLevel * 0.15;
+
   const applyBossMechanics = (m: Monster, rawDmg: number): number => {
     let dmg = rawDmg;
     if (m.rank === 'boss') {
@@ -148,7 +158,8 @@ export function resolveAttack(
         weakSpotHitTriggered = true;
       }
       if (m.isChargingUltimate && (m.bossStaggerHp || 0) > 0) {
-        const staggerPower = skill.id === 'shield_bash' ? Math.floor(dmg * 2.5) : dmg;
+        const baseStagger = skill.id === 'shield_bash' ? Math.floor(dmg * 2.5) : dmg;
+        const staggerPower = Math.floor(baseStagger * titanStaggerBonus);
         m.bossStaggerHp = Math.max(0, (m.bossStaggerHp || 0) - staggerPower);
         if (m.bossStaggerHp <= 0) {
           m.isChargingUltimate = false;
@@ -403,7 +414,8 @@ export function resolveAttack(
       });
 
       accumulatedDamage += actualDmg;
-      accumulatedAppliedDamage += Math.min(actualDmg, currentTarget.hp);
+      const damageToApply = Math.min(actualDmg, targetState.hp);
+      accumulatedAppliedDamage += damageToApply;
       if (isFatal) {
         kills.push(currentTarget.id);
         targetState.hp = 0;

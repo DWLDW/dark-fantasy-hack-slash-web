@@ -776,7 +776,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const closeVictoryModal = () => {
     setIsVictoryModalOpen(false);
     setDungeonVictoryLoot(null);
+    setDungeonSnapshot(null);
+    setDungeonBuffs([]);
+    setPendingExitRoomId(null);
+    setTempBuffs({ defenseBonus: 0, overkillBonus: 0 });
+    const maxPots = POTION_CAPACITY_TIERS[townUpgrades.potionCapacityLevel] || 3;
+    setConsumables(curr => curr.map(c => c.id === 'c_hp' ? { ...c, count: maxPots } : c));
     setViewMode('town');
+    startBGM('town');
   };
 
   const identifyAllVictoryLoot = () => {
@@ -928,8 +935,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       playerStats,
       equipment,
       inventory,
+      itemStash,
       runesVault,
+      equippedSkillSlots,
       skillLevels,
+      passiveLevels,
       skillRunes,
       consumables,
       currentDungeonId: currentDungeon.id,
@@ -960,9 +970,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data.playerStats) setPlayerStats(data.playerStats);
       if (data.equipment) setEquipment(data.equipment);
       if (data.inventory) setInventory(data.inventory);
+      if (data.itemStash) setItemStash(data.itemStash);
       if (data.runesVault) setRunesVault(data.runesVault);
       if (data.equippedSkillSlots) setEquippedSkillSlots(data.equippedSkillSlots);
       if (data.skillLevels) setSkillLevels(data.skillLevels);
+      if (data.passiveLevels) setPassiveLevels(data.passiveLevels);
       if (data.skillRunes) setSkillRunes(data.skillRunes);
       if (data.consumables) setConsumables(data.consumables);
       if (data.achievementStats) setAchievementStats(data.achievementStats);
@@ -974,8 +986,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setCurrentDungeon(d);
       }
       if (data.currentRoomId) setCurrentRoomId(data.currentRoomId);
-    if (data.currentDifficulty) setCurrentDifficulty(data.currentDifficulty);
-    if (data.maxUnlockedDifficulty) setMaxUnlockedDifficulty(data.maxUnlockedDifficulty);
+      if (data.currentDifficulty) setCurrentDifficulty(data.currentDifficulty);
+      if (data.maxUnlockedDifficulty) setMaxUnlockedDifficulty(data.maxUnlockedDifficulty);
 
       if (typeof window !== 'undefined') {
         localStorage.setItem(SAVE_KEY, JSON.stringify(data));
@@ -1138,9 +1150,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       effectiveSkill,
       playerLane,
       monsters,
-      true // Deterministic for preview
+      true, // Deterministic for preview
+      passiveLevels
     );
-  }, [playerStats.level, totalStats, effectiveSkill, playerLane, monsters]);
+  }, [playerStats.level, totalStats, effectiveSkill, playerLane, monsters, passiveLevels]);
 
   const bestLaneHint = useMemo(() => {
     if (!monsters.length) return playerLane;
@@ -1170,12 +1183,19 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setPlayerStats(prev => ({ ...prev, rage: Math.max(0, prev.rage - actualRageCost) }));
     }
 
+    // Berserk self-damage (10% Max HP sacrifice)
+    if (effectiveSkill.id === 'berserk') {
+      const hpCost = Math.max(1, Math.floor(playerStats.maxHp * 0.10));
+      setPlayerStats(prev => ({ ...prev, hp: Math.max(1, prev.hp - hpCost) }));
+      addLog(`🔥 [광전사의 진노] 생명력 10%(-${hpCost} HP)를 희생하여 폭발적인 광기를 해방합니다!`, 'damage');
+    }
+
     let attackMonsters = monsters;
     const activeRoomType = currentDungeon.rooms.find(r => r.id === currentRoomId)?.type;
     const activeBoss = monsters.find(m => m.rank === 'boss');
     const activeBossTelegraphLanes = activeBoss?.bossTelegraphLanes || [];
-    const telegraphActive = activeRoomType === 'boss' && activeBossTelegraphLanes.length > 0 && !activeBossTelegraphLanes.includes(playerLane);
-    const telegraphHit = activeBossTelegraphLanes.includes(playerLane)
+    const telegraphActive = activeRoomType === 'boss' && activeBossTelegraphLanes.length > 0 && activeBossTelegraphLanes.includes(playerLane);
+    const telegraphHit = telegraphActive
       ? Math.max(10, Math.floor((activeBoss?.intent.damage || 20) * 0.6))
       : 0;
     // Hazard terrain feedback: standing in a hazard lane when attacking = reactive splash damage
@@ -1334,6 +1354,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       );
 
       const turnRage = totalStats.turnRageRegen || 0;
+      let postAttackHp = playerStats.hp;
+      let postAttackShield = playerStats.shield || 0;
+      let postAttackShieldLayers = playerStats.shieldLayers || [];
+      let postAttackRage = playerStats.rage;
 
       // ⚡ Atomic Combat Stats & Level-Up Update (Single Batch Dispatch for Instant UI Sync)
       setPlayerStats(prev => {
@@ -1391,6 +1415,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           finalShield = currentShieldLayers.reduce((sum, l) => sum + l.amount, 0);
         }
 
+        const finalRage = Math.min(prev.maxRage || 100, prev.rage + gains.totalRageGained + turnRage);
+
+        postAttackHp = finalHp;
+        postAttackShield = finalShield;
+        postAttackShieldLayers = currentShieldLayers;
+        postAttackRage = finalRage;
+
         return {
           ...prev,
           level: currentLevel,
@@ -1403,7 +1434,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           maxMana: finalMaxMana,
           mana: didLevelUp ? finalMaxMana : prev.mana,
           gold: prev.gold + gains.gainedGold,
-          rage: Math.min(prev.maxRage || 100, prev.rage + gains.totalRageGained + turnRage),
+          rage: finalRage,
           shieldLayers: currentShieldLayers,
           shield: finalShield
         };
@@ -1688,21 +1719,19 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setHordeTimelinePercent(nextMomentum);
 
       counterAttackTimerRef.current = window.setTimeout(() => {
-        if (viewMode !== 'battle') return;
-
         const hordeResult = resolveHordeCounterAttack(
           survivors,
           playerStats.level,
-          playerStats.hp,
+          postAttackHp,
           playerStats.maxHp,
-          playerStats.rage,
+          postAttackRage,
           playerStats.maxRage || 100,
           totalStats.evasion,
           totalStats.defense,
           totalStats.damageReduction,
           totalStats.allResist,
           consumables,
-          playerStats.shieldLayers || []
+          postAttackShieldLayers
         );
 
         if (hordeResult.frozenCount > 0) {
@@ -1724,6 +1753,31 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         let calculatedHp = hordeResult.nextHp;
         let calculatedShield = hordeResult.nextShield;
         let calculatedShieldLayers = hordeResult.nextShieldLayers || [];
+
+        // Helper to apply player defense and shield to boss active skill damage
+        const applyPlayerDefenses = (rawDmg: number, element: ElementType = 'physical') => {
+          const k = 100 + playerStats.level * 10;
+          const defMult = k / (k + Math.max(0, totalStats.defense));
+          const resistMult = 1 - Math.min(75, Math.max(0, totalStats.allResist || 0)) / 100;
+          const drMult = ((100 - Math.min(50, totalStats.damageReduction || 0)) / 100) * (element !== 'physical' ? resistMult : 1.0);
+          let reducedDmg = Math.max(1, Math.floor(rawDmg * defMult * drMult));
+
+          // Absorb into shield layers if active
+          if (calculatedShieldLayers.length > 0 && reducedDmg > 0) {
+            let remaining = reducedDmg;
+            const updatedLayers = calculatedShieldLayers.map(l => ({ ...l }));
+            for (let i = 0; i < updatedLayers.length && remaining > 0; i++) {
+              const layer = updatedLayers[i];
+              const used = Math.min(layer.amount, remaining);
+              layer.amount -= used;
+              remaining -= used;
+            }
+            calculatedShieldLayers = updatedLayers.filter(l => l.amount > 0);
+            calculatedShield = calculatedShieldLayers.reduce((sum, l) => sum + l.amount, 0);
+            reducedDmg = remaining;
+          }
+          return reducedDmg;
+        };
 
         const currentRoomType = currentDungeon.rooms.find(r => r.id === currentRoomId)?.type;
         if (currentRoomType === 'boss') {
@@ -1910,8 +1964,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
               });
               addLog(`⚔️ [${boss.name} 스킬 시전: ${activeSkillName}] ${activeSkillDesc} (${activeSkillDmg} 피해)`, 'damage');
 
-              calculatedHp = Math.max(0, calculatedHp - activeSkillDmg);
-              triggerPlayerHitFlash(activeSkillDmg, {
+              const reducedBossSkillDmg = applyPlayerDefenses(activeSkillDmg, skillElem);
+              calculatedHp = Math.max(0, calculatedHp - reducedBossSkillDmg);
+              triggerPlayerHitFlash(reducedBossSkillDmg, {
                 attackerName: boss.name,
                 isBoss: true,
                 element: skillElem,
@@ -1926,17 +1981,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
               const allLanes = [0, 1, 2, 3, 4].filter(l => l !== boss.bossWeakLane);
               const shuffled = [...allLanes].sort(() => 0.5 - Math.random());
               const telegraphLanes = shuffled.slice(0, 2);
-              setMonsters(prev => prev.map(m => m.rank === 'boss' ? { ...m, bossTelegraphLanes: telegraphLanes } : m));
+              boss.bossTelegraphLanes = telegraphLanes;
               addLog(`🎯 [약점 노출 & 위험 표식] 보스의 결계에 약점 코어([${boss.bossWeakLane + 1}번 레인])가 노출되었습니다! (적중 시 2.5배 치명타)`, 'system');
               addLog(`⚠️ [위험 표식!] ${telegraphLanes.map(l => l + 1 + '번').join(', ')} 레인이 보스의 공격 표적이 되었습니다. 다음 공격 전까지 해당 레인에서 벗어나세요!`, 'damage');
             } else {
               boss.bossWeakLane = undefined;
-              setMonsters(prev => prev.map(m => m.rank === 'boss' ? { ...m, bossTelegraphLanes: undefined } : m));
+              boss.bossTelegraphLanes = undefined;
             }
 
-            // Terrain hazard gimmick (poison_nova / frost_burrow bosses): every 3rd boss turn,
-            // flood 2 random lanes with hazard terrain. Attacking FROM a hazard lane hurts the player,
-            // and AoE skills that hit INTO a hazard lane splash back for reduced damage.
+            // Terrain hazard gimmick (poison_nova / frost_burrow bosses)
             const hazardSigKeys = ['poison_nova', 'frost_burrow'];
             if (hazardSigKeys.includes(boss.bossSignatureKey || '')) {
               if (bossTurnCountRef.current % 3 === 0) {
@@ -2064,7 +2117,26 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }));
         }
 
-        setMonsters(compressLaneSurvivors(hordeResult.chargedSurvivors).map(m => ({ ...m, isFrozen: false })));
+        // Apply updated boss state cleanly into chargedSurvivors
+        const activeBossState = survivors.find(m => m.rank === 'boss');
+        const finalChargedSurvivors = hordeResult.chargedSurvivors.map(m => {
+          if (m.rank === 'boss' && activeBossState) {
+            return {
+              ...m,
+              isGroggy: false,
+              isGuarding: false,
+              isChargingUltimate: activeBossState.isChargingUltimate,
+              bossStaggerHp: activeBossState.bossStaggerHp,
+              bossStaggerMaxHp: activeBossState.bossStaggerMaxHp,
+              bossWeakLane: activeBossState.bossWeakLane,
+              bossTelegraphLanes: activeBossState.bossTelegraphLanes,
+              intent: activeBossState.intent
+            };
+          }
+          return m;
+        });
+
+        setMonsters(compressLaneSurvivors(finalChargedSurvivors).map(m => ({ ...m, isFrozen: false })));
 
         // Boss gimmick: summon at <=50% hp (once)
         if (currentRoomType === 'boss') {
@@ -2418,10 +2490,20 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return m;
       }).filter(m => m.hp > 0);
 
-      setMonsters(compressLaneSurvivors(updatedMonsters));
+      const survivingAmbush = compressLaneSurvivors(updatedMonsters);
+      setMonsters(survivingAmbush);
       if (ambushedCount > 0) {
         playHitSound(0);
         addLog(`🗡️ [선제 기습!] 가벼운 무기 선제권(${startingMomentum}%)으로 던전 진입 즉시 전열 몬스터 ${ambushedCount}마리를 기습 타격했습니다! (-${ambushDmg} 피해)`, 'loot');
+      }
+      if (survivingAmbush.length === 0 && initialMonsters.length > 0) {
+        setCurrentDungeon(prev => ({
+          ...prev,
+          rooms: prev.rooms.map(r => r.id === firstRoomId ? { ...r, cleared: true } : r)
+        }));
+        const cons = firstRoom?.connections || [];
+        setPendingExitRoomId(cons[0] ?? null);
+        addLog('🏆 [선제 기습 전멸!] 기습 일격으로 첫 룸의 모든 적을 일격 소탕했습니다!', 'loot');
       }
     } else {
       setMonsters(initialMonsters);
@@ -2479,10 +2561,20 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return m;
       }).filter(m => m.hp > 0);
 
-      setMonsters(compressLaneSurvivors(updatedMonsters));
+      const survivingAmbush = compressLaneSurvivors(updatedMonsters);
+      setMonsters(survivingAmbush);
       if (ambushedCount > 0) {
         playHitSound(0);
         addLog(`🗡️ [선제 기습!] 가벼운 무기 선제권(${startingMomentum}%)으로 룸 진입 즉시 전열 몬스터 ${ambushedCount}마리를 기습 타격했습니다! (-${ambushDmg} 피해)`, 'loot');
+      }
+      if (survivingAmbush.length === 0 && spawned.length > 0) {
+        setCurrentDungeon(prev => ({
+          ...prev,
+          rooms: prev.rooms.map(r => r.id === roomId ? { ...r, cleared: true } : r)
+        }));
+        const cons = room?.connections || [];
+        setPendingExitRoomId(cons[0] ?? null);
+        addLog('🏆 [선제 기습 전멸!] 기습 일격으로 룸의 모든 적을 일격 소탕했습니다!', 'loot');
       }
     } else {
       setMonsters(spawned);
@@ -2621,24 +2713,45 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   // Diablo II System Actions
-  const socketRuneIntoItem = (targetItemId: string, runeId: string) => {
-    const target = inventory.find(i => i.id === targetItemId);
-    const runeItem = inventory.find(i => i.id === runeId);
-    if (!target || !runeItem) return;
+  const socketRuneIntoItem = (targetItemId: string, runeKey: string) => {
+    const target = inventory.find(i => i.id === targetItemId) || Object.values(equipment).find(i => i?.id === targetItemId);
+    if (!target) return;
 
-    const res = socketRuneHelper(target, runeItem);
-    if (!res.success || !res.updatedItem) {
-      addLog(res.message, 'system');
+    const currentCount = runesVault[runeKey] || 0;
+    if (currentCount <= 0) {
+      addLog(`보유 중인 [${runeKey} 룬]이 부족합니다!`, 'system');
       return;
     }
 
-    setInventory(prev => prev.filter(i => i.id !== runeId).map(i => i.id === targetItemId ? res.updatedItem! : i));
-    if (res.isRuneWord) {
-      playRuneWordSound();
-      addLog(res.message, 'loot');
-    } else {
-      addLog(res.message, 'system');
+    const emptySockets = (target.sockets || 0) - (target.socketedRunes?.length || 0);
+    if (emptySockets <= 0) {
+      addLog('더 이상 룬을 박을 빈 소켓이 없습니다!', 'system');
+      return;
     }
+
+    const runeDef = D2_RUNES[runeKey];
+    if (!runeDef) return;
+
+    const newSocketed = [...(target.socketedRunes || []), runeKey];
+    const updatedItem: GameItem = {
+      ...target,
+      socketedRunes: newSocketed,
+      description: `[소켓 ${newSocketed.length}/${target.sockets} 각인: ${newSocketed.join(', ')}] ${target.baseItemName || target.name}`
+    };
+
+    // 룬 보관함 차감
+    setRunesVault(prev => ({ ...prev, [runeKey]: Math.max(0, (prev[runeKey] || 0) - 1) }));
+
+    // 장착 중인 슬롯 또는 인벤토리 갱신
+    const equippedSlotKey = Object.keys(equipment).find(k => equipment[k as EquipSlot]?.id === targetItemId) as EquipSlot | undefined;
+    if (equippedSlotKey) {
+      setEquipment(prev => ({ ...prev, [equippedSlotKey]: updatedItem }));
+    } else {
+      setInventory(prev => prev.map(i => i.id === targetItemId ? updatedItem : i));
+    }
+
+    playRuneWordSound();
+    addLog(`💎 [${target.name}]의 소켓에 [${runeKey} 룬]을 각인했습니다!`, 'loot');
   };
 
   const transmuteInCube = (itemIds: string[]) => {
@@ -2798,6 +2911,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (playerStats.gold < cost) {
       addLog(`도박 골드가 부족합니다! (필요: ${cost.toLocaleString()}G, 보유: ${playerStats.gold.toLocaleString()}G)`, "system");
+      return null;
+    }
+
+    if (inventory.length >= 60) {
+      addLog('소지품 가방이 가득 찼습니다 (60/60개). 필요 없는 장비를 판매하거나 보관함에 보관하세요.', 'system');
       return null;
     }
 

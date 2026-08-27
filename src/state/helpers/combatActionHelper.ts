@@ -32,11 +32,13 @@ export function calculateAttackGains(
   playerMaxHp: number = 120,
   totalDefense: number = 0,
   itemLifeSteal: number = 0,
-  goldFind: number = 0
+  goldFind: number = 0,
+  berserkRagePassiveLevel: number = 0
 ): AttackGainsResult {
   const primaryTargets = result.targetsHit.filter(t => !t.isOverkillHit);
   const rageHitCap = effectiveSkill.id === 'war_cry' ? 3 : primaryTargets.length;
-  const hitRage = Math.min(primaryTargets.length, rageHitCap) * (effectiveSkill.rageGainPerHit || 0);
+  const perHitRage = (effectiveSkill.rageGainPerHit || 0) + berserkRagePassiveLevel;
+  const hitRage = Math.min(primaryTargets.length, rageHitCap) * perHitRage;
   const voidKillRage = effectiveSkill.activeRuneId === 'rune_void' ? result.chainCount * 2 : 0;
   const rawRageGained = hitRage + voidKillRage;
 

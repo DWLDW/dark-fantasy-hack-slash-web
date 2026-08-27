@@ -376,13 +376,14 @@ export function generateVictoryLoot(
   let advanceLevels = 1;
   let performanceGrade = 'B';
   if (playerHpPercent >= 90) {
-    performanceGrade = 'S';
+    performanceGrade = 'S (압도적 승리! +3 난이도)';
     advanceLevels = 3;
   } else if (playerHpPercent >= 60) {
-    performanceGrade = 'A';
+    performanceGrade = 'A (완벽한 제압! +2 난이도)';
     advanceLevels = 2;
-    advanceLevels = 1;
+  } else {
     performanceGrade = '⚔️ 클리어 (+1 난이도)';
+    advanceLevels = 1;
   }
 
   const nextDifficulty = difficultyLevel + advanceLevels;

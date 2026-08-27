@@ -55,7 +55,12 @@ export const TownView: React.FC = React.memo(() => {
   }, [identifyAllItems]);
   
   const [selectedCubeItems, setSelectedCubeItems] = useState<string[]>([]);
-  const [selectedBaseItem, setSelectedBaseItem] = useState<GameItem | null>(null);
+  const [selectedBaseItemId, setSelectedBaseItemId] = useState<string | null>(null);
+
+  const selectedBaseItem = useMemo(() => {
+    if (!selectedBaseItemId) return null;
+    return inventory.find(i => i.id === selectedBaseItemId) || null;
+  }, [selectedBaseItemId, inventory]);
 
   const highestUnlocked = useMemo(() => getHighestUnlockedDungeon(achievementStats.dungeonClears), [achievementStats.dungeonClears]);
   const lastDungeon = useMemo(() => {
@@ -568,9 +573,9 @@ export const TownView: React.FC = React.memo(() => {
                       <Sparkles className="w-4 h-4 text-amber-400" />
                       <span>1. 소켓 베이스 장비 선택:</span>
                     </span>
-                    {selectedBaseItem ? (
+                    {selectedBaseItemId ? (
                       <button
-                        onClick={() => setSelectedBaseItem(null)}
+                        onClick={() => setSelectedBaseItemId(null)}
                         className="text-xs text-amber-300 hover:text-amber-200 font-mono font-bold hover:underline cursor-pointer flex items-center gap-0.5"
                       >
                         ✕ 선택 해제 (전체 도감)
@@ -585,7 +590,7 @@ export const TownView: React.FC = React.memo(() => {
                   {socketableItems.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 max-h-60 overflow-y-auto pr-1">
                       {socketableItems.map(item => {
-                        const isSelected = selectedBaseItem?.id === item.id;
+                        const isSelected = selectedBaseItemId === item.id;
                         const slotLabel = item.slot === 'weapon' ? '무기' : item.slot === 'armor' ? '갑옷' : item.slot === 'shield' ? '방패' : item.slot === 'helm' ? '투구' : item.slot;
                         const socketedCount = item.socketedRunes?.length || 0;
                         const remainingSockets = (item.sockets || 0) - socketedCount;
@@ -593,7 +598,7 @@ export const TownView: React.FC = React.memo(() => {
                         return (
                           <button
                             key={item.id}
-                            onClick={() => setSelectedBaseItem(isSelected ? null : item)}
+                            onClick={() => setSelectedBaseItemId(isSelected ? null : item.id)}
                             className={`p-3 rounded-xl border-2 text-left flex flex-col justify-between gap-2 transition shadow cursor-pointer relative ${
                               isSelected
                                 ? 'bg-gradient-to-b from-amber-950/90 via-iron-900 to-amber-950/90 border-amber-400 text-amber-100 ring-2 ring-amber-400/80 shadow-[0_0_15px_rgba(251,191,36,0.4)]'
@@ -686,10 +691,12 @@ export const TownView: React.FC = React.memo(() => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 max-h-72 overflow-y-auto pr-1">
                     {RUNEWORD_RECIPES.filter(r => {
                       if (!selectedBaseItem) return true;
-                      return r.allowedSlot === selectedBaseItem.slot && r.requiredSockets === selectedBaseItem.sockets;
+                      const isSlotMatch = r.allowedSlot === selectedBaseItem.slot || (r.id === 'rw_spirit' && selectedBaseItem.slot === 'shield');
+                      return isSlotMatch && r.requiredSockets === selectedBaseItem.sockets;
                     }).map(recipe => {
                       const sim = simulateRuneWordCrafting(recipe, runesVault);
-                      const isMatchingSelected = selectedBaseItem && recipe.allowedSlot === selectedBaseItem.slot && recipe.requiredSockets === selectedBaseItem.sockets;
+                      const isSlotMatch = selectedBaseItem ? (recipe.allowedSlot === selectedBaseItem.slot || (recipe.id === 'rw_spirit' && selectedBaseItem.slot === 'shield')) : false;
+                      const isMatchingSelected = Boolean(selectedBaseItem && isSlotMatch && recipe.requiredSockets === selectedBaseItem.sockets);
 
                       return (
                         <div
@@ -783,8 +790,9 @@ export const TownView: React.FC = React.memo(() => {
                             <div className="flex gap-2 pt-1 border-t border-iron-800">
                               <button
                                 onClick={() => {
+                                  if (!selectedBaseItem) return;
                                   craftRuneWord(selectedBaseItem.id, recipe.id);
-                                  setSelectedBaseItem(null);
+                                  setSelectedBaseItemId(null);
                                 }}
                                 disabled={!sim.canDirectCraft}
                                 className={`flex-1 py-1.5 rounded-lg text-xs sm:text-sm font-black transition shadow flex items-center justify-center gap-1.5 cursor-pointer ${
@@ -799,8 +807,9 @@ export const TownView: React.FC = React.memo(() => {
 
                               <button
                                 onClick={() => {
+                                  if (!selectedBaseItem) return;
                                   craftRuneWordWithTransmute(selectedBaseItem.id, recipe.id);
-                                  setSelectedBaseItem(null);
+                                  setSelectedBaseItemId(null);
                                 }}
                                 disabled={!sim.canTransmuteCraft}
                                 className={`flex-1 py-1.5 rounded-lg text-xs sm:text-sm font-black transition shadow flex items-center justify-center gap-1.5 cursor-pointer ${

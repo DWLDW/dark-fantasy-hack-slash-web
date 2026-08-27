@@ -38,22 +38,19 @@ export const DungeonVictoryModal: React.FC = () => {
   ).length;
 
   const isRift = Boolean(currentDungeon.isEndlessRift || currentDungeon.id.startsWith('endless_rift_'));
-  const nextStoryDungeon = isRift ? null : getNextStoryDungeon(currentDungeon.id);
-  const isStoryProgression = nextStoryDungeon !== null;
-
-  const nextRiftTier = (currentDungeon.riftTier || endlessRiftTier) + (dungeonVictoryLoot.advanceLevels || 1);
-  const targetDungeon = isRift
-    ? generateEndlessRiftDungeon(nextRiftTier)
-    : (isStoryProgression ? nextStoryDungeon : currentDungeon);
+  
+  // store has already advanced currentDungeon to the next chapter or endless tier
+  const targetDungeon = currentDungeon;
+  const isStoryProgression = !isRift && Boolean(targetDungeon);
 
   const targetDiff = isRift
     ? Math.max(currentDifficulty, maxUnlockedDifficulty)
-    : (isStoryProgression ? currentDifficulty : (dungeonVictoryLoot.nextDifficulty || (currentDifficulty + (dungeonVictoryLoot.advanceLevels || 1))));
+    : (dungeonVictoryLoot.nextDifficulty || currentDifficulty);
 
   const targetLabel = isRift
-    ? `🌌 대균열 ${nextRiftTier}단계 진격 (Space)`
+    ? `🌌 대균열 ${currentDungeon.riftTier || endlessRiftTier}단계 진격 (Space)`
     : isStoryProgression
-    ? `다음 장 진격: [${nextStoryDungeon.name.split(':')[0]}]`
+    ? `다음 장 진격: [${targetDungeon.name.split(':')[0]}]`
     : `전 막 정복! 상위 난이도: [${currentDungeon.name.split(':')[0]}] Lv.${targetDiff}`;
 
   const handleReDeploy = () => {
@@ -124,7 +121,7 @@ export const DungeonVictoryModal: React.FC = () => {
   }, [hasUnidentified, handleReDeploy, closeVictoryModal, identifyAllVictoryLoot]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-fade-in select-none">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-fade-in select-none">
       <div className="bg-gradient-to-b from-iron-950 via-iron-900 to-iron-950 border-2 border-brass-400 rounded-xl p-4 sm:p-6 w-full max-w-2xl max-h-[92vh] overflow-y-auto shadow-[0_0_50px_rgba(251,191,36,0.3)] space-y-3 text-xs md:text-sm font-sans">
         
         {/* Top Glorious Header */}
@@ -153,9 +150,9 @@ export const DungeonVictoryModal: React.FC = () => {
               </div>
               <div className="text-[10px] sm:text-[11px] text-gray-300 mt-0.5">
                 {isRift ? (
-                  <span>무결점 전투 성적에 따라 대균열 <strong className="text-amber-300 font-black">[{nextRiftTier}단계]</strong>로 즉시 진격합니다! (티어 +{dungeonVictoryLoot.advanceLevels || 1} 급상승)</span>
-                ) : isStoryProgression && nextStoryDungeon ? (
-                  <span>남은 체력 및 클리어 성적에 따라 다음 스토리 <strong className="text-amber-300 font-black">[{nextStoryDungeon.name.split(':')[0]}]</strong> 관문이 개방되었습니다!</span>
+                  <span>무결점 전투 성적에 따라 대균열 <strong className="text-amber-300 font-black">[{currentDungeon.riftTier || endlessRiftTier}단계]</strong>로 즉시 진격합니다! (티어 +{dungeonVictoryLoot.advanceLevels || 1} 급상승)</span>
+                ) : isStoryProgression && targetDungeon ? (
+                  <span>남은 체력 및 클리어 성적에 따라 다음 스토리 <strong className="text-amber-300 font-black">[{targetDungeon.name.split(':')[0]}]</strong> 관문이 개방되었습니다!</span>
                 ) : (
                   <span>남은 체력 및 클리어 성적에 따라 다음 난이도 <strong className="text-amber-300 font-black">Lv.{dungeonVictoryLoot.nextDifficulty || targetDiff}</strong>가 즉시 해금되었습니다!</span>
                 )}

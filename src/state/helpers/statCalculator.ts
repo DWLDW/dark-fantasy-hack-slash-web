@@ -158,6 +158,11 @@ export function calculateTotalStats(
         if (b.stats.str) str += b.stats.str;
         if (b.stats.dex) dex += b.stats.dex;
         if (b.stats.con) con += b.stats.con;
+        if (b.stats.int) int += b.stats.int;
+        if (b.stats.wis) wis += b.stats.wis;
+        if (b.stats.cha) cha += b.stats.cha;
+        if (b.stats.minDmg) minDmg += b.stats.minDmg;
+        if (b.stats.maxDmg) maxDmg += b.stats.maxDmg;
         if (b.stats.defense) defense += b.stats.defense;
         if (b.stats.attackSpeed) attackSpeed += b.stats.attackSpeed;
         if (b.stats.lifeSteal) lifeSteal += b.stats.lifeSteal;
@@ -165,6 +170,9 @@ export function calculateTotalStats(
         if (b.stats.evasion) evasion = Math.min(75, evasion + b.stats.evasion);
         if (b.stats.damageReduction) damageReduction = Math.min(50, damageReduction + b.stats.damageReduction);
         if (b.stats.critChance) critChance += b.stats.critChance;
+        if (b.stats.critDamage) critDamage += b.stats.critDamage;
+        if (b.stats.fortune) fortune += b.stats.fortune;
+        if (b.stats.goldFind) goldFind += b.stats.goldFind;
         if (b.stats.hp) totalBonusHp += b.stats.hp;
         if (b.stats.overkillEfficiency) overkillEfficiency += b.stats.overkillEfficiency;
       }

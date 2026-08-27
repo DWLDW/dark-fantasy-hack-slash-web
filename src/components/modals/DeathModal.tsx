@@ -61,7 +61,7 @@ export const DeathModal: React.FC<DeathModalProps> = ({ isOpen, onConfirm }) => 
   const currentTip = SURVIVAL_TIPS[tipIndex];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-sm animate-fade-in select-none font-sans">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-sm animate-fade-in select-none font-sans">
       <div className="bg-gradient-to-b from-blood-950 via-iron-950 to-iron-950 border-2 border-blood-600 rounded-2xl p-4 sm:p-6 max-w-md w-full shadow-[0_0_50px_rgba(220,38,38,0.5)] text-center space-y-3 sm:space-y-4 relative text-gray-200">
         
         {/* Skull Icon */}
