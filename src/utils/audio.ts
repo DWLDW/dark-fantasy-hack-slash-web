@@ -504,21 +504,233 @@ export function playPotionSound(): void {
 }
 
 /**
- * 13. Dark Fantasy Procedural BGM Melody Sequencer
- * Replaces monotonous drone buzz with musical acoustic plucks, dungeon bells, and war drums.
+ * 13. Skill-Specific SFX Suite (Q/W/E/R Custom Audio)
  */
+
+// [Q] Slash - Sharp single metal slicing
+export function playSkillSlashSound(): void {
+  playSlashSound();
+}
+
+// [W] Cleave - Broad 3-lane sweeping shockwave
+export function playSkillCleaveSound(): void {
+  const ctx = getAudioContext();
+  if (!ctx || isAudioMuted || masterVolume <= 0) return;
+  const now = ctx.currentTime;
+
+  const osc = ctx.createOscillator();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(220, now);
+  osc.frequency.exponentialRampToValueAtTime(45, now + 0.22);
+
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(1800, now);
+  filter.frequency.exponentialRampToValueAtTime(150, now + 0.22);
+
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.45 * masterVolume, now);
+  gain.gain.exponentialRampToValueAtTime(0.01, now + 0.24);
+
+  osc.connect(filter).connect(gain).connect(ctx.destination);
+  osc.start(now);
+  osc.stop(now + 0.25);
+}
+
+// [E] Execute - Guillotine heavy bone-crushing impact
+export function playSkillExecuteSound(): void {
+  const ctx = getAudioContext();
+  if (!ctx || isAudioMuted || masterVolume <= 0) return;
+  const now = ctx.currentTime;
+
+  // Metal drop
+  const osc1 = ctx.createOscillator();
+  osc1.type = 'triangle';
+  osc1.frequency.setValueAtTime(320, now);
+  osc1.frequency.exponentialRampToValueAtTime(30, now + 0.3);
+
+  // Sub punch
+  const osc2 = ctx.createOscillator();
+  osc2.type = 'sine';
+  osc2.frequency.setValueAtTime(95, now);
+  osc2.frequency.exponentialRampToValueAtTime(18, now + 0.35);
+
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.6 * masterVolume, now);
+  gain.gain.exponentialRampToValueAtTime(0.01, now + 0.38);
+
+  osc1.connect(gain);
+  osc2.connect(gain);
+  gain.connect(ctx.destination);
+
+  osc1.start(now);
+  osc2.start(now);
+  osc1.stop(now + 0.4);
+  osc2.stop(now + 0.4);
+}
+
+// [R] Whirlwind - Continuous multi-slash cyclone resonance
+export function playSkillWhirlwindSound(): void {
+  const ctx = getAudioContext();
+  if (!ctx || isAudioMuted || masterVolume <= 0) return;
+  const now = ctx.currentTime;
+
+  [0, 0.05, 0.10, 0.15, 0.20].forEach((delay, idx) => {
+    const osc = ctx.createOscillator();
+    osc.type = idx % 2 === 0 ? 'sawtooth' : 'triangle';
+    osc.frequency.setValueAtTime(450 - idx * 40, now + delay);
+    osc.frequency.exponentialRampToValueAtTime(80, now + delay + 0.12);
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.25 * masterVolume, now + delay);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + delay + 0.12);
+
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(now + delay);
+    osc.stop(now + delay + 0.13);
+  });
+}
+
+/**
+ * 14. Boss Gimmick & Combat Mechanics SFX
+ */
+
+// Boss Ultimate Charge Alert (Siren Pulse)
+export function playBossChargeAlertSound(): void {
+  const ctx = getAudioContext();
+  if (!ctx || isAudioMuted || masterVolume <= 0) return;
+  const now = ctx.currentTime;
+
+  const osc = ctx.createOscillator();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(440, now);
+  osc.frequency.linearRampToValueAtTime(880, now + 0.2);
+  osc.frequency.linearRampToValueAtTime(440, now + 0.4);
+
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.setValueAtTime(650, now);
+  filter.Q.setValueAtTime(4, now);
+
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.35 * masterVolume, now);
+  gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+
+  osc.connect(filter).connect(gain).connect(ctx.destination);
+  osc.start(now);
+  osc.stop(now + 0.48);
+}
+
+// Boss Stagger BREAK Success (Glass/Armor Shatter)
+export function playBossGroggyBreakSound(): void {
+  const ctx = getAudioContext();
+  if (!ctx || isAudioMuted || masterVolume <= 0) return;
+  const now = ctx.currentTime;
+
+  [1200, 1850, 2400, 3100, 4200].forEach((freq, idx) => {
+    const osc = ctx.createOscillator();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(freq, now + idx * 0.02);
+    osc.frequency.exponentialRampToValueAtTime(60, now + idx * 0.02 + 0.25);
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.3 * masterVolume, now + idx * 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.005, now + idx * 0.02 + 0.28);
+
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(now + idx * 0.02);
+    osc.stop(now + idx * 0.02 + 0.3);
+  });
+}
+
+// Dungeon Victory Fanfare (Golden Major Chords)
+export function playDungeonVictoryFanfare(): void {
+  const ctx = getAudioContext();
+  if (!ctx || isAudioMuted || masterVolume <= 0) return;
+  const now = ctx.currentTime;
+
+  // D Major triumphant arpeggio: D4 -> F#4 -> A4 -> D5 -> A5
+  const notes = [293.66, 369.99, 440.00, 587.33, 880.00];
+  notes.forEach((freq, idx) => {
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, now + idx * 0.1);
+
+    const sub = ctx.createOscillator();
+    sub.type = 'triangle';
+    sub.frequency.setValueAtTime(freq * 0.5, now + idx * 0.1);
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.35 * masterVolume, now + idx * 0.1);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.1 + (idx === notes.length - 1 ? 1.5 : 0.4));
+
+    osc.connect(gain).connect(ctx.destination);
+    sub.connect(gain).connect(ctx.destination);
+
+    osc.start(now + idx * 0.1);
+    sub.start(now + idx * 0.1);
+    osc.stop(now + idx * 0.1 + (idx === notes.length - 1 ? 1.6 : 0.45));
+    sub.stop(now + idx * 0.1 + (idx === notes.length - 1 ? 1.6 : 0.45));
+  });
+}
+
+// Cain Identify All (Triple Crystal Chimes)
+export function playCainIdentifyAllSound(): void {
+  const ctx = getAudioContext();
+  if (!ctx || isAudioMuted || masterVolume <= 0) return;
+  const now = ctx.currentTime;
+
+  [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.3 * masterVolume, now + idx * 0.08);
+    gain.gain.exponentialRampToValueAtTime(0.005, now + idx * 0.08 + 0.6);
+
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(now + idx * 0.08);
+    osc.stop(now + idx * 0.08 + 0.65);
+  });
+}
+
+// Rune Socketing Inscription Sound
+export function playRuneSocketSound(): void {
+  const ctx = getAudioContext();
+  if (!ctx || isAudioMuted || masterVolume <= 0) return;
+  const now = ctx.currentTime;
+
+  const osc = ctx.createOscillator();
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(140, now);
+  osc.frequency.exponentialRampToValueAtTime(560, now + 0.18);
+
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.4 * masterVolume, now);
+  gain.gain.exponentialRampToValueAtTime(0.01, now + 0.28);
+
+  osc.connect(gain).connect(ctx.destination);
+  osc.start(now);
+  osc.stop(now + 0.3);
+}
+
+/**
+ * 15. Comprehensive Procedural BGM Suite (Acts 1-5, Rift, Bosses, Town)
+ */
+
 let bgmIntervalId: ReturnType<typeof setInterval> | null = null;
-let currentBgmMode: 'town' | 'dungeon' | 'boss' | null = null;
+let currentBgmKey = '';
 
 // Note Frequencies (Hz)
 const NOTE: Record<string, number> = {
-  C2: 65.41, D2: 73.42, E2: 82.41, F2: 87.31, G2: 98.00, A2: 110.00, B2: 123.47,
-  C3: 130.81, D3: 146.83, E3: 164.81, F3: 174.61, G3: 196.00, A3: 220.00, Bb3: 233.08, B3: 246.94,
+  C2: 65.41, Cs2: 69.30, D2: 73.42, Ds2: 77.78, E2: 82.41, F2: 87.31, Fs2: 92.50, G2: 98.00, Gs2: 103.83, A2: 110.00, Bb2: 116.54, B2: 123.47,
+  C3: 130.81, Cs3: 138.59, D3: 146.83, Ds3: 155.56, E3: 164.81, F3: 174.61, Fs3: 185.00, G3: 196.00, Gs3: 207.65, A3: 220.00, Bb3: 233.08, B3: 246.94,
   C4: 261.63, Cs4: 277.18, D4: 293.66, Ds4: 311.13, E4: 329.63, F4: 349.23, Fs4: 369.99, G4: 392.00, Gs4: 415.30, A4: 440.00, Bb4: 466.16, B4: 493.88,
-  C5: 523.25, D5: 587.33, E5: 659.25, F5: 698.46, G5: 783.99, A5: 880.00
+  C5: 523.25, Cs5: 554.37, D5: 587.33, Ds5: 622.25, E5: 659.25, F5: 698.46, Fs5: 739.99, G5: 783.99, Gs5: 830.61, A5: 880.00
 };
 
-// Play warm acoustic guitar/lute pluck (Tristram style)
+// Instrument 1: Acoustic Lute Pluck (Act 1 / Town)
 function playAcousticPluck(ctx: AudioContext, freq: number, time: number, vol = 0.22): void {
   if (isAudioMuted || masterVolume <= 0) return;
   const v = vol * masterVolume;
@@ -527,7 +739,6 @@ function playAcousticPluck(ctx: AudioContext, freq: number, time: number, vol = 
   osc.type = 'triangle';
   osc.frequency.setValueAtTime(freq, time);
 
-  // Sub harmonic for woody acoustic resonance
   const sub = ctx.createOscillator();
   sub.type = 'sine';
   sub.frequency.setValueAtTime(freq * 0.5, time);
@@ -542,12 +753,8 @@ function playAcousticPluck(ctx: AudioContext, freq: number, time: number, vol = 
   gain.gain.linearRampToValueAtTime(v, time + 0.008);
   gain.gain.exponentialRampToValueAtTime(0.001, time + 1.2);
 
-  const subGain = ctx.createGain();
-  subGain.gain.setValueAtTime(v * 0.4, time);
-  subGain.gain.exponentialRampToValueAtTime(0.001, time + 0.6);
-
   osc.connect(filter).connect(gain).connect(ctx.destination);
-  sub.connect(subGain).connect(ctx.destination);
+  sub.connect(gain).connect(ctx.destination);
 
   osc.start(time);
   osc.stop(time + 1.25);
@@ -555,7 +762,148 @@ function playAcousticPluck(ctx: AudioContext, freq: number, time: number, vol = 
   sub.stop(time + 0.65);
 }
 
-// Play mystical dungeon bell / chime
+// Instrument 2: Oriental Oud / Sitar Pluck (Act 2 Desert)
+function playOudPluck(ctx: AudioContext, freq: number, time: number, vol = 0.20): void {
+  if (isAudioMuted || masterVolume <= 0) return;
+  const v = vol * masterVolume;
+
+  const osc = ctx.createOscillator();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(freq * 1.02, time);
+  osc.frequency.linearRampToValueAtTime(freq, time + 0.05);
+
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.setValueAtTime(freq * 1.8, time);
+  filter.Q.setValueAtTime(4.0, time);
+
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.001, time);
+  gain.gain.linearRampToValueAtTime(v, time + 0.006);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.9);
+
+  osc.connect(filter).connect(gain).connect(ctx.destination);
+  osc.start(time);
+  osc.stop(time + 0.95);
+}
+
+// Instrument 3: Tabla / Desert Percussion (Act 2)
+function playTablaBeat(ctx: AudioContext, time: number, vol = 0.22): void {
+  if (isAudioMuted || masterVolume <= 0) return;
+  const v = vol * masterVolume;
+
+  const osc = ctx.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(260, time);
+  osc.frequency.exponentialRampToValueAtTime(80, time + 0.15);
+
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(v, time);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.2);
+
+  osc.connect(gain).connect(ctx.destination);
+  osc.start(time);
+  osc.stop(time + 0.22);
+}
+
+// Instrument 4: Tribal Jungle Bongo / Tom (Act 3)
+function playTribalDrum(ctx: AudioContext, time: number, pitch = 140, vol = 0.25): void {
+  if (isAudioMuted || masterVolume <= 0) return;
+  const v = vol * masterVolume;
+
+  const osc = ctx.createOscillator();
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(pitch, time);
+  osc.frequency.exponentialRampToValueAtTime(45, time + 0.25);
+
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(v, time);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.3);
+
+  osc.connect(gain).connect(ctx.destination);
+  osc.start(time);
+  osc.stop(time + 0.32);
+}
+
+// Instrument 5: Distorted Hellfire Bass (Act 4 Chaos)
+function playHellBass(ctx: AudioContext, freq: number, time: number, vol = 0.28): void {
+  if (isAudioMuted || masterVolume <= 0) return;
+  const v = vol * masterVolume;
+
+  const osc = ctx.createOscillator();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(freq, time);
+
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(900, time);
+  filter.frequency.exponentialRampToValueAtTime(160, time + 0.3);
+
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(v, time);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.35);
+
+  osc.connect(filter).connect(gain).connect(ctx.destination);
+  osc.start(time);
+  osc.stop(time + 0.38);
+}
+
+// Instrument 6: Epic Viking Brass Horn (Act 5 Worldstone)
+function playVikingHorn(ctx: AudioContext, freq: number, time: number, vol = 0.24): void {
+  if (isAudioMuted || masterVolume <= 0) return;
+  const v = vol * masterVolume;
+
+  const osc1 = ctx.createOscillator();
+  osc1.type = 'sawtooth';
+  osc1.frequency.setValueAtTime(freq, time);
+
+  const osc2 = ctx.createOscillator();
+  osc2.type = 'triangle';
+  osc2.frequency.setValueAtTime(freq * 1.005, time);
+
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(1400, time);
+  filter.frequency.exponentialRampToValueAtTime(400, time + 0.9);
+
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.001, time);
+  gain.gain.linearRampToValueAtTime(v, time + 0.05);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + 1.1);
+
+  osc1.connect(filter).connect(gain).connect(ctx.destination);
+  osc2.connect(filter).connect(gain).connect(ctx.destination);
+
+  osc1.start(time);
+  osc2.start(time);
+  osc1.stop(time + 1.15);
+  osc2.stop(time + 1.15);
+}
+
+// Instrument 7: Cosmic Rift Pulse (Endless Rift)
+function playCosmicPulse(ctx: AudioContext, freq: number, time: number, vol = 0.20): void {
+  if (isAudioMuted || masterVolume <= 0) return;
+  const v = vol * masterVolume;
+
+  const osc = ctx.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(freq, time);
+
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.setValueAtTime(freq * 2, time);
+  filter.Q.setValueAtTime(5, time);
+
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(v, time);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.4);
+
+  osc.connect(filter).connect(gain).connect(ctx.destination);
+  osc.start(time);
+  osc.stop(time + 0.45);
+}
+
+// Instrument 8: Dungeon Bell & War Drum
 function playDungeonBell(ctx: AudioContext, freq: number, time: number, vol = 0.18): void {
   if (isAudioMuted || masterVolume <= 0) return;
   const v = vol * masterVolume;
@@ -566,7 +914,7 @@ function playDungeonBell(ctx: AudioContext, freq: number, time: number, vol = 0.
 
   const osc2 = ctx.createOscillator();
   osc2.type = 'sine';
-  osc2.frequency.setValueAtTime(freq * 2.76, time); // Non-harmonic metallic overtone
+  osc2.frequency.setValueAtTime(freq * 2.76, time);
 
   const filter = ctx.createBiquadFilter();
   filter.type = 'bandpass';
@@ -590,7 +938,6 @@ function playDungeonBell(ctx: AudioContext, freq: number, time: number, vol = 0.
   osc2.stop(time + 0.95);
 }
 
-// Play deep war drum / timpani
 function playWarDrum(ctx: AudioContext, time: number, vol = 0.25): void {
   if (isAudioMuted || masterVolume <= 0) return;
   const v = vol * masterVolume;
@@ -609,41 +956,35 @@ function playWarDrum(ctx: AudioContext, time: number, vol = 0.25): void {
   osc.stop(time + 0.55);
 }
 
-// Play fast battle synth bass (Boss)
-function playBossBass(ctx: AudioContext, freq: number, time: number, vol = 0.22): void {
-  if (isAudioMuted || masterVolume <= 0) return;
-  const v = vol * masterVolume;
-
-  const osc = ctx.createOscillator();
-  osc.type = 'sawtooth';
-  osc.frequency.setValueAtTime(freq, time);
-
-  const filter = ctx.createBiquadFilter();
-  filter.type = 'lowpass';
-  filter.frequency.setValueAtTime(800, time);
-  filter.frequency.exponentialRampToValueAtTime(120, time + 0.2);
-
-  const gain = ctx.createGain();
-  gain.gain.setValueAtTime(v, time);
-  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.25);
-
-  osc.connect(filter).connect(gain).connect(ctx.destination);
-  osc.start(time);
-  osc.stop(time + 0.28);
+export interface BgmOptions {
+  mode: 'town' | 'dungeon' | 'boss';
+  act?: number;
+  isRift?: boolean;
+  riftTier?: number;
+  bossName?: string;
 }
 
-export function startBGM(mode: 'town' | 'dungeon' | 'boss'): void {
-  if (currentBgmMode === mode && bgmIntervalId !== null) return;
+export function startBGM(optionsOrMode: 'town' | 'dungeon' | 'boss' | BgmOptions): void {
+  const opts: BgmOptions = typeof optionsOrMode === 'string' ? { mode: optionsOrMode } : optionsOrMode;
+  const mode = opts.mode;
+  const act = opts.act || 1;
+  const isRift = Boolean(opts.isRift);
+  const riftTier = opts.riftTier || 1;
+  const bossName = opts.bossName || '';
+
+  const newKey = `${mode}_act${act}_rift${isRift}_tier${riftTier}_boss${bossName}`;
+  if (currentBgmKey === newKey && bgmIntervalId !== null) return;
+
   stopBGM();
-  currentBgmMode = mode;
+  currentBgmKey = newKey;
 
   const ctx = getAudioContext();
   if (!ctx || isAudioMuted) return;
 
   let step = 0;
 
+  // 1. TOWN BGM (Tristram Acoustic Lute in D Minor)
   if (mode === 'town') {
-    // Tristram homage: 16-step soothing acoustic lute arpeggio in D minor
     const townMelody: (number | null)[] = [
       NOTE.D3, NOTE.A3, NOTE.D4, NOTE.F4,
       NOTE.A4, NOTE.F4, NOTE.D4, NOTE.C4,
@@ -654,81 +995,195 @@ export function startBGM(mode: 'town' | 'dungeon' | 'boss'): void {
       NOTE.A3, NOTE.E3, NOTE.A3, NOTE.Cs4,
       NOTE.E4, NOTE.Cs4, NOTE.A3, null
     ];
-
-    const stepDurationMs = 280; // ~107 BPM 8th notes
+    const stepDurationMs = 280;
 
     const tick = () => {
       const now = ctx.currentTime;
       const note = townMelody[step % townMelody.length];
       if (note) {
-        // Humanized slight timing & volume variance
-        const jitter = (Math.random() - 0.5) * 0.01;
         const vel = 0.18 + Math.random() * 0.05;
-        playAcousticPluck(ctx, note, now + 0.02 + jitter, vel);
+        playAcousticPluck(ctx, note, now + 0.02, vel);
       }
       step++;
     };
-
     tick();
     bgmIntervalId = setInterval(tick, stepDurationMs);
+    return;
+  }
 
-  } else if (mode === 'dungeon') {
-    // Eerie Dungeon: Slow haunting bell arpeggio + periodic deep war drums
-    const dungeonBells: (number | null)[] = [
-      NOTE.C4, null, NOTE.Ds4, null, NOTE.G4, null, NOTE.B4, null,
-      NOTE.C5, null, NOTE.G4, null, NOTE.Ds4, null, NOTE.D4, null,
-      NOTE.Ab3, null, NOTE.C4, null, NOTE.Eb4, null, NOTE.G4, null,
-      NOTE.F4, null, NOTE.D4, null, NOTE.B3, null, null, null
+  // 2. ENDLESS RIFT BGM (Cosmic Dimensional Pulse)
+  if (isRift) {
+    const riftSequence = [
+      NOTE.Fs3, NOTE.A3, NOTE.Cs4, NOTE.E4,
+      NOTE.Fs4, NOTE.E4, NOTE.Cs4, NOTE.A3,
+      NOTE.D3, NOTE.Fs3, NOTE.A3, NOTE.D4,
+      NOTE.E3, NOTE.Gs3, NOTE.B3, NOTE.E4
     ];
-
-    const stepDurationMs = 380; // Slow, suspenseful 78 BPM
+    // Dynamic tempo acceleration based on rift tier
+    const stepDurationMs = Math.max(130, 200 - Math.min(70, riftTier * 3));
 
     const tick = () => {
       const now = ctx.currentTime;
-      const bellNote = dungeonBells[step % dungeonBells.length];
-      if (bellNote) {
-        playDungeonBell(ctx, bellNote, now + 0.02, 0.16);
-      }
-      // War drum beat on every 8 steps (every 2 bars)
-      if (step % 8 === 0) {
-        playWarDrum(ctx, now + 0.02, 0.28);
+      const note = riftSequence[step % riftSequence.length];
+      playCosmicPulse(ctx, note, now + 0.02, 0.22);
+
+      if (step % 4 === 0) {
+        playWarDrum(ctx, now + 0.02, 0.30);
       }
       step++;
     };
-
     tick();
     bgmIntervalId = setInterval(tick, stepDurationMs);
+    return;
+  }
 
-  } else if (mode === 'boss') {
-    // Boss Battle: Fast 150 BPM pulse bass + dramatic tension beats
-    const bossBassline: number[] = [
-      NOTE.B2, NOTE.B2, NOTE.D3, NOTE.B2,
-      NOTE.F3, NOTE.B2, NOTE.D3, NOTE.E3,
-      NOTE.G2, NOTE.G2, NOTE.B2, NOTE.G2,
-      NOTE.D3, NOTE.G2, NOTE.Fs3, NOTE.E3
+  // 3. BOSS BATTLE BGM (High-Impact 160 BPM Raid Metalfest)
+  if (mode === 'boss') {
+    const bossBassline = [
+      NOTE.D2, NOTE.D2, NOTE.F2, NOTE.D2,
+      NOTE.Ab2, NOTE.D2, NOTE.F2, NOTE.G2,
+      NOTE.Bb2, NOTE.Bb2, NOTE.D3, NOTE.Bb2,
+      NOTE.F2, NOTE.Bb2, NOTE.A2, NOTE.G2
     ];
-
-    const stepDurationMs = 180; // Fast 166 BPM 8th notes
+    const stepDurationMs = 175; // Fast 170 BPM
 
     const tick = () => {
       const now = ctx.currentTime;
       const bassNote = bossBassline[step % bossBassline.length];
-      playBossBass(ctx, bassNote, now + 0.02, 0.24);
+      playHellBass(ctx, bassNote, now + 0.02, 0.26);
 
-      // Heavy drum kick on every 4 steps
       if (step % 4 === 0) {
-        playWarDrum(ctx, now + 0.02, 0.35);
+        playWarDrum(ctx, now + 0.02, 0.38);
       }
-      // Climax bell chime on bar start
       if (step % 16 === 0) {
-        playDungeonBell(ctx, NOTE.Fs4, now + 0.02, 0.22);
+        playDungeonBell(ctx, NOTE.A4, now + 0.02, 0.25);
       }
       step++;
     };
-
     tick();
     bgmIntervalId = setInterval(tick, stepDurationMs);
+    return;
   }
+
+  // 4. ACT 1~5 REGULAR DUNGEON BGM (Unique Regional Orchestrations)
+  if (act === 2) {
+    // Act 2: Lut Gholein Desert Hijaz Oriental Scale
+    const act2Oud = [
+      NOTE.E3, NOTE.F3, NOTE.Gs3, NOTE.A3,
+      NOTE.B3, NOTE.A3, NOTE.Gs3, NOTE.F3,
+      NOTE.E3, NOTE.D3, NOTE.E3, NOTE.Gs3,
+      NOTE.B3, NOTE.C4, NOTE.B3, null
+    ];
+    const stepDurationMs = 320;
+
+    const tick = () => {
+      const now = ctx.currentTime;
+      const note = act2Oud[step % act2Oud.length];
+      if (note) playOudPluck(ctx, note, now + 0.02, 0.22);
+
+      if (step % 2 === 0) {
+        playTablaBeat(ctx, now + 0.02, 0.25);
+      }
+      step++;
+    };
+    tick();
+    bgmIntervalId = setInterval(tick, stepDurationMs);
+    return;
+  }
+
+  if (act === 3) {
+    // Act 3: Kurast Jungle Tribal Drums & Mystery Flute
+    const act3Pitches = [160, 140, 180, 140, 200, 160, 140, 120];
+    const stepDurationMs = 260;
+
+    const tick = () => {
+      const now = ctx.currentTime;
+      const p = act3Pitches[step % act3Pitches.length];
+      playTribalDrum(ctx, now + 0.02, p, 0.26);
+
+      if (step % 8 === 0) {
+        playDungeonBell(ctx, NOTE.G4, now + 0.02, 0.18);
+      }
+      step++;
+    };
+    tick();
+    bgmIntervalId = setInterval(tick, stepDurationMs);
+    return;
+  }
+
+  if (act === 4) {
+    // Act 4: Chaos Sanctuary Hellfire Distorted Bassline
+    const act4Hell = [
+      NOTE.C2, NOTE.C2, NOTE.Eb2, NOTE.C2,
+      NOTE.Gb2, NOTE.C2, NOTE.Eb2, NOTE.F2,
+      NOTE.Ab2, NOTE.Ab2, NOTE.C3, NOTE.Ab2,
+      NOTE.Gb2, NOTE.Ab2, NOTE.G2, NOTE.F2
+    ];
+    const stepDurationMs = 220;
+
+    const tick = () => {
+      const now = ctx.currentTime;
+      const note = act4Hell[step % act4Hell.length];
+      playHellBass(ctx, note, now + 0.02, 0.28);
+
+      if (step % 4 === 0) {
+        playWarDrum(ctx, now + 0.02, 0.35);
+      }
+      step++;
+    };
+    tick();
+    bgmIntervalId = setInterval(tick, stepDurationMs);
+    return;
+  }
+
+  if (act === 5) {
+    // Act 5: Mount Arreat Epic Viking Horns & Snowstorm Winds
+    const act5Horns = [
+      NOTE.A2, null, NOTE.E3, null, NOTE.A3, null, NOTE.C4, null,
+      NOTE.D4, null, NOTE.C4, null, NOTE.B3, null, NOTE.A3, null,
+      NOTE.F3, null, NOTE.A3, null, NOTE.C4, null, NOTE.E4, null,
+      NOTE.D4, null, NOTE.B3, null, NOTE.A2, null, null, null
+    ];
+    const stepDurationMs = 340;
+
+    const tick = () => {
+      const now = ctx.currentTime;
+      const hornNote = act5Horns[step % act5Horns.length];
+      if (hornNote) {
+        playVikingHorn(ctx, hornNote, now + 0.02, 0.25);
+      }
+      if (step % 8 === 0) {
+        playWarDrum(ctx, now + 0.02, 0.30);
+      }
+      step++;
+    };
+    tick();
+    bgmIntervalId = setInterval(tick, stepDurationMs);
+    return;
+  }
+
+  // Default: Act 1 Cathedral Bells & Deep Drums
+  const dungeonBells: (number | null)[] = [
+    NOTE.C4, null, NOTE.Ds4, null, NOTE.G4, null, NOTE.B4, null,
+    NOTE.C5, null, NOTE.G4, null, NOTE.Ds4, null, NOTE.D4, null,
+    NOTE.Ab3, null, NOTE.C4, null, NOTE.Eb4, null, NOTE.G4, null,
+    NOTE.F4, null, NOTE.D4, null, NOTE.B3, null, null, null
+  ];
+  const stepDurationMs = 380;
+
+  const tick = () => {
+    const now = ctx.currentTime;
+    const bellNote = dungeonBells[step % dungeonBells.length];
+    if (bellNote) {
+      playDungeonBell(ctx, bellNote, now + 0.02, 0.18);
+    }
+    if (step % 8 === 0) {
+      playWarDrum(ctx, now + 0.02, 0.28);
+    }
+    step++;
+  };
+  tick();
+  bgmIntervalId = setInterval(tick, stepDurationMs);
 }
 
 export function stopBGM(): void {
@@ -736,5 +1191,6 @@ export function stopBGM(): void {
     clearInterval(bgmIntervalId);
     bgmIntervalId = null;
   }
-  currentBgmMode = null;
+  currentBgmKey = '';
 }
+

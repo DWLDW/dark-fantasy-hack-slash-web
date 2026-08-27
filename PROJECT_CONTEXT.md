@@ -448,6 +448,23 @@ Dragon Quest 식 턴제 전투 기반 + Diablo II 식 오버킬 체인, 룬워�
 - 🌐 **실서버 배포 완료**:
   - `https://193.122.127.129.sslip.io` (Oracle Cloud Ubuntu 24.04).
 
+### 38. Web Audio API 절차적 BGM 및 다이내믹 SFX 전면 고도화
+- 🎵 **액트 1~5별 고유 BGM & 대균열 가속 신디사이저 엔진 (`src/utils/audio.ts`)**:
+  - **Act 1 (트리스트럼 & 대성당)**: D minor 어쿠스틱 류트 아르페지오 + 서글픈 성당 종소리
+  - **Act 2 (루트 골레인 & 사막 왕릉)**: E Hijaz 오리엔탈 우드/시타르 핑거링 + 타블라 모래바람 비트
+  - **Act 3 (쿠라스트 정글 & 증오 사원)**: 원시 트라이벌 타악기 8박자 드럼 + 주술 팬파이프
+  - **Act 4 (카오스 생츄어리 & 지옥)**: C Locrian 디스토션 지옥 베이스 + 140 BPM 헬파이어 워드럼
+  - **Act 5 (아리앗 설산 & 월드스톤)**: 웅장한 북유럽 바이킹 호른 팡파르 + 혹한 눈보라 윈드
+  - **대균열 (Endless Rift)**: 차원 왜곡 코스믹 펄스 신스 + 등반 티어 비례 템포 가속 러시 (130~170 BPM)
+  - **5대 보스전 (Bosses)**: 175 BPM 레이드 메탈 베이스라인 + 묵직한 팀파니
+- ⚔️ **스킬 4종 전용 SFX 및 전황 음향 연동**:
+  - `[Q] 가르기(예리한 절단)`, `[W] 휩쓸기(3레인 칼바람)`, `[E] 처형(단두대 강타)`, `[R] 휠윈드(5단 회오리 난무)`
+  - 보스 전멸기 충전 시 `playBossChargeAlertSound()`, 저지 BREAK 성공 시 `playBossGroggyBreakSound()`
+  - 던전 정복 시 `playDungeonVictoryFanfare()`, 케인 일괄 감정 시 `playCainIdentifyAllSound()`, 룬 결속 시 `playRuneSocketSound()`
+- 🌐 **실서버 배포 완료**:
+  - `https://193.122.127.129.sslip.io` (Oracle Cloud Ubuntu 24.04).
+
+
 
 
 

@@ -3,6 +3,7 @@ import { useGame } from '../../state/gameStore';
 import { Trophy, Sparkles, BookOpen, Coins, Gem, ArrowRight, HelpCircle, Zap, ShieldCheck, Swords } from 'lucide-react';
 import { D2_RUNES } from '../../data/gameData';
 import { isItemBetterWithThreshold } from '../../utils/itemScoring';
+import { playDungeonVictoryFanfare } from '../../utils/audio';
 import type { GameItem, EquipSlot } from '../../types/game';
 
 export const DungeonVictoryModal: React.FC = () => {
@@ -20,6 +21,13 @@ export const DungeonVictoryModal: React.FC = () => {
     equipItem,
     autoEquipBestItems
   } = useGame();
+
+  // Play triumphant victory fanfare on open
+  useEffect(() => {
+    if (isVictoryModalOpen) {
+      playDungeonVictoryFanfare();
+    }
+  }, [isVictoryModalOpen]);
 
   if (!isVictoryModalOpen || !dungeonVictoryLoot) return null;
 

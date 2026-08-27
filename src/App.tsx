@@ -54,7 +54,8 @@ const MainLayout: React.FC = () => {
     selectedShrineType,
     setSelectedShrineType,
     cycleShrineSelection,
-    playerStats
+    playerStats,
+    endlessRiftTier
   } = useGame();
 
   const keysRef = useRef({
@@ -122,6 +123,7 @@ const MainLayout: React.FC = () => {
     playerStats
   };
 
+  // Global Audio Unlock on first user gesture
   useEffect(() => {
     const onFirst = () => {
       initAudio();
@@ -139,16 +141,28 @@ const MainLayout: React.FC = () => {
     };
   }, []);
 
-  const bgmMode =
-    viewMode === 'battle'
-      ? currentDungeon?.rooms?.find(r => r.id === currentRoomId)?.type === 'boss'
-        ? 'boss'
-        : 'dungeon'
-      : 'town';
+  const isBossRoom = viewMode === 'battle' && currentDungeon?.rooms?.find(r => r.id === currentRoomId)?.type === 'boss';
+  const isRift = Boolean(currentDungeon?.isEndlessRift || currentDungeon?.id?.startsWith('endless_rift_'));
+  
+  const currentAct = React.useMemo(() => {
+    const id = (currentDungeon?.id || '').toLowerCase();
+    if (id.startsWith('act5') || id.includes('worldstone') || id.includes('arreat')) return 5;
+    if (id.startsWith('act4') || id.includes('chaos') || id.includes('diablo')) return 4;
+    if (id.startsWith('act3') || id.includes('kurast') || id.includes('mephisto') || id.includes('jungle')) return 3;
+    if (id.startsWith('act2') || id.includes('tomb') || id.includes('desert') || id.includes('duriel') || id.includes('gholein')) return 2;
+    return 1;
+  }, [currentDungeon?.id]);
 
   useEffect(() => {
-    startBGM(bgmMode);
-  }, [bgmMode]);
+    const mode = viewMode === 'battle' ? (isBossRoom ? 'boss' : 'dungeon') : 'town';
+    startBGM({
+      mode,
+      act: currentAct,
+      isRift,
+      riftTier: currentDungeon?.riftTier || endlessRiftTier,
+      bossName: isBossRoom ? monsters.find(m => m.rank === 'boss')?.name : undefined
+    });
+  }, [viewMode, isBossRoom, currentAct, isRift, currentDungeon?.riftTier, endlessRiftTier, monsters]);
 
   useEffect(() => {
     let cancelled = false;

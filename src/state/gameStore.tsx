@@ -80,6 +80,15 @@ import {
   playDeathSound,
   playMilestoneSound,
   playPotionSound,
+  playSkillSlashSound,
+  playSkillCleaveSound,
+  playSkillExecuteSound,
+  playSkillWhirlwindSound,
+  playBossChargeAlertSound,
+  playBossGroggyBreakSound,
+  playDungeonVictoryFanfare,
+  playCainIdentifyAllSound,
+  playRuneSocketSound,
   startBGM
 } from '../utils/audio';
 
@@ -804,9 +813,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return found ? found : i;
     }));
 
-    playIdentifySound();
+    playCainIdentifyAllSound();
     if (hasLegendary) {
-      setTimeout(() => playLegendaryDropSound(), 300);
+      setTimeout(() => playLegendaryDropSound(), 350);
       addLog(`✨ 데커드 케인의 감정으로 전설/유니크 아이템의 숨겨진 힘이 깨어났습니다!`, 'loot');
     } else {
       addLog(`📜 데커드 케인이 모든 전리품을 감정했습니다.`, 'system');
@@ -1283,7 +1292,19 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       addLog('⚡ [처형 격살 성공!] 적의 반격을 무효화하고 즉시 추가 턴(EXTRA TURN)을 획득했습니다!', 'chain');
     }
 
-    playSlashSound();
+    // ⚔️ Dynamic Skill-Specific Sound Suite & Boss Stagger Break SFX
+    if (result.isBossBreak) {
+      playBossGroggyBreakSound();
+    } else if (effectiveSkill.id === 'execute') {
+      playSkillExecuteSound();
+    } else if (effectiveSkill.id === 'whirlwind') {
+      playSkillWhirlwindSound();
+    } else if (effectiveSkill.id === 'cleave') {
+      playSkillCleaveSound();
+    } else {
+      playSkillSlashSound();
+    }
+
     const critText = result.isCritical ? " ★ 치명타 폭발!" : "";
     const flurryText = result.isExtraStrike ? " ⚡ [신속 연격 (+35%)]" : "";
     const overkillText = result.totalDamage > result.appliedDamage
@@ -1866,6 +1887,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
               const bName = boss.name.replace(/^👑\s*/, '');
               const bIcon = boss.icon || '👑';
               const bElem = boss.element || 'fire';
+
+              playBossChargeAlertSound();
 
               triggerBossSkill({
                 name: bName,
@@ -2754,7 +2777,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setInventory(prev => prev.map(i => i.id === targetItemId ? updatedItem : i));
     }
 
-    playRuneWordSound();
+    playRuneSocketSound();
     addLog(`💎 [${target.name}]의 소켓에 [${runeKey} 룬]을 각인했습니다!`, 'loot');
   };
 
