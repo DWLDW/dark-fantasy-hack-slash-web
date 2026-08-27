@@ -129,28 +129,27 @@ export const BossHUD: React.FC = React.memo(() => {
           ? 'bg-red-950/90 border-red-500 shadow-[0_0_30px_rgba(220,38,38,0.7)]'
           : 'bg-iron-950/95 border-brass-500/80 shadow-[0_0_30px_rgba(0,0,0,0.95)]'
       }`}
-      style={{ minHeight: '135px', maxHeight: '185px' }}
+      style={{ height: 'clamp(220px, 36vh, 310px)' }}
     >
-      {/* 👹 Cinematic Full-Bleed Boss Art (Unmasked, Crystal Clear 100% Quality) */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none flex items-center justify-center">
+      {/* 👹 Massive Full-Presence Boss Illustration (Unmasked, 100% Whole Body with Horns & Aura) */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none flex items-center justify-center pt-2 pb-6">
         <img
           src={bossArtwork}
           alt={boss.name}
-          className={`w-full h-full object-cover object-center filter transition-all duration-500 ${
+          className={`h-full w-auto max-h-[210px] sm:max-h-[250px] object-contain drop-shadow-[0_15px_35px_rgba(0,0,0,1)] transition-all duration-500 ${
             isAttacking
-              ? 'brightness-150 saturate-200 scale-105 filter drop-shadow-[0_0_30px_rgba(239,68,68,0.9)]'
+              ? 'brightness-150 saturate-200 scale-105 filter drop-shadow-[0_0_35px_rgba(239,68,68,0.9)]'
               : isGroggy
               ? 'brightness-125 saturate-150 contrast-125'
               : isCharging
               ? 'brightness-130 saturate-200 contrast-125 animate-pulse'
               : isEnraged
               ? 'brightness-110 saturate-150 contrast-125'
-              : 'brightness-95 saturate-125 contrast-115'
+              : 'brightness-100 saturate-125 contrast-110'
           }`}
-          style={{ opacity: 0.85 }}
         />
-        {/* Subtle Ambient Vignette for HUD Readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-iron-950 via-iron-950/40 to-iron-950/80 pointer-events-none" />
+        {/* Subtle Dark Bottom Gradient for Bar Readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-iron-950/90 via-transparent to-iron-950/70 pointer-events-none" />
       </div>
 
       {/* Top Overlay: Boss Title, Elements & Threat Status */}
