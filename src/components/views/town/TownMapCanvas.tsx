@@ -21,7 +21,8 @@ export const TownMapCanvas: React.FC<TownMapCanvasProps> = React.memo(({
   playerLevel
 }) => {
   return (
-    <div className="relative rounded-2xl overflow-hidden border-2 border-brass-600/80 shadow-[0_0_50px_rgba(0,0,0,0.9)] bg-iron-950 aspect-[4/3] sm:aspect-[16/10] max-h-[60vh] w-full select-none font-sans">
+    <div className="relative rounded-xl overflow-hidden border-2 border-brass-600/80 shadow-[0_0_50px_rgba(0,0,0,0.9)] bg-iron-950 h-full w-full select-none font-sans">
+
       {/* 1. Town Map Artwork Layer */}
       <picture>
         <source srcSet="/images/town_map.webp" type="image/webp" />

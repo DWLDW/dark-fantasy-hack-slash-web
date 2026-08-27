@@ -125,7 +125,8 @@ export const BattleView: React.FC = React.memo(() => {
   const strikeShake = '';
 
   return (
-    <div className={`w-full max-w-6xl mx-auto h-[calc(100dvh-54px)] sm:h-[calc(100dvh-58px)] flex flex-col justify-between transition-colors duration-500 rounded-xl p-1 sm:p-2 ${actTheme.bgGradient} overflow-hidden select-none font-sans relative`}>
+    <div className={`w-full max-w-6xl mx-auto h-full flex-1 flex flex-col justify-between transition-colors duration-500 rounded-xl p-1 sm:p-1.5 ${actTheme.bgGradient} overflow-hidden select-none font-sans relative`}>
+
       {/* Low HP Gentle Vignette (Restful to eyes) */}
       {isLowHp && (
         <div className="fixed inset-0 pointer-events-none border-2 border-blood-900/50 shadow-[inset_0_0_45px_rgba(185,28,28,0.3)] z-30" />

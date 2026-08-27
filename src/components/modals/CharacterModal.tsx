@@ -33,31 +33,30 @@ export const CharacterModal: React.FC = React.memo(() => {
   const resistPercent = Math.min(100, Math.round((currentResist / maxResist) * 100));
 
   return (
-    <div className="bg-iron-950 border-2 border-brass-500 rounded-xl p-4 sm:p-5 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-[0_0_40px_rgba(251,191,36,0.18)] text-xs md:text-sm select-none font-sans ui-ornate">
+    <div className="bg-iron-950 border-2 border-brass-500 rounded-xl p-2.5 sm:p-3.5 w-full max-w-2xl max-h-[96dvh] overflow-hidden shadow-[0_0_40px_rgba(251,191,36,0.18)] text-xs md:text-sm select-none font-sans ui-ornate">
       
       {/* 1. Header: Avatar, Title, Stat Points & Reset */}
-      <div className="flex items-center justify-between pb-3 border-b border-iron-750 mb-3 gap-2">
-        <div className="flex items-center gap-2.5 flex-wrap">
+      <div className="flex items-center justify-between pb-1.5 border-b border-iron-750 mb-2 gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2 flex-wrap">
           <img
             src="/images/player/berserker_idle.png"
             alt="광전사"
-            className="pixel-sprite h-12 w-auto drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]"
+            className="pixel-sprite h-8 w-auto drop-shadow"
             draggable={false}
           />
           <div>
-            <h2 className="text-base sm:text-lg font-cinzel font-black text-brass-200 tracking-wider">
+            <h2 className="text-sm sm:text-base font-cinzel font-black text-brass-200 tracking-wider">
               캐릭터 능력치 & 스탯
             </h2>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="bg-amber-950 text-amber-300 border border-amber-500/80 px-2 py-0.2 rounded text-xs font-mono font-black shadow">
-                보유 스탯: <span className="text-white font-black">{playerStats.statPoints}</span>P
-              </span>
-            </div>
+          </div>
+          <div className="flex items-center gap-1 bg-amber-950 text-amber-300 border border-amber-500/80 px-1.5 py-0.2 rounded text-[11px] font-mono font-black shadow">
+            <span>보유 SP:</span>
+            <span className="text-white font-black">{playerStats.statPoints}</span>
+            <span>P</span>
           </div>
         </div>
 
         <div className="flex items-center gap-1.5">
-          {/* Reset Stat Points Button */}
           <button
             onClick={() => openConfirmModal({
               title: "캐릭터 스탯 초기화",
@@ -66,17 +65,14 @@ export const CharacterModal: React.FC = React.memo(() => {
               type: "warning",
               onConfirm: resetStatPoints
             })}
-            className={`px-2.5 py-1 rounded border text-xs font-mono font-bold flex items-center gap-1 transition shadow cursor-pointer ${
+            className={`px-2 py-0.5 rounded border text-[10px] font-mono font-bold flex items-center gap-1 transition shadow cursor-pointer ${
               hasEnoughShards
                 ? 'bg-iron-900 hover:bg-amber-950/40 border-iron-700 hover:border-amber-500/80 text-gray-300 hover:text-amber-200'
                 : 'bg-iron-950 border-iron-800 text-gray-500 opacity-70'
             }`}
             title={`스탯 초기화 (필요: 샤드 ${shardCost}개)`}
           >
-            <span>🔄 전체 초기화</span>
-            <span className={`text-[10px] ${hasEnoughShards ? 'text-amber-300 font-bold' : 'text-red-400'}`}>
-              (💎 {shardCost})
-            </span>
+            <span>초기화 (💎{shardCost})</span>
           </button>
 
           <button
@@ -84,31 +80,30 @@ export const CharacterModal: React.FC = React.memo(() => {
             className="text-gray-300 hover:text-white p-1 rounded hover:bg-iron-800 transition cursor-pointer"
             aria-label="닫기"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      {/* 2. Main 2-Column Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+      {/* 2. Main 2-Column Grid (0-Scroll) */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
         
-        {/* Left 6 Cols: Core 6 Attributes & Single Tap Upgrades */}
-        <div className="md:col-span-6 bg-iron-900/90 p-3 rounded-lg border border-iron-750 space-y-2.5 shadow">
+        {/* Left 6 Cols: Core 6 Attributes */}
+        <div className="md:col-span-6 bg-iron-900/90 p-2 rounded-lg border border-iron-750 space-y-1.5 shadow">
           
-          {/* Top Global Investment Unit Toggle */}
-          <div className="flex items-center justify-between border-b border-iron-750 pb-2">
-            <h3 className="font-cinzel font-black text-xs text-brass-300 flex items-center gap-1.5">
-              <Activity className="w-4 h-4 text-blood-400" />
+          {/* Top Step Selector Chips */}
+          <div className="flex items-center justify-between border-b border-iron-750 pb-1">
+            <h3 className="font-cinzel font-black text-xs text-brass-300 flex items-center gap-1">
+              <Activity className="w-3.5 h-3.5 text-blood-400" />
               <span>6대 기본 스탯</span>
             </h3>
 
-            {/* Step Selector Chips */}
-            <div className="flex items-center gap-1 bg-iron-950 p-0.5 rounded border border-iron-800 font-mono text-[10px]">
+            <div className="flex items-center gap-0.5 bg-iron-950 p-0.5 rounded border border-iron-800 font-mono text-[9px]">
               {([1, 5, 10, 'max'] as const).map(step => (
                 <button
                   key={step}
                   onClick={() => setInvestStep(step)}
-                  className={`px-1.5 py-0.5 rounded font-black transition cursor-pointer ${
+                  className={`px-1.5 py-0.2 rounded font-black transition cursor-pointer ${
                     investStep === step
                       ? 'bg-amber-500 text-iron-950 shadow'
                       : 'text-gray-400 hover:text-gray-200'
@@ -121,7 +116,7 @@ export const CharacterModal: React.FC = React.memo(() => {
           </div>
 
           {/* 6 Attributes Rows */}
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             {attributes.map(attr => {
               const canUpgrade = playerStats.statPoints > 0;
               const bonusVal = attr.val - attr.base;
@@ -130,39 +125,31 @@ export const CharacterModal: React.FC = React.memo(() => {
               return (
                 <div
                   key={attr.key}
-                  className="flex items-center justify-between p-2 rounded-lg bg-iron-950 border border-iron-800 hover:border-iron-700 transition gap-2"
+                  className="flex items-center justify-between px-1.5 py-1 rounded bg-iron-950 border border-iron-800 hover:border-iron-700 transition gap-1.5 text-xs"
                 >
-                  {/* Left: Icon & Label */}
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1 font-bold text-xs text-white">
-                      <span>{attr.icon}</span>
-                      <span>{attr.label}</span>
-                    </div>
-                    <div className="text-[10px] text-gray-500 font-mono truncate">{attr.desc}</div>
+                  <div className="min-w-0 flex-1 flex items-center gap-1">
+                    <span className="text-xs">{attr.icon}</span>
+                    <span className="font-bold text-gray-200 text-[11px] truncate">{attr.label}</span>
                   </div>
 
-                  {/* Center: Stat Value */}
-                  <div className="text-right pr-1 font-mono font-black text-xs text-brass-200 min-w-[50px]">
-                    <div>{attr.val}</div>
+                  <div className="text-right font-mono font-black text-xs text-brass-200 min-w-[45px]">
+                    <span>{attr.val}</span>
                     {bonusVal > 0 && (
-                      <div className="text-[9px] text-emerald-400 font-bold leading-none">
-                        (+{bonusVal})
-                      </div>
+                      <span className="text-[9px] text-emerald-400 font-bold ml-1">(+{bonusVal})</span>
                     )}
                   </div>
 
-                  {/* Right: Clean Single Plus Action Button */}
                   <button
                     onClick={() => handleUpgrade(attr.key)}
                     disabled={!canUpgrade}
-                    className={`w-9 h-8 rounded-lg flex items-center justify-center font-mono font-black text-xs transition cursor-pointer shadow ${
+                    className={`w-6 h-6 rounded flex items-center justify-center font-mono font-black text-xs transition cursor-pointer shadow ${
                       canUpgrade
-                        ? 'bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-iron-950 border border-amber-300 ring-1 ring-amber-400/80 active:scale-95'
+                        ? 'bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 text-iron-950 border border-amber-300 ring-1 ring-amber-400 active:scale-95'
                         : 'bg-iron-900 text-gray-600 border border-iron-800 cursor-not-allowed opacity-40'
                     }`}
-                    title={canUpgrade ? `클릭 시 +${investAmount}P 투자` : '스탯 포인트 부족'}
+                    title={canUpgrade ? `+${investAmount}P 투자` : 'SP 부족'}
                   >
-                    <Plus className="w-4 h-4 stroke-[3]" />
+                    <Plus className="w-3.5 h-3.5 stroke-[3]" />
                   </button>
                 </div>
               );
@@ -170,15 +157,15 @@ export const CharacterModal: React.FC = React.memo(() => {
           </div>
         </div>
 
-        {/* Right 6 Cols: Combat Metrics & Elemental Resistance Gauges */}
-        <div className="md:col-span-6 bg-iron-900/90 p-3 rounded-lg border border-iron-750 space-y-2.5 shadow">
-          <h3 className="font-cinzel font-black text-xs text-brass-300 border-b border-iron-750 pb-2 flex items-center gap-1.5">
-            <Swords className="w-4 h-4 text-amber-400" />
+        {/* Right 6 Cols: Combat Metrics & Resistance */}
+        <div className="md:col-span-6 bg-iron-900/90 p-2 rounded-lg border border-iron-750 space-y-1.5 shadow">
+          <h3 className="font-cinzel font-black text-xs text-brass-300 border-b border-iron-750 pb-1 flex items-center gap-1">
+            <Swords className="w-3.5 h-3.5 text-amber-400" />
             <span>전투 상세 스탯 & 저항</span>
           </h3>
 
-          {/* Group 1: Offense & Defense Core List */}
-          <div className="space-y-1 bg-iron-950 p-2.5 rounded-lg border border-iron-800 text-xs font-mono">
+          {/* Group 1: Core Combat Stats */}
+          <div className="space-y-0.5 bg-iron-950 p-1.5 rounded border border-iron-800 text-[11px] font-mono">
             <div className="flex justify-between items-center py-0.5 border-b border-iron-850">
               <span className="text-gray-400">⚔️ 물리 피해량:</span>
               <span className="text-amber-200 font-black">{totalStats.minDmg} ~ {totalStats.maxDmg}</span>
@@ -197,41 +184,40 @@ export const CharacterModal: React.FC = React.memo(() => {
             </div>
           </div>
 
-          {/* Group 2: 4 Elemental Resistance Progress Gauges */}
-          <div className="bg-iron-950 p-2.5 rounded-lg border border-iron-800 space-y-2">
+          {/* Group 2: Elemental Resistance Bar */}
+          <div className="bg-iron-950 p-1.5 rounded border border-iron-800 space-y-1">
             <div className="flex justify-between items-center text-[10px] font-cinzel font-black text-purple-300">
-              <span>🔮 원소 저항력 (최대 75% 캡)</span>
+              <span>🔮 모든 원소 저항 (최대 75%)</span>
               <span className="font-mono text-amber-300 font-bold">+{currentResist}% / 75%</span>
             </div>
 
-            {/* Gauge Bar */}
-            <div className="w-full bg-iron-900 h-2 rounded-full overflow-hidden border border-iron-750 shadow-inner">
+            <div className="w-full bg-iron-900 h-1.5 rounded-full overflow-hidden border border-iron-750">
               <div
-                className="h-full bg-gradient-to-r from-purple-500 via-indigo-400 to-cyan-400 transition-all duration-300 shadow-[0_0_8px_rgba(168,85,247,0.5)]"
+                className="h-full bg-gradient-to-r from-purple-500 via-indigo-400 to-cyan-400 transition-all duration-300"
                 style={{ width: `${resistPercent}%` }}
               />
             </div>
 
-            <div className="grid grid-cols-4 gap-1 text-center font-mono text-[10px]">
-              <div className="py-1 rounded bg-rose-950/60 border border-rose-800/80 text-rose-300 font-bold">🔥 화염 +{currentResist}%</div>
-              <div className="py-1 rounded bg-sky-950/60 border border-sky-800/80 text-sky-300 font-bold">❄️ 서리 +{currentResist}%</div>
-              <div className="py-1 rounded bg-amber-950/60 border border-amber-800/80 text-amber-300 font-bold">⚡ 전격 +{currentResist}%</div>
-              <div className="py-1 rounded bg-emerald-950/60 border border-emerald-800/80 text-emerald-300 font-bold">🧪 맹독 +{currentResist}%</div>
+            <div className="grid grid-cols-4 gap-1 text-center font-mono text-[9px]">
+              <div className="py-0.5 rounded bg-rose-950/60 border border-rose-800/80 text-rose-300 font-bold">🔥 화염 +{currentResist}%</div>
+              <div className="py-0.5 rounded bg-sky-950/60 border border-sky-800/80 text-sky-300 font-bold">❄️ 서리 +{currentResist}%</div>
+              <div className="py-0.5 rounded bg-amber-950/60 border border-amber-800/80 text-amber-300 font-bold">⚡ 전격 +{currentResist}%</div>
+              <div className="py-0.5 rounded bg-emerald-950/60 border border-emerald-800/80 text-emerald-300 font-bold">🧪 맹독 +{currentResist}%</div>
             </div>
           </div>
 
-          {/* Group 3: Utility & Drop Bonuses */}
-          <div className="bg-iron-950 p-2.5 rounded-lg border border-iron-800 space-y-1 text-xs font-mono">
+          {/* Group 3: Utility / Skills / Drops */}
+          <div className="bg-iron-950 p-1.5 rounded border border-iron-800 space-y-0.5 text-[11px] font-mono">
             <div className="flex justify-between items-center py-0.5 border-b border-iron-850">
               <span className="text-amber-300 font-bold">👑 모든 스킬 레벨:</span>
               <span className="text-amber-400 font-black">+{totalStats.allSkills || 0} Lv</span>
             </div>
             <div className="flex justify-between items-center py-0.5 border-b border-iron-850">
-              <span className="text-teal-300 font-bold">✨ 매직 아이템 발견 (MF):</span>
+              <span className="text-teal-300 font-bold">✨ MF 발견 확률:</span>
               <span className="text-teal-200 font-black">+{totalStats.fortune}%</span>
             </div>
             <div className="flex justify-between items-center py-0.5">
-              <span className="text-yellow-300 font-bold">💰 괴물 골드 획득량 (GF):</span>
+              <span className="text-yellow-300 font-bold">💰 골드 획득량:</span>
               <span className="text-yellow-200 font-black">+{totalStats.goldFind || 0}%</span>
             </div>
           </div>
@@ -243,4 +229,5 @@ export const CharacterModal: React.FC = React.memo(() => {
 });
 
 CharacterModal.displayName = 'CharacterModal';
+
 

@@ -144,7 +144,8 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
   }, [floatingDamages]);
 
   return (
-    <div className={`${actTheme.containerBg} border-2 ${actTheme.borderColor} ${actTheme.glowShadow} rounded-xl p-1 sm:p-1.5 relative select-none font-sans flex flex-col justify-between overflow-hidden flex-1 min-h-[260px] sm:min-h-[340px] battlefield-stage`}>
+    <div className={`${actTheme.containerBg} border-2 ${actTheme.borderColor} ${actTheme.glowShadow} rounded-xl p-1 sm:p-1.5 relative select-none font-sans flex flex-col justify-between overflow-hidden flex-1 min-h-0 h-full battlefield-stage`}>
+
       {/* 🌌 Act Themed Authentic Painted Artwork Layer */}
       {actTheme.bgImage && (
         <picture className="absolute inset-0 pointer-events-none z-0 select-none">

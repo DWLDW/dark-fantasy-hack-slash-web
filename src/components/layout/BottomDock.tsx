@@ -39,7 +39,8 @@ export const BottomDock: React.FC = React.memo(() => {
   if (viewMode === 'battle') return null;
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 bg-iron-950/98 backdrop-blur-md border-t-2 border-brass-600/50 z-40 py-1.5 px-2.5 sm:px-4 md:py-2 select-none shadow-[0_-12px_28px_rgba(0,0,0,0.65)] pb-[max(0.375rem,env(safe-area-inset-bottom))]">
+    <footer className="relative flex-shrink-0 w-full bg-iron-950/98 backdrop-blur-md border-t-2 border-brass-600/50 z-40 py-1 px-2.5 sm:px-4 select-none shadow-[0_-12px_28px_rgba(0,0,0,0.65)] pb-[max(0.25rem,env(safe-area-inset-bottom))]">
+
       <div className="max-w-7xl mx-auto flex items-center justify-around md:justify-between">
         
         {/* Navigation Links */}

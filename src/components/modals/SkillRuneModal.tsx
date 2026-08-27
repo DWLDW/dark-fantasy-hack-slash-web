@@ -121,7 +121,6 @@ export const SkillRuneModal: React.FC = React.memo(() => {
     });
   };
 
-  // Passive Total Investment Calculation
   const totalPassivePointsSpent = useMemo(() => {
     return Object.values(passiveLevels).reduce((acc, lv) => acc + (lv || 0), 0);
   }, [passiveLevels]);
@@ -129,155 +128,138 @@ export const SkillRuneModal: React.FC = React.memo(() => {
   const hasEnoughShards = (playerStats.shards || 0) >= shardCost;
 
   return (
-    <div className="bg-iron-950 border-2 border-brass-500 rounded-xl p-3.5 sm:p-5 w-full max-w-3xl max-h-[92vh] overflow-y-auto sm:overflow-hidden shadow-[0_0_40px_rgba(251,191,36,0.18)] space-y-2.5 text-xs md:text-sm select-none font-sans ui-ornate">
+    <div className="bg-iron-950 border-2 border-brass-500 rounded-xl p-2.5 sm:p-3.5 w-full max-w-3xl h-[96dvh] max-h-[96dvh] overflow-hidden flex flex-col shadow-[0_0_40px_rgba(251,191,36,0.18)] text-xs md:text-sm select-none font-sans ui-ornate">
       
-      {/* 1. Top Header with SP Badge & Reset */}
-      <div className="flex items-center justify-between pb-2 border-b border-iron-750 gap-2">
+      {/* 1. Top Header with SP Badge & Reset (h-8) */}
+      <div className="flex items-center justify-between pb-1.5 border-b border-iron-750 gap-2 flex-shrink-0">
         <div className="flex items-center gap-2 flex-wrap">
           <h2 className="text-sm sm:text-base font-cinzel font-black text-brass-200 tracking-wider flex items-center gap-1.5">
             <Sparkles className="w-4 h-4 text-amber-400" />
             <span>스킬 & 패시브 마스터리</span>
           </h2>
 
-          <div className="flex items-center gap-1 px-2 py-0.5 bg-amber-950/80 border border-amber-600/80 rounded font-mono font-bold text-amber-300 text-xs shadow">
-            <span>보유 SP:</span>
-            <span className="text-white font-black text-sm">{playerStats.skillPoints}</span>
+          <div className="flex items-center gap-1 px-1.5 py-0.2 bg-amber-950/80 border border-amber-600/80 rounded font-mono font-bold text-amber-300 text-xs shadow">
+            <span>SP:</span>
+            <span className="text-white font-black text-xs sm:text-sm">{playerStats.skillPoints}</span>
             <span>P</span>
           </div>
 
           {totalPassivePointsSpent > 0 && (
-            <span className="text-[10px] text-purple-300 font-mono bg-purple-950/60 px-1.5 py-0.5 rounded border border-purple-800/80">
-              투자된 패시브: {totalPassivePointsSpent}P
+            <span className="text-[9px] text-purple-300 font-mono bg-purple-950/60 px-1 py-0.2 rounded border border-purple-800/80 hidden sm:inline">
+              패시브: {totalPassivePointsSpent}P
             </span>
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <button
             onClick={handleResetSkills}
-            className={`px-2.5 py-1 rounded border text-xs font-mono font-bold flex items-center gap-1 transition shadow cursor-pointer ${
+            className={`px-2 py-0.5 rounded border text-[10px] font-mono font-bold flex items-center gap-1 transition shadow cursor-pointer ${
               hasEnoughShards
                 ? 'bg-iron-900 hover:bg-amber-950/40 border-iron-700 hover:border-amber-500/80 text-gray-300 hover:text-amber-200'
                 : 'bg-iron-950 border-iron-800 text-gray-500 opacity-70'
             }`}
-            title={`투자한 모든 액티브 및 패시브 포인트를 전액 회수합니다 (필요: 샤드 ${shardCost}개)`}
+            title={`스킬 포인트 초기화 (필요: 샤드 ${shardCost}개)`}
           >
-            <RotateCcw className="w-3.5 h-3.5" />
-            <span>전체 초기화</span>
-            <span className={`text-[10px] ${hasEnoughShards ? 'text-amber-300 font-bold' : 'text-red-400'}`}>
-              (💎 {shardCost})
-            </span>
+            <RotateCcw className="w-3 h-3" />
+            <span>초기화 (💎{shardCost})</span>
           </button>
           <button
             onClick={closeModal}
             className="text-gray-300 hover:text-white p-1 rounded hover:bg-iron-800 transition cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      {/* 2. Top Navigation Tabs: Active vs Passive */}
-      <div className="grid grid-cols-2 gap-1.5 p-1 bg-iron-900/90 rounded-lg border border-iron-800 font-cinzel font-bold text-xs sm:text-sm">
+      {/* 2. Top Navigation Tabs: Active vs Passive (h-7) */}
+      <div className="grid grid-cols-2 gap-1 my-1 p-0.5 bg-iron-900/90 rounded-lg border border-iron-800 font-cinzel font-bold text-xs flex-shrink-0">
         <button
           onClick={() => setActiveTab('active')}
-          className={`py-1.5 px-3 rounded-md transition flex items-center justify-center gap-1.5 cursor-pointer ${
+          className={`py-1 px-2 rounded-md transition flex items-center justify-center gap-1 cursor-pointer ${
             activeTab === 'active'
-              ? 'bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-500 text-iron-950 font-black shadow-lg ring-1 ring-amber-300'
-              : 'text-gray-400 hover:text-gray-200 hover:bg-iron-800/60'
+              ? 'bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-500 text-iron-950 font-black shadow ring-1 ring-amber-300'
+              : 'text-gray-400 hover:text-gray-200'
           }`}
         >
-          <Swords className="w-4 h-4" />
-          <span>액티브 스킬 & 룬 각인 (Q · W · E · R)</span>
+          <Swords className="w-3.5 h-3.5" />
+          <span>액티브 스킬 (Q · W · E · R)</span>
         </button>
 
         <button
           onClick={() => setActiveTab('passive')}
-          className={`py-1.5 px-3 rounded-md transition flex items-center justify-center gap-1.5 cursor-pointer ${
+          className={`py-1 px-2 rounded-md transition flex items-center justify-center gap-1 cursor-pointer ${
             activeTab === 'passive'
-              ? 'bg-gradient-to-r from-purple-600 via-indigo-500 to-purple-500 text-white font-black shadow-lg ring-1 ring-purple-300'
-              : 'text-gray-400 hover:text-gray-200 hover:bg-iron-800/60'
+              ? 'bg-gradient-to-r from-purple-600 via-indigo-500 to-purple-500 text-white font-black shadow ring-1 ring-purple-300'
+              : 'text-gray-400 hover:text-gray-200'
           }`}
         >
-          <Dna className="w-4 h-4 text-purple-300" />
-          <span>패시브 스킬 마스터리 ({totalPassivePointsSpent}P 투자됨)</span>
+          <Dna className="w-3.5 h-3.5 text-purple-300" />
+          <span>패시브 마스터리 ({totalPassivePointsSpent}P)</span>
         </button>
       </div>
 
-      {/* ═══ TAB 1: ACTIVE SKILLS & RUNES ═══ */}
+      {/* ═══ TAB 1: ACTIVE SKILLS & RUNES (0-SCROLL) ═══ */}
       {activeTab === 'active' && (
-        <div className="space-y-2.5">
-          {/* Top 4 Equipped Slots (Q / W / E / R) */}
-          <div className="p-2 sm:p-2.5 rounded-lg bg-iron-900/90 border border-iron-750 space-y-1.5 shadow">
-            <div className="text-[10px] sm:text-[11px] font-cinzel font-bold text-gray-300 flex items-center justify-between">
-              <span className="flex items-center gap-1 text-brass-300 font-black">
-                <Layers className="w-3.5 h-3.5 text-amber-400" />
-                <span>장착 슬롯 (Q · W · E · R)</span>
-              </span>
-              {selectedSlot && (
-                <span className="text-[10px] font-mono font-bold text-amber-300 bg-amber-950/80 px-2 py-0.2 rounded border border-amber-500/80">
-                  [{selectedSlot}] 슬롯 지정 중
-                </span>
-              )}
-            </div>
+        <div className="flex-1 min-h-0 flex flex-col space-y-1.5 overflow-hidden">
+          
+          {/* Top 4 Equipped Slots (Q / W / E / R) - Fixed 44px */}
+          <div className="grid grid-cols-4 gap-1.5 flex-shrink-0">
+            {(['Q', 'W', 'E', 'R'] as const).map(slot => {
+              const assignedSkillId = equippedSkillSlots[slot];
+              const skill = ALL_AVAILABLE_SKILLS.find(s => s.id === assignedSkillId);
+              const isCurrentSelectedSlot = selectedSlot === slot;
+              const runeId = skill ? (skillRunes[skill.id] || skill.activeRuneId) : null;
+              const lv = skill ? (skillLevels[skill.id] || 1) : 1;
 
-            <div className="grid grid-cols-4 gap-1.5">
-              {(['Q', 'W', 'E', 'R'] as const).map(slot => {
-                const assignedSkillId = equippedSkillSlots[slot];
-                const skill = ALL_AVAILABLE_SKILLS.find(s => s.id === assignedSkillId);
-                const isCurrentSelectedSlot = selectedSlot === slot;
-                const runeId = skill ? (skillRunes[skill.id] || skill.activeRuneId) : null;
-                const lv = skill ? (skillLevels[skill.id] || 1) : 1;
-
-                return (
-                  <button
-                    key={slot}
-                    onClick={() => handleSlotClick(slot)}
-                    className={`p-1.5 rounded-lg border-2 text-left transition relative cursor-pointer ${
-                      isCurrentSelectedSlot
-                        ? 'bg-amber-950/90 border-amber-400 ring-2 ring-amber-400/80 shadow-[0_0_15px_rgba(251,191,36,0.4)]'
-                        : skill
-                        ? 'bg-iron-950 border-iron-700 hover:border-amber-500/60'
-                        : 'bg-iron-950/60 border-dashed border-iron-800 hover:border-iron-600'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className={`text-[11px] font-black px-1.5 py-0.5 rounded font-mono ${
+              return (
+                <button
+                  key={slot}
+                  onClick={() => handleSlotClick(slot)}
+                  className={`p-1 rounded-lg border text-left transition relative cursor-pointer flex items-center justify-between min-h-[44px] ${
+                    isCurrentSelectedSlot
+                      ? 'bg-amber-950/90 border-amber-400 ring-1 ring-amber-400 text-white shadow'
+                      : skill
+                      ? 'bg-iron-950 border-iron-700 hover:border-amber-500/60'
+                      : 'bg-iron-950/60 border-dashed border-iron-800 hover:border-iron-600'
+                  }`}
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1">
+                      <span className={`text-[10px] font-black px-1 rounded font-mono ${
                         isCurrentSelectedSlot ? 'bg-amber-400 text-iron-950' : 'bg-iron-800 text-amber-300'
                       }`}>
                         [{slot}]
                       </span>
-                      {skill && (
-                        <span className="text-[10px] font-mono font-bold text-amber-400">
-                          Lv.{lv}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="mt-1 font-bold text-xs truncate text-gray-200">
-                      {skill ? skill.name.split(' ')[0] : '비어있음'}
+                      <span className="font-bold text-[10px] truncate max-w-[65px] text-gray-200">
+                        {skill ? skill.name.split(' ')[0] : '비어있음'}
+                      </span>
                     </div>
 
                     {skill && runeId && (
-                      <div className="text-[9px] text-gray-400 truncate mt-0.5 flex items-center gap-1 font-mono">
+                      <div className="text-[8px] text-gray-400 truncate flex items-center gap-0.5 font-mono mt-0.5">
                         <span>{RUNE_ICONS[runeId] || '🔮'}</span>
                         <span className="truncate">{SKILL_RUNES_DATA.find(r => r.id === runeId)?.name.split(' ')[0]}</span>
                       </div>
                     )}
-                  </button>
-                );
-              })}
-            </div>
+                  </div>
+
+                  {skill && (
+                    <span className="text-[9px] font-mono font-bold text-amber-400 ml-1">
+                      Lv.{lv}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
 
           {/* Main 2-Column Grid: Left (Skill Cards) + Right (3 Thematic Panels) */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-2.5">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-2 flex-1 min-h-0 overflow-hidden">
+            
             {/* Left 5 Cols: All Available Active Skills */}
-            <div className="md:col-span-5 space-y-1.5 max-h-80 overflow-y-auto pr-1">
-              <div className="text-[11px] font-cinzel font-bold text-gray-400 px-1 flex items-center justify-between">
-                <span>보유 스킬</span>
-                <span className="text-[10px] font-mono text-gray-500">최대 Lv.{maxSkillLv}</span>
-              </div>
+            <div className="md:col-span-5 space-y-1 h-full min-h-0 overflow-y-auto pr-1">
               <div className="grid grid-cols-1 gap-1">
                 {ALL_AVAILABLE_SKILLS.map(skill => {
                   const unlocked = isSkillUnlocked(skill.id, playerStats.level);
@@ -292,68 +274,65 @@ export const SkillRuneModal: React.FC = React.memo(() => {
                     <div
                       key={skill.id}
                       onClick={() => handleSkillCardClick(skill.id)}
-                      className={`p-2 rounded-lg border transition text-left cursor-pointer flex items-center justify-between gap-2 ${
+                      className={`p-1.5 rounded border transition text-left cursor-pointer flex items-center justify-between gap-1.5 ${
                         isSelected
-                          ? 'bg-amber-950/80 border-amber-400 ring-1 ring-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.3)]'
+                          ? 'bg-amber-950/80 border-amber-400 ring-1 ring-amber-400 shadow'
                           : unlocked
-                          ? 'bg-iron-900 border-iron-750 hover:bg-iron-850 hover:border-iron-600'
-                          : 'bg-iron-950/80 border-iron-800 opacity-70 hover:border-iron-700'
+                          ? 'bg-iron-900 border-iron-800 hover:bg-iron-850 hover:border-iron-700'
+                          : 'bg-iron-950/80 border-iron-800 opacity-60'
                       }`}
                     >
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1">
                           {assignedSlot && (
-                            <span className="text-[9px] font-mono font-black bg-amber-500 text-iron-950 px-1 rounded">
+                            <span className="text-[8px] font-mono font-black bg-amber-500 text-iron-950 px-1 rounded">
                               {assignedSlot}
                             </span>
                           )}
-                          <span className="font-bold text-xs text-gray-200 truncate">
+                          <span className="font-bold text-[11px] text-gray-200 truncate">
                             {skill.name}
                           </span>
                           {unlocked && (
-                            <span className="text-[10px] font-mono text-amber-400 font-black">
+                            <span className="text-[9px] font-mono text-amber-400 font-bold">
                               Lv.{lv}
                             </span>
                           )}
                         </div>
-                        <div className="text-[10px] text-gray-400 font-mono mt-0.5 truncate">
+                        <div className="text-[9px] text-gray-400 font-mono truncate">
                           {unlocked
                             ? getSkillDamageText(skill, totalStats, lv, runeId)
                             : `Lv.${skill.unlockLevel || 1} 필요`}
                         </div>
                       </div>
 
-                      <div className="flex-shrink-0">
-                        {isSelected && selectedSlot && unlocked && (
-                          <span className="text-[10px] font-mono text-amber-300 font-black flex items-center gap-0.5 bg-amber-950 px-1.5 py-0.5 rounded border border-amber-500">
-                            <Check className="w-3 h-3" />
-                          </span>
-                        )}
-                      </div>
+                      {isSelected && selectedSlot && unlocked && (
+                        <span className="text-[9px] font-mono text-amber-300 font-black bg-amber-950 px-1 py-0.2 rounded border border-amber-500">
+                          <Check className="w-2.5 h-2.5" />
+                        </span>
+                      )}
                     </div>
                   );
                 })}
               </div>
             </div>
 
-            {/* Right 7 Cols: 3 Distinct Thematic Panels (Info / Level-Up / Rune Socket) */}
-            <div className="md:col-span-7 space-y-2">
+            {/* Right 7 Cols: 3 Distinct Thematic Panels */}
+            <div className="md:col-span-7 flex flex-col justify-between h-full min-h-0 space-y-1.5 overflow-hidden">
               
-              {/* [Zone 1] Skill Info Plate (Dark Gold / Obsidian Frame) */}
-              <div className="p-2.5 rounded-lg bg-gradient-to-r from-amber-950/50 via-iron-900 to-amber-950/50 border border-amber-500/70 shadow space-y-1.5">
+              {/* [Zone 1] Skill Info Plate */}
+              <div className="p-2 rounded bg-gradient-to-r from-amber-950/50 via-iron-900 to-amber-950/50 border border-amber-500/70 shadow space-y-1">
                 <div className="flex items-center justify-between border-b border-amber-500/40 pb-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-cinzel font-black text-sm sm:text-base text-amber-200">
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="font-cinzel font-black text-xs sm:text-sm text-amber-200">
                       {selectedSkill.name}
                     </h3>
-                    <span className="text-[10px] font-mono font-bold text-amber-400 bg-amber-950/80 px-1.5 py-0.2 rounded border border-amber-600/80">
-                      Lv.{currentSkillLv} / {maxSkillLv}
+                    <span className="text-[9px] font-mono font-bold text-amber-400 bg-amber-950/80 px-1 py-0.2 rounded border border-amber-600/80">
+                      Lv.{currentSkillLv}/{maxSkillLv}
                     </span>
                   </div>
 
                   {/* Slot assignment quick chips */}
-                  <div className="flex items-center gap-1 font-mono text-[10px]">
-                    <span className="text-gray-400 text-[9px]">슬롯:</span>
+                  <div className="flex items-center gap-0.5 font-mono text-[9px]">
                     {(['Q', 'W', 'E', 'R'] as const).map(slot => {
                       const isEquippedHere = equippedSkillSlots[slot] === selectedSkill.id;
                       return (
@@ -361,7 +340,7 @@ export const SkillRuneModal: React.FC = React.memo(() => {
                           key={slot}
                           onClick={() => equipSkillToSlot(slot, selectedSkill.id)}
                           disabled={!isSelectedUnlocked}
-                          className={`w-5 h-5 rounded font-black text-[10px] flex items-center justify-center transition cursor-pointer ${
+                          className={`w-4 h-4 rounded font-black text-[9px] flex items-center justify-center transition cursor-pointer ${
                             isEquippedHere
                               ? 'bg-amber-400 text-iron-950 ring-1 ring-amber-300 shadow'
                               : isSelectedUnlocked
@@ -376,109 +355,92 @@ export const SkillRuneModal: React.FC = React.memo(() => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 text-[10px] font-mono text-gray-300 flex-wrap">
-                  <span className="bg-iron-950 px-1.5 py-0.2 rounded border border-iron-750 text-amber-300 font-bold">
+                <div className="flex items-center gap-1.5 text-[9px] font-mono text-gray-300 flex-wrap">
+                  <span className="bg-iron-950 px-1 py-0.2 rounded border border-iron-750 text-amber-300 font-bold">
                     {selectedSkill.route === 'line' ? '직선 관통' : selectedSkill.route === 'branch' ? '3레인 휩쓸기' : selectedSkill.route === 'radius' ? '전체 광역' : '단일 집중'}
                   </span>
                   {selectedSkill.rageCost ? (
-                    <span className="bg-iron-950 px-1.5 py-0.2 rounded border border-iron-750 text-orange-400 font-bold">
-                      🔥 분노 {selectedSkill.rageCost} 소모
+                    <span className="bg-iron-950 px-1 py-0.2 rounded border border-iron-750 text-orange-400 font-bold">
+                      🔥 분노 {selectedSkill.rageCost}
                     </span>
                   ) : (
-                    <span className="bg-iron-950 px-1.5 py-0.2 rounded border border-iron-750 text-cyan-300 font-bold">
-                      ⚡ 분노 +{selectedSkill.rageGainPerHit || 15} 수급
+                    <span className="bg-iron-950 px-1 py-0.2 rounded border border-iron-750 text-cyan-300 font-bold">
+                      ⚡ 분노 +{selectedSkill.rageGainPerHit || 15}
                     </span>
                   )}
                   {levelDamageBonus > 0 && (
-                    <span className="bg-amber-950/80 text-amber-300 font-bold px-1.5 py-0.2 rounded border border-amber-600/70">
-                      ★ 레벨 위력 +{levelDamageBonus}%
+                    <span className="bg-amber-950/80 text-amber-300 font-bold px-1 py-0.2 rounded border border-amber-600/70">
+                      ★ +{levelDamageBonus}%
                     </span>
                   )}
                 </div>
 
-                <p className="text-[11px] text-gray-300 bg-iron-950/80 p-2 rounded border border-iron-800 font-mono leading-relaxed">
+                <p className="text-[10px] text-gray-300 bg-iron-950/80 p-1.5 rounded border border-iron-800 font-mono leading-tight">
                   {selectedSkill.description}
                 </p>
               </div>
 
-              {/* [Zone 2] Level-Up & Mastery Growth Container (Emerald Frame) */}
-              <div className="p-2.5 rounded-lg bg-gradient-to-r from-emerald-950/40 via-iron-900 to-emerald-950/40 border border-emerald-500/70 shadow flex items-center justify-between gap-2">
-                <div>
-                  <div className="text-[10px] text-emerald-400 font-mono font-bold flex items-center gap-1">
-                    <Zap className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>스킬 위력 성장 (Mastery Growth)</span>
-                  </div>
-                  <div className="text-xs font-mono font-bold text-gray-200 mt-0.5">
-                    현재 위력 <span className="text-emerald-300 font-black">+{levelDamageBonus}%</span>
-                    {currentSkillLv < maxSkillLv && (
-                      <span> ➔ 다음 Lv <strong className="text-yellow-300 font-black">+{levelDamageBonus + 15}%</strong> (+15%)</span>
-                    )}
-                  </div>
+              {/* [Zone 2] Level-Up & Mastery Growth Container */}
+              <div className="p-1.5 rounded bg-gradient-to-r from-emerald-950/40 via-iron-900 to-emerald-950/40 border border-emerald-500/70 shadow flex items-center justify-between gap-2">
+                <div className="text-[10px] font-mono">
+                  <span className="text-emerald-400 font-bold">위력: +{levelDamageBonus}%</span>
+                  {currentSkillLv < maxSkillLv && (
+                    <span className="text-gray-400"> ➔ 다음 Lv <strong className="text-yellow-300 font-bold">+{levelDamageBonus + 15}%</strong></span>
+                  )}
                 </div>
 
                 {canUpgradeActive ? (
                   <button
                     {...handleLevelUpHold}
-                    className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-iron-950 font-black text-xs shadow-lg transition flex items-center gap-1 cursor-pointer active:scale-95 animate-pulse"
+                    className="px-2.5 py-1 rounded bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 text-iron-950 font-black text-[10px] shadow transition flex items-center gap-0.5 cursor-pointer active:scale-95 animate-pulse"
                     title="클릭 시 Lv+1 (Shift+클릭 시 최대치 즉시 투자)"
                   >
-                    <Plus className="w-4 h-4 stroke-[3]" />
-                    <span>스킬 강화 (SP 1P)</span>
+                    <Plus className="w-3 h-3 stroke-[3]" />
+                    <span>강화 (1P)</span>
                   </button>
                 ) : (
-                  <span className="text-[10px] font-mono text-gray-500 bg-iron-950 px-2 py-1 rounded border border-iron-800">
-                    {currentSkillLv >= maxSkillLv ? '최대 레벨 도달' : 'SP 부족 (0P)'}
+                  <span className="text-[9px] font-mono text-gray-500 bg-iron-950 px-1.5 py-0.5 rounded border border-iron-800">
+                    {currentSkillLv >= maxSkillLv ? '최대' : 'SP 부족'}
                   </span>
                 )}
               </div>
 
-              {/* [Zone 3] Gem Socket Rune Inscription Panel (Gem Socket Frames) */}
-              <div className="p-2.5 rounded-lg bg-gradient-to-r from-purple-950/40 via-iron-900 to-purple-950/40 border border-purple-500/70 shadow space-y-1.5">
-                <div className="text-[10px] font-cinzel font-bold text-purple-300 flex items-center justify-between border-b border-purple-800/60 pb-1">
-                  <span className="flex items-center gap-1 font-black">
-                    <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-                    <span>원소 룬 각인 소켓 (Rune Socket)</span>
-                  </span>
-                  <span className="text-[9px] text-purple-400 font-mono">소켓 터치 시 즉시 각인</span>
-                </div>
-
-                <div className="grid grid-cols-5 gap-1.5">
+              {/* [Zone 3] Gem Socket Rune Inscription Panel */}
+              <div className="p-1.5 rounded bg-gradient-to-r from-purple-950/40 via-iron-900 to-purple-950/40 border border-purple-500/70 shadow space-y-1">
+                <div className="grid grid-cols-5 gap-1">
                   {SKILL_RUNES_DATA.map(rune => {
                     const isRuneActive = activeRuneId === rune.id;
                     const runeColorGlow =
-                      rune.id === 'rune_fire' ? 'border-orange-500 text-orange-300 shadow-[0_0_12px_rgba(249,115,22,0.6)] bg-orange-950/90' :
-                      rune.id === 'rune_frost' ? 'border-cyan-400 text-cyan-200 shadow-[0_0_12px_rgba(34,211,238,0.6)] bg-cyan-950/90' :
-                      rune.id === 'rune_lightning' ? 'border-yellow-400 text-yellow-200 shadow-[0_0_12px_rgba(250,204,21,0.6)] bg-yellow-950/90' :
-                      rune.id === 'rune_poison' ? 'border-emerald-400 text-emerald-200 shadow-[0_0_12px_rgba(52,211,153,0.6)] bg-emerald-950/90' :
-                      'border-purple-400 text-purple-200 shadow-[0_0_12px_rgba(192,132,252,0.6)] bg-purple-950/90';
+                      rune.id === 'rune_fire' ? 'border-orange-500 text-orange-300 shadow bg-orange-950/90' :
+                      rune.id === 'rune_frost' ? 'border-cyan-400 text-cyan-200 shadow bg-cyan-950/90' :
+                      rune.id === 'rune_lightning' ? 'border-yellow-400 text-yellow-200 shadow bg-yellow-950/90' :
+                      rune.id === 'rune_poison' ? 'border-emerald-400 text-emerald-200 shadow bg-emerald-950/90' :
+                      'border-purple-400 text-purple-200 shadow bg-purple-950/90';
 
                     return (
                       <button
                         key={rune.id}
                         onClick={() => setSkillRune(selectedSkill.id, rune.id)}
-                        className={`p-1.5 rounded-lg border-2 text-center transition cursor-pointer flex flex-col items-center gap-0.5 relative ${
+                        className={`p-1 rounded border text-center transition cursor-pointer flex flex-col items-center justify-center ${
                           isRuneActive
-                            ? `${runeColorGlow} ring-2 ring-white/50 scale-105`
-                            : 'bg-iron-950 border-iron-800 hover:border-iron-600 opacity-70 hover:opacity-100'
+                            ? `${runeColorGlow} ring-1 ring-white/60 scale-105`
+                            : 'bg-iron-950 border-iron-800 hover:border-iron-600 opacity-70'
                         }`}
                         title={rune.description}
                       >
-                        <span className="text-base sm:text-lg">{RUNE_ICONS[rune.id] || '🔮'}</span>
-                        <span className="text-[9px] font-black truncate">
+                        <span className="text-sm leading-none">{RUNE_ICONS[rune.id] || '🔮'}</span>
+                        <span className="text-[8px] font-black truncate mt-0.5">
                           {rune.name.split(' ')[0]}
                         </span>
-                        {isRuneActive && (
-                          <div className="w-1.5 h-1.5 rounded-full bg-white absolute top-1 right-1 shadow" />
-                        )}
                       </button>
                     );
                   })}
                 </div>
 
                 {currentRune && (
-                  <div className="text-[10px] text-amber-200 font-mono bg-iron-950 p-2 rounded border border-amber-500/50 mt-1 flex items-center justify-between">
+                  <div className="text-[9px] text-amber-200 font-mono bg-iron-950 p-1 rounded border border-amber-500/40 flex items-center justify-between">
                     <span>✨ <strong className="text-white">{currentRune.name}</strong>: {currentRune.specialEffectName}</span>
-                    <span className="text-[9px] text-amber-400 font-bold bg-amber-950 px-1 py-0.2 rounded border border-amber-600/70">각인 활성화됨</span>
+                    <span className="text-[8px] text-amber-400 font-bold bg-amber-950 px-1 py-0.2 rounded border border-amber-600/70">각인됨</span>
                   </div>
                 )}
               </div>
@@ -488,11 +450,11 @@ export const SkillRuneModal: React.FC = React.memo(() => {
         </div>
       )}
 
-      {/* ═══ TAB 2: PASSIVE SKILLS MASTERY TREE ═══ */}
+      {/* ═══ TAB 2: PASSIVE SKILLS MASTERY ═══ */}
       {activeTab === 'passive' && (
-        <div className="space-y-2">
+        <div className="flex-1 min-h-0 overflow-y-auto pr-1">
           {/* Passive Grid: 8 Warrior Passives */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[58vh] overflow-y-auto pr-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
             {WARRIOR_PASSIVE_SKILLS.map(passive => {
               const currentLv = passiveLevels[passive.id] || 0;
               const isMax = currentLv >= passive.maxLevel;

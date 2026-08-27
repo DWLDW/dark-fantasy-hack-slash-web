@@ -300,9 +300,7 @@ const MainLayout: React.FC = () => {
     <div className="h-[100dvh] max-h-[100dvh] w-full bg-void flex flex-col justify-between relative overflow-hidden text-gray-200 overscroll-none select-none">
       <TopHUD />
 
-      <main className={`flex-1 w-full flex flex-col justify-start overflow-y-auto overflow-x-hidden overscroll-contain ${
-        viewMode === 'battle' ? 'pb-0' : 'pb-16 sm:pb-0'
-      }`}>
+      <main className="flex-1 w-full min-h-0 overflow-hidden flex flex-col relative">
         {viewMode === 'town' && <TownView />}
         {viewMode === 'dungeon_select' && (
           <Suspense fallback={<ViewFallback />}>
@@ -317,6 +315,7 @@ const MainLayout: React.FC = () => {
       </main>
 
       <BottomDock />
+
       <GlobalModalHost />
       {isTutorialOpen && (
         <Suspense fallback={null}>

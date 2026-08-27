@@ -106,7 +106,8 @@ export const TownView: React.FC = React.memo(() => {
   );
 
   return (
-    <div className="h-[calc(100dvh-40px-52px)] w-full max-w-7xl mx-auto p-1.5 sm:p-2.5 flex flex-col justify-between gap-1.5 sm:gap-2 select-none overflow-hidden font-sans">
+    <div className="h-full flex-1 w-full max-w-7xl mx-auto p-1 sm:p-2 flex flex-col justify-between gap-1 select-none overflow-hidden font-sans">
+
       
       {/* 1. Center Interactive Dark Fantasy Town Map Canvas (Flex-1 Adaptive Height) */}
       <div className="flex-1 min-h-0 w-full relative">
