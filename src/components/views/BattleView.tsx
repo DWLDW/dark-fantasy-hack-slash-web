@@ -32,6 +32,15 @@ export const BattleView: React.FC = React.memo(() => {
 
   const actTheme = useMemo(() => getActTheme(currentDungeon.id), [currentDungeon.id]);
 
+  const actBgImage = useMemo(() => {
+    const id = currentDungeon.id || '';
+    if (id.startsWith('act5') || id.includes('worldstone')) return '/images/ui/battle_act5_worldstone.webp';
+    if (id.startsWith('act4') || id.includes('chaos')) return '/images/ui/battle_act4_chaos.webp';
+    if (id.startsWith('act3') || id.includes('kurast') || id.includes('mephisto')) return '/images/ui/battle_act3_jungle.webp';
+    if (id.startsWith('act2') || id.includes('tomb') || id.includes('desert') || id.includes('duriel')) return '/images/ui/battle_act2_tomb.webp';
+    return '/images/ui/battle_act1_cathedral.webp';
+  }, [currentDungeon.id]);
+
   const [dyingMonsterIds, setDyingMonsterIds] = useState<Set<string>>(new Set());
 
   // Life & Rage floating feedback tracking
@@ -126,6 +135,13 @@ export const BattleView: React.FC = React.memo(() => {
 
   return (
     <div className={`w-full max-w-6xl mx-auto h-full flex-1 flex flex-col justify-between transition-colors duration-500 rounded-xl p-1 sm:p-1.5 ${actTheme.bgGradient} overflow-hidden select-none font-sans relative`}>
+
+      {/* 🌌 High-Resolution Dynamic Act Battlefield Background Art */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center opacity-25 pointer-events-none transition-all duration-700 filter saturate-125"
+        style={{ backgroundImage: `url(${actBgImage})` }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-b from-iron-950/80 via-transparent to-iron-950/95 pointer-events-none" />
 
       {/* Low HP Gentle Vignette (Restful to eyes) */}
       {isLowHp && (

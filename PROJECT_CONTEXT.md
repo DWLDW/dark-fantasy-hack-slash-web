@@ -396,6 +396,22 @@ Dragon Quest 식 턴제 전투 기반 + Diablo II 식 오버킬 체인, 룬워�
 - 🌐 **실서버 배포 완료**:
   - `https://193.122.127.129.sslip.io` (Oracle Cloud Ubuntu 24.04).
 
+### 34. [3단계 완료] 전투 화면(BattleView) 100dvh 제로 스크롤 & 액트별 다크 판타지 AI 배경 & 스킬·보스 HUD 극강 타격감 완성
+- 🎨 **액트 1~5별 최고급 AI 전투 배경 일러스트 생성 및 전장 다이내믹 연동 (`BattleView.tsx`)**:
+  - `battle_act1_cathedral.webp`: 1막 핏빛 황무지 & 고딕 성당 폐허의 음산한 달빛 전장
+  - `battle_act2_tomb.webp`: 2막 루트 골레인 모래폭풍과 고대 왕릉 화톳불 전장
+  - `battle_act3_jungle.webp`: 3막 쿠라스트 밀림 늪지대 & 증오의 사원 피의 제단 전장
+  - `battle_act4_chaos.webp`: 4막 카오스 생츄어리 끓어오르는 용암과 오망성 제단 전장
+  - `battle_act5_worldstone.webp`: 5막 아리앗 산 눈보라와 붉은빛 월드스톤 결정체 전장
+- 📐 **100dvh 완전 고정 제로 스크롤 전장 레이아웃 (`BattleView.tsx`)**:
+  - 최상단 TopHUD ➔ 컴팩트 전황 헤더 ➔ 5레인 몬스터 필드(적응형 flex-1) ➔ 하단 스킬바 & 상태독(88px)이 모바일 세로 뷰포트(360px)부터 와이드 PC까지 위아래 스크롤 0px로 완벽 피팅.
+- ⚡ **직관적 핫키 스킬바 & 보스 기믹 HUD (`BattleSkillsBar.tsx`, `BossHUD.tsx`)**:
+  - Q/W/E/R 스킬 카드의 분노 요구량 뱃지, 쿨다운 스윕, 타격 가능 시 황금빛 펄스 글로우 및 단축키 안내.
+  - 가로 64px 인라인 보스 HUD에서 HP/그로기/차지 카운트다운 타이머 및 5개 레인 약점 공격 버튼 시인성 강화.
+- 🌐 **실서버 배포 완료**:
+  - `https://193.122.127.129.sslip.io` (Oracle Cloud Ubuntu 24.04).
+
+
 
 
 
