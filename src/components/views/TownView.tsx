@@ -138,7 +138,7 @@ export const TownView: React.FC = React.memo(() => {
   const [socketSortBy, setSocketSortBy] = useState<SocketSortBy>('quality');
 
   const rawSocketItems = useMemo(() => 
-    inventory.filter(i => i.sockets && i.sockets > (i.socketedRunes?.length || 0)),
+    inventory.filter(i => i.rarity === 'normal' && i.sockets && i.sockets > (i.socketedRunes?.length || 0)),
     [inventory]
   );
 
@@ -156,8 +156,6 @@ export const TownView: React.FC = React.memo(() => {
       list = list.filter(i => i.slot === socketSlotFilter);
     }
     return [...list].sort((a, b) => {
-      const rarityA = RARITY_WEIGHT[a.rarity] || 1;
-      const rarityB = RARITY_WEIGHT[b.rarity] || 1;
       const socketsA = a.sockets || 0;
       const socketsB = b.sockets || 0;
       const tierA = TIER_WEIGHT[a.tier?.toLowerCase() || 'normal'] || 1;
@@ -166,21 +164,22 @@ export const TownView: React.FC = React.memo(() => {
       const powerB = (b.stats.maxDmg || b.stats.minDmg || 0) + (b.stats.defense || 0);
 
       if (socketSortBy === 'quality') {
-        if (rarityB !== rarityA) return rarityB - rarityA;
+        // 1. 소켓 수 많은 순 -> 2. 티어 높은 순 -> 3. 위력 순
         if (socketsB !== socketsA) return socketsB - socketsA;
         if (tierB !== tierA) return tierB - tierA;
         return powerB - powerA;
       } else if (socketSortBy === 'sockets') {
         if (socketsB !== socketsA) return socketsB - socketsA;
-        if (rarityB !== rarityA) return rarityB - rarityA;
-        return tierB - tierA;
+        if (tierB !== tierA) return tierB - tierA;
+        return powerB - powerA;
       } else if (socketSortBy === 'tier') {
         if (tierB !== tierA) return tierB - tierA;
-        if (rarityB !== rarityA) return rarityB - rarityA;
-        return socketsB - socketsA;
+        if (socketsB !== socketsA) return socketsB - socketsA;
+        return powerB - powerA;
       } else if (socketSortBy === 'power') {
         if (powerB !== powerA) return powerB - powerA;
-        return rarityB - rarityA;
+        if (socketsB !== socketsA) return socketsB - socketsA;
+        return tierB - tierA;
       }
       return 0;
     });
@@ -554,7 +553,8 @@ export const TownView: React.FC = React.memo(() => {
             {activeFacility === 'runewords' && (
               <div className="space-y-3.5 text-xs sm:text-sm animate-fade-in">
                 <div className="text-gray-100 font-medium leading-relaxed bg-iron-950/80 p-3 rounded-xl border border-iron-750">
-                  빈 소켓이 있는 노멀 베이스 장비에 룬을 순서대로 박아 <strong className="text-amber-300 font-black">전설의 룬워드</strong>를 제작하세요.
+                  빈 소켓이 있는 <strong className="text-gray-300 font-black">노멀(회색) 소켓 장비</strong>에 룬을 순서대로 각인하여 <strong className="text-amber-300 font-black">전설의 룬워드</strong>를 제작하세요.<br />
+                  <span className="text-xs text-amber-400 font-mono">※ 매직/레어/유니크 소켓 장비는 룬워드 합성이 불가하며, 인벤토리에서 개별 룬 소켓팅만 가능합니다.</span>
                 </div>
 
                 {/* Step 1: Base Item Selection (Inventory-style Vertical Responsive Grid) */}
@@ -562,7 +562,7 @@ export const TownView: React.FC = React.memo(() => {
                   <div className="font-bold text-gray-200 text-xs sm:text-sm flex justify-between items-center pb-1.5 border-b border-iron-800 flex-wrap gap-1">
                     <span className="flex items-center gap-1.5 text-amber-300">
                       <Sparkles className="w-4 h-4 text-amber-400" />
-                      <span>1. 소켓 베이스 장비 선택:</span>
+                      <span>1. 노멀 소켓 베이스 장비 선택:</span>
                     </span>
                     {selectedBaseItemId ? (
                       <button
@@ -573,7 +573,7 @@ export const TownView: React.FC = React.memo(() => {
                       </button>
                     ) : (
                       <span className="text-xs text-gray-300 font-mono font-bold">
-                        보유 소켓 장비: {socketableItems.length}개
+                        보유 노멀 소켓 장비: {socketableItems.length}개
                       </span>
                     )}
                   </div>
@@ -616,9 +616,9 @@ export const TownView: React.FC = React.memo(() => {
                         onChange={(e) => setSocketSortBy(e.target.value as SocketSortBy)}
                         className="bg-iron-900 border border-iron-700 text-amber-300 font-bold px-2 py-0.5 rounded cursor-pointer focus:outline-none focus:border-amber-400 text-xs"
                       >
-                        <option value="quality">💎 최고 품질순 (기본)</option>
+                        <option value="quality">💎 최고 베이스순 (기본)</option>
                         <option value="sockets">🔢 소켓 수 많은 순</option>
-                        <option value="tier">⭐ 티어 높은 순</option>
+                        <option value="tier">⭐ 엘리트 티어순</option>
                         <option value="power">⚔️ 공격/방어 스탯순</option>
                       </select>
                     </div>
