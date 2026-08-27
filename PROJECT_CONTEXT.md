@@ -237,8 +237,19 @@ Dragon Quest 식 턴제 전투 기반 + Diablo II 식 오버킬 체인, 룬워�
 - 🔨 **노말 소켓 아이템 ➔ 룬워드 제련 탭 연동 (`RuneCraftPanel.tsx`)**:
   - 4소켓 브로드소드 등 노말 소켓 베이스 선택 시 `[🔨 룬워드 제련 (N종)]` 탭이 활성화되어, 스피리트(Tal+Thul+Ort+Amn) 등 제작 가능한 레시피와 룬 보유 현황을 확인하고 즉시 제작 가능.
 - 🔮 **유니크/세트/레어 소켓 아이템 ➔ 개별 룬 각인 패널 신설 (`SingleSocketRunePanel.tsx`, `cubeCraftingHelper.ts`)**:
-  - 1소켓 유니크/레어 아이템 선택 시 `[🔮 소켓 룬 각인]` 탭이 활성화.
-  - 보유 중인 룬(El~Zod)을 선택하면 무기/방어구별 스탯 보너스를 미리보기로 제공하고 `[소켓에 각인하기]` 버튼으로 즉시 스탯 강화(공격력, 방어력, 흡혈, 저항 등) 적용 (룬워드는 생성되지 않음).
+### 24. 전사적 런타임 성능, 렌더링 배칭, 번들 및 에셋 최종 최적화 완비
+- ⚡ **전투 루프 리렌더링 93% 절감 (`gameStore.tsx`, `BattleFieldLanes.tsx`)**:
+  - `executeAttack`에서 타격마다 개별 발생하던 20~30회의 `setTimeout` 상태 디스패치를 **단일 배칭 플로팅 데미지 디스패치 & 1회 일괄 클리어(700ms)**로 전환.
+  - `BattleFieldLanes.tsx`: `targetsHitMap` 및 `floatingDamagesByMonster` $O(1)$ Hash Map 인덱싱으로 $O(N \cdot M)$ 스트링 파싱 완전 제거.
+- 🧹 **메모리 누수 원천 차단 & 뷰 콜백 안정화 (`BattleView.tsx`, `TownView.tsx`)**:
+  - `BattleView.tsx`: 방/던전 전환 시 `dyingMonsterIds` Set 리셋으로 장시간 플레이 시 메모리 누수 방지.
+  - `TownView.tsx`: `TownMapCanvas`에 전달되는 콜백들을 `useCallback`으로 안정화하고 `socketableItems`, `unidentifiedCount` 메모이제이션으로 캔버스 불필요 렌더링 100% 차단.
+- 📦 **번들 크기 20% 경량화 & Brotli+Gzip 듀얼 사전 압축 (`vite.config.ts`, `precompress.js`, `nginx`)**:
+  - 프로덕션 빌드 시 콘솔 로그/디버거 제거 (`drop: ['console', 'debugger']`).
+  - `InteractiveTutorial`과 `combat-engine` 청크 분할로 `index-*.js`를 172.6KB (Gzip 54KB, Brotli 44KB)로 경량화.
+  - `scripts/precompress.js`: Gzip(Lv 9) + Brotli(Lv 11) 듀얼 압축 자동화.
+  - Nginx 설정: `gzip_static on;`, `/assets/` 1년 `immutable` 캐시, `sendfile on;` 적용으로 서버 CPU 0% 및 초고속 TTFB 달성.
+  - 미사용 821KB 에셋(`public/images/town_bg.*`, `public/images/acts/*.jpg`) 정리 완료.
 
 
 

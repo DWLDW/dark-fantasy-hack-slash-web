@@ -1,5 +1,5 @@
 import { TownMapCanvas } from './town/TownMapCanvas';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useGame } from '../../state/gameStore';
 import { DUNGEONS_DATA, RUNEWORD_RECIPES, D2_RUNES } from '../../data/gameData';
 import { simulateRuneWordCrafting } from '../../utils/runeCrafting';
@@ -42,17 +42,17 @@ export const TownView: React.FC = React.memo(() => {
   const [isFacilityModalOpen, setIsFacilityModalOpen] = useState<boolean>(false);
   const [hoveredFacility, setHoveredFacility] = useState<string | null>(null);
 
-  const handleOpenFacility = (facility: 'cain' | 'gamble' | 'runewords' | 'cube') => {
+  const handleOpenFacility = useCallback((facility: 'cain' | 'gamble' | 'runewords' | 'cube') => {
     setActiveFacility(facility);
     setIsFacilityModalOpen(true);
-  };
+  }, []);
 
-  const handleIdentifyAll = () => {
+  const handleIdentifyAll = useCallback(() => {
     const identified = identifyAllItems();
     if (identified && identified.length > 0) {
       setIdentifiedHistory(identified);
     }
-  };
+  }, [identifyAllItems]);
   
   const [selectedCubeItems, setSelectedCubeItems] = useState<string[]>([]);
   const [selectedBaseItem, setSelectedBaseItem] = useState<GameItem | null>(null);
@@ -64,6 +64,14 @@ export const TownView: React.FC = React.memo(() => {
     }
     return highestUnlocked;
   }, [currentDungeon, highestUnlocked, achievementStats.dungeonClears]);
+
+  const handleDeploy = useCallback(() => {
+    enterDungeon(lastDungeon.id, autoDeployDiff);
+  }, [enterDungeon, lastDungeon.id, autoDeployDiff]);
+
+  const handleWorldMap = useCallback(() => {
+    setViewMode('dungeon_select');
+  }, [setViewMode]);
 
   const handleToggleCubeItem = (id: string) => {
     if (selectedCubeItems.includes(id)) {
@@ -82,8 +90,15 @@ export const TownView: React.FC = React.memo(() => {
     setSelectedCubeItems([]);
   };
 
-  const socketableItems = inventory.filter(i => i.sockets && i.sockets > (i.socketedRunes?.length || 0));
-  const unidentifiedCount = inventory.filter(i => i.isIdentified === false).length;
+  const socketableItems = useMemo(() => 
+    inventory.filter(i => i.sockets && i.sockets > (i.socketedRunes?.length || 0)),
+    [inventory]
+  );
+  
+  const unidentifiedCount = useMemo(() => 
+    inventory.filter(i => i.isIdentified === false).length,
+    [inventory]
+  );
 
   return (
     <div className="h-[calc(100dvh-40px-52px)] w-full max-w-7xl mx-auto p-1.5 sm:p-2.5 flex flex-col justify-between gap-1.5 sm:gap-2 select-none overflow-hidden font-sans">
@@ -91,10 +106,10 @@ export const TownView: React.FC = React.memo(() => {
       {/* 1. Center Interactive Dark Fantasy Town Map Canvas (Flex-1 Adaptive Height) */}
       <div className="flex-1 min-h-0 w-full relative">
         <TownMapCanvas
-          onOpenFacility={(fac) => handleOpenFacility(fac)}
+          onOpenFacility={handleOpenFacility}
           unidentifiedCount={unidentifiedCount}
-          onDeploy={() => enterDungeon(lastDungeon.id, autoDeployDiff)}
-          onWorldMap={() => setViewMode('dungeon_select')}
+          onDeploy={handleDeploy}
+          onWorldMap={handleWorldMap}
           lastDungeonName={lastDungeon.name}
           autoDeployDiff={autoDeployDiff}
           playerLevel={playerStats.level}

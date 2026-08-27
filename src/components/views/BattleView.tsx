@@ -22,6 +22,7 @@ export const BattleView: React.FC = React.memo(() => {
     totalStats,
     isEnemyTurn,
     currentDungeon,
+    currentRoomId,
     isAttacking,
     chainCount,
     lastAttackSummary,
@@ -104,6 +105,11 @@ export const BattleView: React.FC = React.memo(() => {
     return totalDmg;
   }, [monsters, isCleared, isEnemyTurn, playerStats.level, totalStats.defense, totalStats.damageReduction]);
 
+  // Reset dying monsters set on new room transition to prevent memory bloat
+  useEffect(() => {
+    setDyingMonsterIds(new Set());
+  }, [currentRoomId, currentDungeon.id]);
+
   // Mark monsters as dying when floatingDamages show fatal hits
   useEffect(() => {
     const fatalIds = floatingDamages.filter(d => d.isFatal).map(d => d.id.split('_')[1]);
@@ -114,7 +120,7 @@ export const BattleView: React.FC = React.memo(() => {
         return next;
       });
     }
-  }, [floatingDamages, monsters]);
+  }, [floatingDamages]);
 
   const strikeShake = '';
 

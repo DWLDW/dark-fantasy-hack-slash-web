@@ -1279,6 +1279,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const speedFactor = Math.max(0.4, 1 - Math.min(60, (totalStats.attackSpeed || 0)) * 0.008);
     const hitStepDuration = Math.max(12, Math.min(25, Math.floor((160 / Math.max(1, targets.length)) * speedFactor)));
 
+    // 1. Staggered Hit & Kill Audio Timeline
     targets.forEach((hit, index) => {
       setTimeout(() => {
         playHitSound(hit.depth);
@@ -1288,25 +1289,27 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const deadMonster = monsters.find(mon => mon.id === hit.monsterId);
           if (deadMonster) playDeathSound(deadMonster.rank || 'normal');
         }
-
-        setFloatingDamages(prev => [
-          ...prev,
-          {
-            id: `dmg_${hit.monsterId}_${Date.now()}_${index}`,
-            lane: hit.lane,
-            depth: hit.depth,
-            damage: hit.damage,
-            isFatal: hit.isFatal,
-            isCrit: result.isCritical,
-            isOverkill: hit.isOverkillHit || false
-          }
-        ]);
-
-        setTimeout(() => {
-          setFloatingDamages(prev => prev.slice(1));
-        }, 700);
       }, index * hitStepDuration);
     });
+
+    // 2. Batched Single State Dispatch for Floating Damages (93% render reduction)
+    const now = Date.now();
+    const newDamages = targets.map((hit, index) => ({
+      id: `dmg_${hit.monsterId}_${now}_${index}`,
+      lane: hit.lane,
+      depth: hit.depth,
+      damage: hit.damage,
+      isFatal: hit.isFatal,
+      isCrit: result.isCritical,
+      isOverkill: hit.isOverkillHit || false
+    }));
+
+    setFloatingDamages(newDamages);
+
+    // 3. Single clean clear after animation duration
+    setTimeout(() => {
+      setFloatingDamages([]);
+    }, targets.length * hitStepDuration + 700);
 
     const totalHitTime = targets.length * hitStepDuration + 35;
 

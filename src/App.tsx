@@ -3,11 +3,13 @@ import { GameProvider, useGame } from './state/gameStore';
 import { TopHUD } from './components/layout/TopHUD';
 import { BottomDock } from './components/layout/BottomDock';
 import { GlobalModalHost } from './components/modals/GlobalModalHost';
-import { InteractiveTutorial } from './components/tutorial/InteractiveTutorial';
 import { TownView } from './components/views/TownView';
 
 import { startBGM, initAudio } from './utils/audio';
 
+const InteractiveTutorial = lazy(() =>
+  import('./components/tutorial/InteractiveTutorial').then(m => ({ default: m.InteractiveTutorial }))
+);
 const DungeonSelectView = lazy(() =>
   import('./components/views/DungeonSelectView').then(m => ({ default: m.DungeonSelectView }))
 );
@@ -316,7 +318,11 @@ const MainLayout: React.FC = () => {
 
       <BottomDock />
       <GlobalModalHost />
-      <InteractiveTutorial />
+      {isTutorialOpen && (
+        <Suspense fallback={null}>
+          <InteractiveTutorial />
+        </Suspense>
+      )}
     </div>
   );
 };

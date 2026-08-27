@@ -134,6 +134,13 @@ async function main() {
   const tarPath = path.join(projectRoot, 'dist.tar.gz');
 
   try {
+    const distScriptsDir = path.join(projectRoot, 'dist', 'scripts');
+    if (!fs.existsSync(distScriptsDir)) fs.mkdirSync(distScriptsDir, { recursive: true });
+    fs.copyFileSync(
+      path.join(projectRoot, 'scripts', 'nginx-dark-fantasy.conf'),
+      path.join(distScriptsDir, 'nginx-dark-fantasy.conf')
+    );
+
     if (fs.existsSync(tarPath)) fs.unlinkSync(tarPath);
     execSync(`tar -czf dist.tar.gz -C dist .`, { cwd: projectRoot, stdio: 'inherit' });
     console.log('✅ Archive dist.tar.gz created.');
@@ -152,6 +159,11 @@ async function main() {
     sudo tar -xzf - -C ${REMOTE_DEST} && \
     sudo chown -R www-data:www-data ${REMOTE_DEST} && \
     sudo chmod -R a+rX ${REMOTE_DEST} && \
+    if [ -f ${REMOTE_DEST}/scripts/nginx-dark-fantasy.conf ]; then
+      sudo cp ${REMOTE_DEST}/scripts/nginx-dark-fantasy.conf /etc/nginx/sites-available/dark-fantasy.conf
+      sudo ln -sf /etc/nginx/sites-available/dark-fantasy.conf /etc/nginx/sites-enabled/dark-fantasy.conf
+    fi && \
+    sudo nginx -t && \
     sudo systemctl reload nginx && \
     echo "DEPLOY_COMPLETE_SUCCESS"
   `;

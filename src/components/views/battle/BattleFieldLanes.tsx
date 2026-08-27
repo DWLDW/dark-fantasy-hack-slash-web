@@ -122,6 +122,27 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
     return filtered;
   }, [laneMonsters, isBossRoom]);
 
+  // 🚀 O(1) Lookup Maps for Battle Animation & Targeting Performance
+  const targetsHitMap = useMemo(() => {
+    const map = new Map<string, typeof preview.targetsHit[0]>();
+    (preview?.targetsHit || []).forEach(t => map.set(t.monsterId, t));
+    return map;
+  }, [preview?.targetsHit]);
+
+  const floatingDamagesByMonster = useMemo(() => {
+    const map = new Map<string, typeof floatingDamages>();
+    floatingDamages.forEach(d => {
+      const parts = d.id.split('_');
+      const monsterId = parts[1];
+      if (monsterId) {
+        const list = map.get(monsterId) || [];
+        list.push(d);
+        map.set(monsterId, list);
+      }
+    });
+    return map;
+  }, [floatingDamages]);
+
   return (
     <div className={`${actTheme.containerBg} border-2 ${actTheme.borderColor} ${actTheme.glowShadow} rounded-xl p-1 sm:p-1.5 relative select-none font-sans flex flex-col justify-between overflow-hidden flex-1 min-h-[260px] sm:min-h-[340px] battlefield-stage`}>
       {/* 🌌 Act Themed Authentic Painted Artwork Layer */}
@@ -530,13 +551,13 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
                 {/* Visible Rows of Enemies in this Lane (Bottom-Up Stack) */}
                 <div className="w-full flex-1 flex flex-col-reverse justify-start gap-1 overflow-hidden my-0.5">
                   {visibleMonsters.map((m, dIdx) => {
-                    const hitInfo = preview.targetsHit.find(t => t.monsterId === m.id);
+                    const hitInfo = targetsHitMap.get(m.id);
                     const isTargeted = !!hitInfo;
                     const isPredictedKill = hitInfo?.isFatal;
                     const isOverkillResidual = hitInfo?.isOverkillHit;
                     const isStopper = preview.stopperId === m.id;
                     const isDying = dyingMonsterIds.has(m.id);
-                    const monsterDmgPopups = floatingDamages.filter(d => d.id.includes(m.id));
+                    const monsterDmgPopups = floatingDamagesByMonster.get(m.id) || [];
                     const isBoss = m.rank === 'boss';
                     const isElite = m.rank === 'elite';
                     const isFrozen = Boolean(m.isFrozen);
