@@ -58,7 +58,7 @@ export const ItemCompareTable: React.FC<ItemCompareTableProps> = React.memo(({ s
           모든 기본 스탯 수치가 동일합니다.
         </div>
       ) : (
-        <div className="flex flex-wrap gap-1 max-h-[110px] overflow-y-auto">
+  <div className="flex flex-wrap gap-1 max-h-[110px] overflow-y-auto custom-scrollbar">
           {visibleStats.map(({ key, label, isPercent, icon }) => {
             const curVal = (equippedItem?.stats?.[key] as number) || 0;
             const nextVal = (selectedItem.stats?.[key] as number) || 0;

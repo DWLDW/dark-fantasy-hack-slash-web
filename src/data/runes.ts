@@ -44,3 +44,10 @@ export const D2_RUNES: Record<string, D2RuneDef> = {
   Cham: { id: 'Cham', name: '참 (Cham) 룬', number: 32, weaponBonus: '빙결 면역 및 대상 동결 (공속 +20%)', armorBonus: '빙결 면역 (Cannot be Frozen), 회피 +15%', statsWeapon: { minDmg: 100, maxDmg: 150, attackSpeed: 20, cannotBeFrozen: 1 }, statsArmor: { defense: 180, cannotBeFrozen: 1, evasion: 15, allResist: 25 } },
   Zod: { id: 'Zod', name: '조드 (Zod) 룬', number: 33, weaponBonus: '파괴 불가 (Indestructible) - 절대 파멸의 힘', armorBonus: '파괴 불가 (Indestructible) - 절대 불멸의 수호', statsWeapon: { minDmg: 140, maxDmg: 220, critChance: 25, overkillEfficiency: 60 }, statsArmor: { defense: 250, hp: 250, allResist: 35, damageReduction: 10 } }
 };
+
+export const D2_RUNE_ORDER: string[] = [
+  'El', 'Eld', 'Tir', 'Nef', 'Eth', 'Ith', 'Tal', 'Ral', 'Ort', 'Thul',
+  'Amn', 'Sol', 'Shael', 'Dol', 'Hel', 'Io', 'Lum', 'Ko', 'Fal', 'Lem',
+  'Pul', 'Um', 'Mal', 'Ist', 'Gul', 'Vex', 'Ohm', 'Lo', 'Sur', 'Ber',
+  'Jah', 'Cham', 'Zod'
+];

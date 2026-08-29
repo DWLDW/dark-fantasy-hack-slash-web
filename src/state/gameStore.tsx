@@ -353,9 +353,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // 🌌 Endless Rift State (Tier 1 ~ 100+)
   const [endlessRiftTier, setEndlessRiftTier] = useState<number>(() => {
+    // Prefer canonical SAVE_KEY payload; fall back to legacy separate key for migration
+    if (savedData?.endlessRiftTier !== undefined) return Math.max(1, savedData.endlessRiftTier);
     try {
-      const saved = localStorage.getItem('d2_endless_rift_tier');
-      return saved ? Math.max(1, parseInt(saved, 10)) : 1;
+      const legacy = localStorage.getItem('d2_endless_rift_tier');
+      return legacy ? Math.max(1, parseInt(legacy, 10)) : 1;
     } catch {
       return 1;
     }
@@ -364,9 +366,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateEndlessRiftTier = useCallback((tier: number) => {
     const safe = Math.max(1, tier);
     setEndlessRiftTier(safe);
-    try {
-      localStorage.setItem('d2_endless_rift_tier', String(safe));
-    } catch {}
   }, []);
 
   // 🌟 Godly Mythic Item Drop Jackpot State
@@ -493,6 +492,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       skillRunes,
       skillLevels,
       passiveLevels,
+      equippedSkillSlots,
+      endlessRiftTier,
       achievementStats,
       claimedAchievements,
       hasSeenTutorial,
@@ -501,7 +502,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [
     playerStats, equipment, inventory, itemStash, runesVault, consumables,
     currentDungeon.id, currentRoomId, currentDifficulty, maxUnlockedDifficulty,
-    skillRunes, skillLevels, passiveLevels, achievementStats, claimedAchievements,
+    skillRunes, skillLevels, passiveLevels, equippedSkillSlots, endlessRiftTier, achievementStats, claimedAchievements,
     hasSeenTutorial, townUpgrades
   ]);
 
@@ -522,6 +523,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       skillLevels,
       passiveLevels,
       equippedSkillSlots,
+      endlessRiftTier,
       achievementStats,
       claimedAchievements,
       hasSeenTutorial,
@@ -531,7 +533,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [
     playerStats, equipment, inventory, itemStash, runesVault, consumables,
     currentDungeon.id, currentRoomId, currentDifficulty, maxUnlockedDifficulty,
-    skillRunes, skillLevels, passiveLevels, equippedSkillSlots,
+    skillRunes, skillLevels, passiveLevels, equippedSkillSlots, endlessRiftTier,
     achievementStats, claimedAchievements, hasSeenTutorial, townUpgrades
   ]);
 
@@ -550,6 +552,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (cloudSave.skillLevels) setSkillLevels(cloudSave.skillLevels);
     if (cloudSave.passiveLevels) setPassiveLevels(cloudSave.passiveLevels);
     if (cloudSave.equippedSkillSlots) setEquippedSkillSlots(cloudSave.equippedSkillSlots);
+    if (cloudSave.endlessRiftTier !== undefined) setEndlessRiftTier(cloudSave.endlessRiftTier);
     if (cloudSave.achievementStats) setAchievementStats(cloudSave.achievementStats);
     if (cloudSave.claimedAchievements) setClaimedAchievements(cloudSave.claimedAchievements);
     if (cloudSave.townUpgrades) setTownUpgrades(cloudSave.townUpgrades);
@@ -587,7 +590,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       window.clearTimeout(timer);
       if (cloudTimer) window.clearTimeout(cloudTimer);
     };
-  }, [currentUser, playerStats, equipment, inventory, itemStash, runesVault, consumables, currentDungeon.id, currentRoomId, currentDifficulty, maxUnlockedDifficulty, equippedSkillSlots, skillRunes, skillLevels, passiveLevels, achievementStats, claimedAchievements]);
+  }, [currentUser, playerStats, equipment, inventory, itemStash, runesVault, consumables, currentDungeon.id, currentRoomId, currentDifficulty, maxUnlockedDifficulty, equippedSkillSlots, skillRunes, skillLevels, passiveLevels, endlessRiftTier, achievementStats, claimedAchievements]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -3151,6 +3154,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const resetGameSave = () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem(SAVE_KEY);
+      try { localStorage.removeItem('d2_endless_rift_tier'); } catch {}
     }
     setPlayerStats(DEFAULT_PLAYER_STATS);
     setEquipment(INITIAL_EQUIPMENT);
@@ -3173,6 +3177,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setTownUpgrades(DEFAULT_TOWN_UPGRADES);
     setIsTutorialOpen(true);
     setTutorialStep(0);
+    setEndlessRiftTier(1);
     addLog('💾 캐릭터를 레벨 1 및 단촐한 기본 장비로 초기화하고 새 모험을 시작했습니다.', 'system');
   };
 

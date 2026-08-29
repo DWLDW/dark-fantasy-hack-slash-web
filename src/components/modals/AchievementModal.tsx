@@ -239,8 +239,8 @@ export const AchievementModal: React.FC = () => {
         </button>
       </div>
 
-      {/* Achievement List Grid (Scrollable) */}
-      <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 custom-scrollbar">
+{/* Achievement List Grid (Scrollable) */}
+  <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 custom-scrollbar">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {filteredAchievements.map((ach) => {
             const isUnlocked = ach.condition(achievementStats);

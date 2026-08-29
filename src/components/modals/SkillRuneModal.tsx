@@ -259,7 +259,7 @@ export const SkillRuneModal: React.FC = React.memo(() => {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-2 flex-1 min-h-0 overflow-hidden">
             
             {/* Left 5 Cols: All Available Active Skills */}
-            <div className="md:col-span-5 space-y-1 h-full min-h-0 overflow-y-auto pr-1">
+  <div className="md:col-span-5 space-y-1 h-full min-h-0 overflow-y-auto pr-1 custom-scrollbar">
               <div className="grid grid-cols-1 gap-1">
                 {ALL_AVAILABLE_SKILLS.map(skill => {
                   const unlocked = isSkillUnlocked(skill.id, playerStats.level);
@@ -452,7 +452,7 @@ export const SkillRuneModal: React.FC = React.memo(() => {
 
       {/* ═══ TAB 2: PASSIVE SKILLS MASTERY ═══ */}
       {activeTab === 'passive' && (
-        <div className="flex-1 min-h-0 overflow-y-auto pr-1">
+  <div className="flex-1 min-h-0 overflow-y-auto pr-1 custom-scrollbar">
           {/* Passive Grid: 8 Warrior Passives */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
             {WARRIOR_PASSIVE_SKILLS.map(passive => {

@@ -91,14 +91,24 @@ export function resolveAttack(
     : totalStats.critChance;
 
   const flurryChance = Math.min(75, Math.floor((totalStats.attackSpeed || 0) * 0.60));
+  const critMultiplier = totalStats.critDamage / 100;
 
   if (!forceDeterministic) {
     isCritical = Math.random() * 100 < effectiveCritRate;
     isExtraStrike = Math.random() * 100 < flurryChance;
     baseDamage = Math.floor(effectiveMin + Math.random() * (effectiveMax - effectiveMin + 1));
   } else {
-    isCritical = effectiveCritRate >= 50;
-    isExtraStrike = flurryChance >= 50;
+    // Deterministic preview: use expected-value approximation instead of 50% threshold.
+    // Showing crit only when >=50% wildly misrepresents 30-49% builds.
+    // For preview scoring, treat damage as expected value blended by proc rates.
+    const expectedCritMult = 1 + (effectiveCritRate / 100) * (critMultiplier - 1);
+    const expectedFlurryMult = 1 + (flurryChance / 100) * 0.35;
+    // Keep isCritical/isExtraStrike false in deterministic mode; bake expectation into baseDamage
+    isCritical = false;
+    isExtraStrike = false;
+    // Adjust baseDamage to expected value so score reflects true average
+    const avgBase = Math.floor((effectiveMin + effectiveMax) / 2);
+    baseDamage = Math.floor(avgBase * expectedCritMult * expectedFlurryMult);
   }
 
   // Passive: Elemental Attunement (+5% elemental rune damage per level)
@@ -125,7 +135,6 @@ export function resolveAttack(
     runeOverkillBonus = 1.15;
   }
 
-  const critMultiplier = totalStats.critDamage / 100;
   const effectiveSkillLevel = Math.max(1, (skill.level || 1) + (totalStats.allSkills || 0));
   const skillLevelBonus = 1 + (effectiveSkillLevel - 1) * 0.15;
   const initialRawPayload = Math.floor(
@@ -381,6 +390,8 @@ export function resolveAttack(
 
       if (laneMonsters.length > 1) {
         const m1 = laneMonsters[1];
+        // FIX: second target in lane uses base + overkill carry intentionally (AoE splash + overflow).
+        // Keep as designed but document: this is intentional unlike line/branch which use pure overkill.
         const payload1 = baseLanePayload + overkillCarryRaw;
         const { actualDmg, defMultiplier } = calculateHitDamage(m1, payload1);
         const isFatal = actualDmg >= m1.hp;
@@ -623,7 +634,7 @@ export function findBestLaneForSkill(
     const hasMonsters = skill.route === 'branch'
       ? activeMonsters.some(m => Math.abs(m.lane - lane) <= 1 && m.depth === 0)
       : skill.route === 'radius'
-      ? activeMonsters.some(m => m.depth <= 1)
+      ? activeMonsters.some(m => Math.abs(m.lane - lane) <= 2 && m.depth <= 1)
       : activeMonsters.some(m => m.lane === lane);
 
     if (!hasMonsters) continue;

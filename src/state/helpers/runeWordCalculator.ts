@@ -1,6 +1,7 @@
 import { GameItem, ItemStats, RuneWordRecipe } from '../../types/game';
 import { RUNEWORD_RECIPES } from '../../data/runeWords';
 import { simulateRuneWordCrafting } from '../../utils/runeCrafting';
+// D2_RUNE_ORDER single-sourced from src/data/runes.ts — do not duplicate here
 
 export function calculateRuneWordItem(targetItem: GameItem, recipe: RuneWordRecipe): GameItem {
   const baseMin = targetItem.stats.minDmg || 0;

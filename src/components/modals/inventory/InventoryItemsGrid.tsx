@@ -53,7 +53,7 @@ export const InventoryItemsGrid: React.FC<InventoryItemsGridProps> = React.memo(
         <span className="text-gray-400 text-[11px] font-mono">클릭 시 장비 비교 / 더블클릭 시 장착</span>
       </div>
 
-      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-[250px] sm:max-h-[280px] overflow-y-auto p-1">
+  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-[250px] sm:max-h-[280px] overflow-y-auto p-1 custom-scrollbar">
         {stackedFilteredItems.map(({ item, count }) => {
           const isSelected = selectedItem?.id === item.id;
           const rarityStyle = getRarityColor(item.rarity, item.isIdentified);

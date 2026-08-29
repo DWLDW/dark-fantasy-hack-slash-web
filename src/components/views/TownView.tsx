@@ -192,7 +192,7 @@ export const TownView: React.FC = React.memo(() => {
   );
 
   return (
-    <div className="h-full flex-1 w-full max-w-7xl mx-auto p-1 sm:p-2 flex flex-col justify-between gap-1 select-none overflow-hidden font-sans">
+    <div className="h-full flex-1 w-full max-w-7xl mx-auto p-1 sm:p-2 pb-2 sm:pb-2 flex flex-col justify-between gap-1 select-none overflow-hidden font-sans">
 
       
       {/* 1. Center Interactive Dark Fantasy Town Map Canvas (Flex-1 Adaptive Height) */}
@@ -377,7 +377,7 @@ export const TownView: React.FC = React.memo(() => {
             </div>
 
             {/* Modal Body: Pure Active Facility Workspace */}
-            <div className="flex-1 overflow-y-auto pr-1 sm:pr-2 space-y-3">
+  <div className="flex-1 overflow-y-auto pr-1 sm:pr-2 space-y-3 custom-scrollbar">
             {/* 1. DECKARD CAIN (식별소) */}
             {activeFacility === 'cain' && (
               <div className="space-y-4 text-xs sm:text-sm text-center py-1 animate-fade-in">
@@ -414,7 +414,7 @@ export const TownView: React.FC = React.memo(() => {
                   </button>
 
                   {identifiedHistory.length > 0 && (
-                    <div className="mt-2 text-left space-y-2 max-h-60 overflow-y-auto pr-1">
+  <div className="mt-2 text-left space-y-2 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
                       <div className="font-bold text-gray-200 text-xs sm:text-sm flex items-center justify-between border-b border-iron-800 pb-1.5">
                         <span className="flex items-center gap-1.5 text-amber-300 font-bold">
                           <Sparkles className="w-4 h-4 text-amber-400" />
@@ -626,7 +626,7 @@ export const TownView: React.FC = React.memo(() => {
                   </div>
 
                   {socketableItems.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 max-h-60 overflow-y-auto pr-1">
+  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
                       {socketableItems.map(item => {
                         const isSelected = selectedBaseItemId === item.id;
                         const slotLabel = item.slot === 'weapon' ? '무기' : item.slot === 'armor' ? '갑옷' : item.slot === 'shield' ? '방패' : item.slot === 'helm' ? '투구' : item.slot;
@@ -738,7 +738,7 @@ export const TownView: React.FC = React.memo(() => {
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 max-h-72 overflow-y-auto pr-1">
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 max-h-72 overflow-y-auto pr-1 custom-scrollbar">
                     {RUNEWORD_RECIPES.filter(r => {
                       if (!selectedBaseItem) return true;
                       const isSlotMatch = isRuneWordSlotCompatible(selectedBaseItem.slot, r);
@@ -1023,7 +1023,7 @@ export const TownView: React.FC = React.memo(() => {
                 {/* Inventory Picker for Cube */}
                 <div className="space-y-1.5">
                   <div className="text-xs sm:text-sm font-bold text-gray-200">소지품에서 큐브에 넣을 아이템 선택:</div>
-                  <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1 font-mono text-xs sm:text-sm">
+  <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1 font-mono text-xs sm:text-sm custom-scrollbar">
                     {inventory.map(item => {
                       const isSelected = selectedCubeItems.includes(item.id);
                       return (

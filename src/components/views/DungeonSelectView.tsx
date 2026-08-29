@@ -302,7 +302,7 @@ export const DungeonSelectView: React.FC = React.memo(() => {
           </div>
 
 
-          <div className="p-2 rounded-lg bg-iron-950/90 border border-iron-750 space-y-1">
+          <div className="p-2 rounded-lg bg-iron-950/95 border border-iron-800 space-y-1">
             <div className="flex items-center justify-between text-[10px] font-mono text-gray-300">
               <span className="font-bold text-amber-300">⚔️ 원정 난이도 (Difficulty):</span>
               <span className="text-white font-black bg-amber-950 px-2 py-0.2 rounded border border-amber-500">
@@ -317,8 +317,8 @@ export const DungeonSelectView: React.FC = React.memo(() => {
                   onClick={() => setDiffDirect(lv)}
                   className={`py-1 rounded font-bold transition cursor-pointer ${
                     selectedDifficulty === lv
-                      ? 'bg-amber-500 text-iron-950 font-black shadow ring-1 ring-amber-300'
-                      : 'bg-iron-900 text-gray-400 hover:text-white border border-iron-800'
+                      ? 'bg-gradient-to-r from-amber-500 to-yellow-400 text-iron-950 font-black shadow-lg ring-1 ring-amber-300'
+                      : 'bg-iron-900/70 text-gray-500 hover:text-gray-200 border border-iron-800/60 hover:border-iron-700'
                   }`}
                 >
                   {lv}
@@ -337,11 +337,11 @@ export const DungeonSelectView: React.FC = React.memo(() => {
             disabled={!isCurrentDungeonUnlocked}
             className={`w-full py-2.5 rounded-lg text-xs sm:text-sm font-black transition flex items-center justify-center gap-1.5 shadow-xl cursor-pointer active:scale-95 ${
               isCurrentDungeonUnlocked
-                ? 'bg-gradient-to-r from-blood-700 via-blood-600 to-amber-600 hover:from-blood-600 hover:to-amber-500 text-white border border-amber-300 ring-2 ring-amber-400 animate-pulse'
+                ? 'bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-iron-950 border-2 border-amber-200 ring-2 ring-amber-400/60 shadow-[0_0_20px_rgba(251,191,36,0.5)] animate-pulse'
                 : 'bg-iron-900 text-gray-600 border border-iron-800 cursor-not-allowed opacity-50'
             }`}
           >
-            <Swords className="w-4 h-4 fill-white" />
+            <Swords className="w-4 h-4" />
             <span>[⚔️ {selectedDungeon.name.split(':')[0]} 즉시 출격 (Space)]</span>
           </button>
         </div>

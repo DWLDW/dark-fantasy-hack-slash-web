@@ -204,7 +204,7 @@ export function cubeTransmuteHelper(selectedItems: GameItem[]): CubeTransmuteRes
 
 export const POTION_CAPACITY_TIERS = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20];
 export const POTION_CAPACITY_COSTS = [
-  1500, 4000, 10000, 25000, 50000, 100000, 200000, 400000, 800000, 1500000, 3000000, 6000000, 12000000
+  1500, 4000, 10000, 25000, 50000, 100000, 200000, 400000, 800000, 1500000, 3000000, 6000000, 12000000, 20000000
 ];
 
 export function getPotionCapacityUpgradeCost(currentLevel: number): number | null {

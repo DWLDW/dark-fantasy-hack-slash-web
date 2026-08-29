@@ -13,7 +13,7 @@ export function generateGambleItem(
   gambleLevel: number = 1,
   cost: number
 ): GambleResult {
-  const effLevel = gambleLevel >= 10 ? 75 : gambleLevel >= 5 ? 50 : gambleLevel === 4 ? 38 : gambleLevel === 3 ? 26 : gambleLevel === 2 ? 15 : 1;
+  const effLevel = gambleLevel >= 15 ? 90 : gambleLevel >= 10 ? 75 : gambleLevel >= 7 ? 60 : gambleLevel >= 5 ? 50 : gambleLevel === 4 ? 38 : gambleLevel === 3 ? 26 : gambleLevel === 2 ? 15 : 1;
   const roll = Math.random() * 100;
   let rarity: GameItem['rarity'] = 'magic';
   if (roll > 98.5) rarity = 'legendary';
@@ -286,8 +286,12 @@ export function identifyItemHelper(item: GameItem, effLevel: number): GameItem {
   ];
 
   const pickAffixes = (count: number) => {
-    const shuffled = [...AFFIX_POOL].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, count);
+    const arr = [...AFFIX_POOL];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+    }
+    return arr.slice(0, count);
   };
 
   let finalName = item.name;

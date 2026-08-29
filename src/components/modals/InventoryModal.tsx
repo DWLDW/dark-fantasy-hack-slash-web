@@ -580,7 +580,7 @@ export const InventoryModal: React.FC = () => {
                     📦 가방에 교체 가능한 [{SLOT_NAMES[selectedSlot]}] 장비가 없습니다.
                   </div>
                 ) : (
-                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-1 max-h-[118px] overflow-y-auto pr-0.5">
+  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-1 max-h-[118px] overflow-y-auto pr-0.5 custom-scrollbar">
                     {stackedCandidates.map(({ item, count }) => {
                       const isSelected = activeCandidateItem?.id === item.id;
                       const isWeapon = item.slot === 'weapon';
@@ -624,7 +624,7 @@ export const InventoryModal: React.FC = () => {
               </div>
 
               {/* Single Focus Diff Card or Sub-Tabs Workspace */}
-              <div className="flex-1 min-h-0 overflow-y-auto">
+  <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
                 {activeCandidateItem ? (
                   <div className="space-y-1.5">
                     {/* Sub-Tabs Selector for Normal Runeword Base or Unique Socket Item */}

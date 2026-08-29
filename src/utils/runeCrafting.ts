@@ -1,12 +1,7 @@
-import { RUNEWORD_RECIPES, D2_RUNES } from '../data/gameData';
+import { RUNEWORD_RECIPES, D2_RUNES, D2_RUNE_ORDER } from '../data/gameData';
 import { RuneWordRecipe } from '../types/game';
 
-export const D2_RUNE_ORDER = [
-  'El', 'Eld', 'Tir', 'Nef', 'Eth', 'Ith', 'Tal', 'Ral', 'Ort', 'Thul',
-  'Amn', 'Sol', 'Shael', 'Dol', 'Hel', 'Io', 'Lum', 'Ko', 'Fal', 'Lem',
-  'Pul', 'Um', 'Mal', 'Ist', 'Gul', 'Vex', 'Ohm', 'Lo', 'Sur', 'Ber',
-  'Jah', 'Cham', 'Zod'
-];
+// D2_RUNE_ORDER is now single-sourced from src/data/runes.ts via gameData re-export
 
 export interface RuneCraftSimulation {
   canDirectCraft: boolean;

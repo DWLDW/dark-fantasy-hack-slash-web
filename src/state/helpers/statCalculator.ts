@@ -358,7 +358,7 @@ export function calculateTotalStats(
   const finalRageCostReduction = Math.min(60, rageCostReduction + speedRageReduction);
 
   const speedAtbBonus = Math.floor(attackSpeed * 0.25);
-  const finalAtb = Math.min(85, Math.max(baseAtbPercent, baseAtbPercent + speedAtbBonus));
+  const finalAtb = Math.min(85, baseAtbPercent + speedAtbBonus);
 
   allResist = Math.min(75, allResist + Math.floor((int + wis) * 0.35));
 

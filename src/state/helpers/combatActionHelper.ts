@@ -165,7 +165,7 @@ export function resolveHordeCounterAttack(
   for (let l = 0; l < 5; l++) {
     const laneAlive = survivors.filter(m => m.lane === l && m.hp > 0).sort((a, b) => a.depth - b.depth);
     if (laneAlive.length > 0) {
-      frontRowAttackers.push(laneAlive[0]);
+      frontRowAttackers.push({ ...laneAlive[0] });
     }
   }
 
@@ -180,6 +180,8 @@ export function resolveHordeCounterAttack(
   // 🛡️ Fortitude Chilling Armor: 50% defense boost
   const effectiveBaseDefense = chillingArmor ? Math.floor(defense * 1.5) : defense;
 
+  // Chilling freeze is tracked separately to avoid mutating survivors
+  const chilledLanes = new Set<number>();
   activeAttackers.forEach(m => {
     const isDodged = Math.random() * 100 < (evasion || 0);
     if (isDodged) {
@@ -187,9 +189,9 @@ export function resolveHordeCounterAttack(
       return;
     }
 
-    // ❄️ Chilling Armor Freeze-back: 50% chance to freeze the attacker
+    // ❄️ Chilling Armor Freeze-back: 50% chance to freeze the attacker next turn (no survivors mutation)
     if (chillingArmor && Math.random() < 0.50) {
-      m.isFrozen = true;
+      chilledLanes.add(m.lane);
     }
 
     const isElite = m.rank === 'elite' || m.rank === 'boss';
@@ -263,6 +265,10 @@ export function resolveHordeCounterAttack(
 
   // Charge tick: surviving front-row monsters build toward their next strike (+25 per turn).
   const chargedSurvivors = survivors.map(m => {
+    if (chilledLanes.has(m.lane) && m.hp > 0) {
+      const laneAlive = survivors.filter(s => s.lane === m.lane && s.hp > 0).sort((a, b) => a.depth - b.depth);
+      if (laneAlive[0]?.id === m.id) return { ...m, isFrozen: true, intent: { ...m.intent, chargePercent: 0 } };
+    }
     if (m.hp <= 0 || m.isFrozen) return { ...m, intent: { ...m.intent, chargePercent: 0 } };
     const laneAlive = survivors.filter(s => s.lane === m.lane && s.hp > 0).sort((a, b) => a.depth - b.depth);
     if (laneAlive[0]?.id !== m.id) return { ...m }; // only front-row charges

@@ -237,7 +237,7 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
 
               {/* Dropped Items Grid (Clickable to Equip immediately) */}
               {latestRoomLootEvent.items && latestRoomLootEvent.items.length > 0 ? (
-                <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto px-1">
+  <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto px-1 custom-scrollbar">
                   {latestRoomLootEvent.items.map(item => {
                     const isIdentified = item.isIdentified !== false;
                     const score = isIdentified ? calculateItemScore(item) : null;
@@ -494,12 +494,12 @@ export const BattleFieldLanes: React.FC<BattleFieldLanesProps> = React.memo(({ d
               >
                 {/* Lane Top Header & Hit Summary */}
                 <div className="w-full flex-shrink-0 space-y-0.5">
-                  <div className={`w-full py-0.5 px-1.5 text-center rounded text-[10px] sm:text-xs font-mono font-black flex items-center justify-between transition ${
+                <div className={`w-full py-0.5 px-1.5 text-center rounded text-[11px] sm:text-xs font-mono font-black flex items-center justify-between transition ${
                     hasBoss
                       ? 'bg-gradient-to-r from-red-700 to-amber-600 text-white font-black shadow'
                       : isPlayerInLane
-                      ? 'bg-gradient-to-r from-amber-400 to-yellow-300 text-iron-950 font-black shadow'
-                      : 'bg-iron-950/95 text-gray-200 border border-iron-800'
+                      ? 'bg-gradient-to-r from-amber-400 to-yellow-300 text-iron-950 font-black shadow ring-1 ring-amber-300/60'
+                      : 'bg-iron-900/95 text-brass-100 border border-iron-600 font-black tracking-wide'
                   }`}>
                     <span className="truncate font-bold">
                       {hasBoss ? '👑 BOSS' : `${laneIdx + 1}번`}

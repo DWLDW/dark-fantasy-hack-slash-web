@@ -91,7 +91,7 @@ export const RuneCraftPanel: React.FC<RuneCraftPanelProps> = ({
   if (eligibleRuneWords.length === 0) return null;
 
   return (
-    <div className="space-y-2 max-h-[290px] overflow-y-auto pr-1 select-none">
+  <div className="space-y-2 max-h-[290px] overflow-y-auto pr-1 select-none custom-scrollbar">
       <div className="text-[11px] font-bold text-amber-300 font-cinzel flex items-center gap-1.5 px-0.5">
         <Sparkles className="w-3.5 h-3.5 text-amber-400" />
         <span>이 베이스 장비로 제작 가능한 룬워드 목록 및 완성 능력치:</span>

@@ -153,6 +153,11 @@ const MainLayout: React.FC = () => {
     return 1;
   }, [currentDungeon?.id]);
 
+  const bossName = React.useMemo(() => {
+    if (!isBossRoom) return undefined;
+    return monsters.find(m => m.rank === 'boss')?.name;
+  }, [isBossRoom, monsters]);
+
   useEffect(() => {
     const mode = viewMode === 'battle' ? (isBossRoom ? 'boss' : 'dungeon') : 'town';
     startBGM({
@@ -160,9 +165,9 @@ const MainLayout: React.FC = () => {
       act: currentAct,
       isRift,
       riftTier: currentDungeon?.riftTier || endlessRiftTier,
-      bossName: isBossRoom ? monsters.find(m => m.rank === 'boss')?.name : undefined
+      bossName
     });
-  }, [viewMode, isBossRoom, currentAct, isRift, currentDungeon?.riftTier, endlessRiftTier, monsters]);
+  }, [viewMode, isBossRoom, currentAct, isRift, currentDungeon?.riftTier, endlessRiftTier, bossName]);
 
   useEffect(() => {
     let cancelled = false;

@@ -56,6 +56,7 @@ export interface SaveDataPayload {
   claimedAchievements?: string[];
   hasSeenTutorial?: boolean;
   townUpgrades?: TownUpgrades;
+  endlessRiftTier?: number;
   timestamp?: number;
 }
 
@@ -63,7 +64,20 @@ export const getInitialSave = (): SaveDataPayload | null => {
   if (typeof window === 'undefined') return null;
   try {
     const raw = localStorage.getItem(SAVE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw) as SaveDataPayload;
+      // Migrate legacy endlessRiftTier stored under separate key
+      if (parsed.endlessRiftTier === undefined) {
+        try {
+          const legacy = localStorage.getItem('d2_endless_rift_tier');
+          if (legacy) {
+            const tier = parseInt(legacy, 10);
+            if (!isNaN(tier) && tier > 1) parsed.endlessRiftTier = Math.max(1, tier);
+          }
+        } catch {}
+      }
+      return parsed;
+    }
   } catch (e) {
     console.error('Failed to load save from localStorage', e);
   }
