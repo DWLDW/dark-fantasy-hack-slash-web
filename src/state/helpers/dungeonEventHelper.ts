@@ -44,6 +44,38 @@ export function getRunePoolForDungeon(dungeonId: string, riftTier?: number): str
   return DUNGEON_RUNE_TIERS.act1;
 }
 
+/**
+ * 가중 룬 추첨 — 저렙룬은 쌓이고 고렙룬은 희귀
+ * pool[0]=최저룬, pool[N-1]=최고룬 일 때 지수 감쇠 가중치
+ * - 기본 decay 0.84(Act1 평탄) → 0.66(Act5/Rift 가파름): Act가 높을수록 고렙룬 더 희귀
+ * - Fortune(MF)과 난이도가 높을수록 곡선이 살짝 평탄해져 고렙룬 확률이 소폭 상승
+ * - 결과: El/Tal/Gul 등은 20~25%, Ber/Jah/Zod 등은 1.5~4%로 유지
+ */
+export function pickWeightedRune(
+  pool: string[],
+  opts: { fortune?: number; difficultyLevel?: number; dungeonIdx?: number } = {}
+): string {
+  if (pool.length === 0) return 'El';
+  if (pool.length === 1) return pool[0];
+  const fortune = Math.max(0, opts.fortune || 0);
+  const difficultyLevel = Math.max(1, opts.difficultyLevel || 1);
+  const dungeonIdx = Math.max(0, opts.dungeonIdx || 0);
+  // Act가 높을수록 가파름 (고렙룬 더 희귀)
+  const baseDecay = Math.max(0.62, 0.84 - dungeonIdx * 0.012);
+  // Fortune/난이도는 곡선을 살짝 평탄화 (고렙룬 소폭 상향)
+  const fortuneBonus = Math.min(0.07, fortune * 0.00055);
+  const diffBonus = Math.min(0.05, (difficultyLevel - 1) * 0.006);
+  const decay = Math.min(0.88, baseDecay + fortuneBonus + diffBonus);
+  const weights = pool.map((_, i) => Math.pow(decay, i));
+  const total = weights.reduce((a, b) => a + b, 0);
+  let r = Math.random() * total;
+  for (let i = 0; i < pool.length; i++) {
+    r -= weights[i];
+    if (r <= 0) return pool[i];
+  }
+  return pool[pool.length - 1];
+}
+
 export interface TreasureReward {
   gold: number;
   shards: number;
@@ -157,12 +189,13 @@ export function scaleItemForDifficulty(baseItem: GameItem, difficultyLevel: numb
   };
 }
 
-// MF (Magic Find) grade weighting: fortune shifts the roll window toward special drops.
+// MF (Magic Find) — rebalance: cap 32→38%, progressive to MF 110
+// - 8% base, Act5/Rift up to +6%p, high MF keeps climbing to 38%
 function rollSpecialDrop(baseFortune: number, dungeonIdx: number): boolean {
   const fortune = Math.max(0, baseFortune || 0);
-  const actBonus = dungeonIdx * 2;
-  // Base ~8%, up to ~32% at high MF. Roll under threshold => special drop.
-  const specialChance = Math.min(0.32, 0.08 + fortune * 0.0025 + actBonus * 0.01);
+  const actIdx = Math.min(5, Math.floor(Math.max(0, dungeonIdx) / 4));
+  const actBonus = actIdx * 1.5;
+  const specialChance = Math.min(0.38, 0.08 + fortune * 0.0022 + actBonus * 0.01 + Math.min(0.04, fortune * 0.00035));
   return Math.random() < specialChance;
 }
 
@@ -300,7 +333,11 @@ export function claimTreasureHelper(
 
 export function claimRuneAltarHelper(dungeonId: string, riftTier?: number): { runeName: string; count: number } {
   const runes = getRunePoolForDungeon(dungeonId, riftTier);
-  const pickedRune = runes[Math.floor(Math.random() * runes.length)];
+  // rune altar도 저렙 가중 — Act 기반 가중 (고렙룬 희귀 유지, ESM-safe)
+  const actNum = dungeonId.startsWith('act5') ? 5 : dungeonId.startsWith('act4') ? 4 : dungeonId.startsWith('act3') ? 3 : dungeonId.startsWith('act2') ? 2 : 1;
+  const riftIdx = riftTier ? Math.min(19, Math.max(8, riftTier + 7)) : 0;
+  const dungeonIdx = dungeonId.startsWith('endless_rift_') ? riftIdx : (actNum - 1) * 4;
+  const pickedRune = pickWeightedRune(runes, { dungeonIdx });
   return { runeName: pickedRune, count: 1 };
 }
 
@@ -375,11 +412,12 @@ export function generateVictoryLoot(
 
   const availableRunes = getRunePoolForDungeon(currentDungeon.id, currentDungeon.riftTier);
   const droppedRunes: Record<string, number> = {};
-  const runeDropCount = Math.min(5, Math.floor(1 + Math.random() * 2 + (playerFortune > 30 ? 1 : 0) + (difficultyLevel >= 10 ? 1 : 0)));
+  // Rune quantity: MF30→+1, Diff5→+1, Diff10→+1 추가 (초반 기근 완화, 고렙은 점진)
+  const runeDropCount = Math.min(5, Math.floor(1 + Math.random() * 2 + (playerFortune > 30 ? 1 : 0) + (difficultyLevel >= 5 ? 1 : 0) + (difficultyLevel >= 10 ? 1 : 0)));
 
   for (let i = 0; i < runeDropCount; i++) {
-    const randomRune = availableRunes[Math.floor(Math.random() * availableRunes.length)];
-    droppedRunes[randomRune] = (droppedRunes[randomRune] || 0) + 1;
+    const picked = pickWeightedRune(availableRunes, { fortune: playerFortune, difficultyLevel, dungeonIdx: dungeonIndex });
+    droppedRunes[picked] = (droppedRunes[picked] || 0) + 1;
   }
 
   const pool = currentDungeon.dropItems && currentDungeon.dropItems.length > 0
@@ -465,14 +503,18 @@ export function generateRoomClearLoot(
   if (roomType === 'elite') {
     gold = Math.floor((80 + Math.random() * 60) * (dungeonIdx + 1));
     items.push(makeDungeonDrop(pool, ctx, 'elite', 0));
-    if (Math.random() < 0.4) items.push(makeDungeonDrop(pool, ctx, 'elite', 1));
+    // MF가 높을수록 두 번째 장비 확률 소폭 상승 (42%→~52%)
+    const eliteSecondChance = Math.min(0.55, 0.40 + playerFortune * 0.0012);
+    if (Math.random() < eliteSecondChance) items.push(makeDungeonDrop(pool, ctx, 'elite', 1));
     if (Math.random() < 0.35) {
       const runes = getRunePoolForDungeon(currentDungeon.id, currentDungeon.riftTier);
-      runeName = runes[Math.floor(Math.random() * runes.length)];
+      runeName = pickWeightedRune(runes, { fortune: playerFortune, difficultyLevel, dungeonIdx });
     }
   } else if (roomType === 'normal') {
     gold = Math.floor((20 + Math.random() * 30) * (dungeonIdx + 1));
-    if (Math.random() < 0.42) {
+    // MF가 진행될수록 normal방도 소소하게 더 자주 드랍 (42%→~55%)
+    const normalChance = Math.min(0.56, 0.42 + playerFortune * 0.0015);
+    if (Math.random() < normalChance) {
       items.push(makeDungeonDrop(pool, ctx, 'wave', 0));
     }
   }

@@ -73,6 +73,10 @@ export interface GameItem {
   specialEffect?: string;
   speedCategory?: 'very_fast' | 'fast' | 'normal' | 'slow' | 'very_slow';
   baseAtbPercent?: number; // 기본 시작 ATB 게이지 %
+  /** B안 무기군 분류: sword/axe/mace/polearm/bow/crossbow — weapon 슬롯일 때만 유효 */
+  weaponGroup?: 'sword' | 'axe' | 'mace' | 'polearm' | 'bow' | 'crossbow';
+  /** B안 무기 과군: melee / missile — 무기군 상위 분류 */
+  weaponSuperGroup?: 'melee' | 'missile';
   stackCount?: number; // 동일 베이스/아이템 중첩 수치
   value: number;
   icon: string;
@@ -91,6 +95,10 @@ export interface RuneWordRecipe {
   bonusStats: ItemStats;
   specialEffect: string;
   description: string;
+  /** B안 무기군 제한: 비어있으면 모든 weapon 허용 */
+  allowedWeaponGroups?: Array<'sword' | 'axe' | 'mace' | 'polearm' | 'bow' | 'crossbow'>;
+  /** B안 무기 상위군 제한: melee/missile */
+  allowedWeaponSuperGroup?: 'melee' | 'missile';
 }
 
 export interface ConsumableItem {

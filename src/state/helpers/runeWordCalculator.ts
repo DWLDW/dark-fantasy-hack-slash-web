@@ -56,6 +56,19 @@ export function isRuneWordSlotCompatible(targetSlot: string, recipe: RuneWordRec
   return false;
 }
 
+/** B안 무기군 호환 검사: allowedWeaponGroups가 있으면 weaponGroup이 그 중 하나여야 함 */
+export function isWeaponGroupCompatible(item: { weaponGroup?: string; weaponSuperGroup?: string }, recipe: RuneWordRecipe): boolean {
+  if (recipe.allowedWeaponGroups && recipe.allowedWeaponGroups.length > 0) {
+    if (!item.weaponGroup) return false;
+    if (!recipe.allowedWeaponGroups.includes(item.weaponGroup as any)) return false;
+  }
+  if (recipe.allowedWeaponSuperGroup) {
+    if (!item.weaponSuperGroup) return false;
+    if (item.weaponSuperGroup !== recipe.allowedWeaponSuperGroup) return false;
+  }
+  return true;
+}
+
 export function craftRuneWordHelper(
   targetItem: GameItem | undefined,
   recipeId: string,
@@ -66,12 +79,17 @@ export function craftRuneWordHelper(
     return { success: false, message: '제작 대상 아이템 또는 룬워드 레시피를 찾을 수 없습니다.' };
   }
 
-  const isSlotMatch = isRuneWordSlotCompatible(targetItem.slot, recipe);
+  const isSlotMatch = isRuneWordSlotCompatible(targetItem.slot, recipe) && isWeaponGroupCompatible(targetItem as any, recipe);
 
   if (targetItem.rarity !== 'normal' || !isSlotMatch || (targetItem.sockets || 0) !== recipe.requiredSockets) {
     return {
       success: false,
-      message: `[${targetItem.name}]은(는) [${recipe.name}]의 제작 조건(노말 ${recipe.requiredSockets}소켓 ${recipe.allowedSlot})에 맞지 않습니다.`
+      message: (() => {
+        const wg = (recipe.allowedWeaponGroups && recipe.allowedWeaponGroups.length)
+          ? ` 무기군 [${recipe.allowedWeaponGroups.join('/')}]`
+          : '';
+        return `[${targetItem.name}]은(는) [${recipe.name}]의 제작 조건(노말 ${recipe.requiredSockets}소켓 ${recipe.allowedSlot}${wg})에 맞지 않습니다.`;
+      })()
     };
   }
 
@@ -114,12 +132,17 @@ export function craftRuneWordWithTransmuteHelper(
     return { success: false, message: '제작 대상 아이템 또는 룬워드 레시피를 찾을 수 없습니다.' };
   }
 
-  const isSlotMatch = isRuneWordSlotCompatible(targetItem.slot, recipe);
+  const isSlotMatch = isRuneWordSlotCompatible(targetItem.slot, recipe) && isWeaponGroupCompatible(targetItem as any, recipe);
 
   if (targetItem.rarity !== 'normal' || !isSlotMatch || (targetItem.sockets || 0) !== recipe.requiredSockets) {
     return {
       success: false,
-      message: `[${targetItem.name}]은(는) [${recipe.name}]의 제작 조건(노말 ${recipe.requiredSockets}소켓 ${recipe.allowedSlot})에 맞지 않습니다.`
+      message: (() => {
+        const wg = (recipe.allowedWeaponGroups && recipe.allowedWeaponGroups.length)
+          ? ` 무기군 [${recipe.allowedWeaponGroups.join('/')}]`
+          : '';
+        return `[${targetItem.name}]은(는) [${recipe.name}]의 제작 조건(노말 ${recipe.requiredSockets}소켓 ${recipe.allowedSlot}${wg})에 맞지 않습니다.`;
+      })()
     };
   }
 
