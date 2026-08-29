@@ -32,3 +32,6 @@ dist.tar.gz
 .playwright-cli/
 _review_shots/
 _audit_shots/
+
+# WorkBuddy project data (memory, session state)
+.workbuddy-ai/
