@@ -1,7 +1,7 @@
 import { GameItem, ItemRarity, RuneWordRecipe, EquipSlot } from '../../types/game';
 import { D2_RUNES } from '../../data/runes';
 import { RUNEWORD_RECIPES } from '../../data/runeWords';
-import { calculateRuneWordItem } from './runeWordCalculator';
+import { calculateRuneWordItem, isWeaponGroupCompatible } from './runeWordCalculator';
 
 export function extractRuneKey(itemOrName: GameItem | string): string {
   const name = typeof itemOrName === 'string' ? itemOrName : itemOrName.name;
@@ -83,6 +83,7 @@ export function socketRuneHelper(
     runeWordMatch = RUNEWORD_RECIPES.find(rw => {
       const isSlotMatching = rw.allowedSlot === target.slot || (rw.allowedSlot === 'weapon' && (target.slot === 'weapon' || target.slot === 'shield'));
       if (!isSlotMatching || rw.requiredSockets !== target.sockets) return false;
+      if (!isWeaponGroupCompatible(target, rw)) return false;
       return rw.requiredRunes.every((r, idx) => r === newSocketed[idx]);
     });
 

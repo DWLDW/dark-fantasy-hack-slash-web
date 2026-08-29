@@ -136,6 +136,25 @@ export const GAME_ITEMS_POOL: GameItem[] = [
     description: '[엘리트 폴암] 빠른 속도의 4소켓 무기. 통찰(Insight)이나 무한(Infinity)의 최고급 베이스.'
   },
   {
+    id: 'e_giant_thresher_5s',
+    name: '자이언트 쓰레셔 (5 소켓)',
+    baseItemName: '자이언트 쓰레셔',
+    rarity: 'normal',
+    tier: 'elite',
+    slot: 'weapon',
+    sockets: 5,
+    socketedRunes: [],
+    isIdentified: true,
+    weaponGroup: 'polearm',
+    weaponSuperGroup: 'melee',
+    speedCategory: 'fast',
+    baseAtbPercent: 70,
+    stats: { minDmg: 30, maxDmg: 76, attackSpeed: 20 },
+    value: 2600,
+    icon: 'Sword',
+    description: '[엘리트 폴암] 거대한 위용의 5소켓 양손 무기. 순종(Obedience)과 파멸(Doom)의 최고급 베이스.'
+  },
+  {
     id: 'e_phase_blade_5s',
     name: '페이즈 블레이드 (5 소켓)',
     baseItemName: '페이즈 블레이드',

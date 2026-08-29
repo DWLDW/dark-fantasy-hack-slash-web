@@ -3,7 +3,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { useGame } from '../../state/gameStore';
 import { DUNGEONS_DATA, RUNEWORD_RECIPES, D2_RUNES } from '../../data/gameData';
 import { simulateRuneWordCrafting } from '../../utils/runeCrafting';
-import { isRuneWordSlotCompatible } from '../../state/helpers/runeWordCalculator';
+import { isRuneWordSlotCompatible, isWeaponGroupCompatible } from '../../state/helpers/runeWordCalculator';
 import { POTION_CAPACITY_TIERS, getPotionCapacityUpgradeCost, getPotionHealingUpgradeCost, getConsumablePowerUpgradeCost, getGambleLevelUpgradeCost } from '../../state/helpers/cubeCraftingHelper';
 import { GameItem, EquipSlot } from '../../types/game';
 import { ACHIEVEMENTS } from '../../data/achievements';
@@ -742,11 +742,13 @@ export const TownView: React.FC = React.memo(() => {
                     {RUNEWORD_RECIPES.filter(r => {
                       if (!selectedBaseItem) return true;
                       const isSlotMatch = isRuneWordSlotCompatible(selectedBaseItem.slot, r);
-                      return isSlotMatch && r.requiredSockets === selectedBaseItem.sockets;
+                      const isGroupMatch = isWeaponGroupCompatible(selectedBaseItem, r);
+                      return isSlotMatch && isGroupMatch && r.requiredSockets === selectedBaseItem.sockets;
                     }).map(recipe => {
                       const sim = simulateRuneWordCrafting(recipe, runesVault);
                       const isSlotMatch = selectedBaseItem ? isRuneWordSlotCompatible(selectedBaseItem.slot, recipe) : false;
-                      const isMatchingSelected = Boolean(selectedBaseItem && isSlotMatch && recipe.requiredSockets === selectedBaseItem.sockets);
+                      const isGroupMatch = selectedBaseItem ? isWeaponGroupCompatible(selectedBaseItem, recipe) : false;
+                      const isMatchingSelected = Boolean(selectedBaseItem && isSlotMatch && isGroupMatch && recipe.requiredSockets === selectedBaseItem.sockets);
 
                       return (
                         <div
